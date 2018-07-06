@@ -368,9 +368,17 @@ str(spcomp16k)
 str(spcomp17k)
 #str(spcomp18k)
 
-# remove unnecessary columns to compile data later
+# compile 2015 quadrat data to have one explanatory variable 'cover' per plot
+spcomp15k$Cover <- spcomp15k$Cover * .25
+spcomp15kcover<-aggregate(Cover~Date*Plot*Species, spcomp15k, sum)
+names(spcomp15kcover)[names(spcomp15kcover)=="Cover"] <- "new.cover"
+spcomp15k<- merge(spcomp15k, spcomp15kcover)
+
+# remove unnecessary columns and rename synonym columns to compile data later
 spcomp15k$Site<-NULL
 spcomp15k$Quadrat<-NULL ### quadrat data only collected in 2015
+spcomp15k$Cover<-NULL
+names(spcomp15k)[names(spcomp15k)=="new.cover"] <- "cover"
 spcomp17k$Site<-NULL
 spcomp17k$Notes<-NULL
 
@@ -398,6 +406,9 @@ spcomp16k$date <- as.Date(spcomp16k$date,format="%m/%d/%Y")
 spcomp17k$date <- as.Date(spcomp17k$date,format="%m/%d/%Y")
 #spcomp18k$date <- as.Date(spcomp18k$date,format="%m/%d/%Y")
 
+# Delete repeat 2015 data due to quadrats
+spcomp15k<-unique( spcomp15k[ , 1:6 ] )
+
 # Combine spcomp data from KBS from years 2016, 2017, and 2018
 spcompk<-rbind(spcomp15k,spcomp16k,spcomp17k) ##add spcomp18k later
 spcompk$site<-"KBS"
@@ -413,9 +424,17 @@ str(spcomp16u)
 str(spcomp17u)
 #str(spcomp18u)
 
+# compile 2015 quadrat data to have one explanatory variable 'cover' per plot
+spcomp15u$Cover <- spcomp15u$Cover * .25
+spcomp15ucover<-aggregate(Cover~Date*Plot*Species, spcomp15u, sum)
+names(spcomp15ucover)[names(spcomp15ucover)=="Cover"] <- "new.cover"
+spcomp15u<- merge(spcomp15u, spcomp15ucover)
+
 # remove unnecessary columns and rename synonym columns to compile data later
 spcomp15u$Site<-NULL
 spcomp15u$Quadrat<-NULL ### quadrat data only recorded in 2015
+spcomp15u$Cover<-NULL
+names(spcomp15u)[names(spcomp15u)=="new.cover"] <- "cover"
 names(spcomp16u)[names(spcomp16u)=="Julian_Day"] <- "Julian"
 names(spcomp16u)[names(spcomp16u)=="Percent_Cover"] <- "Cover"
 spcomp17u$Site<-NULL
@@ -444,6 +463,9 @@ spcomp15u$date <- as.Date(spcomp15u$date,format="%m/%d/%Y")
 spcomp16u$date <- as.Date(spcomp16u$date,format="%m/%d/%Y")
 spcomp17u$date <- as.Date(spcomp17u$date,format="%m/%d/%Y")
 #spcomp18u$date <- as.Date(spcomp18u$date,format="%m/%d/%Y")
+
+# Delete repeat 2015 data due to quadrats
+spcomp15u<-unique( spcomp15u[ , 1:6 ] )
 
 # Combine spcomp data from UMBS from years 2016, 2017, and 2018
 spcompu<-rbind(spcomp15u,spcomp16u,spcomp17u) ## add spcomp18u
