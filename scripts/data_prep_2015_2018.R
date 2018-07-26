@@ -4,7 +4,7 @@
 ## DATA:          MI Warming x Herbivory Open Top Chamber experiment 2015-2018
 ## PROJECT:       "Direct and Indirect Effects of Climate Warming on Plant Communities"
 ## OUTPUT:        creates cleaned up data for 2015-2018 for response variables
-## DATE:          June 14, 2018
+## DATE:          June 14, 2018; July 26 PLZ added a few edits, and noted KBS 2018 is not entered online - will check w Mark
 
 ## This script reads in raw data compiled from 2015-2018 experiment data.
 ## This script then combines all years into 1 dataframe per response variable. 
@@ -26,9 +26,10 @@ graphics.off()
 # set working directory (if you're not PLZ, change this to the correct path for your
 # Google Drive directory. It should point to where we have /final_data
 setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/final_data/")
+# setwd("/Volumes/GoogleDrive/My Drive/Research/TrophicWarming/TrophicWarming_Experiment/MIWarmHerb_FieldExperiment/data/final_data/")
 
 ## Edit below for any packages you'll be using
-for (package in c("ggplot2", "splines", "lme4", "plyr", "RLRsim","lmerTest", "lubridate")) {
+for (package in c("ggplot2")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -61,6 +62,10 @@ save.image("otc_data_prep.RData")
 # levels: "../../"
 
 # you may need to edit the exact filenames
+# # **Note that the Google Sheets have the first line or two with example data from 
+# # a previous year - these must be deleted when exporting to CSV!!
+# # PLZ did this for 2017 and 2018 data at KBS and UMBS as of July 26, 2018 
+# # This involved removing example rows from 2016.
 # Read in KBS green-up data from all years
 green16k<-read.csv("../raw_data/KBS/2016_Plant_Data/KBS_Greenup_2016.csv")
 green17k<-read.csv("../raw_data/KBS/2017_Plant_Data/kbs_greenup_2017.csv")
@@ -87,6 +92,11 @@ names(green16k)[1:5] <- tolower(names(green16k)[1:5])
 names(green17k)[1:5] <- tolower(names(green17k)[1:5])
 #names(green18k)[1:5] <- tolower(names(green18k)[1:5])
 
+# double check that these files contain just that year's data
+unique(green16k$date) # ok
+unique(green17k$date) # ok
+#unique(green18k$date)
+
 # Add column "year"
 green16k$year<-"2016"
 green17k$year<-"2017"
@@ -97,9 +107,9 @@ green16k <- green16k[, c("plot", "species", "cover", "date", "julian", "year")]
 green17k <- green17k[, c("plot", "species", "cover", "date", "julian", "year")]
 #green18k <- green18k[, c("plot", "species", "cover", "date", "julian", "year")]
 
-# Change date from factor to date
+# Change date from factor to date: note that the date format differs
 green16k$date <- as.Date(green16k$date,format="%m/%d/%Y")
-green17k$date <- as.Date(green17k$date,format="%m/%d/%Y")
+green17k$date <- as.Date(green17k$date,format="%m/%d/%y") ## Stopped edits here 7/26
 #green18k$date <- as.Date(green18k$date,format="%m/%d/%Y")
 
 # Combine green-up data from KBS from years 2016, 2017, and 2018
@@ -474,7 +484,7 @@ spcompu$site<-"UMBS"
 # Then merge all spcomp data
 spcomp1518<-rbind(spcompk, spcompu)
 # output spcomp into the final_data folder
-write.csv(spcomp1518, file="spcomp1518.csv")
+write.csv(spcomp1518, file="spcomp1518.csv",row.names=F)
 
 
 ### Pull in plant herbivory data###
@@ -590,7 +600,7 @@ herbu$site<-"UMBS"
 # Then merge all herb data
 herb1518<-rbind(herbk, herbu)
 # output herb into the final_data folder
-write.csv(herb1518, file="herb1518.csv")
+write.csv(herb1518, file="herb1518.csv",row.names=F)
 
 # End of script:
 save.image("otc_data_prep.RData")
