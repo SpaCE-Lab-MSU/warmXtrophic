@@ -1,14 +1,14 @@
-##################    prep HOBO data    ###############################
-#This script reads in HOBO data from raw_data, combines the data from the U21 and the H?? units for each pair, and writes a CSV file to the final_data folder.  The KBS_sensors and UMBS_sensors scripts then take that data and summarize/analyze how the chambers affect the abiotic environment. 
+##################    prep HOBO DATA LOGGERS    ###############################
+#This script reads in HOBO data from raw_data, combines the data from the U21 and the H12 units for each pair, and writes a CSV file to the final_data folder.  
+#The KBS_sensors and UMBS_sensors scripts then take that data and summarize/analyze how the chambers affect the abiotic environment. 
 # original script created by NKL & KBW 2016-2017
+# KS edit May 23, 2018: created merged files for UMBS; August 1, 2018: remove manual preparation step and add 2018 data from KBS and UMBS
 
 rm(list=ls())
 
 #read in the data (change the path to navigate to the MIGrass directory on your computer).
 #setwd("/Users/Nina/Dropbox/MI_GRASS/")
-setwd("S:/DATA/MIGrass/")
-
-### Begin with HOBO data that have been manually prepared by removing header row and renaming columns. The column with the time stamp must be named "Date_Time". Also try to remove any "Logged" columns - the HOBO U12 units print a line marking each time data were offloaded.
+setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/")
 
 ############ KBS Pair 1
 KBS_1H <- read.csv("raw_data/KBS/sensor_data/KBS_1H.csv")
@@ -99,20 +99,54 @@ write.csv(KBS_3, file="final_data/KBS/sensor_data/KBS_3.csv")
 #######################################################################
 #    UMBS
 #######################################################################
+# KS: Relaunched HOBO loggers on 6-25-18
 
 ##UMBS Pair 1
-UMBS_1H <- read.csv("raw_data/UMBS/sensor_data/UMBS_1H.csv")
-str(UMBS_1H)
-summary(UMBS_1H)
+UMBS_1H_2017 <- read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_1H.csv")
+str(UMBS_1H_2017)
+summary(UMBS_1H_2017)
+UMBS_1H_2018a <- read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_1H_1.csv", skip=1)
+UMBS_1H_2018b <- read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_1H_731.csv", skip=1)
+UMBS_1H_2018 <- rbind(UMBS_1H_2018a, UMBS_1H_2018b)
+str(UMBS_1H_2018)
+summary(UMBS_1H_2018)
 
-UMBS_1U <- read.csv("raw_data/UMBS/sensor_data/UMBS_1U.csv")
-str(UMBS_1U)
-summary(UMBS_1U)
+UMBS_1U_2017 <- read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_1U.csv")
+tail(UMBS_1U_2017)
+str(UMBS_1U_2017)
+summary(UMBS_1U_2017)
+UMBS_1U_2018a <- read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_1U_1.csv", skip=1)
+UMBS_1U_2018b <- read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_1U_731.csv", skip=1)
+UMBS_1U_2018 <- rbind(UMBS_1U_2018a, UMBS_1U_2018b)
+str(UMBS_1U_2018)
+summary(UMBS_1U_2018)
 
 
-UMBS_1 <- merge(UMBS_1H, UMBS_1U, by="Date_Time", all.x=T, all.y=T)
-str(UMBS_1)
-summary(UMBS_1)
+UMBS_1_2017 <- merge(UMBS_1H_2017, UMBS_1U_2017, by="Date_Time", all.x=T, all.y=T)
+str(UMBS_1_2017)
+summary(UMBS_1_2017)
+UMBS_1_2018 <- merge(UMBS_1H_2018, UMBS_1U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+str(UMBS_1_2018)
+summary(UMBS_1_2018)
+
+# rename columns to match manually curated data
+UMBS_1_2018$X.<-NULL
+UMBS_1_2018$X..x<-NULL
+UMBS_1_2018$X..y<-NULL
+UMBS_1_2017[2] <- NULL # "X..x"
+UMBS_1_2017[8]<- NULL # "X..y"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Water.Content..m..m...LGR.S.N..10956853..SEN.S.N..10736057..LBL..1H_ambient_soil_moisture_5cm."] <- "X1H_ambient_soil_moisture_5cm"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Water.Content..m..m...LGR.S.N..10956853..SEN.S.N..10736059..LBL..1H_warmed_soil_moisture_5cm."] <- "X1H_warmed_soil_moisture_5cm"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Temp...F..LGR.S.N..10956853..SEN.S.N..10737457..LBL..1H_ambient_air_1m."] <- "X1H_ambient_air_1m"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="RH.....LGR.S.N..10956853..SEN.S.N..10737457..LBL..1H_ambient_RH_1m."] <- "X1H_ambient_RH_1m"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Temp...F..LGR.S.N..10956853..SEN.S.N..10737462..LBL..1H_warmed_air_1m."] <- "X1H_warmed_air_1m"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="RH.....LGR.S.N..10956853..SEN.S.N..10737462..LBL..1H_warmed_RH_1m."] <- "X1H_warmed_RH_1m"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm."] <- "X1U_ambient_soil_temp_5cm"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_air_10cm."] <- "X1U_ambient_air_10cm"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_air_10cm."] <- "X1U_warmed_air_10cm"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "X1U_warmed_soil_temp_5cm"
+names(UMBS_1_2018)[names(UMBS_1_2018)=="Date.Time..GMT.04.00"] <- "Date_Time"
+head(UMBS_1_2018)
 
 #check any columns with NA values, if present
 #check to see if all days contain 24h.(only first and last days not expected to have 24h.)
@@ -126,19 +160,55 @@ testing1 <- tapply(DateTime1_hours, as.factor(DateTime1_days), length)
 subset(testing1, testing1<24)
 subset(testing1, testing1>24)
 
-write.csv(UMBS_1, file="final_data/UMBS/sensor_data/UMBS_1.csv")
+write.csv(UMBS_1_2017, file="final_data/UMBS/sensor_data/2017/UMBS_1.csv")
+write.csv(UMBS_1_2018, file="final_data/UMBS/sensor_data/2018/UMBS_1.csv")
 
 ############## UMBS Pair 2
-UMBS_2H <- read.csv("raw_data/UMBS/sensor_data/UMBS_2H.csv")
-str(UMBS_2H)
-summary(UMBS_2H)
+UMBS_2H_2017 <- read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_2H.csv")
+str(UMBS_2H_2017)
+summary(UMBS_2H_2017)
+UMBS_2H_2018a <- read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_2H_1.csv", skip=1)
+UMBS_2H_2018b <- read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_2H_731.csv", skip=1)
+UMBS_2H_2018 <- rbind(UMBS_2H_2018a, UMBS_2H_2018b)
+str(UMBS_2H_2018)
+summary(UMBS_2H_2018)
 
-UMBS_2U <- read.csv("raw_data/UMBS/sensor_data/UMBS_2U.csv")
-str(UMBS_2U)
-summary(UMBS_2U)
-UMBS_2 <- merge(UMBS_2H, UMBS_2U, by="Date_Time", all.x=T, all.y=T)
-str(UMBS_2)
-summary(UMBS_2)
+UMBS_2U_2017 <- read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_2U.csv")
+tail(UMBS_2U_2017)
+str(UMBS_2U_2017)
+summary(UMBS_2U_2017)
+UMBS_2U_2018a <- read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_2U_1.csv", skip=1)
+UMBS_2U_2018b <- read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_2U_731.csv", skip=1)
+UMBS_2U_2018 <- rbind(UMBS_2U_2018a, UMBS_2U_2018b)
+str(UMBS_2U_2018)
+summary(UMBS_2U_2018)
+
+UMBS_2_2017 <- merge(UMBS_2H_2017, UMBS_2U_2017, by="Date_Time", all.x=T, all.y=T)
+str(UMBS_2_2017)
+summary(UMBS_2_2017)
+UMBS_2_2018 <- merge(UMBS_2H_2018, UMBS_2U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+str(UMBS_2_2018)
+summary(UMBS_2_2018)
+
+# rename columns to match manually curated data
+UMBS_2_2018$X.<-NULL
+UMBS_2_2018$X..x<-NULL
+UMBS_2_2018$X..y<-NULL
+UMBS_2_2017[2] <- NULL # "X..x"
+UMBS_2_2017[8]<- NULL # "X..y"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Water.Content..m..m...LGR.S.N..10910775..SEN.S.N..10736052..LBL..2H_warmed_soil_moisture_5cm."] <- "X2H_warmed_soil_moisture_5cm"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Water.Content..m..m...LGR.S.N..10910775..SEN.S.N..10736056..LBL..2H_ambient_soil_moisture_5cm."] <- "X2H_ambient_soil_moisture_5cm"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Temp...F..LGR.S.N..10910775..SEN.S.N..10737460..LBL..2H_warmed_air_1m."] <- "X2H_warmed_air_1m"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="RH.....LGR.S.N..10910775..SEN.S.N..10737460..LBL..2H_warmed_RH_1m."] <- "X2H_warmed_RH_1m"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Temp...F..LGR.S.N..10910775..SEN.S.N..10737461..LBL..2H_ambient_aim_1m."] <- "X2H_ambient_aim_1m"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="RH.....LGR.S.N..10910775..SEN.S.N..10737461..LBL..2H_ambient_RH_1m."] <- "X2H_ambient_RH_1m"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_air_10cm."] <- "X2U_ambient_air_10cm"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_soil_temp_5cm."] <- "X2U_ambient_soil_temp_5cm"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_air_10cm."] <- "X2U_warmed_air_10cm"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_soil_temp_5cm."] <- "X2U_warmed_soil_temp_5cm"
+names(UMBS_2_2018)[names(UMBS_2_2018)=="Date.Time..GMT.04.00"] <- "Date_Time"
+head(UMBS_2_2018)
+head(UMBS_2_2017)
 
 #check any columns with NA values, if present
 UMBS_2[-which(is.na(UMBS_2$X2U_ambient_air_10cm)),1]
@@ -155,20 +225,56 @@ testing2 <- tapply(DateTime2_hours, as.factor(DateTime2_days), length)
 subset(testing2, testing2<24) #09/26/2015 10:00 missing, likely because data was being downloaded/maintenance.
 subset(testing2, testing2>24)
 
-write.csv(UMBS_2, file="final_data/UMBS/sensor_data/UMBS_2.csv")
+write.csv(UMBS_2_2017, file="final_data/UMBS/sensor_data/2017/UMBS_2.csv")
+write.csv(UMBS_2_2018, file="final_data/UMBS/sensor_data/2018/UMBS_2.csv")
 
 ############# UMBS Pair 3
-UMBS_3H <- read.csv("raw_data/UMBS/sensor_data/UMBS_3H.csv")
-str(UMBS_3H)
-summary(UMBS_3H)
+UMBS_3H_2017 <- read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_3H.csv")
+str(UMBS_3H_2017)
+summary(UMBS_3H_2017)
+UMBS_3H_2018a <- read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_3H_1.csv", skip=1)
+UMBS_3H_2018b <- read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_3H_731.csv", skip=1)
+UMBS_3H_2018 <- rbind(UMBS_3H_2018a, UMBS_3H_2018b)
+str(UMBS_3H_2018)
+summary(UMBS_3H_2018)
 
-UMBS_3U <- read.csv("raw_data/UMBS/sensor_data/UMBS_3U.csv")
-str(UMBS_3U)
-summary(UMBS_3U)
+UMBS_3U_2017 <- read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_3U.csv")
+tail(UMBS_3U_2017)
+str(UMBS_3U_2017)
+summary(UMBS_3U_2017)
+UMBS_3U_2018a <- read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_3U_1.csv", skip=1)
+UMBS_3U_2018b <- read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_3U_731.csv", skip=1)
+UMBS_3U_2018 <- rbind(UMBS_3U_2018a, UMBS_3U_2018b)
+str(UMBS_3U_2018)
+summary(UMBS_3U_2018)
 
-UMBS_3 <- merge(UMBS_3H, UMBS_3U, by="Date_Time", all.x=T, all.y=T)
-str(UMBS_3)
-summary(UMBS_3)
+UMBS_3_2017 <- merge(UMBS_3H_2017, UMBS_3U_2017, by="Date_Time", all.x=T, all.y=T)
+str(UMBS_3_2017)
+summary(UMBS_3_2017)
+UMBS_3_2018 <- merge(UMBS_3H_2018, UMBS_3U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+str(UMBS_3_2018)
+summary(UMBS_3_2018)
+
+# rename columns to match manually curated data
+UMBS_3_2018$X.<-NULL
+UMBS_3_2018$X..x<-NULL
+UMBS_3_2018$X..y<-NULL
+UMBS_3_2017[2] <- NULL # "X..x"
+UMBS_3_2017[8]<- NULL # "X..y"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Water.Content..m..m...LGR.S.N..10736966..SEN.S.N..10736055..LBL..3H_warmed_soil_moisture_5cm."] <- "X3H_warmed_soil_moisture_5cm"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Water.Content..m..m...LGR.S.N..10736966..SEN.S.N..10736058..LBL..3H_ambient_soil_moisture_5cm."] <- "X3H_ambient_soil_moisture_5cm"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Temp...F..LGR.S.N..10736966..SEN.S.N..10737458..LBL..3H_warmed_air_1m."] <- "X3H_warmed_air_1m"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="RH.....LGR.S.N..10736966..SEN.S.N..10737458..LBL..3H_warmed_RH_1m."] <- "X3H_warmed_RH_1m"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Temp...F..LGR.S.N..10736966..SEN.S.N..10737459..LBL..1H_ambient_air_1m."] <- "X3H_ambient_air_1m"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="RH.....LGR.S.N..10736966..SEN.S.N..10737459..LBL..1H_ambient_RH_1m."] <- "X3H_ambient_RH_1m"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_warmed_air_10cm."] <- "X3U_warmed_air_10cm"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_warmed_soil_5cm."] <- "X3U_warmed_soil_temp_5cm"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_ambient_soil_5cm."] <- "X3U_ambient_soil_temp_5cm"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_ambient_air_10cm."] <- "X3U_ambient_air_10cm"
+names(UMBS_3_2018)[names(UMBS_3_2018)=="Date.Time..GMT.04.00"] <- "Date_Time"
+head(UMBS_3_2018)
+head(UMBS_3_2017)
+
 #####NOTE: Columns atr labelled X1H (e.g.) rather than X3H. 
 #check any columns with NA values, if present
 which(is.na(UMBS_3$X3U_ambient_air_10cm))
@@ -185,6 +291,39 @@ testing3 <- tapply(DateTime3_hours, as.factor(DateTime3_days), length)
 subset(testing3, testing3<24)
 subset(testing3, testing3>24)
 
-write.csv(UMBS_3, file="final_data/UMBS/sensor_data/UMBS_3.csv")
+write.csv(UMBS_3_2017, file="final_data/UMBS/sensor_data/2017/UMBS_3.csv")
+write.csv(UMBS_3_2018, file="final_data/UMBS/sensor_data/2018/UMBS_3.csv")
 
+####### Create a new merged file that contains data from all years for the both KBS and UMBS pairs.
+# write the merged file in the sensor_data folder #######
+
+#UMBS pair 1
+UMBS_1_s18 <- read.csv("final_data/UMBS/sensor_data/2018/UMBS_1.csv")
+UMBS_1_s17 <- read.csv("final_data/UMBS/sensor_data/2017/UMBS_1.csv")
+UMBS_1_s15_16 <- read.csv("final_data/UMBS/sensor_data/2015_2016/UMBS_1.csv")
+Merged_UMBS_1<-rbind(UMBS_1_s18,UMBS_1_s17,UMBS_1_s15_16)
+dim(Merged_UMBS_1)
+write.csv(Merged_UMBS_1, file="final_data/UMBS/sensor_data/Merged_UMBS_1.csv")
+
+#UMBS pair 2
+UMBS_2_s18 <- read.csv("final_data/UMBS/sensor_data/2018/UMBS_2.csv")
+UMBS_2_s17 <- read.csv("final_data/UMBS/sensor_data/2017/UMBS_2.csv")
+UMBS_2_s15_16 <- read.csv("final_data/UMBS/sensor_data/2015_2016/UMBS_2.csv")
+Merged_UMBS_2<-rbind(UMBS_2_s18,UMBS_2_s17,UMBS_2_s15_16)
+dim(Merged_UMBS_2)
+write.csv(Merged_UMBS_2, file="final_data/UMBS/sensor_data/Merged_UMBS_2.csv")
+
+#UMBS pair 3
+UMBS_3_s18 <- read.csv("final_data/UMBS/sensor_data/2018/UMBS_3.csv")
+UMBS_3_s17 <- read.csv("final_data/UMBS/sensor_data/2017/UMBS_3.csv")
+UMBS_3_s15_16 <- read.csv("final_data/UMBS/sensor_data/2015_2016/UMBS_3.csv")
+  # edit column names "X3U_warmed_soil_5cm" and "X3U_ambient_soil_5cm"
+  names(UMBS_3_s17)[names(UMBS_3_s17)=="X3U_warmed_soil_5cm"] <- "X3U_warmed_soil_temp_5cm"
+  names(UMBS_3_s17)[names(UMBS_3_s17)=="X3U_ambient_soil_5cm"] <- "X3U_ambient_soil_temp_5cm"
+  names(UMBS_3_s15_16)[names(UMBS_3_s15_16)=="X3U_warmed_soil_5cm"] <- "X3U_warmed_soil_temp_5cm"
+  names(UMBS_3_s15_16)[names(UMBS_3_s15_16)=="X3U_ambient_soil_5cm"] <- "X3U_ambient_soil_temp_5cm"
+Merged_UMBS_3<-rbind(UMBS_3_s18,UMBS_3_s17,UMBS_3_s15_16)
+head(UMBS_3_s15_16)
+dim(Merged_UMBS_3)
+write.csv(Merged_UMBS_3, file="final_data/UMBS/sensor_data/Merged_UMBS_3.csv")
 ###############################################################################

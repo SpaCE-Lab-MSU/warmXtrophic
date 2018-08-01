@@ -14,7 +14,7 @@ graphics.off()
 setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/")
 
 ## Edit below for any packages you'll be using
-for (package in c("ggplot2", "gridExtra", "splines", "lme4", "plyr", "tidyr", "RLRsim","lmerTest", "lubridate")) {
+for (package in c("ggplot2","plyr", "tidyr","lubridate")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -112,15 +112,15 @@ pend9P_17u<-read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_9P_1.csv", s
 pend10P_17u<-read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_10P.csv", skip=1, header =T)
 pend11P_17u<-read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_11P.csv", skip=1, header =T)
 pend12P_17u<-read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_12P.csv", skip=1, header =T)
-pend4P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_4P_1.csv", skip=1, header =T)
-pend5P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_5P.csv", skip=1, header =T)
-pend6P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_6P_1.csv", skip=1, header =T)
-pend7P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_7P_1.csv", skip=1, header =T)
-pend8P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_8P_1.csv", skip=1, header =T)
-pend9P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_9P_1.csv", skip=1, header =T)
-pend10P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_10P_2.csv", skip=1, header =T)
-pend11P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_11P_1.csv", skip=1, header =T)
-pend12P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/6_25_18/6_25_18_UMBS_12P_1.csv", skip=1, header =T)
+pend4P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_4P_731.csv", skip=1, header =T)
+pend5P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_5P_731.csv", skip=1, header =T)
+pend6P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_6P_731.csv", skip=1, header =T)
+pend7P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_7P_731.csv", skip=1, header =T)
+pend8P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_8P_731.csv", skip=1, header =T)
+pend9P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_9P_731.csv", skip=1, header =T)
+pend10P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_10P_731.csv", skip=1, header =T)
+pend11P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_11P_731.csv", skip=1, header =T)
+pend12P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/7_31_18/UMBS_12P_731.csv", skip=1, header =T)
 
 # Change class of Datet.Time column from factor to POSIXct date 
 pend4P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
@@ -244,7 +244,9 @@ pend18u$Site<-"UMBS"
 
 # merge UMBS HOBO data from all years
 pend1618u<-rbind(pend17u,pend18u) #2017 dataset contains data from 2016
-new.pend1618u<-unique( pend1618u[ , 1:5 ] )
+str(pend1618u)
+new.pend1618u<-unique( pend1618u[ , 1:5 ] ) #want to delete overlapping data from HOBO files, but don't know best way
+str(new.pend1618u)
 setdiff(pend1618u, new.pend1618u)
 dplyr::anti_join(new.pend1618u, pend1618u)
 head(new.pend1618u)
