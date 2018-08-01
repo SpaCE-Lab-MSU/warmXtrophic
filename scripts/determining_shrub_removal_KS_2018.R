@@ -20,7 +20,7 @@ graphics.off()
 setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/final_data/")
 
 ## Edit below for any packages you'll be using
-for (package in c("ggplot2", "splines", "lme4", "plyr", "RLRsim","lmerTest", "lubridate")) {
+for (package in c("ggplot2", "splines", "plyr", "lubridate")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -47,57 +47,92 @@ levels(greenu$plot)
 
 ## Greenup  (emergence) would be something like median greenup of the plot (take the median julian date for the entire plot)
 # same fore flowering, and seed set
-greenup <- aggregate( julian~plot, greenu , median )
+greenup <- aggregate( julian~plot, greenu , median ) ##not seperated by year
+#greenup <- aggregate( julian~year+plot, greenu, median) ## seperated by year
 flowering<- aggregate( julian~plot, floweru, median)
 seedset<- aggregate (julian~plot, seedu, median)
 
 ## species composition: mean % cover of the plot 
 #PLZ: see Combined_2015_Plantcomp_rawdata.R for some code to modify to generate relative abundance at the plot level, per species, then take the mean
-#average sub-quadrats for plots
 #KS: taking the mean % cover per plot, per species
-head(spcompu)
+# Remove 'Bare Ground', 'Ground', etc. 
+spcompu$species <- factor(spcompu$species)
+spcompu<-spcompu[!(spcompu$species=="Bare Ground"),]
+spcompu<-spcompu[!(spcompu$species=="Bare Ground "),]
+spcompu<-spcompu[!(spcompu$species=="Bareground"),]
+spcompu<-spcompu[!(spcompu$species=="Bare"),]
+spcompu<-spcompu[!(spcompu$species=="Bare Groud"),]
+spcompu<-spcompu[!(spcompu$species=="Bare Groud "),]
+spcompu<-spcompu[!(spcompu$species=="Brown"),]
+spcompu<-spcompu[!(spcompu$species=="Brown "),]
+spcompu$species<-revalue(spcompu$species, c("Anspp"="Ansp"))
+spcompu$species <- factor(spcompu$species)
+levels(spcompu$species)
+
+# mean % cover per species, per plot 
 quad.mn = aggregate(cover ~ plot*species, data=spcompu, FUN=mean, na.rm=T)
 names(quad.mn)[names(quad.mn)=="cover"]<-"quad.mn"
 head(quad.mn)
+View(quad.mn)
 
 #convert cover to relative abundance 
 #first get summed cover for all plants per plot
-cov.sum = aggregate(quad.mn ~ plot, data=quad.mn, FUN=sum, na.rm=T)
+cov.sum = aggregate(quad.mn ~ plot, data=quad.mn, FUN=sum, na.rm=T) ### Greater than 100, due to averaged percent cover over the year
 names(cov.sum)[names(cov.sum)=="quad.mn"]<-"cov.sum"
 head(cov.sum)
-k2<-merge(quad.mn,cov.sum, by=c("plot"))
-
-#calculate relative percent cover per species in each quadrat (="relative abundance")
-k2$relab<-k2$quad.mn/k2$cov.sum
-summary(k2)
-
+rel.spabundances<-merge(quad.mn,cov.sum, by=c("plot"))
+head(rel.spabundances)
+#calculate relative percent cover per species in each plot (="relative abundance")
+rel.spabundances$relab<-rel.spabundances$quad.mn/k2$cov.sum
+summary(rel.spabundances)
 
 # species diversity: richness of plot (total number of species per plot)
-# remove "Bare Ground" and "Brown"
-spcompu <- subset(spcompu, species != "Brown")
-spcompu <- subset(spcompu, species != "Bare Ground")
-spcompu <- subset(spcompu, species != "Bareground")
-
-# levels of species per plot
-lvlspcompu<-spcompu
+# across all years
 library(data.table)
+lvlspcompu<-spcompu
 setDT(lvlspcompu)[, count := uniqueN(species), by = plot]
 head(lvlspcompu)
 
 # pull out only necessary columns
-lvlspcompu <-  lvlspcompu[,c(2,5,6,7,9)]
+#lvlspcompu <-  lvlspcompu[,c(2,5,6,7,9)]
+lvlspcompu <-  lvlspcompu[,c(2,8,9)]
 head(lvlspcompu)
 
 # delete reps
-lvlspcompu1<-unique( lvlspcompu[ , 1:5 ] )
-tail(lvlspcompu1)
+#lvlspcompu1<-unique( lvlspcompu[ , 1:5 ] )
+sprichness<-unique(lvlspcompu[ ,1:3])
+tail(sprichness)
+#class(lvlspcompu1$year)
+#lvlspcompu1$year<-as.character(lvlspcompu1$year)
 
-# save max 'count' per plot, per year
-#lvlspcompu1[which.max(lvlspcompu1$),]
-lvlspcompu2 <- aggregate(count ~ plot*year, lvlspcompu1, max)
-tail(lvlspcompu2)
+# # save max 'count' per plot, per year
+# #lvlspcompu1[which.max(lvlspcompu1$),]
+# lvlspcompu2 <- aggregate(count ~ plot*year, lvlspcompu1, max)
+# tail(lvlspcompu2)
+# View(lvlspcompu2)
+
+# plot it to see trends
+ggplot(sprichness, aes(x = plot, y = count)) +
+  #facet_grid(. ~ plot) +
+  #geom_errorbar(aes(ymin=mean_RFU-sd, ymax=mean_RFU+sd))+
+  geom_point(alpha=.5, size = 2) +
+  #   geom_line(aes(group = sensitivity)) +
+  ylab("Temperature F") +
+  theme_minimal() + theme(legend.position = "bottom")
+
+#### Merge plot information (treatments) with response variable outputs ####
+treatment.key<-read.csv("../raw_data/Treatment_key_updated.csv")
+greenup.test<-merge(greenup,treatment.key, by=c("plot"))
+head(greenup)
+flowering.test<-merge(flowering,treatment.key, by=c("plot"))
+seedset.test<-merge(seedset,treatment.key, by=c("plot"))
+rel.spabundances.test<-merge(rel.spabundances,treatment.key, by=c("plot"))
+sprichness.test<-merge(sprichness,treatment.key, by=c("plot"))
 
 # series of linear models
-M1<lm(greenup~warming*insecticide)
-
-
+attach(greenup.test)
+M1<-lm(julian~state*insecticide)
+plot(julian~state*insecticide)
+ M1
+summary(M1)
+t.test(data=greenup.test,julian~state)
