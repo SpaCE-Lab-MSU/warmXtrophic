@@ -4,7 +4,9 @@
 ## DATA:          MI Warming x Herbivory Open Top Chamber experiment 2015-2018
 ## PROJECT:       "Direct and Indirect Effects of Climate Warming on Plant Communities"
 ## OUTPUT:        creates cleaned up data for 2015-2018 for response variables
-## DATE:          June 14, 2018
+## DATE:          June 14, 2018; July 26 PLZ added a few edits, and noted KBS 2018 is not entered online - will check w Mark
+
+## LAST RUN:      July 26, 2018 by PLZ
 
 ## This script reads in raw data compiled from 2015-2018 experiment data.
 ## This script then combines all years into 1 dataframe per response variable. 
@@ -26,9 +28,10 @@ graphics.off()
 # set working directory (if you're not PLZ, change this to the correct path for your
 # Google Drive directory. It should point to where we have /final_data
 setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/final_data/")
+# setwd("/Volumes/GoogleDrive/My Drive/Research/TrophicWarming/TrophicWarming_Experiment/MIWarmHerb_FieldExperiment/data/final_data/")
 
 ## Edit below for any packages you'll be using
-for (package in c("ggplot2", "splines", "lme4", "plyr", "RLRsim","lmerTest", "lubridate")) {
+for (package in c("ggplot2","dplyr","tidyr")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -61,6 +64,10 @@ save.image("otc_data_prep.RData")
 # levels: "../../"
 
 # you may need to edit the exact filenames
+# # **Note that the Google Sheets have the first line or two with example data from 
+# # a previous year - these must be deleted when exporting to CSV!!
+# # PLZ did this for 2017 and 2018 data at KBS and UMBS as of July 26, 2018 
+# # This involved removing example rows from 2016.
 # Read in KBS green-up data from all years
 green16k<-read.csv("../raw_data/KBS/2016_Plant_Data/KBS_Greenup_2016.csv")
 green17k<-read.csv("../raw_data/KBS/2017_Plant_Data/kbs_greenup_2017.csv")
@@ -87,6 +94,11 @@ names(green16k)[1:5] <- tolower(names(green16k)[1:5])
 names(green17k)[1:5] <- tolower(names(green17k)[1:5])
 #names(green18k)[1:5] <- tolower(names(green18k)[1:5])
 
+# double check that these files contain just that year's data
+unique(green16k$date) # ok
+unique(green17k$date) # ok
+#unique(green18k$date)
+
 # Add column "year"
 green16k$year<-"2016"
 green17k$year<-"2017"
@@ -97,9 +109,9 @@ green16k <- green16k[, c("plot", "species", "cover", "date", "julian", "year")]
 green17k <- green17k[, c("plot", "species", "cover", "date", "julian", "year")]
 #green18k <- green18k[, c("plot", "species", "cover", "date", "julian", "year")]
 
-# Change date from factor to date
+# Change date from factor to date: note that the date format differs
 green16k$date <- as.Date(green16k$date,format="%m/%d/%Y")
-green17k$date <- as.Date(green17k$date,format="%m/%d/%Y")
+green17k$date <- as.Date(green17k$date,format="%m/%d/%y") ## Stopped edits here 7/26
 #green18k$date <- as.Date(green18k$date,format="%m/%d/%Y")
 
 # Combine green-up data from KBS from years 2016, 2017, and 2018
@@ -114,6 +126,7 @@ str(green16u)
 str(green17u)
 str(green18u)
 
+
 #remove column "Site", "Notes", and "X" from dataframe green17u and green18u
 green17u$Site<-NULL
 green17u$Notes<-NULL
@@ -126,6 +139,11 @@ names(green16u)[1:5] <- tolower(names(green16u)[1:5])
 names(green17u)[1:5] <- tolower(names(green17u)[1:5])
 names(green18u)[1:5] <- tolower(names(green18u)[1:5])
 
+# double check that these files contain just that year's data
+unique(green16u$date) # ok
+unique(green17u$date) # ok
+unique(green18u$date) # ok
+
 # Add column "year"
 green16u$year<-"2016"
 green17u$year<-"2017"
@@ -136,10 +154,10 @@ green16u <- green16u[, c("plot", "species", "cover", "date", "julian", "year")]
 green17u <- green17u[, c("plot", "species", "cover", "date", "julian", "year")]
 green18u <- green18u[, c("plot", "species", "cover", "date", "julian", "year")]
 
-# Change date from factor to date
+# Change date from factor to date - note some are different date format
 green16u$date <- as.Date(green16u$date,format="%m/%d/%Y")
-green17u$date <- as.Date(green17u$date,format="%m/%d/%Y")
-green18u$date <- as.Date(green18u$date,format="%m/%d/%Y")
+green17u$date <- as.Date(green17u$date,format="%m/%d/%y")
+green18u$date <- as.Date(green18u$date,format="%m/%d/%y")
 
 # Combine green-up data from UMBS from years 2016, 2017, and 2018
 greenu<-rbind(green16u,green17u,green18u)
@@ -148,8 +166,7 @@ greenu$site<-"UMBS"
 # Then merge all greenup
 green1618<-rbind(greenk, greenu)
 # output greenup into the final_data folder
-write.csv(green1618, file="green1618.csv")
-
+write.csv(green1618, file="green1618.csv",row.names=F)
 
 ### Pull in flowering data ###
 # Read in KBS phenology data from all years
@@ -181,6 +198,12 @@ names(flower16k)[1:5] <- tolower(names(flower16k)[1:5])
 names(flower17k)[1:5] <- tolower(names(flower17k)[1:5])
 #names(flower18k)[1:5] <- tolower(names(flower18k)[1:5])
 
+# double check that these files contain just that year's data
+unique(flower15k$date) # ok
+unique(flower16k$date) # ok
+unique(flower17k$date) # ok
+#unique(flower18k$date) # ok
+
 # Add column "year"
 flower15k$year<-"2015"
 flower16k$year<-"2016"
@@ -193,10 +216,10 @@ flower16k <- flower16k[, c("plot", "species", "action", "date", "julian", "year"
 flower17k <- flower17k[, c("plot", "species", "action", "date", "julian", "year")]
 #flower18k <- flower18k[, c("plot", "species", "action", "date", "julian", "year")]
 
-# Change date from factor to 'Date'
+# Change date from factor to 'Date' - note some are different format
 flower15k$date <- as.Date(flower15k$date,format="%m/%d/%Y")
 flower16k$date <- as.Date(flower16k$date,format="%m/%d/%Y")
-flower17k$date <- as.Date(flower17k$date,format="%m/%d/%Y")
+flower17k$date <- as.Date(flower17k$date,format="%m/%d/%y")
 #flower18k$date <- as.Date(flower18k$date,format="%m/%d/%Y")
 
 # Combine flowering data from KBS from years 2016, 2017, and 2018
@@ -205,7 +228,7 @@ flowerk$site<-"KBS"
 
 # Do the same for UMBS
 phenology15u<-read.csv("../raw_data/UMBS/2015_Plant_Data/UMBS_Phenology_2015.csv")
-head(phenology17u)
+head(phenology15u)
 phenology16u<-read.csv("../raw_data/UMBS/2016_Plant_Data/UMBS_Flwr_Sdst_2016.csv")
 phenology17u<-read.csv("../raw_data/UMBS/2017_Plant_Data/umbs_flwr_sd_2017.csv")
 #phenology18u<-read.csv("../raw_data/UMBS/2018_Plant_Data/umbs_flwr_sd_2018.csv")
@@ -231,6 +254,12 @@ names(flower16u)[1:5] <- tolower(names(flower16u)[1:5])
 names(flower17u)[1:5] <- tolower(names(flower17u)[1:5])
 #names(flower18u)[1:5] <- tolower(names(flower18u)[1:5])
 
+# double check that these files contain just that year's data
+unique(flower15u$date) # ok
+unique(flower16u$date) # ok
+unique(flower17u$date) # ok
+#unique(flower18k$date) # ok
+
 # Add column "year"
 flower15u$year<-"2015"
 flower16u$year<-"2016"
@@ -243,10 +272,10 @@ flower16u <- flower16u[, c("plot", "species", "action", "date", "julian", "year"
 flower17u <- flower17u[, c("plot", "species", "action", "date", "julian", "year")]
 #flower18u <- flower18u[, c("plot", "species", "action", "date", "julian", "year")]
 
-# Change date from factor to 'Date'
+# Change date from factor to 'Date' - note some have different format
 flower15u$date <- as.Date(flower15u$date,format="%m/%d/%Y")
 flower16u$date <- as.Date(flower16u$date,format="%m/%d/%Y")
-flower17u$date <- as.Date(flower17u$date,format="%m/%d/%Y")
+flower17u$date <- as.Date(flower17u$date,format="%m/%d/%y")
 #flower18u$date <- as.Date(flower18u$date,format="%m/%d/%Y")
 
 # Combine flowering data from UMBS from years 2016, 2017, and 2018
@@ -256,7 +285,7 @@ floweru$site<-"UMBS"
 # Then merge all flowering data
 flower1518<-rbind(flowerk, floweru)
 # output flowering data into the final_data folder
-write.csv(flower1518, file="flower1518.csv")
+write.csv(flower1518, file="flower1518.csv",row.names=F)
 
 
 ### Pull out seed data ###
@@ -295,10 +324,10 @@ seed16k <- seed16k[, c("plot", "species", "action", "date", "julian", "year")]
 seed17k <- seed17k[, c("plot", "species", "action", "date", "julian", "year")]
 #seed18k <- seed18k[, c("plot", "species", "action", "date", "julian", "year")]
 
-# Change date from factor to 'Date'
+# Change date from factor to 'Date' - note some have different format
 seed15k$date <- as.Date(seed15k$date,format="%m/%d/%Y")
 seed16k$date <- as.Date(seed16k$date,format="%m/%d/%Y")
-seed17k$date <- as.Date(seed17k$date,format="%m/%d/%Y")
+seed17k$date <- as.Date(seed17k$date,format="%m/%d/%y")
 #seed18k$date <- as.Date(seed18k$date,format="%m/%d/%Y")
 
 # Combine seed data from KBS from years 2016, 2017, and 2018
@@ -341,10 +370,10 @@ seed16u <- seed16u[, c("plot", "species", "action", "date", "julian", "year")]
 seed17u <- seed17u[, c("plot", "species", "action", "date", "julian", "year")]
 #seed18u <- seed18u[, c("plot", "species", "action", "date", "julian", "year")]
 
-# Change date from factor to 'Date'
+# Change date from factor to 'Date' - note some have different format
 seed15u$date <- as.Date(seed15u$date,format="%m/%d/%Y")
 seed16u$date <- as.Date(seed16u$date,format="%m/%d/%Y")
-seed17u$date <- as.Date(seed17u$date,format="%m/%d/%Y")
+seed17u$date <- as.Date(seed17u$date,format="%m/%d/%y")
 #seed18u$date <- as.Date(seed18u$date,format="%m/%d/%Y")
 
 # Combine seed data from UMBS from years 2016, 2017, and 2018
@@ -354,7 +383,7 @@ seedu$site<-"UMBS"
 # Then merge all seed data
 seed1518<-rbind(seedk, seedu)
 # output phenology into the final_data folder
-write.csv(seed1518, file="seed1518.csv")
+write.csv(seed1518, file="seed1518.csv",row.names=F)
 
 
 ### Pull in plant community composition data###
@@ -369,9 +398,9 @@ str(spcomp17k)
 #str(spcomp18k)
 
 # compile 2015 quadrat data to have one explanatory variable 'cover' per plot
-spcomp15k$Cover <- spcomp15k$Cover * .25
-spcomp15kcover<-aggregate(Cover~Date*Plot*Species, spcomp15k, sum)
-names(spcomp15kcover)[names(spcomp15kcover)=="Cover"] <- "new.cover"
+spcomp15k$Cover.25 <- spcomp15k$Cover * .25
+spcomp15kcover<-aggregate(Cover.25~Date*Plot*Species, spcomp15k, sum)
+names(spcomp15kcover)[names(spcomp15kcover)=="Cover.25"] <- "new.cover"
 spcomp15k<- merge(spcomp15k, spcomp15kcover)
 
 # remove unnecessary columns and rename synonym columns to compile data later
@@ -400,10 +429,10 @@ spcomp16k <- spcomp16k[, c("plot", "species", "cover", "date", "julian", "year")
 spcomp17k <- spcomp17k[, c("plot", "species", "cover", "date", "julian", "year")]
 #spcomp18k <- spcomp18k[, c("plot", "species", "action", "date", "julian", "year")]
 
-# Change date from factor to 'Date'
+# Change date from factor to 'Date' - note some have different format
 spcomp15k$date <- as.Date(spcomp15k$date,format="%m/%d/%Y")
 spcomp16k$date <- as.Date(spcomp16k$date,format="%m/%d/%Y")
-spcomp17k$date <- as.Date(spcomp17k$date,format="%m/%d/%Y")
+spcomp17k$date <- as.Date(spcomp17k$date,format="%m/%d/%y")
 #spcomp18k$date <- as.Date(spcomp18k$date,format="%m/%d/%Y")
 
 # Delete repeat 2015 data due to quadrats
@@ -425,9 +454,9 @@ str(spcomp17u)
 #str(spcomp18u)
 
 # compile 2015 quadrat data to have one explanatory variable 'cover' per plot
-spcomp15u$Cover <- spcomp15u$Cover * .25
-spcomp15ucover<-aggregate(Cover~Date*Plot*Species, spcomp15u, sum)
-names(spcomp15ucover)[names(spcomp15ucover)=="Cover"] <- "new.cover"
+spcomp15u$Cover.25 <- spcomp15u$Cover * .25
+spcomp15ucover<-aggregate(Cover.25~Date*Plot*Species, spcomp15u, sum)
+names(spcomp15ucover)[names(spcomp15ucover)=="Cover.25"] <- "new.cover"
 spcomp15u<- merge(spcomp15u, spcomp15ucover)
 
 # remove unnecessary columns and rename synonym columns to compile data later
@@ -458,10 +487,15 @@ spcomp16u <- spcomp16u[, c("plot", "species", "cover", "date", "julian", "year")
 spcomp17u <- spcomp17u[, c("plot", "species", "cover", "date", "julian", "year")]
 #spcomp18u <- spcomp18u[, c("plot", "species", "cover", "date", "julian", "year")]
 
+# Check that it's just 1 yr per dataframe
+unique(spcomp15u$date) # ok
+unique(spcomp16u$date) # ok
+unique(spcomp17u$date) # ok
+
 # Change date from factor to 'Date'
 spcomp15u$date <- as.Date(spcomp15u$date,format="%m/%d/%Y")
 spcomp16u$date <- as.Date(spcomp16u$date,format="%m/%d/%Y")
-spcomp17u$date <- as.Date(spcomp17u$date,format="%m/%d/%Y")
+spcomp17u$date <- as.Date(spcomp17u$date,format="%m/%d/%y")
 #spcomp18u$date <- as.Date(spcomp18u$date,format="%m/%d/%Y")
 
 # Delete repeat 2015 data due to quadrats
@@ -474,7 +508,7 @@ spcompu$site<-"UMBS"
 # Then merge all spcomp data
 spcomp1518<-rbind(spcompk, spcompu)
 # output spcomp into the final_data folder
-write.csv(spcomp1518, file="spcomp1518.csv")
+write.csv(spcomp1518, file="spcomp1518.csv",row.names=F)
 
 
 ### Pull in plant herbivory data###
@@ -497,8 +531,8 @@ herb15k$site<-NULL
 herb15k$Ste<-NULL
 herb15k$plt<-NULL
 herb15k$total<-NULL
-herb15k$julian <- as.Date(herb15k$Date,format="%Y_%m_%d")
-herb15k$julian <- yday(herb15k$julian)
+herb15k$julian <- as.POSIXlt(herb15k$Date,format="%Y_%m_%d")
+herb15k$julian <- (herb15k$julian)$yday
 names(herb15k)[names(herb15k)=="damage"] <- "p_damage"
 names(herb15k)[names(herb15k)=="eaten"] <- "p_eaten"
 herb17k$Site<-NULL
@@ -509,6 +543,12 @@ names(herb15k)[1:7] <- tolower(names(herb15k)[1:7])
 names(herb16k)[1:7] <- tolower(names(herb16k)[1:7])
 names(herb17k)[1:7] <- tolower(names(herb17k)[1:7])
 #names(herb18k)[1:7] <- tolower(names(herb18k)[1:7])
+
+# check for single yr per dataframe
+unique(herb15k$date)
+unique(herb16k$date)
+unique(herb17k$date)
+#unique(herb18k$date)
 
 # Add column "year"
 herb15k$year<-"2015"
@@ -525,7 +565,7 @@ herb17k <- herb17k[, c("plot", "species", "p_eaten", "p_damage", "date", "julian
 # Change date from factor to 'Date'
 herb15k$date <- as.Date(herb15k$date,format="%Y_%m_%d")
 herb16k$date <- as.Date(herb16k$date,format="%m/%d/%Y")
-herb17k$date <- as.Date(herb17k$date,format="%m/%d/%Y")
+herb17k$date <- as.Date(herb17k$date,format="%m/%d/%y")
 #herb18k$date <- as.Date(herb18k$date,format="%m/%d/%Y")
 
 # Combine herb data from KBS from years 2016, 2017, and 2018
@@ -552,8 +592,8 @@ herb15u$site<-NULL
 herb15u$Ste<-NULL
 herb15u$plt<-NULL
 herb15u$total<-NULL
-herb15u$julian <- as.Date(herb15u$Date,format="%Y_%m_%d")
-herb15u$julian <- yday(herb15u$julian)
+herb15u$julian <- as.POSIXlt(herb15u$Date,format="%Y_%m_%d")
+herb15u$julian <- (herb15u$julian)$yday
 names(herb15u)[names(herb15u)=="damage"] <- "p_damage"
 names(herb15u)[names(herb15u)=="eaten"] <- "p_eaten"
 herb17u$Site<-NULL
@@ -564,6 +604,12 @@ names(herb15u)[1:7] <- tolower(names(herb15u)[1:7])
 names(herb16u)[1:7] <- tolower(names(herb16u)[1:7])
 names(herb17u)[1:7] <- tolower(names(herb17u)[1:7])
 #names(herb18u)[1:7] <- tolower(names(herb18u)[1:7])
+
+# check for single yr per dataframe
+unique(herb15u$date)
+unique(herb16u$date)
+unique(herb17u$date)
+#unique(herb18k$date)
 
 # Add column "year"
 herb15u$year<-"2015"
@@ -590,7 +636,7 @@ herbu$site<-"UMBS"
 # Then merge all herb data
 herb1518<-rbind(herbk, herbu)
 # output herb into the final_data folder
-write.csv(herb1518, file="herb1518.csv")
+write.csv(herb1518, file="herb1518.csv",row.names=F)
 
 # End of script:
 save.image("otc_data_prep.RData")
