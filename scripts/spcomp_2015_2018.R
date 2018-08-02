@@ -70,11 +70,6 @@ names(cov.sum)[names(cov.sum)=="cover"]<-"cov.sum"
 head(cov.sum)
 spcomp1<-merge(spcomp,cov.sum, by=c("plot","julian","year","site"))
 
-#calculate relative percent cover per species in each quadrat (="relative abundance")
-spcomp1$relab<-spcomp1$cover/spcomp1$cov.sum
-summary(spcomp1)
-# check that above code worked... haven't run w new 2018 data
-
 #merge in species trait info - if some species have no entry, add to the original
 #trait lookup tables here. Use USDA plants/ Grime classification for growth forms
 ktrait<-read.csv("../raw_data/KBS_Species_Traits_Comp.csv")
@@ -92,10 +87,20 @@ save.image("spcomp_2015_2018.RData")
 #merge in plot info (if not already included)
 trt<-read.csv("../raw_data/Treatment_key_updated.csv", header = TRUE)
 str(trt)
-spcomp2<-merge(spcomp1, trt, by=c("plot"), all.x=T, all.y=T)
+spcomp1<-merge(spcomp1, trt, by=c("plot"), all.x=T, all.y=T)
+
+#calculate relative percent cover PER SPECIES in each quadrat (="relative abundance")
+spcomp1$relab<-spcomp1$cover/spcomp1$cov.sum
+summary(spcomp1)
+# check that above code worked... haven't run w new 2018 data
 
 
-## Feel free to make some plots by summarizing relab by year, species, site.
+# to compute the relative abundance PER NATIVE vs. EXOTIC per plot, need to re-run the
+# cov.sum analysis above, but include a column for native/exotic and aggregate
+# to include that column as well... This will generate a new dataframe. Then run the relab calculation above 
+# on that new native/exotic % cover dataframe.
+
+## Feel free to make some plots by summarizing relab by year, species, native/exotic, site.
 ## Plot is usually experimental unit, so when plotting take mean across plots (if there is 
 # one value per plot).
 # The script, "2016_SpComp_finaldata_by_site.R" has several analyses and 
