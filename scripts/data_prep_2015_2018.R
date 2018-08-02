@@ -640,3 +640,5 @@ write.csv(herb1518, file="herb1518.csv",row.names=F)
 
 # End of script:
 save.image("otc_data_prep.RData")
+
+save(herb1518, green1618, seed1518, flower1518, spcomp1518,file="plantdata1518.RData")
