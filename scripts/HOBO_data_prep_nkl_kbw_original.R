@@ -11,18 +11,47 @@ rm(list=ls())
 setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/")
 
 ############ KBS Pair 1
-KBS_1H <- read.csv("raw_data/KBS/sensor_data/KBS_1H.csv")
-str(KBS_1H)
-summary(KBS_1H)
+KBS_1H_2017 <- read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/KBS_1H.csv")
+str(KBS_1H_2017)
+summary(KBS_1H_2017)
+KBS_1H_2018 <- read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/1H_0_071218.csv", skip=1)
+str(KBS_1H_2018)
+summary(KBS_1H_2018)
 
-KBS_1U <- read.csv("raw_data/KBS/sensor_data/KBS_1U.csv")
-str(KBS_1U)
-summary(KBS_1U)
+KBS_1U_2017 <- read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/KBS_1U.csv")
+str(KBS_1U_2017)
+summary(KBS_1U_2017)
+KBS_1U_2018 <- read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/1U_0_071218.csv",skip=1)[ ,1:6]
+head(KBS_1U_2018)
+str(KBS_1U_2017)
+summary(KBS_1U_2017)
 
+KBS_1_2017 <- merge(KBS_1H_2017, KBS_1U_2017, by="Date_Time", all.x=T, all.y=T)
+str(KBS_1_2017)
+summary(KBS_1_2017)
+KBS_1_2018 <- merge(KBS_1H_2018, KBS_1U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+str(KBS_1_2018)
+summary(KBS_1_2018)
 
-KBS_1 <- merge(KBS_1H, KBS_1U, by="Date_Time", all.x=T, all.y=T)
-str(KBS_1)
-summary(KBS_1)
+# rename columns to match manually curated data
+KBS_1_2018$X..x<-NULL
+KBS_1_2018$X..y<-NULL
+KBS_1_2017[2] <- NULL # "X..x"
+KBS_1_2017[8]<- NULL # "X..y"
+names(KBS_1_2017)[names(KBS_1_2017)=="X1U_warmed_soil_5cm"] <- "X1U_warmed_soil_temp_5cm"
+names(KBS_1_2017)[names(KBS_1_2017)=="X1U_ambient_soil_5cm"] <- "X1U_ambient_soil_temp_5cm"
+names(KBS_1_2018)[names(KBS_1_2018)=="Water.Content..m..m...LGR.S.N..10736963..SEN.S.N..10736060..LBL..1H_warmed_soil_moisture_5cm."] <- "X1H_warmed_soil_moisture_5cm"
+names(KBS_1_2018)[names(KBS_1_2018)=="Water.Content..m..m...LGR.S.N..10736963..SEN.S.N..10736062..LBL..1H_ambient_soil_moisture_5cm."] <- "X1H_ambient_soil_moisture_5cm"
+names(KBS_1_2018)[names(KBS_1_2018)=="Temp...F..LGR.S.N..10736963..SEN.S.N..10737463..LBL..1H_warmed_air_1m."] <- "X1H_warmed_air_1m"
+names(KBS_1_2018)[names(KBS_1_2018)=="RH.....LGR.S.N..10736963..SEN.S.N..10737463..LBL..1H_warmed_RH_1m."] <- "X1H_warmed_RH_1m"
+names(KBS_1_2018)[names(KBS_1_2018)=="Temp...F..LGR.S.N..10736963..SEN.S.N..10737464..LBL..1H_ambient_air_1m."] <- "X1H_ambient_air_1m"
+names(KBS_1_2018)[names(KBS_1_2018)=="RH.....LGR.S.N..10736963..SEN.S.N..10737464..LBL..1H_ambient_RH_1m."] <- "X1H_ambient_RH_1m"
+names(KBS_1_2018)[names(KBS_1_2018)=="Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_warmed_air_10cm."] <- "X1U_warmed_air_10cm"
+names(KBS_1_2018)[names(KBS_1_2018)=="Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_warmed_soil_5cm."] <- "X1U_warmed_soil_temp_5cm"
+names(KBS_1_2018)[names(KBS_1_2018)=="Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_ambient_soil_5cm."] <- "X1U_ambient_soil_temp_5cm"
+names(KBS_1_2018)[names(KBS_1_2018)=="Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_ambient_air_10cm."] <- "X1U_ambient_air_10cm"
+names(KBS_1_2018)[names(KBS_1_2018)=="Date.Time..GMT.04.00"] <- "Date_Time"
+head(KBS_1_2018)
 
 #check any columns with NA values, if present
 #check to see if all days contain 24h.(only first and last days not expected to have 24h.)
@@ -36,18 +65,52 @@ testing1 <- tapply(DateTime1_hours, as.factor(DateTime1_days), length)
 subset(testing1, testing1<24)
 subset(testing1, testing1>24)
 
-write.csv(KBS_1, file="final_data/KBS/sensor_data/KBS_1.csv")
-############## KBS Pair 2
-KBS_2H <- read.csv("raw_data/KBS/sensor_data/KBS_2H.csv")
-str(KBS_2H)
-summary(KBS_2H)
+write.csv(KBS_1_2017, file="final_data/KBS/sensor_data/2017/KBS_1.csv")
+write.csv(KBS_1_2018, file="final_data/KBS/sensor_data/2018/KBS_1.csv")
 
-KBS_2U <- read.csv("raw_data/KBS/sensor_data/KBS_2U.csv")
-str(KBS_2U)
-summary(KBS_2U)
-KBS_2 <- merge(KBS_2H, KBS_2U, by="Date_Time", all.x=T, all.y=T)
-str(KBS_2)
-summary(KBS_2)
+############## KBS Pair 2
+KBS_2H_2017 <- read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/KBS_2H.csv")
+str(KBS_2H_2017)
+summary(KBS_2H_2017)
+KBS_2H_2018 <- read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/2H_0_071218.csv", skip=1)
+str(KBS_2H_2018)
+summary(KBS_2H_2018)
+
+KBS_2U_2017 <- read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/KBS_2U.csv")
+str(KBS_2U_2017)
+summary(KBS_2U_2017)
+KBS_2U_2018 <- read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/2U_0_071218.csv",skip=1)[ ,1:6]
+str(KBS_2U_2018)
+summary(KBS_2U_2018)
+
+KBS_2_2017 <- merge(KBS_2H_2017, KBS_2U_2017, by="Date_Time", all.x=T, all.y=T)
+str(KBS_2_2017)
+summary(KBS_2_2017)
+KBS_2_2018 <- merge(KBS_2H_2018, KBS_2U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+str(KBS_2_2018)
+summary(KBS_2_2018)
+head(KBS_2_2018)
+
+# rename columns to match manually curated data
+KBS_2_2018$X..x<-NULL
+KBS_2_2018$X..y<-NULL
+KBS_2_2017[2] <- NULL # "X..x"
+KBS_2_2017[8]<- NULL # "X..y"
+names(KBS_2_2017)[names(KBS_2_2017)=="X2U_warmed_soil_5cm"] <- "X2U_warmed_soil_temp_5cm"
+names(KBS_2_2017)[names(KBS_2_2017)=="X2U_ambient_soil_5cm"] <- "X2U_ambient_soil_temp_5cm"
+names(KBS_2_2017)[names(KBS_2_2017)=="X2H_ambient_soil_moist_5cm"] <- "X2H_ambient_soil_moisture_5cm"
+names(KBS_2_2018)[names(KBS_2_2018)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "X2H_ambient_soil_moisture_5cm"
+names(KBS_2_2018)[names(KBS_2_2018)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736063..LBL..2H_warmed_soil_moisture_5cm."] <- "X2H_warmed_soil_moisture_5cm"
+names(KBS_2_2018)[names(KBS_2_2018)=="Temp...F..LGR.S.N..10736967..SEN.S.N..10737465..LBL..2H_ambient_air_1m."] <- "X2H_ambient_air_1m"
+names(KBS_2_2018)[names(KBS_2_2018)=="RH.....LGR.S.N..10736967..SEN.S.N..10737465..LBL..2H_ambient_RH_1m."] <- "X2H_ambient_RH_1m"
+names(KBS_2_2018)[names(KBS_2_2018)=="Temp...F..LGR.S.N..10736967..SEN.S.N..10737467..LBL..2H_warmed_air_1m."] <- "X2H_warmed_air_1m"
+names(KBS_2_2018)[names(KBS_2_2018)=="RH.....LGR.S.N..10736967..SEN.S.N..10737467..LBL..2H_warmed_RH_1m."] <- "X2H_warmed_RH_1m"
+names(KBS_2_2018)[names(KBS_2_2018)=="Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_ambient_soil_5cm."] <- "X2U_ambient_soil_temp_5cm"
+names(KBS_2_2018)[names(KBS_2_2018)=="Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_ambient_air_10cm."] <- "X2U_ambient_air_10cm"
+names(KBS_2_2018)[names(KBS_2_2018)=="Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_warmed_air_10cm."] <- "X2U_warmed_air_10cm"
+names(KBS_2_2018)[names(KBS_2_2018)=="Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_warmed_soil_5cm."] <- "X2U_warmed_soil_temp_5cm"
+names(KBS_2_2018)[names(KBS_2_2018)=="Date.Time..GMT.04.00"] <- "Date_Time"
+head(KBS_2_2018)
 
 #check any columns with NA values, if present
 which(is.na(KBS_2$X2H_ambient_air_1m))
@@ -66,20 +129,50 @@ testing2 <- tapply(DateTime2_hours, as.factor(DateTime2_days), length)
 subset(testing2, testing2<24)
 subset(testing2, testing2>24)
 
-write.csv(KBS_2, file="final_data/KBS/sensor_data/KBS_2.csv")
+write.csv(KBS_2_2017, file="final_data/KBS/sensor_data/2017/KBS_2.csv")
+write.csv(KBS_2_2018, file="final_data/KBS/sensor_data/2018/KBS_2.csv")
 
 ############# KBS Pair 3
-KBS_3H <- read.csv("raw_data/KBS/sensor_data/KBS_3H.csv")
-str(KBS_3H)
-summary(KBS_3H)
+KBS_3H_2017 <- read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/KBS_3H.csv")
+str(KBS_3H_2017)
+summary(KBS_3H_2017)
+KBS_3H_2018 <- read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/3H_0_071218.csv", skip=1)
+str(KBS_3H_2018)
+summary(KBS_3H_2018)
 
-KBS_3U <- read.csv("raw_data/KBS/sensor_data/KBS_3U.csv")
-str(KBS_3U)
-summary(KBS_3U)
+KBS_3U_2017 <- read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/KBS_3U.csv")
+str(KBS_3U_2017)
+summary(KBS_3U_2017)
+KBS_3U_2018 <- read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/3U_0_071218.csv",skip=1)[ ,1:6]
+str(KBS_3U_2018)
+summary(KBS_3U_2018)
 
-KBS_3 <- merge(KBS_3H, KBS_3U, by="Date_Time", all.x=T, all.y=T)
-str(KBS_3)
-summary(KBS_3)
+KBS_3_2017 <- merge(KBS_3H_2017, KBS_3U_2017, by="Date_Time", all.x=T, all.y=T)
+str(KBS_3_2017)
+summary(KBS_3_2017)
+KBS_3_2018 <- merge(KBS_3H_2018, KBS_3U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+str(KBS_3_2018)
+summary(KBS_3_2018)
+head(KBS_3_2018)
+
+# rename columns to match manually curated data
+KBS_3_2018$X..x<-NULL
+KBS_3_2018$X..y<-NULL
+KBS_3_2017[2] <- NULL # "X..x"
+KBS_3_2017[8]<- NULL # "X..y"
+names(KBS_3_2017)[names(KBS_3_2017)=="X3H_ambient_soil_moistire_5cm"] <- "X3H_ambient_soil_moisture_5cm"
+names(KBS_3_2018)[names(KBS_3_2018)=="Water.Content..m..m...LGR.S.N..10736968..SEN.S.N..10736053..LBL..3H_warmed_soil_moisture_5cm."] <- "X3H_warmed_soil_moisture_5cm"
+names(KBS_3_2018)[names(KBS_3_2018)=="Water.Content..m..m...LGR.S.N..10736968..SEN.S.N..10736054..LBL..3H_ambient_soil_moistire_5cm."] <- "X3H_ambient_soil_moisture_5cm"
+names(KBS_3_2018)[names(KBS_3_2018)=="Temp...F..LGR.S.N..10736968..SEN.S.N..10737466..LBL..3H_warmed_air_1m."] <- "X3H_warmed_air_1m"
+names(KBS_3_2018)[names(KBS_3_2018)=="RH.....LGR.S.N..10736968..SEN.S.N..10737466..LBL..3H_warmed_RH_1m."] <- "X3H_warmed_RH_1m"
+names(KBS_3_2018)[names(KBS_3_2018)=="Temp...F..LGR.S.N..10736968..SEN.S.N..10737468..LBL..3H_ambient_air_1m."] <- "X3H_ambient_air_1m"
+names(KBS_3_2018)[names(KBS_3_2018)=="RH.....LGR.S.N..10736968..SEN.S.N..10737468..LBL..3H_ambient_RH_1m."] <- "X3H_ambient_RH_1m"
+names(KBS_3_2018)[names(KBS_3_2018)=="Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm."] <- "X3U_warmed_soil_temp_5cm"
+names(KBS_3_2018)[names(KBS_3_2018)=="Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_air_10cm."] <- "X3U_warmed_air_10cm"
+names(KBS_3_2018)[names(KBS_3_2018)=="Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_air_10cm."] <- "X3U_ambient_air_10cm"
+names(KBS_3_2018)[names(KBS_3_2018)=="Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm."] <- "X3U_ambient_soil_temp_5cm"
+names(KBS_3_2018)[names(KBS_3_2018)=="Date.Time..GMT.04.00"] <- "Date_Time"
+head(KBS_3_2018)
 
 #check any columns with NA values, if present
 #check to see if all days contain 24h. (only first and last days not expected to have 24h.)
@@ -93,8 +186,8 @@ testing3 <- tapply(DateTime3_hours, as.factor(DateTime3_days), length)
 subset(testing3, testing3<24)
 subset(testing3, testing3>24)
 
-write.csv(KBS_3, file="final_data/KBS/sensor_data/KBS_3.csv")
-
+write.csv(KBS_3_2017, file="final_data/KBS/sensor_data/2017/KBS_3.csv")
+write.csv(KBS_3_2018, file="final_data/KBS/sensor_data/2018/KBS_3.csv")
 
 #######################################################################
 #    UMBS
@@ -261,6 +354,8 @@ UMBS_3_2018$X..x<-NULL
 UMBS_3_2018$X..y<-NULL
 UMBS_3_2017[2] <- NULL # "X..x"
 UMBS_3_2017[8]<- NULL # "X..y"
+names(UMBS_3_2017)[names(UMBS_3_2017)=="X3U_warmed_soil_5cm"] <- "X3U_warmed_soil_temp_5cm"
+names(UMBS_3_2017)[names(UMBS_3_2017)=="X3U_ambient_soil_5cm"] <- "X3U_ambient_soil_temp_5cm"
 names(UMBS_3_2018)[names(UMBS_3_2018)=="Water.Content..m..m...LGR.S.N..10736966..SEN.S.N..10736055..LBL..3H_warmed_soil_moisture_5cm."] <- "X3H_warmed_soil_moisture_5cm"
 names(UMBS_3_2018)[names(UMBS_3_2018)=="Water.Content..m..m...LGR.S.N..10736966..SEN.S.N..10736058..LBL..3H_ambient_soil_moisture_5cm."] <- "X3H_ambient_soil_moisture_5cm"
 names(UMBS_3_2018)[names(UMBS_3_2018)=="Temp...F..LGR.S.N..10736966..SEN.S.N..10737458..LBL..3H_warmed_air_1m."] <- "X3H_warmed_air_1m"
@@ -318,12 +413,43 @@ UMBS_3_s18 <- read.csv("final_data/UMBS/sensor_data/2018/UMBS_3.csv")
 UMBS_3_s17 <- read.csv("final_data/UMBS/sensor_data/2017/UMBS_3.csv")
 UMBS_3_s15_16 <- read.csv("final_data/UMBS/sensor_data/2015_2016/UMBS_3.csv")
   # edit column names "X3U_warmed_soil_5cm" and "X3U_ambient_soil_5cm"
-  names(UMBS_3_s17)[names(UMBS_3_s17)=="X3U_warmed_soil_5cm"] <- "X3U_warmed_soil_temp_5cm"
-  names(UMBS_3_s17)[names(UMBS_3_s17)=="X3U_ambient_soil_5cm"] <- "X3U_ambient_soil_temp_5cm"
   names(UMBS_3_s15_16)[names(UMBS_3_s15_16)=="X3U_warmed_soil_5cm"] <- "X3U_warmed_soil_temp_5cm"
   names(UMBS_3_s15_16)[names(UMBS_3_s15_16)=="X3U_ambient_soil_5cm"] <- "X3U_ambient_soil_temp_5cm"
 Merged_UMBS_3<-rbind(UMBS_3_s18,UMBS_3_s17,UMBS_3_s15_16)
 head(UMBS_3_s15_16)
 dim(Merged_UMBS_3)
 write.csv(Merged_UMBS_3, file="final_data/UMBS/sensor_data/Merged_UMBS_3.csv")
+
+#KBS pair 1
+KBS_1_s18 <- read.csv("final_data/KBS/sensor_data/2018/KBS_1.csv")
+KBS_1_s17 <- read.csv("final_data/KBS/sensor_data/2017/KBS_1.csv")
+KBS_1_s15_16 <- read.csv("final_data/KBS/sensor_data/2015_2016/KBS_1.csv")
+  # edit column names "X1U_warmed_soil_5cm" and "X1U_ambient_soil_5cm"
+  names(KBS_1_s15_16)[names(KBS_1_s15_16)=="X1U_warmed_soil_5cm"] <- "X1U_warmed_soil_temp_5cm"
+  names(KBS_1_s15_16)[names(KBS_1_s15_16)=="X1U_ambient_soil_5cm"] <- "X1U_ambient_soil_temp_5cm"
+Merged_KBS_1<-rbind(KBS_1_s18,KBS_1_s17,KBS_1_s15_16)
+dim(Merged_KBS_1)
+write.csv(Merged_KBS_1, file="final_data/KBS/sensor_data/Merged_KBS_1.csv")
+
+#KBS pair 2
+KBS_2_s18 <- read.csv("final_data/KBS/sensor_data/2018/KBS_2.csv")
+KBS_2_s17 <- read.csv("final_data/KBS/sensor_data/2017/KBS_2.csv")
+KBS_2_s15_16 <- read.csv("final_data/KBS/sensor_data/2015_2016/KBS_2.csv")
+  # edit column names "X2U_warmed_soil_5cm", "X2U_ambient_soil_5cm", and "X2H_ambient_soil_moist_5cm"
+  names(KBS_2_s15_16)[names(KBS_2_s15_16)=="X2U_warmed_soil_5cm"] <- "X2U_warmed_soil_temp_5cm"
+  names(KBS_2_s15_16)[names(KBS_2_s15_16)=="X2U_ambient_soil_5cm"] <- "X2U_ambient_soil_temp_5cm"
+Merged_KBS_2<-rbind(KBS_2_s18,KBS_2_s17,KBS_2_s15_16)
+dim(Merged_KBS_2)
+write.csv(Merged_KBS_2, file="final_data/KBS/sensor_data/Merged_KBS_2.csv")
+
+#KBS pair 3
+KBS_3_s18 <- read.csv("final_data/KBS/sensor_data/2018/KBS_3.csv")
+KBS_3_s17 <- read.csv("final_data/KBS/sensor_data/2017/KBS_3.csv")
+KBS_3_s15_16 <- read.csv("final_data/KBS/sensor_data/2015_2016/KBS_3.csv")
+  # edit column names "X3U_warmed_soil_5cm", and "X3U_ambient_soil_5cm"
+  names(KBS_3_s15_16)[names(KBS_3_s15_16)=="X3U_warmed_soil_5cm"] <- "X3U_warmed_soil_temp_5cm"
+  names(KBS_3_s15_16)[names(KBS_3_s15_16)=="X3U_ambient_soil_5cm"] <- "X3U_ambient_soil_temp_5cm"
+Merged_KBS_3<-rbind(KBS_3_s18,KBS_3_s17,KBS_3_s15_16)
+dim(Merged_KBS_3)
+write.csv(Merged_KBS_3, file="final_data/KBS/sensor_data/Merged_KBS_3.csv")
 ###############################################################################
