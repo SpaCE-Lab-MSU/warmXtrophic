@@ -5,7 +5,7 @@
 ## PROJECT:       "Direct and Indirect Effects of Climate Warming on Plant Communities"
 ## OUTPUT:        creates species composition data per plot and year
 ## DATE:          July 27 PLZ
-## LAST RUN:      
+## LAST RUN:      Aug 14 KS
 
 ## This script reads in the species composition data and generates plots
 ## Uses following dataset
@@ -20,10 +20,10 @@ graphics.off()
 # set working directory (if you're not PLZ, change this to the correct path for your
 # Google Drive directory. It should point to where we have /final_data
 # setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/final_data/")
-setwd("/Volumes/GoogleDrive/My Drive/Research/TrophicWarming/TrophicWarming_Experiment/MIWarmHerb_FieldExperiment/data/final_data/")
+setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/final_data/")
 
 ## Edit below for any packages you'll be using
-for (package in c("ggplot2","dplyr","tidyr")) {
+for (package in c("ggplot2","dplyr","tidyr","vegan")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -55,12 +55,93 @@ spcomp<-read.csv("spcomp1518.csv")
 #look at data
 unique(sort(spcomp$species))
 
-#Edit species names ... Kathryn: can you do this? standardize so there is 1
-# name per species. Reference "plant_codes.csv" in the /data/raw_data/ folder
+#Edit species names . standardize so there is 1
+#name per species. Reference "plant_codes.csv" in the /data/raw_data/ folder
 spcomp$species <- as.character(spcomp$species)
-spcomp$species[spcomp$species == "Hisp"] <- "Hipr"
-spcomp$species[spcomp$species == "Rufl"] <- "Rual"
+spcomp$species[spcomp$species == "Anspp"] <- "Ansp"
+spcomp$species[spcomp$species == "Elrre"] <- "Elre"
+spcomp$species[spcomp$species == "Bare"] <- "Bare_ground"
+spcomp$species[spcomp$species == "Bare Groud"] <- "Bare_ground"
+spcomp$species[spcomp$species == "Bare Groud "] <- "Bare_ground"
+spcomp$species[spcomp$species == "Bare Ground "] <- "Bare_ground"
+spcomp$species[spcomp$species == "Bare Ground"] <- "Bare_ground"
+spcomp$species[spcomp$species == "Bareground"] <- "Bare_ground"
+spcomp$species[spcomp$species == "Bown"] <- "Brown"
+spcomp$species[spcomp$species == "Brown "] <- "Brown"
+spcomp$species[spcomp$species == "Litter"] <- "Brown"
+spcomp$species[spcomp$species == "Ramu"] <- "Romu"
 
+#remove "Brown" and "Bare_ground" from species
+spcomp<- spcomp[spcomp$species != "Bare_ground",]
+spcomp<- spcomp[spcomp$species != "Brown",]
+unique(sort(spcomp$species))
+
+# where is the "Unknown" and is it unique? 
+#KBS, D1, 2017. Yes. (ask Mark to resolve if possible)
+whereisit <- spcomp %>%
+  filter(species == "Unknown")
+
+#plot KBS and UMBS data to see if there are inconsistencies in spp. list across years
+KBS.spcomp<-spcomp[(spcomp$site=="KBS"),]
+UMBS.spcomp<-spcomp[(spcomp$site=="UMBS"),]
+
+# comparing years for KBS
+KBS.2015.spcomp<-KBS.spcomp[(KBS.spcomp$year=="2015"),]
+KBS.2016.spcomp<-KBS.spcomp[(KBS.spcomp$year=="2016"),]
+KBS.2017.spcomp<-KBS.spcomp[(KBS.spcomp$year=="2017"),]
+A = KBS.2015.spcomp$species
+B = KBS.2016.spcomp$species
+C = KBS.2017.spcomp$species
+A %in% B
+intersect(A,B) # data that appears in both A and B
+setdiff(A,B) # data that appears in A, but not in B
+#[1] "Piau"  "Posp"  "Pesp"  "Trsp"  "Thar"  "Prsp"  "Acsa"  "Crsp"  "Juni"  "Posp2"
+#[11] "Uhsp"  "Posp3" "Erci"  "Ersp"  "Soju"  "Sypi" 
+setdiff(B,A)
+# [1] "Cahi" "Alpe"
+setdiff(B,C)
+#[1] "Hisp" "Trpr" "Trre" "Vear" "Alpe" "Ceor"
+setdiff(C,B)
+#[1] "Hipr"    "Unknown" "Brin"    "Desp"    "Cesp"    "Assy"   
+
+# comparing years for UMBS
+UMBS.2015.spcomp<-UMBS.spcomp[(UMBS.spcomp$year=="2015"),]
+UMBS.2016.spcomp<-UMBS.spcomp[(UMBS.spcomp$year=="2016"),]
+UMBS.2017.spcomp<-UMBS.spcomp[(UMBS.spcomp$year=="2017"),]
+D = UMBS.2015.spcomp$species
+E = UMBS.2016.spcomp$species
+F = UMBS.2017.spcomp$species
+D %in% E
+intersect(D,E) # data that appears in both D and E
+setdiff(D,E) # data that appears in D, but not in E
+#[1] "Hica" "Spsp" "Prpe" "Ulsp" ("Ulsp"= unknwon lichen sp., "Spsp"= Sporobolus species)
+setdiff(E,D)
+# [1] "Trdu" "Hipi"
+setdiff(E,F)
+#[1] "Trdu" "Hipi" "Quru"
+setdiff(F,E)
+#[1] "Hica"      "Vear"      "Anma"      "Prpe"      "Elre"      "Unknown 5"
+#[7] "Sohi"      "Oebi"  
+# KS Comments: Sohi might be Sone, only recorded as such in 2017. Plot A1. 
+# Hica identified as Hipi in 2016 only. Mark confirming proper ID. 
+
+#Plot it: look at C3 compositional shifts over time
+UMBS.C3.spcomp<-UMBS.spcomp[(UMBS.spcomp$plot=="C3"),]
+ggplot(UMBS.C3.spcomp, aes(x = julian, y = cover, color = species)) +
+  facet_grid(. ~ year) +
+  geom_point(size=1) +
+  geom_line(aes(group = species)) +
+  ylab("Percent cover") +
+  theme_minimal() + theme(legend.position = "bottom")
+
+####### JASON HELP NEEDED #######
+# Rename species ID based off serval conditions.
+# Currently the function creates a new dataframe, however, I am looking to filter and rename within "spcomp"
+edits.UMBS <- spcomp %>%
+  filter(site == "UMBS", 
+         year == 2015,
+         plot == "C3")  %>% 
+  mutate(species = ifelse(species == "Prpe", "Amla", species))
 
 #convert cover to relative abundance 
 #first get summed cover for all plants per plot
@@ -76,11 +157,11 @@ ktrait<-read.csv("../raw_data/KBS_Species_Traits_Comp.csv")
 utrait<-read.csv("../raw_data/UMBS_Species_Traits_Comp.csv")
 str(utrait)
 str(ktrait)
-
-spcomp1<-merge(spcomp1, ktrait, by=c("species"), all.x=T, all.y=T)
-spcomp1<-merge(spcomp1, utrait, by=c("species"), all.x=T, all.y=T)
-
-str(spcomp1)
+uktrait<-rbind(utrait,ktrait)
+spcomp1<-merge(spcomp1, uktrait, by=c("species"))
+head(spcomp1)
+#spcomp1<-merge(spcomp1, ktrait, by=c("species"), all.x=T, all.y=T)
+#spcomp1<-merge(spcomp1, utrait, by=c("species"), all.x=T, all.y=T)
 
 save.image("spcomp_2015_2018.RData")
 
@@ -99,6 +180,19 @@ summary(spcomp1)
 # cov.sum analysis above, but include a column for native/exotic and aggregate
 # to include that column as well... This will generate a new dataframe. Then run the relab calculation above 
 # on that new native/exotic % cover dataframe.
+# merge in species trait info
+spcomp2<-merge(spcomp, uktrait, by=c("species"))
+cov.sum2 = aggregate(cover ~ plot*year*julian*site*origin, data=spcomp2, FUN=sum, na.rm=T)
+names(cov.sum2)[names(cov.sum2)=="cover"]<-"cov.sum"
+head(cov.sum2)
+spcomp2<-merge(spcomp2,cov.sum2, by=c("plot","julian","year","site","origin"))
+
+#merge in plot info 
+spcomp2<-merge(spcomp2, trt, by=c("plot"), all.x=T, all.y=T)
+
+#calculate relative percent cover PER NATIVE VS. EXOTIC in each quadrat (="relative abundance")
+spcomp2$relab<-spcomp2$cover/spcomp2$cov.sum
+summary(spcomp2)
 
 ## Feel free to make some plots by summarizing relab by year, species, native/exotic, site.
 ## Plot is usually experimental unit, so when plotting take mean across plots (if there is 
@@ -106,4 +200,25 @@ summary(spcomp1)
 # The script, "2016_SpComp_finaldata_by_site.R" has several analyses and 
 # relative abundance plots that could be added below and run here to look at 
 # differences over years.
-# 
+
+# plot it:
+ggplot(spcomp1, aes(x = julian, y = relab, color = origin)) +
+  facet_grid(state ~ year) +
+  geom_point(size=1) +
+  #geom_line(aes(group = species)) +
+  ylab("Percent cover") +
+  theme_minimal() + theme(legend.position = "bottom")
+
+# looking at Cest in ambient vs. warmed plots
+spcomp2.cest<-spcomp2[(spcomp2$species=="Cest"),]
+ggplot(spcomp2.cest, aes(x = julian, y = cover, color = year)) +
+  facet_grid(state ~ site) +
+  geom_point(size=1) +
+  #geom_line(aes(group = species)) +
+  ylab("Percent cover") +
+  theme_minimal() + theme(legend.position = "bottom")
+
+library(vegan)
+library(MASS)
+> vare.dis <- vegdist(varespec)
+> vare.mds0 <- isoMDS(vare.dis)

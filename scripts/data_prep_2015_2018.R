@@ -468,6 +468,9 @@ names(spcomp16u)[names(spcomp16u)=="Julian_Day"] <- "Julian"
 names(spcomp16u)[names(spcomp16u)=="Percent_Cover"] <- "Cover"
 spcomp17u$Site<-NULL
 spcomp17u$Notes<-NULL
+spcomp17u$Species <- as.character(spcomp17u$Species)
+spcomp17u$Species[spcomp17u$Species == "Assp"] <- "Assy"
+spcomp17u$Species[spcomp17u$Species == "Vesp"] <- "Vear"
 
 # change column headings to lower case
 names(spcomp15u)[1:5] <- tolower(names(spcomp15u)[1:5])
