@@ -135,13 +135,33 @@ ggplot(UMBS.C3.spcomp, aes(x = julian, y = cover, color = species)) +
   theme_minimal() + theme(legend.position = "bottom")
 
 ####### JASON HELP NEEDED #######
-# Rename species ID based off serval conditions.
-# Currently the function creates a new dataframe, however, I am looking to filter and rename within "spcomp"
-edits.UMBS <- spcomp %>%
-  filter(site == "UMBS", 
-         year == 2015,
-         plot == "C3")  %>% 
-  mutate(species = ifelse(species == "Prpe", "Amla", species))
+# Rename species ID based off several conditions (specifically, rename "Prpe" to "Amla" in year 2015, at UMBS, in plot C3)
+# make a new dataframe just in case this doesn't work, so you don't overwrite it (remove this step if it does work)
+spcomp1<-spcomp 
+dim(spcomp) # print number of rows & columns 
+head(spcomp) # print first 6 rows
+summary(spcomp) # print the summary details
+# make a selection based on several columns (by using | )
+spcomp$species[spcomp$site == "UMBS" | spcomp$year == 2015 | spcomp$plot =="C3" | spcomp$species == "Prpe",] <-"Amla"
+dim(spcomp) # check number of rows & columns - do they match the output above in line 141?
+head(spcomp) # check first 6 rows - do they match the output above in line 142?
+summary(spcomp) # check the summary details - do they match the output above in line 143?
+# If spcomp changed in the wrong way, then this doesn't work. If it worked then you don't need to use spcomp1 to rerun/edit
+
+# You could also try using "within"
+spcomp <- within(spcomp, species[species == 'Prpe' & site == 'UMBS' & year==2015, plot== "C3"] <- 'Amla')
+
+# You could also try using dplyr:
+spcomp %>%
+     mutate(species=replace(species, species=="Prpe", site=="UMBS", year==2015, plot== "C3", "Amla")) %>%
+     as.data.frame()
+
+## Old code
+#edits.UMBS <- spcomp %>%
+#  filter(site == "UMBS", 
+#         year == 2015,
+#         plot == "C3")  %>% 
+#  mutate(species = ifelse(species == "Prpe", "Amla", species))
 
 #convert cover to relative abundance 
 #first get summed cover for all plants per plot
