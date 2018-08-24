@@ -143,6 +143,7 @@ head(spcomp) # print first 6 rows
 summary(spcomp) # print the summary details
 # make a selection based on several columns (by using | )
 spcomp$species[spcomp$site == "UMBS" | spcomp$year == 2015 | spcomp$plot =="C3" | spcomp$species == "Prpe",] <-"Amla"
+    ### ERROR message: Error in spcomp$species[spcomp$site == "UMBS" | spcomp$year == "2015" |  : incorrect number of subscripts on matrix
 dim(spcomp) # check number of rows & columns - do they match the output above in line 141?
 head(spcomp) # check first 6 rows - do they match the output above in line 142?
 summary(spcomp) # check the summary details - do they match the output above in line 143?
