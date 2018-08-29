@@ -14,7 +14,7 @@ graphics.off()
 setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/")
 
 ## Edit below for any packages you'll be using
-for (package in c("ggplot2","plyr", "tidyr","lubridate")) {
+for (package in c("ggplot2","plyr", "dplyr", "tidyr", "tidyverse","lubridate")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -172,12 +172,64 @@ dplyr::anti_join(new.pend1618k, pend1618k)
 Pend1P_1518k<-read.csv("final_data/KBS/sensor_data/Merged_KBS_1.csv", header =T)
 Pend2P_1518k<-read.csv("final_data/KBS/sensor_data/Merged_KBS_2.csv", header =T)
 Pend3P_1518k<-read.csv("final_data/KBS/sensor_data/Merged_KBS_3.csv", header =T)
-head(Pend1P_1518k)
 
 # remove HOBO ID's from coloumn and add 'Pendant_ID'
 Pend1P_1518k$Pendant_ID<-"1"
 Pend2P_1518k$Pendant_ID<-"2"
 Pend3P_1518k$Pendant_ID<-"3"
+
+# Extract only necessary columns
+Pend1P_ambient_1518k <-  Pend1P_1518k[,c(3,8,14)]
+names(Pend1P_ambient_1518k)[names(Pend1P_ambient_1518k)== "X1H_ambient_air_1m"] <- "XH_air_1m"
+Pend1P_ambient_1518k$State<-"ambient"
+Pend1P_warmed_1518k <-  Pend1P_1518k[,c(3,6,14)]
+names(Pend1P_warmed_1518k)[names(Pend1P_warmed_1518k)== "X1H_warmed_air_1m"] <- "XH_air_1m"
+Pend1P_warmed_1518k$State<-"warmed"
+Pend2P_warmed_1518k <-  Pend2P_1518k[,c(3,8,14)]
+names(Pend2P_warmed_1518k)[names(Pend2P_warmed_1518k)== "X2H_warmed_air_1m"] <- "XH_air_1m"
+Pend2P_warmed_1518k$State<-"warmed"
+Pend2P_ambient_1518k <-  Pend2P_1518k[,c(3,6,14)]
+names(Pend2P_ambient_1518k)[names(Pend2P_ambient_1518k)== "X2H_ambient_air_1m"] <- "XH_air_1m"
+Pend2P_ambient_1518k$State<-"ambient"
+Pend3P_warmed_1518k <-  Pend3P_1518k[,c(3,6,14)]
+names(Pend3P_warmed_1518k)[names(Pend3P_warmed_1518k)== "X3H_warmed_air_1m"] <- "XH_air_1m"
+Pend3P_warmed_1518k$State<-"warmed"
+Pend3P_ambient_1518k <-  Pend3P_1518k[,c(3,8,14)]
+names(Pend3P_ambient_1518k)[names(Pend3P_ambient_1518k)== "X3H_ambient_air_1m"] <- "XH_air_1m"
+Pend3P_ambient_1518k$State<-"ambient"
+
+# Merge dataframes
+New.Pend1P_1518k<-rbind(Pend1P_warmed_1518k,Pend1P_ambient_1518k)
+New.Pend2P_1518k<-rbind(Pend2P_warmed_1518k,Pend2P_ambient_1518k)
+New.Pend3P_1518k<-rbind(Pend3P_warmed_1518k,Pend3P_ambient_1518k)
+Pend13_1518k<-rbind(New.Pend1P_1518k,New.Pend2P_1518k,New.Pend3P_1518k) 
+Pend13_1518k$Site<-"KBS"
+
+# # Add column of warmed -ambient temp
+# # For each value in "Date_Time" want to subtract warmed, XH_air_1m value by ambient, XH_air_1m value
+# new.Pend13_1518k<-Pend13_1518k
+# new.Pend13_1518k$Temp.diff<-new.Pend13_1518k$XH_air_1m
+# tail(new.Pend13_1518k)
+# new.Pend13_1518k %>%  
+#   group_by(Date_Time) %>%  
+#   mutate(Temp.diff=XH_air_1m[State=="warmed"]-XH_air_1m[State=="ambient"])
+
+# Change class of Datet.Time column from factor to POSIXct date 
+Pend13_1518k$Date_Time <- as.POSIXct(Pend13_1518k$Date_Time,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
+a1<- ggplot(Pend13_1518k, aes(x = Date_Time, y = XH_air_1m, color = Pendant_ID)) +
+  facet_grid(Pendant_ID ~ State) +
+  geom_point(alpha=.5, size = 2) +
+  ylab("Temperature F") +
+  ylim(-100,200)+
+  theme_gray() + theme(legend.position = "bottom")
+a1
+a2<- ggplot(Pend13_1518k, aes(x = Date_Time, y = XH_air_1m, color = State)) +
+  facet_grid(Pendant_ID ~ .) +
+  geom_point(alpha=.5, size = 2) +
+  ylab("Temperature F") +
+  ylim(-100,200)+
+  theme_gray() + theme(legend.position = "bottom")
+a2
 
 ### ***UMBS*** ###
 # Read in UMBS HOBO data from all years
@@ -314,7 +366,7 @@ pend10P_18u$Pendant_ID<-"10P"
 pend11P_18u$Pendant_ID<-"11P"
 pend12P_18u$Pendant_ID<-"12P"
 
-# combine KBS pendant files for 2017 and 2018
+# combine UMBS pendant files for 2017 and 2018
 pend17u<-rbind(pend4P_17u,pend5P_17u,pend6P_17u,pend7P_17u,pend8P_17u,pend9P_17u,pend10P_17u,pend11P_17u,pend12P_17u) 
 pend17u$Site<-"UMBS"
 pend18u<-rbind(pend4P_18u,pend5P_18u,pend6P_18u,pend7P_18u,pend8P_18u,pend9P_18u,pend10P_18u,pend11P_18u,pend12P_18u)
@@ -371,19 +423,20 @@ Pend13_1518u$Site<-"UMBS"
 
 # Change class of Datet.Time column from factor to POSIXct date 
 Pend13_1518u$Date_Time <- as.POSIXct(Pend13_1518u$Date_Time,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-a1<- ggplot(Pend13_1518u, aes(x = Date_Time, y = XH_air_1m, color = Pendant_ID)) +
+a3<- ggplot(Pend13_1518u, aes(x = Date_Time, y = XH_air_1m, color = Pendant_ID)) +
   facet_grid(Pendant_ID ~ State) +
   geom_point(alpha=.5, size = 2) +
   ylab("Temperature F") +
   theme_gray() + theme(legend.position = "bottom")
-a1
-a2<- ggplot(Pend13_1518u, aes(x = Date_Time, y = XH_air_1m, color = State)) +
+a3
+a4<- ggplot(Pend13_1518u, aes(x = Date_Time, y = XH_air_1m, color = State)) +
   facet_grid(Pendant_ID ~ .) +
   geom_point(alpha=.5, size = 2) +
   ylab("Temperature F") +
   theme_gray() + theme(legend.position = "bottom")
-a2
-grid.arrange(a1,a2,ncol=2)
+a4
+#grid.arrange(a1,a2,ncol=2)
+
 
 ###### ***DATA ANALYSIS*** ########
 ## plot it
