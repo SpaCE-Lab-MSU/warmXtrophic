@@ -475,6 +475,7 @@ ggplot(mean_monthly_plotu, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
   theme_minimal() + theme(legend.position = "bottom")
 
 # KBS average chamber temp per month, by year
+test.pend1618k<-pend1618k
 head(test.pend1618k)
 test.pend1618k$Month <- months(test.pend1618k$Date_Time)
 test.pend1618k$Year <- format(test.pend1618k$Date_Time,format="%y")
@@ -501,8 +502,28 @@ ggplot(mean_monthly_plotk, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
 
 # Compare ambient vs. warmed 
 # Take out station ID's in columns
-Pend1P_1518u
 a <- Pend1P_1518u
-data <- data.frame(lapply(a, function(x) {gsub("X1U", "XU", x) }))
-head(data)
-head(Pend1P_1518u)
+colnames(a) <- gsub("X1U","XU", colnames(a))
+colnames(a) <- gsub("X1H","XH", colnames(a))
+colnames(a)
+b <- Pend2P_1518u
+colnames(b) <- gsub("X2U","XU", colnames(b))
+colnames(b) <- gsub("X2H","XH", colnames(b))
+colnames(b)
+names(b)[names(b)== "XH_ambient_aim_1m"] <- "XH_ambient_air_1m"
+c <- Pend3P_1518u
+colnames(c) <- gsub("X3U","XU", colnames(c))
+colnames(c) <- gsub("X3H","XH", colnames(c))
+colnames(c)
+
+# Merge cleaned station data
+Merged.Pendstation_1518u<-rbind(a,b,c)
+head(Merged.Pendstation_1518u)
+Tempdiffu <- Merged.Pendstation_1518u %>%
+  select(Date_Time,Pendant_ID,XH_warmed_air_1m,XH_ambient_air_1m) %>%
+  group_by(Date_Time,Pendant_ID) %>%
+  mutate(Tempdiff.air_1m=XH_warmed_air_1m-XH_ambient_air_1m)
+head(Tempdiffu)
+  new.Pend13_1518k %>%  
+  +   group_by(Date_Time) %>%  
+  +   mutate(Temp.diff=XH_air_1m[State=="warmed"]-XH_air_1m[State=="ambient"])

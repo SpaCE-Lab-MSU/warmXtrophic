@@ -393,6 +393,8 @@ write.csv(UMBS_3_2018, file="final_data/UMBS/sensor_data/2018/UMBS_3.csv")
 ####### Create a new merged file that contains data from all years for the both KBS and UMBS pairs.
 # write the merged file in the sensor_data folder #######
 
+save.image("HOBO_data_prep_nkl_kbw_original_8_31_18.RData")
+
 #UMBS pair 1
 UMBS_1_s18 <- read.csv("final_data/UMBS/sensor_data/2018/UMBS_1.csv")
 UMBS_1_s17 <- read.csv("final_data/UMBS/sensor_data/2017/UMBS_1.csv")
@@ -400,6 +402,7 @@ UMBS_1_s15_16 <- read.csv("final_data/UMBS/sensor_data/2015_2016/UMBS_1.csv")
 Merged_UMBS_1<-rbind(UMBS_1_s18,UMBS_1_s17,UMBS_1_s15_16)
 dim(Merged_UMBS_1)
 head(Merged_UMBS_1)
+new.Merged_UMBS_1<-distinct(Merged_UMBS_1)
 new.Merged_UMBS_1<- unique(Merged_UMBS_1) #function not working, clear duplicated in head(Merged_UMBS_1)
 dim(new.Merged_UMBS_1)
 write.csv(Merged_UMBS_1, file="final_data/UMBS/sensor_data/Merged_UMBS_1.csv")
