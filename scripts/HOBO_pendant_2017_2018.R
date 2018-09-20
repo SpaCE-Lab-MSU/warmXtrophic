@@ -11,7 +11,8 @@ graphics.off()
 
 # set working directory (if you're not PLZ, change this to the correct path for your
 # Google Drive directory. It should point to where we have /final_data
-setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/")
+#setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/")
+setwd("/Volumes/GoogleDrive/My Drive/Research/TrophicWarming/TrophicWarming_Experiment/MIWarmHerb_FieldExperiment/data/") # PLZ's location
 
 ## Edit below for any packages you'll be using
 for (package in c("ggplot2","plyr", "dplyr", "tidyr", "tidyverse","lubridate")) {
@@ -160,13 +161,18 @@ pend18k<-rbind(pend4P_18k,pend5P_18k,pend6P_18k,pend7P_18k,pend8P_18k,pend10P_18
 pend17k$Site<-"KBS"
 pend18k$Site<-"KBS"
 
+## PLZ edit 20 Sep 2018
 # merge KBS HOBO data from all years
 pend1618k<-rbind(pend17k,pend18k) #2017 dataset contains data from 2016
-str(pend1618k)
+head(pend1618k) # don't appear to be duplicates
+str(pend1618k) 
+dim(pend1618k) # dimensions = 101176 rows,  5 columns
 new.pend1618k<-unique( pend1618k[ , 1:5 ] ) #seems to have no duplicate data
+dim(pend1618k) # dimensions = 101176 rows,  5 columns (same dataset)
 str(new.pend1618k)
-setdiff(pend1618k,new.pend1618k)
-dplyr::anti_join(new.pend1618k, pend1618k)
+setdiff(pend1618k,new.pend1618k) # no difference
+# not sure this code below is necessary
+#dplyr::anti_join(new.pend1618k, pend1618k)
 
 ### Add in station data ###
 Pend1P_1518k<-read.csv("final_data/KBS/sensor_data/Merged_KBS_1.csv", header =T)
