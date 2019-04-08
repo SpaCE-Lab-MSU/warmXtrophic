@@ -7,7 +7,7 @@
 ## OUTPUT:        creates cleaned up data for 2015-2018 for response variables
 ## DATE:          June 14, 2018; July 26 PLZ added a few edits, and noted KBS 2018 is not entered online - will check w Mark
 
-## LAST RUN:      July 26, 2018 by PLZ
+## LAST RUN:      Oct 10, 2018 by PLZ
 
 ## This script reads in raw data compiled from 2015-2018 experiment data.
 ## This script then combines all years into 1 dataframe per response variable. 
@@ -520,11 +520,11 @@ write.csv(spcomp1518, file="spcomp1518.csv",row.names=F)
 herb15k<-read.csv("../raw_data/KBS/2015_Plant_Data/KBS_Herbivory_2015.csv")
 herb16k<-read.csv("../raw_data/KBS/2016_Plant_Data/KBS_Leaf_Herbivory_2016.csv")
 herb17k<-read.csv("../raw_data/KBS/2017_Plant_Data/kbs_leaf_herbivory_2017.csv")
-#herb18k<-read.csv("../raw_data/KBS/2018_Plant_Data/KBS_Greenup_2018.csv") ###data not available
+herb18k<-read.csv("../raw_data/KBS/2018_Plant_Data/KBS_Herbivory_2018_KSentry.csv") ###does not include full dataset
 str(herb15k)
 str(herb16k)
 str(herb17k)
-#str(herb18k)
+str(herb18k)
 
 # split column "ID" into appropriate data column
 herb15k <- separate(data=herb15k, col = ID, into =c("Ste","date1","date2","date3","plt","plant_number"))%>%
@@ -541,51 +541,53 @@ names(herb15k)[names(herb15k)=="damage"] <- "p_damage"
 names(herb15k)[names(herb15k)=="eaten"] <- "p_eaten"
 herb17k$Site<-NULL
 herb17k$Notes<-NULL
+herb18k$Site<-NULL
+herb18k$Notes<-NULL
 
 # change column headings to lower case
 names(herb15k)[1:7] <- tolower(names(herb15k)[1:7])
 names(herb16k)[1:7] <- tolower(names(herb16k)[1:7])
 names(herb17k)[1:7] <- tolower(names(herb17k)[1:7])
-#names(herb18k)[1:7] <- tolower(names(herb18k)[1:7])
+names(herb18k)[1:7] <- tolower(names(herb18k)[1:7])
 
 # check for single yr per dataframe
 unique(herb15k$date)
 unique(herb16k$date)
 unique(herb17k$date)
-#unique(herb18k$date)
+unique(herb18k$date)
 
 # Add column "year"
 herb15k$year<-"2015"
 herb16k$year<-"2016"
 herb17k$year<-"2017"
-#herb18k$year<-"2018"
+herb18k$year<-"2018"
 
 # Re-order columns in data.frame
 herb15k <- herb15k[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
 herb16k <- herb16k[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
 herb17k <- herb17k[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
-#herb18k <- herb18k[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
+herb18k <- herb18k[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
 
 # Change date from factor to 'Date'
 herb15k$date <- as.Date(herb15k$date,format="%Y_%m_%d")
 herb16k$date <- as.Date(herb16k$date,format="%m/%d/%Y")
 herb17k$date <- as.Date(herb17k$date,format="%m/%d/%y")
-#herb18k$date <- as.Date(herb18k$date,format="%m/%d/%Y")
+herb18k$date <- as.Date(herb18k$date,format="%m/%d/%Y")
 
 # Combine herb data from KBS from years 2016, 2017, and 2018
-herbk<-rbind(herb15k,herb16k,herb17k) ##add herb18k later
+herbk<-rbind(herb15k,herb16k,herb17k,herb18k) 
 herbk$site<-"KBS"
 
 # Do the same for UMBS
-# Read in UMBS sp. composition data from all years
+# Read in UMBS herbivory data from all years
 herb15u<-read.csv("../raw_data/UMBS/2015_Plant_Data/UMBS_Herbivory_2015.csv")
 herb16u<-read.csv("../raw_data/UMBS/2016_Plant_Data/UMBS_Leaf_Herbivory_2016.csv")
 herb17u<-read.csv("../raw_data/UMBS/2017_Plant_Data/umbs_leaf_herbivory_2017.csv")
-#herb18u<-read.csv("../raw_data/UMBS/2018_Plant_Data/umbs__2018.csv")
+herb18u<-read.csv("../raw_data/UMBS/2018_Plant_Data/UMBS_Herbivory_2018.csv")
 str(herb15u)
 str(herb16u)
 str(herb17u)
-#str(herb18u)
+str(herb18u)
 
 # split column "ID" into appropriate data column
 herb15u <- separate(data=herb15u, col = ID, into =c("Ste","date1","date2","date3","plt","plant_number"))%>%
@@ -602,39 +604,41 @@ names(herb15u)[names(herb15u)=="damage"] <- "p_damage"
 names(herb15u)[names(herb15u)=="eaten"] <- "p_eaten"
 herb17u$Site<-NULL
 herb17u$Notes<-NULL
+herb18u$Site<-NULL
+herb18u$Notes<-NULL
 
 # change column headings to lower case
 names(herb15u)[1:7] <- tolower(names(herb15u)[1:7])
 names(herb16u)[1:7] <- tolower(names(herb16u)[1:7])
 names(herb17u)[1:7] <- tolower(names(herb17u)[1:7])
-#names(herb18u)[1:7] <- tolower(names(herb18u)[1:7])
+names(herb18u)[1:7] <- tolower(names(herb18u)[1:7])
 
 # check for single yr per dataframe
 unique(herb15u$date)
 unique(herb16u$date)
 unique(herb17u$date)
-#unique(herb18k$date)
+unique(herb18u$date)
 
 # Add column "year"
 herb15u$year<-"2015"
 herb16u$year<-"2016"
 herb17u$year<-"2017"
-#herb18u$year<-"2018"
+herb18u$year<-"2018"
 
 # Re-order columns in data.frame
 herb15u <- herb15u[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
 herb16u <- herb16u[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
 herb17u <- herb17u[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
-#herb18u <- herb18u[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
+herb18u <- herb18u[, c("plot", "species", "p_eaten", "p_damage", "date", "julian", "year")]
 
 # Change date from factor to 'Date'
 herb15u$date <- as.Date(herb15u$date,format="%Y_%m_%d")
 herb16u$date <- as.Date(herb16u$date,format="%m/%d/%Y")
-herb17u$date <- as.Date(herb17u$date,format="%m/%d/%Y")
-#herb18u$date <- as.Date(herb18u$date,format="%m/%d/%Y")
+herb17u$date <- as.Date(herb17u$date,format="%m/%d/%y")
+herb18u$date <- as.Date(herb18u$date,format="%m/%d/%Y")
 
 # Combine herb data from UMBS from years 2016, 2017, and 2018
-herbu<-rbind(herb15u,herb16u,herb17u) ## add herb18u
+herbu<-rbind(herb15u,herb16u,herb17u,herb18u) 
 herbu$site<-"UMBS"
 
 # Then merge all herb data

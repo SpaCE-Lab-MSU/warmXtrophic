@@ -11,8 +11,8 @@ graphics.off()
 
 # set working directory (if you're not PLZ, change this to the correct path for your
 # Google Drive directory. It should point to where we have /final_data
-#setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/")
-setwd("/Volumes/GoogleDrive/My Drive/Research/TrophicWarming/TrophicWarming_Experiment/MIWarmHerb_FieldExperiment/data/") # PLZ's location
+setwd("/Volumes/GoogleDrive/My Drive/MIWarmHerb_FieldExperiment/data/")
+#setwd("/Volumes/GoogleDrive/My Drive/Research/TrophicWarming/TrophicWarming_Experiment/MIWarmHerb_FieldExperiment/data/") # PLZ's location
 
 ## Edit below for any packages you'll be using
 for (package in c("ggplot2","plyr", "dplyr", "tidyr", "tidyverse","lubridate")) {
@@ -36,15 +36,14 @@ pend9P_17k<-read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/9P.csv", skip=1, he
 pend10P_17k<-read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/10P_0.csv", skip=1, header =T)
 pend11P_17k<-read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/11P_0.csv", skip=1, header =T)
 pend12P_17k<-read.csv("raw_data/KBS/sensor_data/2017/9_1_2017/12P_0.csv", skip=1, header =T)
-pend4P_18k<-read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/7_18_18/4P_07182018.csv", skip=1, header =T)[ ,1:4]
-pend5P_18k<-read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/7_18_18/5P_7192018.csv", skip=1, header =T)[ ,1:4]
-pend6P_18k<-read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/7_18_18/6P_07182018.csv", skip=1, header =T)[ ,1:4]
-pend7P_18k<-read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/7_18_18/7P_07182018.csv", skip=1, header =T)[ ,1:4]
-pend8P_18k<-read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/7_18_18/8P_07182018.csv", skip=1, header =T)[ ,1:4]
-## missing pend9P data from 2018
-pend10P_18k<-read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/7_18_18/10P_7182018.csv", skip=1, header =T)[ ,1:4]
-pend11P_18k<-read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/7_18_18/11P_07182018.csv", skip=1, header =T)[ ,1:4]
-pend12P_18k<-read.csv("raw_data/KBS/sensor_data/2018/excel files from HOBOWARE/7_18_18/12P_07182018.csv", skip=1, header =T)[ ,1:4]
+pend4P_18k<-read.csv("raw_data/KBS/sensor_data/2018/9_20_18 (pendants)/4P_09202018.csv", skip=1, header =T)[ ,1:4]
+pend5P_18k<-read.csv("raw_data/KBS/sensor_data/2018/9_20_18 (pendants)/5P_09202018.csv", skip=1, header =T)[ ,1:4]
+pend6P_18k<-read.csv("raw_data/KBS/sensor_data/2018/9_20_18 (pendants)/6P_09202018.csv", skip=1, header =T)[ ,1:4]
+pend7P_18k<-read.csv("raw_data/KBS/sensor_data/2018/9_20_18 (pendants)/7P_09202018.csv", skip=1, header =T)[ ,1:4]
+pend8P_18k<-read.csv("raw_data/KBS/sensor_data/2018/9_20_18 (pendants)/8P_09202018.csv", skip=1, header =T)[ ,1:4]
+pend10P_18k<-read.csv("raw_data/KBS/sensor_data/2018/9_20_18 (pendants)/10P_09202018.csv", skip=1, header =T)[ ,1:4]
+pend11P_18k<-read.csv("raw_data/KBS/sensor_data/2018/9_20_18 (pendants)/11P_09202018.csv", skip=1, header =T)[ ,1:4]
+pend12P_18k<-read.csv("raw_data/KBS/sensor_data/2018/9_20_18 (pendants)/12P_09202018.csv", skip=1, header =T)[ ,1:4]
 
 # Change class of Datet.Time column from factor to POSIXct date 
 pend4P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend4P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
@@ -248,15 +247,15 @@ pend9P_17u<-read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_9P_1.csv", s
 pend10P_17u<-read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_10P.csv", skip=1, header =T)
 pend11P_17u<-read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_11P.csv", skip=1, header =T)
 pend12P_17u<-read.csv("raw_data/UMBS/sensor_data/2017/8_15_2017/UMBS_12P.csv", skip=1, header =T)
-pend4P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_4P.csv", skip=1, header =T)
-pend5P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_5P.csv", skip=1, header =T)
-pend6P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_6P.csv", skip=1, header =T)
-pend7P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_7P.csv", skip=1, header =T)
-pend8P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_8P.csv", skip=1, header =T)
-pend9P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_9P.csv", skip=1, header =T)
-pend10P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_10P.csv", skip=1, header =T)
-pend11P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_11P.csv", skip=1, header =T)
-pend12P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/8_22_18/8.22_UMBS_12P.csv", skip=1, header =T)
+pend4P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_4P_91918.csv", skip=1, header =T)
+pend5P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_5P_91818.csv", skip=1, header =T)
+pend6P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_6P_91918.csv", skip=1, header =T)
+pend7P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_7P_91918.csv", skip=1, header =T)
+pend8P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_8P_91918.csv", skip=1, header =T)
+pend9P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_9P_91818.csv", skip=1, header =T)
+pend10P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_10P_91818.csv", skip=1, header =T)
+pend11P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_11P_91818.csv", skip=1, header =T)
+pend12P_18u<-read.csv("raw_data/UMBS/sensor_data/2018/9_19_18/UMBS_12P_91918.csv", skip=1, header =T)
 
 # Change class of Datet.Time column from factor to POSIXct date 
 pend4P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
