@@ -31,7 +31,7 @@ google_id <- L2_data_dir %>% filter(grepl('taxon',name))%>%
 		 unlist()
 taxa <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
 
-#get google_id for Taxon table and load:
+#get google_id for plot table and load:
 google_id <- L2_data_dir %>% filter(grepl('plot',name))%>%
 		 select(id) %>% 
 		 unlist()
@@ -76,7 +76,7 @@ drive_upload("kbs_plant_comp_2015.csv",
 #remove local file
 file.remove("kbs_plant_comp_2015.csv")
 #remove data from workspace
-rm(dat)
+rm(list = c('dat', 'data'))
 
 ###2016
 
@@ -118,7 +118,7 @@ drive_upload("kbs_plant_comp_2017.csv",
 #remove local file
 file.remove("kbs_plant_comp_2017.csv")
 #remove data from workspace
-rm(dat)
+rm(list = c('dat', 'data'))
 
 ###2018
 
