@@ -170,3 +170,171 @@ rm(list = c('dat', 'data'))
 #####################################
 #             UMBS                  #
 #####################################
+#2015
+data <- gs_title("umbs_plant_comp_2015")
+dat <- as.data.frame(gs_read(data))
+dat$Site <- tolower(dat$Site)
+unique(dat$Site)
+unique(dat$Date)  
+#convert date to common format:
+dat$Date <- as.Date(dat$Date, format = "%m/%d/%Y")
+unique(dat$Plot)
+#compare plot codes with plot lookup table:
+setdiff(unique(dat$Plot), unique(plots$plot))
+unique(dat$Species)
+setdiff(unique(dat$Species), unique(taxa$code))
+#in 2015 only, percent cover was measured separately on four quadrants of each quadrat(plot). Aggregate to get percent cover of each quadrat (plot):
+dat$Cover <- dat$Cover * .25
+dat <- aggregate(Cover~Site+Date+Plot+Species, data = dat, FUN = sum)
+hist(dat$Cover)
+summary(dat$Cover)
+dat$Year <- 2015
+#select certain columns and rename to standard colnames:
+dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+str(dat)
+
+#Save the L1 data file to googledrive
+googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
+# temp write local
+readr::write_csv(dat, "umbs_plant_comp_2015.csv")
+drive_rm("umbs_plant_comp_2015.csv") #delete old version
+drive_upload("umbs_plant_comp_2015.csv", 
+             path = "~/warmXtrophic/data/L1/plant_composition", 
+             name = "umbs_plant_comp_2015.csv", 
+             type = NULL,
+             verbose = TRUE)
+drive_share("umbs_plant_comp_2015", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+#remove local file
+file.remove("umbs_plant_comp_2015.csv")
+#remove data from workspace
+rm(list = c('dat', 'data'))
+
+#2016
+data <- gs_title("umbs_plant_comp_2016")
+dat <- as.data.frame(gs_read(data))
+dat$Site <- 'umbs'
+unique(dat$Date)  
+#convert date to common format:
+dat$Date <- as.Date(dat$Date, format = "%m/%d/%Y")
+unique(dat$Plot)
+#compare plot codes with plot lookup table:
+setdiff(unique(dat$Plot), unique(plots$plot))
+unique(dat$Species)
+dat$Species[dat$Species=="Bareground"] <- "Bare_Ground"
+dat$Species[dat$Species=="Anspp"] <- "Ansp" #probably a typo
+setdiff(unique(dat$Species), unique(taxa$code))
+colnames(dat)[which(names(dat) == "Percent_Cover")] <- "Cover"
+hist(dat$Cover)
+summary(dat$Cover)
+dat$Year <- 2016
+#select certain columns and rename to standard colnames:
+dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+str(dat)
+
+#Save the L1 data file to googledrive
+googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
+# temp write local
+readr::write_csv(dat, "umbs_plant_comp_2016.csv")
+drive_rm("umbs_plant_comp_2016.csv") #delete old version
+drive_upload("umbs_plant_comp_2016.csv", 
+             path = "~/warmXtrophic/data/L1/plant_composition", 
+             name = "umbs_plant_comp_2016.csv", 
+             type = NULL,
+             verbose = TRUE)
+drive_share("umbs_plant_comp_2016", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+#remove local file
+file.remove("umbs_plant_comp_2016.csv")
+#remove data from workspace
+rm(list = c('dat', 'data'))
+
+
+#2017
+data <- gs_title("umbs_plant_comp_2017")
+dat <- as.data.frame(gs_read(data))
+unique(dat$Site)
+dat <- dat[dat$Date != "5/10/2016",] #remove random single row from 2016
+unique(dat$Date)  
+#convert date to common format:
+dat$Date <- as.Date(dat$Date, format = "%m/%d/%Y")
+unique(dat$Plot)
+#compare plot codes with plot lookup table:
+setdiff(unique(dat$Plot), unique(plots$plot))
+unique(dat$Species)
+dat$Species[dat$Species=="Bare Ground"] <- "Bare_Ground"
+dat$Species[dat$Species=="Bare Groud"] <- "Bare_Ground"
+dat$Species[dat$Species=="Bare"] <- "Bare_Ground"
+dat$Species[dat$Species=="Unknown 5"] <- "Unknown"
+dat$Species[dat$Species=="Vesp"] <- "Vear" #from Phoebe's cleaning script
+setdiff(unique(dat$Species), unique(taxa$code))
+hist(dat$Cover)
+summary(dat$Cover)
+dat$Year <- 2017
+#select certain columns and rename to standard colnames:
+dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+str(dat)
+
+#Save the L1 data file to googledrive
+googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
+# temp write local
+readr::write_csv(dat, "umbs_plant_comp_2017.csv")
+#drive_rm("umbs_plant_comp_2017.csv") #delete old version
+drive_upload("umbs_plant_comp_2017.csv", 
+             path = "~/warmXtrophic/data/L1/plant_composition", 
+             name = "umbs_plant_comp_2017.csv", 
+             type = NULL,
+             verbose = TRUE)
+drive_share("umbs_plant_comp_2017", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+#remove local file
+file.remove("umbs_plant_comp_2017.csv")
+#remove data from workspace
+rm(list = c('dat', 'data'))
+
+#2018
+data <- gs_title("umbs_plant_comp_2018")
+dat <- as.data.frame(gs_read(data))
+unique(dat$Site)
+unique(dat$Date)  
+#convert date to common format:
+dat$Date <- as.Date(dat$Date, format = "%m/%d/%Y")
+unique(dat$Plot)
+#compare plot codes with plot lookup table:
+setdiff(unique(dat$Plot), unique(plots$plot))
+unique(dat$Species)
+dat$Species[dat$Species=="UNKNOWN1"] <- "Unknown"
+dat$Species[dat$Species=="UKNOWN_sp"] <- "Unknown"
+dat$Species[dat$Species=="UNKNOWN_GRASS3"] <- "Unknown"
+dat$Species[dat$Species=="UKNOWN_Grass"] <- "Unknown"
+dat$Species[dat$Species=="Unknown_shrub"] <- "Unknown"
+dat$Species[dat$Species=="UNKNOWN_PLANT1"] <- "Unknown"
+dat$Species[dat$Species=="WILD_RASP?"] <- "Unknown"
+dat$Species[dat$Species=="UNKNOWN_GRASS2"] <- "Unknown"
+dat$Species[dat$Species=="UNKNOWN 5"] <- "Unknown"
+dat$Species[dat$Species=="UNKNOWN_7"] <- "Unknown"
+dat$Species[dat$Species=="UNKNOWN_GRASS"] <- "Unknown"
+dat$Species[dat$Species=="Unknown_grass"] <- "Unknown"
+dat$Species[dat$Species=="unknown_grass"] <- "Unknown"
+dat$Species[dat$Species=="Unknown."] <- "Unknown"
+setdiff(unique(dat$Species), unique(taxa$code))
+#[1] "Prse" "Amla" "Ptsp" "Apan"
+hist(dat$Cover)
+summary(dat$Cover)
+dat$Year <- 2018
+#select certain columns and rename to standard colnames:
+dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+str(dat)
+
+#Save the L1 data file to googledrive
+googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
+# temp write local
+readr::write_csv(dat, "umbs_plant_comp_2018.csv")
+#drive_rm("umbs_plant_comp_2018.csv") #delete old version
+drive_upload("umbs_plant_comp_2018.csv", 
+             path = "~/warmXtrophic/data/L1/plant_composition", 
+             name = "umbs_plant_comp_2018.csv", 
+             type = NULL,
+             verbose = TRUE)
+drive_share("umbs_plant_comp_2018", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+#remove local file
+file.remove("umbs_plant_comp_2018.csv")
+#remove data from workspace
+rm(list = c('dat', 'data'))
