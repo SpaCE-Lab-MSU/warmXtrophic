@@ -15,13 +15,19 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets')) {
   }
 }
 
+
 #authenticate with Google Drive. A browser window may pop up and prompt you to allow the 'googledrive' or 'googlesheets' packages to access Google Drive from R.
 gs_ls()
 drive_find(n_max=10)
 
 #import metadata on files in relevant Google Drive directories
-L0_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L0")
+L0_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L0_data_entry")
 L2_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L2")
+
+#if you will be using Google Drive File Stream or Back Up and Sync (not the 'googledrive' and 'googlesheets' packages), set your working directory to the warmXtrophic folder on the shared Google Drive.
+#setwd("~/Google Drive File Stream/My Drive/warmXtrophic")
+#Check to make sure working directory is correct
+if(basename(getwd())!="warmXtrophic"){cat("Plz change your working directory. It should be 'warmXtrophic'")}
 
 #######################################
 #load the plot and taxon lookup tables:
@@ -30,13 +36,14 @@ google_id <- L2_data_dir %>% filter(grepl('taxon',name))%>%
 		 select(id) %>% 
 		 unlist()
 taxa <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
+#taxa <- read.csv("data/L2/taxon.csv")
 
 #get google_id for plot table and load:
 google_id <- L2_data_dir %>% filter(grepl('plot',name))%>%
 		 select(id) %>% 
 		 unlist()
 plots <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
-
+#plots <- read.csv("data/L2/plot.csv")
 
 #####################################
 #             KBS                   #
@@ -44,6 +51,7 @@ plots <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", go
 ###2015
 data <- gs_title("kbs_plant_comp_2015")
 dat <- as.data.frame(gs_read(data))
+#dat <- read.csv("data/L0/KBS/2015/kbs_plant_comp_2015.csv", stringsAsFactors=F)
 dat$Site <- tolower(dat$Site)
 unique(dat$Site)
 unique(dat$Date)
@@ -78,6 +86,10 @@ drive_upload("kbs_plant_comp_2015.csv",
 drive_share("kbs_plant_comp_2015", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
 #remove local file
 file.remove("kbs_plant_comp_2015.csv")
+
+#alternately:
+#write.csv(dat, "data/L1/plant_composition/kbs_plant_comp_2015.csv", row.names=F)
+
 #remove data from workspace
 rm(list = c('dat', 'data'))
 
