@@ -62,7 +62,7 @@ setdiff(unique(dat$Plot), unique(plots$plot))
 #compare species codes with taxon lookup table
 unique(dat$Species)
 setdiff(unique(dat$Species), unique(taxa$code))
-#[1] "Erci"
+#[1] "Erci" ##Eragrostis cil
 #in 2015 only, percent cover was measured separately on four quadrants of each quadrat(plot). Aggregate to get percent cover of each quadrat (plot):
 dat$Cover <- dat$Cover * .25
 dat <- aggregate(Cover~Site+Date+Plot+Species, data = dat, FUN = sum)
@@ -140,7 +140,7 @@ data <- gs_title("kbs_plant_comp_2017")
 dat <- as.data.frame(gs_read(data))
 #dat <- read.csv("data/L0/KBS/2017/kbs_plant_comp_2017.csv", stringsAsFactors=F)
 unique(dat$Site)
-unique(dat$Date)  ## Is 3/2/2017 reasonable?
+unique(dat$Date)  ## Is 3/2/2017 reasonable? Probably it was an early sampling from early false spring (as per Mark)
 dat <- dat[dat$Date != "5/10/2016",] #remove random single row from 2016
 #convert date to common format:
 dat$Date <- as.Date(dat$Date, format = "%m/%d/%Y")
@@ -152,10 +152,10 @@ unique(dat$Species)
 dat$Species[dat$Species=="Bown"] <- "Brown" #typo
 dat$Species[dat$Species=="Bare Ground"] <- "Bare_Ground"
 dat$Species[dat$Species=="Hipr"] <- "Hica" #Hieracium pratense is a synonym for Hieracium caespitosum
-#dat$Species[dat$Species=="Ramu"] <- "Romu" #RAMU is not in the USDA plants databse. ROMU is Rosa multiflora. This change was in Phoebe's notes without explanation.
+dat$Species[dat$Species=="Ramu"] <- "Romu" #RAMU is not in the USDA plants databse. ROMU is Rosa multiflora. This change was in Phoebe's notes without explanation.
 #compare species codes with taxon lookup table
 setdiff(unique(dat$Species), unique(taxa$code))
-#[1]"Ramu" "Brin"
+#[1]"Ramu" "Brin" (Bromus inermis)
 hist(dat$Cover)
 summary(dat$Cover)
 dat$Year <- 2017
@@ -357,7 +357,7 @@ dat$Species[dat$Species=="unknown_grass"] <- "Posp"
 dat$Species[dat$Species=="Unknown."] <- "Unknown"
 dat$Species[dat$Species=="Piau"] <- "Hiau" #USDA accepted name for Pilosella aurantica is Hieracium auranticum
 setdiff(unique(dat$Species), unique(taxa$code))
-#[1] "Prse" "Amla" "Ptsp" "Apan"
+#[1] "Prse" (Prunus serotina)"Amla" (Amelanchier laevis) "Ptsp" Potentilla species? "Apan" Apocynym androsaemifolium (APAN2; spreading dogbane or indian hemp)
 hist(dat$Cover)
 summary(dat$Cover)
 dat$Year <- 2018
