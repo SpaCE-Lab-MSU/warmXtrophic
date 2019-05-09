@@ -62,7 +62,8 @@ setdiff(unique(dat$Plot), unique(plots$plot))
 #compare species codes with taxon lookup table
 unique(dat$Species)
 setdiff(unique(dat$Species), unique(taxa$code))
-#[1] "Erci" ##Eragrostis cil
+dat$Species[dat$Species=="Piau"] <- "Hiau" #Pilosella auranticum is now Hieracium auranticum
+dat$Species[dat$Species=="Posp2" | dat$Species=="Posp3"] <- "Posp" #there are all Poa species.
 #in 2015 only, percent cover was measured separately on four quadrants of each quadrat(plot). Aggregate to get percent cover of each quadrat (plot):
 dat$Cover <- dat$Cover * .25
 dat <- aggregate(Cover~Site+Date+Plot+Species, data = dat, FUN = sum)

@@ -5,7 +5,6 @@
 
 #this script reads in the L1 plant composition data (one csv for each site-year in warmXtrophic/data/L1/plant_composition) and creates one L2 dataset in the warmXtrophic/data/L2 directory on Google Drive.
 
-
 rm(list = ls())
 
 # Check for and install required packages
@@ -16,6 +15,10 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets')) {
   }
 }
 
+#Check to make sure working directory is set to the github repo
+if(basename(getwd())!="warmXtrophic"){cat("Plz change your working directory. It should be 'warmXtrophic'")}
+#source script with useful functions
+source("scripts/functions.R")
 
 #authenticate with Google Drive. A browser window may pop up and prompt you to allow the 'googledrive' or 'googlesheets' packages to access Google Drive from R.
 gs_ls()
@@ -38,22 +41,19 @@ events <- read.csv("~/Google Drive File Stream/My Drive/warmXtrophic/data/L2/eve
 
 ######################
 # read in L1 data files and rbind them together
-file_list <- list.files("data/L1/plant_composition", pattern = ".csv")
 setwd("~/Google Drive File Stream/My Drive/warmXtrophic/data/L1/plant_composition")
+file_list <- list.files(pattern = ".csv")
 newdat <- do.call(rbind,lapply(file_list, read.csv, header=T, stringsAsFactors=F))
 
-#some quick final checks:
-unique(newdat$Site)
-unique(newdat$Year)
-setdiff(unique(newdat$Date), unique(events$Date)) #make sure it is zero
-setdiff(unique(newdat$Plot), unique(plots$plot)) #make sure it is zero
-setdiff(unique(newdat$Species), unique(taxa$code)) #make sure it is zero
-hist(newdat$Cover) #make sure it ranges from 0-100
+#some data checks. If you don't get any error messages, the data passed!
+data_checks(newdat)
+
 
 #convert to observation-variable-value form:
 newdat$observation_id <- paste(newdat$Site,newdat$Date,newdat$Plot,newdat$Species, sep = "_")
-newdat$observation_id[1:25]
 colnames(newdat)[colnames(newdat)=="Species"] <- "variable_name"
 colnames(newdat)[colnames(newdat)=="Cover"] <- "value"
+newdat$Julian_day <- strptime(newdat$Date, format = "%j") #convert the Date to a decimal number 001-36 for day of the year 
 
+#write out L2 species-level observation table
 write.csv(newdat, file = "~/Google Drive File Stream/My Drive/warmXtrophic/data/L2/observation_species.csv", row.names = F)
