@@ -15,6 +15,11 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets')) {
   }
 }
 
+#Check to make sure working directory is set to the github repo
+if(basename(getwd())!="warmXtrophic"){cat("Plz change your working directory. It should be 'warmXtrophic'")}
+#source script with useful functions
+setwd("~/Documents/warmXtrophic")
+source("scripts/functions.R")
 
 #authenticate with Google Drive. A browser window may pop up and prompt you to allow the 'googledrive' or 'googlesheets' packages to access Google Drive from R.
 gs_ls()
@@ -26,8 +31,7 @@ L2_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L2")
 
 #if you will be using Google Drive File Stream or Back Up and Sync (not the 'googledrive' and 'googlesheets' packages), set your working directory to the warmXtrophic folder on the shared Google Drive.
 #setwd("~/Google Drive File Stream/My Drive/warmXtrophic")
-#Check to make sure working directory is correct
-if(basename(getwd())!="warmXtrophic"){cat("Plz change your working directory. It should be 'warmXtrophic'")}
+
 
 #######################################
 #load the plot and taxon lookup tables:
@@ -153,10 +157,9 @@ unique(dat$Species)
 dat$Species[dat$Species=="Bown"] <- "Brown" #typo
 dat$Species[dat$Species=="Bare Ground"] <- "Bare_Ground"
 dat$Species[dat$Species=="Hipr"] <- "Hica" #Hieracium pratense is a synonym for Hieracium caespitosum
-dat$Species[dat$Species=="Ramu"] <- "Romu" #RAMU is not in the USDA plants databse. ROMU is Rosa multiflora. This change was in Phoebe's notes without explanation.
+dat$Species[dat$Species=="Ramu"] <- "Romu" #RAMU is not in the USDA plants databse. ROMU is Rosa multiflora. This change was per Mark Hammond.
 #compare species codes with taxon lookup table
 setdiff(unique(dat$Species), unique(taxa$code))
-#[1]"Ramu" "Brin" (Bromus inermis)
 hist(dat$Cover)
 summary(dat$Cover)
 dat$Year <- 2017
