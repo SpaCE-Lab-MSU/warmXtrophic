@@ -38,15 +38,29 @@ try(if(length(setdiff(unique(dat$Date), unique(events$Date))) == 0) cat ('Succes
 # ALPHA DIVERSITY (SPECIES RICHNESS) OVER TIME AND SPACE
 ############################
 
+#function to remove codes that don't represent taxa
+
+remove.non.taxa <- function (EX) {
+	EX <- EX %>%
+  dplyr::filter(VARIABLE_NAME != "Brown",  # Remove the non-taxa codes
+                VARIABLE_NAME != "Bare_Ground",
+                VARIABLE_NAME != "Unknown",
+                VARIABLE_NAME != "Litter",
+                VARIABLE_NAME != "Groundhog",
+                VARIABLE_NAME != "Vert_litter")
+}
+
+
 # TEMPORAL PATTERNS in observations of the number of species
 # Note that the thick line indicates the total number of taxa among all plots
-plot.no.taxa.ts <- function(ex, site){
-	  colnames(ex) <- toupper(colnames(ex))
-  #select site
-  ex <- subset(ex, SITE == site)
-
+plot.no.taxa.ts <- function(EX, site){
+  #prepare data frame
+	colnames(EX) <- toupper(colnames(EX))
+    EX <- subset(EX, SITE == site) #select site
+    EX <- remove.non.taxa(EX) #remove Bare_Ground, Litter,etc.
+      
   # Number of unique taxa at each site through time
-   no.taxa <- ex %>%
+   no.taxa <- EX %>%
     filter(VALUE > 0) %>%
     select(YEAR, VARIABLE_NAME, PLOT) %>%
     unique() %>%
@@ -55,7 +69,7 @@ plot.no.taxa.ts <- function(ex, site){
     summarize(no.taxa = sum(no.taxa))
   
    # Summed number of unique taxa among all sites through time
-  total.no.taxa <- ex %>%
+  total.no.taxa <- EX %>%
     filter(VALUE > 0) %>%
     select(YEAR, VARIABLE_NAME) %>%
     unique() %>%
@@ -82,11 +96,14 @@ ggplot(data=no.taxa, aes(x=YEAR, y=no.taxa)) +
 # Make a function that returns the cumulative number of taxa observed for a given set of plots at a site
 plot.cuml.taxa.space <- function(EX, site){
   taxa.s.list <- list() # Make empty list
-  colnames(EX) <- toupper(colnames(EX))
-  #select site
-  EX <- subset(EX, SITE == site)
+  #prepare data frame
+	colnames(EX) <- toupper(colnames(EX))
+    EX <- subset(EX, SITE == site) #select site
+    EX <- remove.non.taxa(EX) #remove Bare_Ground, Litter,etc.
+    EX <- arrange(EX, PLOT) #make sure plots in increasing order
+      
+  plots <-unique(EX$PLOT)
 
-  plots <- unique(EX$PLOT)
   # Loop over each year, creating a list that contains the unique taxa found in each year
   for(p in 1:length(unique(EX$PLOT))){
     tmp.dat <- subset(EX, EX$PLOT == plots[p])
@@ -109,19 +126,16 @@ plot.cuml.taxa.space <- function(EX, site){
   cuml.no.taxa.space$no.taxa <- unlist(lapply(cuml.taxa.space, function(x){length(x)}))
   
    # Plot
-plot(cuml.no.taxa.space$Plot, cuml.no.taxa.space$no.taxa, pch = 19, type = "o",  xaxt="n", bty="l", xlab = "Cumulative number of sites", ylab = "Cumulative number of taxa", cex=1.5, lwd=3, cex.lab=1.5, main = toupper(site))
+plot(as.numeric(cuml.no.taxa.space$Plot), cuml.no.taxa.space$no.taxa, pch = 19, type = "o",  xaxt="n", bty="l", xlab = "Cumulative number of sites", ylab = "Cumulative number of taxa", cex=1.5, lwd=3, cex.lab=1.5, main = toupper(site))
 axis(side=1, at = cuml.no.taxa.space$Plot, labels = seq(1,length(cuml.no.taxa.space$Plot),1))
 
 }
 
 
 # TEMPORAL SPECIES ACCUMULATION CURVES
-#plot-specific and overall cumulative
-  
-plot.cuml.taxa.time <- function(EX, site){
-  colnames(EX) <- toupper(colnames(EX))
-  #select site
-  EX <- subset(EX, SITE == site)
+
+#function for calculating cuml no. taxa each year:
+cuml.taxa.fun <- function(EX){
   taxa.t.list <- list() # Make empty list
   years <- unique(EX$YEAR)
   # Loop over each year, creating a list that contains the unique taxa found in each year
@@ -145,18 +159,30 @@ plot.cuml.taxa.time <- function(EX, site){
   # Return the number of total unique taxa through time
   cuml.no.taxa <- data.frame("year" = unique(EX$YEAR))
   cuml.no.taxa$no.taxa <- unlist(lapply(cuml.taxa, function(x){length(x)}))
+ 
+ return(cuml.no.taxa) 
+}
+
+
+#calculate and visualize the plot-specific and overall cumulative no. taxa
+#this function calls the cuml.no.taxa function above
   
+plot.cuml.taxa.time <- function(EX, site){
+  #prepare data frame
+	colnames(EX) <- toupper(colnames(EX))
+    EX <- subset(EX, SITE == site) #select site
+    EX <- remove.non.taxa(EX) #remove Bare_Ground, Litter,etc.
 
 # Calculate cumulative taxa (i.e., species accumulation) across all sites pooled together
-cuml.taxa.all.sites <- cuml.taxa.fun(EX = dat$comm.long)
+cuml.taxa.all.sites <- cuml.taxa.fun(EX)
 
 # Examine site-level patterns of species accumulation
 # First, sort the comm.dat dataframe to make sure its ordered by site
-comm.dat <- dat$comm.long %>% 
-  arrange(SITE_ID)
+EX <- EX %>% 
+  arrange(PLOT)
 
 # Then, split the data frame, and apply the cuml.taxa.fun() for each site
-X <- split(comm.dat, comm.dat$SITE_ID)
+X <- split(EX, EX$PLOT)
 out <- lapply(X, cuml.taxa.fun)
 
 # Make the lists a dataframe
@@ -168,24 +194,22 @@ output$rnames <- row.names(output)
 # Clean up the SITE_ID column
 cuml.taxa.by.site <- output %>%
   tbl_df() %>%
-  separate(rnames, c("SITE_ID", "todrop"), sep = "\\.") %>%
+  separate(rnames, c("PLOT", "todrop"), sep = "\\.") %>%
   select(-todrop)
 
 # Plot the cumulative number of taxa observed at each site, as well as across all sites together
 # Note that the thick line indicates the total number of taxa among all sites
-# Write species accumulation curve to pdf/tex file
-pdf(file=paste('MS3-Supp-Info/', data.set,'_species_accumulation_curve.pdf', sep=''))
+
 ggplot(data=cuml.taxa.by.site, aes(x = year, y = no.taxa)) +
-  geom_point(aes(color = SITE_ID)) +
-  geom_line(aes(color = SITE_ID)) +
+  geom_point(aes(color = PLOT)) +
+  geom_line(aes(color = PLOT)) +
   geom_point(data = cuml.taxa.all.sites, aes(x=year, y=no.taxa), size = 3) +
   geom_line(data = cuml.taxa.all.sites, aes(x=year, y=no.taxa), size = 1.5) +
   xlab("Year") +
   ylab("Cumulative number of taxa") +
-  guides(color = guide_legend(title = "Site")) +
+  guides(color = guide_legend(title = paste(toupper(site), "plot", sep = " "))) +
   ylim(c(0, max(cuml.taxa.all.sites$no.taxa))) +
   theme_bw()  +
-  theme(axis.title = element_text(size=20), axis.text = element_text(size=20), legend.position = "none") #
-dev.off()
+  theme(axis.title = element_text(size=20), axis.text = element_text(size=20), legend.position = "right") #
 
 }
