@@ -1,0 +1,38 @@
+---
+title: "Explore warmXtrophic data"
+author: "Nina K. Lany"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+for (package in c('tidyverse', 'googledrive', 'googlesheets')) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages(package)
+    library(package, character.only=T)
+  }
+}
+
+setwd("~/Documents/warmXtrophic")
+source("scripts/functions.R")
+
+setwd("~/Google Drive File Stream/My Drive/warmXtrophic/data/L2")
+dat <- read.csv("observation_species.csv", stringsAsFactors=FALSE)
+```
+
+
+Starting with Kellogg Biological Station (KBS), look at cumulative species accumulation curves in time and space.
+
+
+```{r, echo = FALSE, fig.height= 3.5, fig.width=7}
+plot.cuml.taxa.space(dat, site = 'kbs')
+plot.cuml.taxa.time(dat, site = 'kbs')
+```
+
+Now look at the time series of species richness for each plot and the aggregate at KBS.
+
+```{r, echo = FALSE, fig.height= 3.5, fig.width=7}
+plot.no.taxa.ts(dat, site = 'kbs')
+```

@@ -5,7 +5,7 @@
 #####################################
 
 ###############################
-#data checks function
+#data checks functionfor the L1 data (can use before writing each individual L1 data table and also after combining onto the combined L2 data table but before formatting into obs-variable-value long form and saving)
 data_checks <- function(dat){
 	#percent cover values
 try(if(max(dat$Cover, na.rm=T) > 100) stop ('Percent cover values greater than 100'))
@@ -87,7 +87,7 @@ ggplot(data=no.taxa, aes(x=YEAR, y=no.taxa)) +
   guides(color = guide_legend(title = paste(toupper(site), "plot", sep = " "))) +
   ylim(c(0, max(total.no.taxa$no.taxa))) +
   theme_bw() +
-  theme(axis.title = element_text(size=20), axis.text = element_text(size=20), legend.position = "right")
+  theme(axis.title = element_text(size=12), axis.text = element_text(size=12), legend.position = "right")
 
 }
  
@@ -126,7 +126,7 @@ plot.cuml.taxa.space <- function(EX, site){
   cuml.no.taxa.space$no.taxa <- unlist(lapply(cuml.taxa.space, function(x){length(x)}))
   
    # Plot
-plot(as.numeric(cuml.no.taxa.space$Plot), cuml.no.taxa.space$no.taxa, pch = 19, type = "o",  xaxt="n", bty="l", xlab = "Cumulative number of sites", ylab = "Cumulative number of taxa", cex=1.5, lwd=3, cex.lab=1.5, main = toupper(site))
+plot(as.numeric(cuml.no.taxa.space$Plot), cuml.no.taxa.space$no.taxa, pch = 19, type = "o",  xaxt="n", bty="l", xlab = "Cumulative number of sites", ylab = "Cumulative number of taxa", cex=1.5, lwd=3, cex.lab=1, main = toupper(site))
 axis(side=1, at = cuml.no.taxa.space$Plot, labels = seq(1,length(cuml.no.taxa.space$Plot),1))
 
 }
@@ -210,6 +210,6 @@ ggplot(data=cuml.taxa.by.site, aes(x = year, y = no.taxa)) +
   guides(color = guide_legend(title = paste(toupper(site), "plot", sep = " "))) +
   ylim(c(0, max(cuml.taxa.all.sites$no.taxa))) +
   theme_bw()  +
-  theme(axis.title = element_text(size=20), axis.text = element_text(size=20), legend.position = "right") #
+  theme(axis.title = element_text(size=12), axis.text = element_text(size=12), legend.position = "right") #
 
 }
