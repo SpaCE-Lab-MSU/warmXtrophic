@@ -80,6 +80,3 @@ L2dat <- newdat[,c("observation_id", "Site", "Year", "Date", "Julian_day", "Plot
 #write out L2 species-level observation table
 write.csv(L2dat, file = "~/Google Drive File Stream/My Drive/warmXtrophic/data/L2/observation_species.csv", row.names = F)
 
-
-
-plot.no.taxa.ts(L2dat, site = 'umbs')

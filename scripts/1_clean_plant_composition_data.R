@@ -15,10 +15,10 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets')) {
   }
 }
 
+setwd("~/Documents/warmXtrophic")
 #Check to make sure working directory is set to the github repo
 if(basename(getwd())!="warmXtrophic"){cat("Plz change your working directory. It should be 'warmXtrophic'")}
 #source script with useful functions
-setwd("~/Documents/warmXtrophic")
 source("scripts/functions.R")
 
 #authenticate with Google Drive. A browser window may pop up and prompt you to allow the 'googledrive' or 'googlesheets' packages to access Google Drive from R.
@@ -36,18 +36,27 @@ L2_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L2")
 #######################################
 #load the plot and taxon lookup tables:
 #get google_id for taxon table and load:
-google_id <- L2_data_dir %>% filter(grepl('taxon',name))%>%
+google_id <- L2_data_dir %>% filter(grepl('taxon.csv',name))%>%
 		 select(id) %>% 
 		 unlist()
 taxa <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
 #taxa <- read.csv("data/L2/taxon.csv")
 
 #get google_id for plot table and load:
-google_id <- L2_data_dir %>% filter(grepl('plot',name))%>%
+google_id <- L2_data_dir %>% filter(grepl('plot.csv',name))%>%
 		 select(id) %>% 
 		 unlist()
 plots <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
 #plots <- read.csv("data/L2/plot.csv")
+
+#get google_id for event table and load:
+google_id <- L2_data_dir %>% filter(grepl('event',name))%>%
+		 select(id) %>% 
+		 unlist()
+events <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
+events <- read.csv("~/Google Drive File Stream/My Drive/warmXtrophic/data/L2/event.csv", stringsAsFactors=F)
+events$Date <- as.Date(events$Date)
+
 
 #####################################
 #             KBS                   #
@@ -76,6 +85,7 @@ summary(dat$Cover)
 dat$Year <- 2015
 #select certain columns and rename to standard colnames:
 dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(dat)
 str(dat)
 
 #Save the L1 data file to googledrive
@@ -117,6 +127,7 @@ hist(dat$Cover)
 summary(dat$Cover)
 #select certain columns and rename to standard colnames:
 dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(dat)
 str(dat)
 
 #Save the L1 data file to googledrive
@@ -165,6 +176,7 @@ summary(dat$Cover)
 dat$Year <- 2017
 #select certain columns and rename to standard colnames:
 dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(dat)
 str(dat)
 
 #Save the L1 data file to googledrive
@@ -219,6 +231,7 @@ summary(dat$Cover)
 dat$Year <- 2015
 #select certain columns and rename to standard colnames:
 dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(dat)
 str(dat)
 
 #Save the L1 data file to googledrive
@@ -263,6 +276,7 @@ summary(dat$Cover)
 dat$Year <- 2016
 #select certain columns and rename to standard colnames:
 dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(dat)
 str(dat)
 
 #Save the L1 data file to googledrive
@@ -311,6 +325,7 @@ summary(dat$Cover)
 dat$Year <- 2017
 #select certain columns and rename to standard colnames:
 dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(dat)
 str(dat)
 
 #Save the L1 data file to googledrive
@@ -360,13 +375,14 @@ dat$Species[dat$Species=="Unknown_grass"] <- "Posp"
 dat$Species[dat$Species=="unknown_grass"] <- "Posp"
 dat$Species[dat$Species=="Unknown."] <- "Unknown"
 dat$Species[dat$Species=="Piau"] <- "Hiau" #USDA accepted name for Pilosella aurantica is Hieracium auranticum
+dat$Species[dat$Species=="Ptsp"] <- "Ptaq" #Kathryn confirmed that she used Ptsp (Pteridium species) instead of Ptaq (Pteridium aquilinum) for bracken fern.
 setdiff(unique(dat$Species), unique(taxa$code))
-#[1] "Prse" (Prunus serotina)"Amla" (Amelanchier laevis) "Ptsp" Potentilla species? "Apan" Apocynym androsaemifolium (APAN2; spreading dogbane or indian hemp)
 hist(dat$Cover)
 summary(dat$Cover)
 dat$Year <- 2018
 #select certain columns and rename to standard colnames:
 dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(dat)
 str(dat)
 
 #Save the L1 data file to googledrive
