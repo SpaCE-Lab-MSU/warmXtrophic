@@ -5,7 +5,7 @@
 #####################################
 
 ###############################
-#data checks functionfor the L1 data (can use before writing each individual L1 data table and also after combining onto the combined L2 data table but before formatting into obs-variable-value long form and saving)
+#data checks function for the L1 data (can use before writing each individual L1 data table and also after combining onto the combined L2 data table but before formatting into obs-variable-value long form and saving)
 data_checks <- function(dat){
 	#percent cover values
 try(if(max(dat$Cover, na.rm=T) > 100) stop ('Percent cover values greater than 100'))
