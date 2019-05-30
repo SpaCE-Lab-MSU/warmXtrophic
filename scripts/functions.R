@@ -4,6 +4,14 @@
 # created by NKL May 9, 2019
 #####################################
 
+# Check for and install required packages
+for (package in c('tidyverse')) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages(package)
+    library(package, character.only=T)
+  }
+}
+
 ###############################
 #data checks function for the L1 data (can use before writing each individual L1 data table and also after combining onto the combined L2 data table but before formatting into obs-variable-value long form and saving)
 data_checks <- function(dat){
@@ -221,19 +229,17 @@ ggplot(data=cuml.taxa.by.site, aes(x = year, y = no.taxa)) +
 
 #plot time series of percent cover for a given species within a given year
 
-plot_phenology_ts <- function (dat, species, year){
+plot_phenology_ts <- function (dat, site, species, year){
 	newdat <- merge(dat, plots, by.x = "Plot", by.y = "plot")
-	temp1 <- subset(newdat, Species == species & Year == year)
-	plot(temp1$Julian_day, temp1$Cover, type = "n", xlim = c(min(temp1$Julian_day), max(temp1$Julian_day)), ylim = c(0,max(temp1$Cover)), xlab = "Julian day", ylab = "Percent cover", main = paste(species," - ", year)) #this makes a blank plot
-
-plot_id <- as.vector(unique(temp1$Plot))
-for(p in 1:length(plot_id)){ #fil in the plot with a line for each plot
+	temp1 <- subset(newdat, Site == site & Species == species & Year == year)
+	plot(temp1$Julian_day, temp1$Cover, type = "n", xlim = c(min(temp1$Julian_day), max(temp1$Julian_day)), ylim = c(0,max(temp1$Cover)), xlab = "Julian day", ylab = "Percent cover", main = paste(site, " - ", species," - ", year)) 
+	plot_id <- as.vector(unique(temp1$Plot))
+for(p in 1:length(plot_id)){ 
 	temp2 <- subset(temp1, Plot == plot_id[p])
-	temp2 <- temp2[order(temp2$Julian_day),] #make sure dataframe is ordered by date
-	color_key <- ifelse(unique(temp2$state)=="warmed", "red", "blue") #color codeaccording to treatment
-	lines(temp2$Julian_day, temp2$Cover, col = color_key, type = "o")
+	temp2 <- temp2[order(temp2$Julian_day),] 
+	color_key <- ifelse(unique(temp2$state)=="warmed", "red", "blue") 	lines(temp2$Julian_day, temp2$Cover, col = color_key, type = "o")
 	}
-	legend("topleft", col = c("blue", "red"), legend = c("ambient", "warmed"), pch = 1, lty=1) #add a legend only once	
+	legend("topleft", col = c("blue", "red"), legend = c("ambient", "warmed"), pch = 1, lty=1)	
 }
 
 
