@@ -1,7 +1,7 @@
 # warmXtrophic
 
 PI: Phoebe Zarnetske
-Collaborators/technicians: Kathryn Schmidt, Mark Hammond, Nina Lany, Kileigh Welshofer
+Collaborators/technicians: Kathryn Schmidt, Mark Hammond, Nina Lany, Kileigh Welshofer, Moriah Young
 Funding: Michigan State University
 
 This repository contains R scripts that organize, analyze, and plot data from the long term Warming X Trophic Interactions experiment at Kellogg Biological Station and University of Michigan Biological Station (UMBS).
