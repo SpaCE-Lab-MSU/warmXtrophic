@@ -46,7 +46,7 @@ try(if(length(setdiff(unique(dat$Date), unique(events$Date))) == 0) cat ('Succes
 # ALPHA DIVERSITY (SPECIES RICHNESS) OVER TIME AND SPACE
 ############################
 
-#function to remove codes that don't represent taxa
+#function to remove codes that don't represent unique taxa
 
 remove.non.taxa <- function (EX) {
 	EX <- EX %>%
@@ -54,8 +54,9 @@ remove.non.taxa <- function (EX) {
                 VARIABLE_NAME != "Bare_Ground",
                 VARIABLE_NAME != "Unknown",
                 VARIABLE_NAME != "Litter",
-                VARIABLE_NAME != "Groundhog",
-                VARIABLE_NAME != "Vert_litter")
+                VARIABLE_NAME != "Animal_Disturbance",
+                VARIABLE_NAME != "Vert_litter",
+                VARIABLE_NAME != "Herbicide")
 }
 
 
@@ -228,19 +229,21 @@ ggplot(data=cuml.taxa.by.site, aes(x = year, y = no.taxa)) +
 
 
 #plot time series of percent cover for a given species within a given year
-
 plot_phenology_ts <- function (dat, site, species, year){
 	newdat <- merge(dat, plots, by.x = "Plot", by.y = "plot")
 	temp1 <- subset(newdat, Site == site & Species == species & Year == year)
-	plot(temp1$Julian_day, temp1$Cover, type = "n", xlim = c(min(temp1$Julian_day), max(temp1$Julian_day)), ylim = c(0,max(temp1$Cover)), xlab = "Julian day", ylab = "Percent cover", main = paste(site, " - ", species," - ", year)) 
-	plot_id <- as.vector(unique(temp1$Plot))
-for(p in 1:length(plot_id)){ 
+	plot(temp1$Julian_day, temp1$Cover, type = "n", xlim = c(min(temp1$Julian_day), max(temp1$Julian_day)), ylim = c(0,max(temp1$Cover)), xlab = "Julian day", ylab = "Percent cover", main = paste(site, " - ", species," - ", year)) #this makes a blank plot
+
+plot_id <- as.vector(unique(temp1$Plot))
+for(p in 1:length(plot_id)){ #fil in the plot with a line for each plot
 	temp2 <- subset(temp1, Plot == plot_id[p])
-	temp2 <- temp2[order(temp2$Julian_day),] 
-	color_key <- ifelse(unique(temp2$state)=="warmed", "red", "blue") 	lines(temp2$Julian_day, temp2$Cover, col = color_key, type = "o")
+	temp2 <- temp2[order(temp2$Julian_day),] #make sure dataframe is ordered by date
+	color_key <- ifelse(unique(temp2$state)=="warmed", "red", "blue") #color codeaccording to treatment
+	lines(temp2$Julian_day, temp2$Cover, col = color_key, type = "o")
 	}
-	legend("topleft", col = c("blue", "red"), legend = c("ambient", "warmed"), pch = 1, lty=1)	
+	legend("topleft", col = c("blue", "red"), legend = c("ambient", "warmed"), pch = 1, lty=1) #add a legend only once	
 }
+
 
 
 

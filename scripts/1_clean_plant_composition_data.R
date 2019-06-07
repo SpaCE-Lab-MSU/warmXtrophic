@@ -34,7 +34,7 @@ L2_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L2")
 
 
 #######################################
-#load the plot and taxon lookup tables:
+#load the plot, taxon, and event lookup tables:
 #get google_id for taxon table and load:
 google_id <- L2_data_dir %>% filter(grepl('taxon.csv',name))%>%
 		 select(id) %>% 
@@ -54,8 +54,8 @@ google_id <- L2_data_dir %>% filter(grepl('event',name))%>%
 		 select(id) %>% 
 		 unlist()
 events <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
-events <- read.csv("~/Google Drive File Stream/My Drive/warmXtrophic/data/L2/event.csv", stringsAsFactors=F)
-events$Date <- as.Date(events$Date)
+#events <- read.csv("~/Google Drive File Stream/My Drive/warmXtrophic/data/L2/event.csv", stringsAsFactors=F)
+events$Date <- as.Date(events$Date, format = "%m/%d/%y")
 
 
 #####################################
@@ -77,6 +77,7 @@ unique(dat$Species)
 setdiff(unique(dat$Species), unique(taxa$code))
 dat$Species[dat$Species=="Piau"] <- "Hiau" #Pilosella auranticum is now Hieracium auranticum
 dat$Species[dat$Species=="Posp2" | dat$Species=="Posp3"] <- "Posp" #there are all Poa species.
+dat$Species[dat$Species=="Uhsp"] <- "Unknown" #change 'Unknown herb species' to 'unknown'
 #in 2015 only, percent cover was measured separately on four quadrants of each quadrat(plot). Aggregate to get percent cover of each quadrat (plot):
 dat$Cover <- dat$Cover * .25
 dat <- aggregate(Cover~Site+Date+Plot+Species, data = dat, FUN = sum)
@@ -170,6 +171,10 @@ dat$Species[dat$Species=="Bare Ground"] <- "Bare_Ground"
 dat$Species[dat$Species=="Hipr"] <- "Hica" #Hieracium pratense is a synonym for Hieracium caespitosum
 dat$Species[dat$Species=="Ramu"] <- "Romu" #RAMU is not in the USDA plants databse. ROMU is Rosa multiflora. This change was per Mark Hammond.
 #compare species codes with taxon lookup table
+
+dat <- dat[-(which(dat$Species == "Cesp")),] #I don't know what Cesp could be. ONly found on D1 on 8/2/17 @ 2% cover. It could be Cest but since I'm not sure (and that species isn't usually on D1), I just removed the row. 
+
+#compare species codes with taxon lookup table
 setdiff(unique(dat$Species), unique(taxa$code))
 hist(dat$Cover)
 summary(dat$Cover)
@@ -203,7 +208,64 @@ rm(list = c('dat', 'data'))
 
 
 
-###add future years here...
+###2019
+L0_data_dir2 <- googledrive::drive_ls("~/warmXtrophic/data/L0/KBS/2019")
+google_id <- L0_data_dir2 %>% filter(grepl('cover.csv',name))%>%
+		 select(id) %>% 
+		 unlist()
+dat <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
+
+#site code check
+dat$Site <- tolower(dat$Site)
+unique(dat$Site)
+#convert data and check
+
+dat$Date <- as.Date(dat$Date, format = "%m/%d/%y")
+unique(dat$Date)
+
+#compare plot codes with plot lookup table:
+unique(dat$Plot)
+setdiff(unique(dat$Plot), unique(plots$plot))
+
+#compare species codes with taxon lookup table
+unique(dat$Species)
+dat$Species[dat$Species=="Aster sp"] <- "Asun" #'Aster unknown'
+dat$Species[dat$Species=="Vertical Litter"] <- "Vert_Litter" 
+dat$Species[dat$Species=="Animal Disturbance"] <- "Animal_Disturbance" 
+dat$Species[dat$Species=="Thin Blade Grass"] <- "Thin_blade_grass" 
+dat$Species[dat$Species=="phpr"] <- "Phpr" 
+dat$Species[dat$Species=="Moss"] <- "Umsp" #unknown moss species 
+setdiff(unique(dat$Species), unique(taxa$code))
+
+#cover
+dat$Cover <- dat$Cover[which(dat$Cover > 100)] <- 100 #Litter cover was recorded as 120 on 4/1/19 on plot A1. Assume it was 100.
+summary(dat$Cover)
+
+#make column for year
+dat$Year <- 2019
+
+#select certain columns and rename to standard colnames:
+dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(dat)
+str(dat)
+
+#Save the L1 data file to googledrive
+googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
+# temp write local
+readr::write_csv(dat, "kbs_plant_comp_2019.csv")
+drive_rm("kbs_plant_comp_2019.csv") #delete old version
+drive_upload("kbs_plant_comp_2019.csv", 
+             path = "~/warmXtrophic/data/L1/plant_composition", 
+             name = "kbs_plant_comp_2019.csv", 
+             type = NULL,
+             verbose = TRUE)
+drive_share("kbs_plant_comp_2019", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+#remove local file
+file.remove("kbs_plant_comp_2019.csv")
+
+#remove data from workspace
+rm(dat)
+
 
 #####################################
 #             UMBS                  #
