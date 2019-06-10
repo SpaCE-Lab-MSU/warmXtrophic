@@ -22,8 +22,8 @@ if(basename(getwd())!="warmXtrophic"){cat("Plz change your working directory. It
 source("scripts/functions.R")
 
 #authenticate with Google Drive. A browser window may pop up and prompt you to allow the 'googledrive' or 'googlesheets' packages to access Google Drive from R.
-gs_ls()
-drive_find(n_max=10)
+#gs_ls()
+#drive_find(n_max=10)
 
 #import metadata on files in relevant Google Drive directories
 L0_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L0_data_entry")
@@ -131,6 +131,37 @@ dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
 data_checks(dat)
 str(dat)
 
+#add in the greenup file
+grn <- read.csv("~/Google Drive File Stream/My Drive/warmXtrophic/data/L0_data_entry/KBS/2016/kbs_greenup_2016.csv", stringsAsFactors=F)
+str(grn)
+
+grn$Site <- "kbs"
+names(grn) <- c("Date", "Julian", "Plot", "Species", "Cover", "Site")
+grn$Date <- as.Date(grn$Date, format = "%m/%d/%Y")
+unique(grn$Date)
+
+#compare plot codes with plot lookup table:
+unique(grn$Plot)
+grn$Plot[grn$Plot=="A5 "] <- "A5" 
+setdiff(unique(grn$Plot), unique(plots$plot))
+
+#clean some taxa codes
+unique(grn$Species)
+grn$Species[grn$Species=="popr"] <- "Popr" 
+#compare species codes with taxon lookup table
+setdiff(unique(grn$Species), unique(taxa$code))
+
+summary(grn$Cover)
+grn$Year <- 2017
+#select certain columns and rename to standard colnames:
+grn <- grn[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(grn)
+str(grn)
+
+#merge the percent_cover and greenup data tables and remove duplicates that arose because the same data were entered twice for greenup and percent_cover on 3/2 and 4/18:
+dat <- rbind(dat, grn)
+dat <- distinct(dat)
+
 #Save the L1 data file to googledrive
 googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
 # temp write local
@@ -149,7 +180,7 @@ file.remove("kbs_plant_comp_2016.csv")
 #write.csv(dat, "data/L1/plant_composition/kbs_plant_comp_2016.csv", row.names=F)
 
 #remove data from workspace
-rm(list = c('dat', 'data'))
+rm(list = c('dat', 'data','grn'))
 
 
 ###2017
@@ -184,6 +215,44 @@ dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
 data_checks(dat)
 str(dat)
 
+#add in the greenup file
+greenup <- gs_title("kbs_greenup_2017")
+grn <- as.data.frame(gs_read(greenup))
+
+unique(grn$Site)
+unique(grn$Date)  ## Is 3/2/2017 reasonable? Probably it was an early sampling from early false spring (as per Mark)
+grn <- grn[grn$Date != "4/30/2016",] #remove random single row from 2016
+#convert date to common format:
+grn$Date <- as.Date(grn$Date, format = "%m/%d/%Y")
+unique(grn$Plot)
+#compare plot codes with plot lookup table:
+setdiff(unique(grn$Plot), unique(plots$plot))
+unique(grn$Species)
+#clean some taxa codes
+grn$Species[grn$Species=="Hipr"] <- "Hica" #Hieracium pratense is a synonym for Hieracium caespitosum
+grn$Species[grn$Species=="Ramu"] <- "Romu" #RAMU is not in the USDA plants databse. ROMU is Rosa multiflora. This change was per Mark Hammond.
+#compare species codes with taxon lookup table
+#three taxa are in greenup file but not the plant_comp file or the taxon lookup table: Arsp, Eusp, Rusp. For now, remove them. Add back in if Mark has info.
+grn <- grn[grn$Species != "Arsp",] 
+grn <- grn[grn$Species != "Eusp",]
+grn <- grn[grn$Species != "Rusp",]
+
+#compare species codes with taxon lookup table
+setdiff(unique(grn$Species), unique(taxa$code))
+
+summary(grn$Cover)
+grn$Year <- 2017
+#select certain columns and rename to standard colnames:
+grn <- grn[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(grn)
+str(grn)
+
+#merge the percent_cover and greenup data tables and remove duplicates that arose because the same data were entered twice for greenup and percent_cover on 3/2 and 4/18:
+dat <- rbind(dat, grn)
+dat <- distinct(dat)
+
+data_checks(dat)
+
 #Save the L1 data file to googledrive
 googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
 # temp write local
@@ -202,7 +271,7 @@ file.remove("kbs_plant_comp_2017.csv")
 #write.csv(dat, "data/L1/plant_composition/kbs_plant_comp_2017.csv", row.names=F)
 
 #remove data from workspace
-rm(list = c('dat', 'data'))
+rm(list = c('dat', 'data', 'greenup', 'grn'))
 
 ###2018
 
@@ -296,6 +365,9 @@ dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
 data_checks(dat)
 str(dat)
 
+#no leafour phenology measured in 2015
+
+
 #Save the L1 data file to googledrive
 googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
 # temp write local
@@ -341,6 +413,39 @@ dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
 data_checks(dat)
 str(dat)
 
+
+#add in the greenup file
+greenup <- gs_title("umbs_greenup_2016")
+grn <- as.data.frame(gs_read(greenup))
+str(grn)
+grn$Site <- 'umbs'
+#convert date to common format:
+grn$Date <- as.Date(grn$Date, format = "%m/%d/%y")
+unique(grn$Date)  
+unique(grn$Plot)
+#compare plot codes with plot lookup table:
+setdiff(unique(grn$Plot), unique(plots$plot))
+unique(grn$Species)
+#clean some taxa codes
+grn$Species[grn$Species=="Piau"] <- "Hiau" #USDA accepted name for Pilosella aurantica is Hieracium auranticum
+grn$Species[grn$Species=="Bareground"] <- "Bare_Ground" #RAMU is not in the USDA plants databse. 
+#compare species codes with taxon lookup table
+setdiff(unique(grn$Species), unique(taxa$code))
+
+summary(grn$Cover)
+grn$Year <- 2016
+#select certain columns and rename to standard colnames:
+grn <- grn[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(grn)
+str(grn)
+
+#merge the percent_cover and greenup data tables and remove duplicates
+dat <- rbind(dat, grn)
+dat <- distinct(dat)
+
+data_checks(dat)
+
+
 #Save the L1 data file to googledrive
 googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
 # temp write local
@@ -359,7 +464,7 @@ file.remove("umbs_plant_comp_2016.csv")
 #write.csv(dat, "data/L1/plant_composition/umbs_plant_comp_2016.csv", row.names=F)
 
 #remove data from workspace
-rm(list = c('dat', 'data'))
+rm(list = c('dat', 'data', 'greenup', 'grn'))
 
 
 #2017
@@ -390,6 +495,38 @@ dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
 data_checks(dat)
 str(dat)
 
+#add in the greenup file
+greenup <- gs_title("umbs_greenup_2017")
+grn <- as.data.frame(gs_read(greenup))
+str(grn)
+unique(grn$Site)
+#convert date to common format:
+grn <- grn[grn$Date != "4/30/2016",] #remove random single row from 2016
+grn$Date <- as.Date(grn$Date, format = "%m/%d/%Y")
+unique(grn$Date)  
+unique(grn$Plot)
+#compare plot codes with plot lookup table:
+setdiff(unique(grn$Plot), unique(plots$plot))
+unique(grn$Species)
+#clean some taxa codes
+grn$Species[grn$Species=="Vesp"] <- "Vear" #from Phoebe's cleaning script
+grn$Species[grn$Species=="Ptsp"] <- "Ptaq" 
+#compare species codes with taxon lookup table
+setdiff(unique(grn$Species), unique(taxa$code))
+
+summary(grn$Cover)
+grn$Year <- 2017
+#select certain columns and rename to standard colnames:
+grn <- grn[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(grn)
+str(grn)
+
+#merge the percent_cover and greenup data tables and remove duplicates
+dat <- rbind(dat, grn)
+dat <- distinct(dat)
+
+data_checks(dat)
+
 #Save the L1 data file to googledrive
 googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
 # temp write local
@@ -408,7 +545,7 @@ file.remove("umbs_plant_comp_2017.csv")
 #write.csv(dat, "data/L1/plant_composition/umbs_plant_comp_2017.csv", row.names=F)
 
 #remove data from workspace
-rm(list = c('dat', 'data'))
+rm(list = c('dat', 'data','greenup', 'grn'))
 
 #2018
 data <- gs_title("umbs_plant_comp_2018")
@@ -447,6 +584,45 @@ dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Cover")]
 data_checks(dat)
 str(dat)
 
+#add in the greenup file
+greenup <- gs_title("umbs_greenup_2018")
+grn <- as.data.frame(gs_read(greenup))
+str(grn)
+unique(grn$Site)
+#convert date to common format:
+grn$Date <- as.Date(grn$Date, format = "%m/%d/%Y")
+unique(grn$Date)  
+unique(grn$Plot)
+#compare plot codes with plot lookup table:
+setdiff(unique(grn$Plot), unique(plots$plot))
+unique(grn$Species)
+#clean some taxa codes
+grn$Species[grn$Species=="UNKNOWN1"] <- "Unknown"
+grn$Species[grn$Species=="UKNOWN_sp"] <- "Unknown"
+grn$Species[grn$Species=="UNKNOWN_GRASS3"] <- "Posp"
+grn$Species[grn$Species=="UKNOWN_Grass"] <- "Posp"
+grn$Species[grn$Species=="Unknown_shrub"] <- "Unknown"
+grn$Species[grn$Species=="UNKNOWN_PLANT1"] <- "Unknown"
+grn$Species[grn$Species=="WILD_RASP?"] <- "Unknown"
+grn$Species[grn$Species=="UNKNOWN_GRASS2"] <- "Posp"
+grn$Species[grn$Species=="UNKNOWN 5"] <- "Unknown"
+grn$Species[grn$Species=="Piau"] <- "Hiau" #USDA accepted name for Pilosella aurantica is Hieracium auranticum
+grn$Species[grn$Species=="Ptsp"] <- "Ptaq" #Kathryn confirmed that she used Ptsp (Pteridium species) instead of Ptaq (Pteridium aquilinum) for bracken fern.
+setdiff(unique(grn$Species), unique(taxa$code))
+
+summary(grn$Cover)
+grn$Year <- 2018
+#select certain columns and rename to standard colnames:
+grn <- grn[,c("Site","Year","Date", "Plot", "Species", "Cover")]
+data_checks(grn)
+str(grn)
+
+#merge the percent_cover and greenup data tables and remove duplicates
+dat <- rbind(dat, grn)
+dat <- distinct(dat)
+
+data_checks(dat)
+
 #Save the L1 data file to googledrive
 googledrive::drive_ls("~/warmXtrophic/data/L1/plant_composition")
 # temp write local
@@ -464,4 +640,4 @@ file.remove("umbs_plant_comp_2018.csv")
 #dat <- read.csv("data/L0/UMBS/2018/umbs_plant_comp_2018.csv", stringsAsFactors=F)
 
 #remove data from workspace
-rm(list = c('dat', 'data'))
+rm(list = c('dat', 'data','greenup', 'grn'))

@@ -35,7 +35,7 @@ L2_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L2")
 
 
 #######################################
-#load the taxon, plot andevent lookup tables for reference:
+#load the taxon, plot and event lookup tables for reference:
 #get google_id for taxon table and load:
 google_id <- L2_data_dir %>% filter(grepl('taxon.csv',name))%>%
 		 select(id) %>% 
@@ -56,7 +56,7 @@ google_id <- L2_data_dir %>% filter(grepl('event',name))%>%
 		 unlist()
 events <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", google_id), stringsAsFactors=F)
 events <- read.csv("~/Google Drive File Stream/My Drive/warmXtrophic/data/L2/event.csv", stringsAsFactors=F)
-events$Date <- as.Date(events$Date)
+events$Date <- as.Date(events$Date, format = "%m/%d/%y")
 
 ######################
 # read in all of the L1 plant composition data files and rbind them together
