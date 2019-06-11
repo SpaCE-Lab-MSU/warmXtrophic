@@ -36,7 +36,7 @@ try(if(length(setdiff(unique(dat$Site), unique(events$Site))) == 0) cat ('Succes
 
 	#sampling events
 try(if(length(setdiff(unique(dat$Date), unique(events$Date))) > "0") stop ('These sampling events are not on the event master list'))
-try(if(length(setdiff(unique(dat$Date), unique(events$Date))) > "0") cat (setdiff(unique(dat$Date), unique(events$Date))))
+try(if(length(setdiff(unique(dat$Date), unique(events$Date))) > "0") cat (as.Date(setdiff(unique(dat$Date), unique(events$Date)), origin = "1970-01-01")))
 try(if(length(setdiff(unique(dat$Date), unique(events$Date))) == 0) cat ('Success! All sampling events recorded on the event master list.\n'))
 
 }
