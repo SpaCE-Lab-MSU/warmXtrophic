@@ -216,3 +216,169 @@ file.remove("kbs_reproductive_phen_2017.csv")
 #remove data from workspace
 rm(list = c('dat', 'data'))
 
+
+
+
+
+#####################################
+#             UMBS                   #
+#####################################
+###2016 (no data from 2015)
+data <- gs_title("umbs_flwr_sd_2016")
+dat <- as.data.frame(gs_read(data))
+
+
+colnames(dat)[which(names(dat) == "Action")] <- "Event"
+dat$Site <- 'umbs'
+
+dat$Date <- as.Date(dat$Date, format = "%m/%d/%Y")
+unique(dat$Date)
+as.Date(setdiff(unique(dat$Date), unique(events$Date)), origin = "1970-01-01")
+
+#compare plot codes with plot lookup table:
+unique(dat$Plot)
+setdiff(unique(dat$Plot), unique(plots$plot))
+#compare species codes with taxon lookup table
+unique(dat$Species)
+dat$Species[dat$Species=="ruac"] <- "Ruac"
+dat$Species[dat$Species=="Ruace"] <- "Ruac"
+dat$Species[dat$Species=="Piau"] <- "Hiau" #name change  
+setdiff(unique(dat$Species), unique(taxa$code))
+
+unique(dat$Event)
+dat$Year <- 2016
+#select certain columns and rename to standard colnames:
+dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Event")]
+
+str(dat)
+
+#Save the L1 data file to googledrive
+googledrive::drive_ls("~/warmXtrophic/data/L1/reproductive_phenology")
+# temp write local
+readr::write_csv(dat, "umbs_reproductive_phen_2016.csv")
+drive_rm("umbs_reproductive_phen_2016.csv") #delete old version
+drive_upload("umbs_reproductive_phen_2016.csv", 
+             path = "~/warmXtrophic/data/L1/reproductive_phenology", 
+             name = "umbs_reproductive_phen_2016.csv", 
+             type = NULL,
+             verbose = TRUE)
+drive_share("umbs_reproductive_phen_2016.csv", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+#remove local file
+file.remove("umbs_reproductive_phen_2016.csv")
+
+#alternately:
+#write.csv(dat, "data/L1/reproductive_phenology/umbs_reproductive_phen_2016.csv", row.names=F)
+
+#remove data from workspace
+rm(list = c('dat', 'data'))
+
+
+
+###2017
+data <- gs_title("umbs_flwr_sd_2017")
+dat <- as.data.frame(gs_read(data))
+
+
+colnames(dat)[which(names(dat) == "Action")] <- "Event"
+unique(dat$Site)
+dat <- dat[dat$Date != "4/30/2016",] #remove random single row from 2016
+dat$Date[dat$Date=="5/13/0201"] <- "5/13/2017"
+dat$Date[dat$Date=="6/1/1017"] <- "6/1/2017"
+dat$Date[dat$Date=="6/23/3017"] <- "6/23/2017"
+dat$Date[dat$Date=="6/30/3017"] <- "6/30/2017"
+dat$Date[dat$Date=="7/11/1017"] <- "7/11/2017"
+dat$Date[dat$Date=="7/14/20117"] <- "7/14/2017"
+dat$Date[dat$Date=="7/23/3017"] <- "7/23/2017"
+dat$Date[dat$Date=="8/9/0207"] <- "8/9/2017"
+dat$Date <- as.Date(dat$Date, format = "%m/%d/%Y")
+unique(dat$Date)
+
+as.Date(setdiff(unique(dat$Date), unique(events$Date)), origin = "1970-01-01")
+
+#compare plot codes with plot lookup table:
+unique(dat$Plot)
+setdiff(unique(dat$Plot), unique(plots$plot))
+#compare species codes with taxon lookup table
+unique(dat$Species)
+dat$Species[dat$Species=="Piau"] <- "Hiau" #name change  
+dat$Species[dat$Species=="cape"] <- "Cape"
+dat$Species[dat$Species=="Porp"] <- "Popr"
+setdiff(unique(dat$Species), unique(taxa$code))
+
+unique(dat$Event)
+dat$Year <- 2017
+#select certain columns and rename to standard colnames:
+dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Event")]
+
+str(dat)
+
+#Save the L1 data file to googledrive
+googledrive::drive_ls("~/warmXtrophic/data/L1/reproductive_phenology")
+# temp write local
+readr::write_csv(dat, "umbs_reproductive_phen_2017.csv")
+drive_rm("umbs_reproductive_phen_2017.csv") #delete old version
+drive_upload("umbs_reproductive_phen_2017.csv", 
+             path = "~/warmXtrophic/data/L1/reproductive_phenology", 
+             name = "umbs_reproductive_phen_2017.csv", 
+             type = NULL,
+             verbose = TRUE)
+drive_share("umbs_reproductive_phen_2017.csv", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+#remove local file
+file.remove("umbs_reproductive_phen_2017.csv")
+
+#alternately:
+#write.csv(dat, "data/L1/reproductive_phenology/umbs_reproductive_phen_2017.csv", row.names=F)
+
+#remove data from workspace
+rm(list = c('dat', 'data'))
+
+###2018
+data <- gs_title("umbs_flwr_sd_2018")
+dat <- as.data.frame(gs_read(data))
+
+
+colnames(dat)[which(names(dat) == "Action")] <- "Event"
+unique(dat$Site)
+dat <- dat[dat$Date != "4/30/2016",] #remove random single row from 2016
+dat$Date <- as.Date(dat$Date, format = "%m/%d/%Y")
+unique(dat$Date)
+
+as.Date(setdiff(unique(dat$Date), unique(events$Date)), origin = "1970-01-01")
+
+#compare plot codes with plot lookup table:
+unique(dat$Plot)
+setdiff(unique(dat$Plot), unique(plots$plot))
+#compare species codes with taxon lookup table
+unique(dat$Species)
+dat$Species[dat$Species=="Piau"] <- "Hiau" #name change  
+dat$Species[dat$Species=="cape"] <- "Cape"
+dat$Species[dat$Species=="Porp"] <- "Popr"
+setdiff(unique(dat$Species), unique(taxa$code))
+
+dat$Event[dat$Event=="fruit"] <- "seed"
+unique(dat$Event)
+dat$Year <- 2018
+#select certain columns and rename to standard colnames:
+dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Event")]
+
+str(dat)
+
+#Save the L1 data file to googledrive
+googledrive::drive_ls("~/warmXtrophic/data/L1/reproductive_phenology")
+# temp write local
+readr::write_csv(dat, "umbs_reproductive_phen_2018.csv")
+drive_rm("umbs_reproductive_phen_2018.csv") #delete old version
+drive_upload("umbs_reproductive_phen_2018.csv", 
+             path = "~/warmXtrophic/data/L1/reproductive_phenology", 
+             name = "umbs_reproductive_phen_2018.csv", 
+             type = NULL,
+             verbose = TRUE)
+drive_share("umbs_reproductive_phen_2018.csv", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+#remove local file
+file.remove("umbs_reproductive_phen_2018.csv")
+
+#alternately:
+#write.csv(dat, "data/L1/reproductive_phenology/umbs_reproductive_phen_2018.csv", row.names=F)
+
+#remove data from workspace
+rm(list = c('dat', 'data'))
