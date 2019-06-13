@@ -126,10 +126,10 @@ dat$Species[dat$Species=="rual"] <- "Rual"
 dat$Species[dat$Species=="HIsp"] <- "Hisp" 
 dat$Species[dat$Species=="PHpr"] <- "Phpr" 
 dat$Species[dat$Species=="Popre"] <- "Popr"
+#note: Sila was flowering on D3 but is not present at all in the percent cover dataset. Remove it
+dat <- dat[-(which(dat$Species == 'Sila')),]
 setdiff(unique(dat$Species), unique(taxa$code))
-#note: Sila was flowering on D3 but is not present at all in the percent cover dataset.
 
-dat <- dat[-(which(dat$Event == 'buds')),] #the only accepted entries are "flower" and "seed". Remove one row labelled "buds".
 unique(dat$Event)
 
 dat$Year <- 2016
@@ -182,7 +182,9 @@ dat$Species[dat$Species=="Drin"] <- "Brin"  #probably a typo
 dat$Species[dat$Species=="Dlre"] <- "Elre"  #probably a typo
 dat$Species[dat$Species=="Dach"] <- "Daca"  #probably a typo
 dat$Species[dat$Species=="Aca"] <- "Daca"  #probably a typo 
-
+dat$Species[dat$Species=="Aspi"] <- "Sypi"  #name chgange
+dat$Species[dat$Species=="Sogr"] <- "Eugr"  #name chgange
+dat$Species[dat$Species=="Agre"] <- "Elre"  #name change
 setdiff(unique(dat$Species), unique(taxa$code))
 
 dat$Event[dat$Event=="speed"] <- "seed"
