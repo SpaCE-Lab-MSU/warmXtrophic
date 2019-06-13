@@ -95,7 +95,7 @@ L3.first.seed <- phen %>%
 
 L3 <- Reduce(function(x,y) merge(x,y, by = c("Site", "Year", "Plot", "variable_name"), all=T), list(L3.pc, L3.greenup, L3.first.flower, L3.last.flower, L3.first.seed))
 
-#this does not mean that all the data in L3 "make sense". Need to look more closely. Some species snever exceeded 1% cover on a plot, other species are only on one or a few plots, non-taxa codes such as 'Litter' and 'Brown' are still included... apply more filters prior to analysis!
+#this does not mean that all the data in L3 "make sense". Need to look more closely. Some species never exceeded 1% cover on a plot, other species are only on one or a few plots, non-taxa codes such as 'Litter' and 'Brown' are still included... apply more filters prior to analysis!
 
 #merge in trait and treatment data
 temp1 <- taxa[,c("code","origin", "duration", "growth_habit")]
