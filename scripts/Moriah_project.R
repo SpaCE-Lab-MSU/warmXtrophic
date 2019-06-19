@@ -15,5 +15,14 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets')) {
 gs_ls()
 drive_find(n_max=10)
 
-#load L3 data
+#attempt to load L3 data
 L3dat <- read_csv("https://drive.google.com/drive/u/0/folders/1yL4zUcsg6u9VD5BDuN_gqxtkRWLZaoQ-")
+#parsing problems
+
+#downloaded L3dat.csv onto personal computer from shared google drive and read in data this way - seemed to work, so I must be doing something from wrong with the above.
+L3dat <- read.csv("~/Downloads/L3dat.csv")
+
+#another attempt to load L3 data
+library(googledrive)
+drive_download("~/warmXtrophic/data/L3/L3dat.csv")
+#can't identify file - wrong path?
