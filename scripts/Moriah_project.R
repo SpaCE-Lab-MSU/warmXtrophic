@@ -11,18 +11,15 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets')) {
   }
 }
 
-#read gsheets into R directly from the internet (Google Drive) and authenticate with Google Drive
-gs_ls()
-drive_find(n_max=10)
-
-#attempt to load L3 data
-L3dat <- read_csv("https://drive.google.com/drive/u/0/folders/1yL4zUcsg6u9VD5BDuN_gqxtkRWLZaoQ-")
-#parsing problems
-
-#downloaded L3dat.csv onto personal computer from shared google drive and read in data this way - seemed to work, so I must be doing something from wrong with the above.
-L3dat <- read.csv("~/Downloads/L3dat.csv")
-
-#another attempt to load L3 data
 library(googledrive)
-drive_download("~/warmXtrophic/data/L3/L3dat.csv")
-#can't identify file - wrong path?
+# this sets the working directory onto the laptop on which you are using... the dataset from drive
+# will be downloaded to your local computer and saved in this working directory
+setwd("~/Desktop")
+
+# this downloads the desired dataset from google drive onto your local computer and saves it to the working directory above
+drive_download("L3dat.csv", path = 'L3dat.csv', type = "csv", overwrite = TRUE)
+
+# this reads in the data into R
+data <- read.csv('L3dat.csv')
+View(data)
+
