@@ -23,3 +23,9 @@ drive_download("L3dat.csv", path = 'L3dat.csv', type = "csv", overwrite = TRUE)
 data <- read.csv('L3dat.csv')
 View(data)
 
+ambient_native <- subset(data, Site == "umbs" & state == "ambient" & origin == "Native")
+warmed_native <- subset(data, Site == "umbs" & state == "warmed" & origin == "Native")
+ambient_exotic <- subset(data, Site == "umbs" & state == "ambient" & origin == "Exotic")
+warmed_exotic <- subset (data, Site == "umbs" & state == "warmed" & origin == "Exotic")
+
+
