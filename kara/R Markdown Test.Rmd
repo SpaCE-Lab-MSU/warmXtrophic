@@ -4,8 +4,7 @@ author: "Kara Dobson"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
-
-```{r setup, include=FALSE}
+  
+  ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
