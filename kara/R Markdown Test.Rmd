@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Climate Data
+# Climate Data
 Here's some code for a simple graph from my climate project. This graph was used to show a reviewer a single city wasn't driving the climate trends for a given region (coastal or inland). Not the prettiest graph, but it served its purpose.
 
 ```{r message=FALSE}
