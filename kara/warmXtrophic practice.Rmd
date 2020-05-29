@@ -1,0 +1,52 @@
+---
+title: "warmXtrophic practice"
+author: "Kara Dobson"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# First Flower
+
+Here, I'll be trying to show the average date of first flower between ambient and warmed plots with and without insecticide treatment from 2015-2018. First, read in the data from the Google spreadsheet.
+
+*(I can't figure out how to knit the rmd file with this method of accessing Google Sheets)*
+
+```{r message = FALSE}
+for (package in c('tidyverse', 'googledrive', 'googlesheets4')) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages(package)
+    library(package, character.only=T)
+  }
+}
+data <- read_sheet("1jrfrZOgOlyFkvaMjQzjSf5P9rXf82voVaKVGXp-4G1w")
+```
+
+Then, group the data to only contain data from the KBS site before 2019 (there is no 2019 or 2018 data in the original file). After that, group the data to show the average first flower date for each of the given treatment groups.
+
+```{r message = FALSE}
+library(tidyverse)
+
+means <- data %>%
+  filter(Site == "kbs") %>%
+  group_by(Year, Site, state, insecticide) %>%
+  summarize(First.flower = mean(suppressWarnings(as.numeric(First.flower)), na.rm = TRUE)) %>%
+  filter(!is.nan(First.flower))
+```
+
+Plot the data
+
+```{r message = FALSE}
+p <- ggplot(means, aes(x = Year, y = as.Date(First.flower, origin="1900-01-01"),
+                  shape = state, col = insecticide)) +
+  geom_point(size = 3) +
+  geom_line() +
+  labs(y = "Date of First Flower", color = "Insecticide Treatment",
+       shape = "Temperature Treatment") +
+  theme_light()
+
+p + scale_x_continuous(breaks=c(2015.0, 2016.0, 2017.0))
+```
