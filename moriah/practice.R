@@ -63,3 +63,4 @@ ggplot(data = CestB2, aes(x = Date, y = Cover)) +
 warming <- c("A2", "A4", "A5", "B2", "B3", "B6", "C1", "C4", "C6", "D2", "D3", "D6")
 ambient <- c("A1", "A3", "A6", "B1", "B4", "B5", "C2", "C3", "C5", "D1", "D4", "D5")
 
+# check 1, 2, 3... did I figure out how to use Git and Github?
