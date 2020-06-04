@@ -3,7 +3,7 @@
 # Author: Moriah Young
 
 # Required libraries =======================================
-for (package in c('tidyverse', 'googledrive', 'googlesheets4', 'ggplot2')) {
+for (package in c('tidyverse', 'googledrive', 'googlesheets4', 'ggplot2', 'tinytex')) {
         if (!require(package, character.only=T, quietly=T)) {
                 install.packages(package)
                 library(package, character.only=T)

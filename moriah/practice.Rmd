@@ -1,22 +1,23 @@
 ---
 title: "Practice with warmXtrophic data and RMarkdown"
 author: "Moriah Young"
-date: "6/3/2020"
-output:
-  html_document:
-    theme: cosmo
-  pdf_document: default
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
 ```
 
 In this document I will be practicing using RMarkdown while attempting to make a simple graph from the warmXtrophic data
 
 First, I will make sure that the packages I need are in my working environment
 ```{r, message = FALSE}
-for (package in c('tidyverse', 'googledrive', 'googlesheets4')) {
+for (package in c('tidyverse', 'googledrive', 'googlesheets4','tinytex')) {
         if (!require(package, character.only=T, quietly=T)) {
                 install.packages(package)
                 library(package, character.only=T)
@@ -24,26 +25,18 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets4')) {
 }
 ```
 
-Next, I need to download the data file that I wish to work with in R.
+Next, I need to download the data file that I wish to work with in R - plant composition (percent cover) data from 2019 at UMBS
 ```{r}
-# Data import and set working directory ==============================================
-# I want to look at plant composition data from 2019 at UMBS
 PlantComp <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019 - Sheet1.csv")
 ```
 
 I want to look at the composition of spotted knapweed (Cest) in plot B2 at UMBS in 2019. To do this, I'll need to subset from the PlantComp dataframe I created above.
 ```{r}
-# Subset the data ==========================================
-# I want to look at the percent cover of the species Cest over one growing season and plot its composition over time
-
 CestB2 <- subset(PlantComp, Species == "Cest" & Plot == "B2")
 ```
 
 Now that I've subsetted my data, I'll plot the percent cover of Cest in B2 over the growing season in 2019
 ```{r}
-# Create a plot =========================================
-#I want to make a plot that shows the percent cover of Cest in plot B2 over one growing season
-
 ggplot(data = CestB2, aes(x = Date, y = Cover)) +
         geom_bar(stat = "identity", fill = "purple") +
         labs(title = "Cest Composition in Plot B2 at UMBS",
