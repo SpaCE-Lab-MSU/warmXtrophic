@@ -3,9 +3,9 @@ title: "Practice with warmXtrophic data and RMarkdown"
 author: "Moriah Young"
 date: "6/3/2020"
 output:
-  pdf_document: default
   html_document:
     theme: cosmo
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
