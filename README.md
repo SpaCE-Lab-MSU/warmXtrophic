@@ -38,3 +38,5 @@ In 2017 we added C&N composition from plant leaves for a few species.
 
 Data workflow in SpaCE_Lab_warmXtrophic shared drive:
 ![Workflow Image](docs/data_workflow.jpg)
+
+![DEI Workflow Image](docs/EDI_harmonization_procedure_general.png)
