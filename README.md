@@ -35,3 +35,5 @@ Herbivory: percent of plant species eaten at end of summer
 Biomass (computed from relationship between community composition and biomass of similar plots outside experiment)
 
 In 2017 we added C&N composition from plant leaves for a few species.
+
+![Workflow Image](docs/data_workflow.jpg)
