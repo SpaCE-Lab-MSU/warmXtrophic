@@ -36,4 +36,5 @@ Biomass (computed from relationship between community composition and biomass of
 
 In 2017 we added C&N composition from plant leaves for a few species.
 
+Data workflow in SpaCE_Lab_warmXtrophic shared drive:
 ![Workflow Image](docs/data_workflow.jpg)
