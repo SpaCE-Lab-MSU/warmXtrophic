@@ -68,6 +68,8 @@ cover <- PlantComp$Cover #not sure if I need to do this for anything - I don't u
 perc_cover_plot <- function(Species, Plot) {
         PlantComp$Species == "Species"
         PlantComp$Plot == "Plot"
+        PlantComp$Date == "Date"
+        PlantComp$Cover == "Cover"
         return(plot("Date", "Cover", type = "p"))
 }
 # this function doesn't work
