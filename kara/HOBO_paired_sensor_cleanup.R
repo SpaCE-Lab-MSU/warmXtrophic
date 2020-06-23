@@ -141,7 +141,7 @@ write.csv(KBS_1_2020, file="L0/KBS/sensor_data/2019/KBS_1.csv")
 
 #Merge data from all years 
 KBS_1 <- rbind(KBS_1_2017, KBS_1_2018, KBS_1_2019, KBS_1_2020)
-write.csv(KBS_1, file="L0/KBS/sensor_data/KBS_1")
+write.csv(KBS_1, file="L0/KBS/sensor_data/KBS_1.csv")
 
 ############## KBS Pair 2
 #Read in H
@@ -275,7 +275,7 @@ write.csv(KBS_2_2019, file="L0/KBS/sensor_data/2020/KBS_2.csv")
 
 #Merge data from all years 
 KBS_2 <- rbind(KBS_2_2017, KBS_2_2018, KBS_2_2019, KBS_2_2020)
-write.csv(KBS_2, file="L0/KBS/sensor_data/KBS_2")
+write.csv(KBS_2, file="L0/KBS/sensor_data/KBS_2.csv")
 
 ############# KBS Pair 3
 #Read in H
