@@ -1,0 +1,58 @@
+---
+title: "HOBO Data Plots"
+author: "Kara Dobson"
+date: "6/23/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+for (package in c("tidyverse")) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages("package")
+    library(package, character.only=T)
+  }
+}
+```
+
+# Plotting HOBO data
+## First plot looks at air temperatures for all years between warmed and ambient plots for the 3H paired sensors - There's probably a better way to present this
+## Second plot averages the mean temperatures across all years for each month (I was just messing around with bar plots for that one)
+
+```{r, include = FALSE}
+setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+KBS_3 <- read_csv("L0/KBS/sensor_data/KBS_3.csv")
+
+
+KBS_3$Date_Time <- as.POSIXlt(KBS_3$Date_Time, format = "%m/%d/%y %H:%M")
+test_KBS_3 <- KBS_3
+test_KBS_3$Month <- format(test_KBS_3$Date_Time,format="%m")
+test_KBS_3$Year <- format(test_KBS_3$Date_Time,format="%y")
+
+mean_monthly_warm <- aggregate( XH_warmed_air_1m ~ Month + Year , test_KBS_3 , mean )
+mean_monthly_amb <- aggregate( XH_ambient_air_1m ~ Month + Year, test_KBS_3, mean)
+mean_monthly <- merge(mean_monthly_amb, mean_monthly_warm, by=c("Month", "Year"))
+
+mean_monthly_gather <- mean_monthly %>%
+  gather(key = "treatment",value="temp", -Month, -Year)
+```
+
+
+
+```{r, echo = FALSE}
+ggplot(mean_monthly_gather, aes(x = as.numeric(Month), y = temp)) +
+  geom_point(aes(color = treatment, shape = Year), size = 2) +
+  ylab("Air Temperature (F)") +
+  xlab("Month") +
+  theme_minimal() + theme(legend.position = "bottom") +
+  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather$Month), max(mean_monthly_gather$Month), by = 1),1))
+
+ggplot(mean_monthly_gather, aes(x=as.numeric(Month), y=temp, fill=treatment)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  ylab("Air Temperature (F)") +
+  xlab("Month") +
+  theme_minimal() + theme(legend.position = "bottom") +
+  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather$Month), max(mean_monthly_gather$Month), by = 1),1))
+
+```
