@@ -13,34 +13,38 @@ for (package in c("tidyverse")) {
     library(package, character.only=T)
   }
 }
+
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+KBS_1 <- read_csv("L0/KBS/sensor_data/KBS_1.csv")
+KBS_2 <- read_csv("L0/KBS/sensor_data/KBS_2.csv")
 KBS_3 <- read_csv("L0/KBS/sensor_data/KBS_3.csv")
 
+### 3H Plot ###
 #Format the dates to be in POSIXlt format
 KBS_3$Date_Time <- as.POSIXlt(KBS_3$Date_Time, format = "%m/%d/%y %H:%M")
 test_KBS_3 <- KBS_3
-test_KBS_3$Month <- format(test_KBS_3$Date_Time,format="%m")
-test_KBS_3$Year <- format(test_KBS_3$Date_Time,format="%y")
+test_KBS_3$month <- format(test_KBS_3$Date_Time,format="%m")
+test_KBS_3$year <- format(test_KBS_3$Date_Time,format="%y")
 
 #Aggregate data by month and year for temps
-mean_monthly_warm <- aggregate( XH_warmed_air_1m ~ Month + Year , test_KBS_3 , mean )
-mean_monthly_amb <- aggregate( XH_ambient_air_1m ~ Month + Year, test_KBS_3, mean)
-mean_monthly <- merge(mean_monthly_amb, mean_monthly_warm, by=c("Month", "Year"))
+mean_monthly_warm3 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_3 , mean )
+mean_monthly_amb3 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_3, mean)
+mean_monthly3 <- merge(mean_monthly_amb3, mean_monthly_warm3, by=c("month", "year"))
 
-mean_monthly_gather <- mean_monthly %>%
-  gather(key = "treatment",value="temp", -Month, -Year)
+mean_monthly_gather3 <- mean_monthly3 %>%
+  gather(key = "treatment",value="temp", -month, -year)
 
 #Plot the data
-ggplot(mean_monthly_gather, aes(x = as.numeric(Month), y = temp)) +
-  geom_point(aes(color = treatment, shape = Year), size = 2) +
+ggplot(mean_monthly_gather3, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(color = treatment, shape = year), size = 2) +
   ylab("Air Temperature (F)") +
   xlab("Month") +
   theme_minimal() + theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather$Month), max(mean_monthly_gather$Month), by = 1),1))
+  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather3$month), max(mean_monthly_gather3$month), by = 1),1))
 
-ggplot(mean_monthly_gather, aes(x=as.numeric(Month), y=temp, fill=treatment)) +
+ggplot(mean_monthly_gather3, aes(x=as.numeric(month), y=temp, fill=treatment)) +
   geom_bar(stat="identity", position=position_dodge()) +
   ylab("Air Temperature (F)") +
   xlab("Month") +
   theme_minimal() + theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather$Month), max(mean_monthly_gather$Month), by = 1),1))
+  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather3$month), max(mean_monthly_gather3$month), by = 1),1))
