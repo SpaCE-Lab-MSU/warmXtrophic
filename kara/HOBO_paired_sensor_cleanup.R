@@ -1,4 +1,4 @@
-# TITLE: HOBO data logger cleanup
+# TITLE: HOBO paired sensor cleanup
 # AUTHORS: Nina Lany (original), Kathryn Schmidt (original), Kara Dobson (edited June 2020)
 # COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
 # DATA INPUT: Data imported as csv files from shared Google drive
@@ -8,6 +8,15 @@
 # DATE: 2016-2017
     ## KS edit May 23, 2018: created merged files for UMBS; August 1, 2018: remove manual preparation step and add 2018 data from KBS and UMBS
     ## KD edit June 2020: Updated script to insert 2019 and 2020 data
+
+
+#Load packages
+for (package in c("tidyverse", "weathermetrics")) {
+  if (!require(package, character.only=T, quietly=T)) {
+    install.packages("package")
+    library(package, character.only=T)
+  }
+}
 
 # Clear all existing data
 rm(list=ls())
@@ -120,6 +129,10 @@ names(KBS_1_2020)[names(KBS_1_2020)=="Temp...C..LGR.S.N..10737622..SEN.S.N..1073
 names(KBS_1_2020)[names(KBS_1_2020)=="Temp...C..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(KBS_1_2020)[names(KBS_1_2020)=="Date.Time..GMT.04.00"] <- "Date_Time"
 head(KBS_1_2020)
+
+#Convert C to F for 2020
+KBS_1_2020$XH_warmed_air_1m <- celsius.to.fahrenheit(KBS_1_2020$XH_warmed_air_1m)
+KBS_1_2020$XH_ambient_air_1m <- celsius.to.fahrenheit(KBS_1_2020$XH_ambient_air_1m)
 
 # #check any columns with NA values, if present
 # #check to see if all days contain 24h.(only first and last days not expected to have 24h.)
@@ -249,6 +262,10 @@ names(KBS_2_2020)[names(KBS_2_2020)=="Temp...C..LGR.S.N..10737623..SEN.S.N..1073
 names(KBS_2_2020)[names(KBS_2_2020)=="Temp...C..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_warmed_soil_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(KBS_2_2020)[names(KBS_2_2020)=="Date.Time..GMT.04.00"] <- "Date_Time"
 head(KBS_2_2020)
+
+#Convert C to F for 2020
+KBS_2_2020$XH_warmed_air_1m <- celsius.to.fahrenheit(KBS_2_2020$XH_warmed_air_1m)
+KBS_2_2020$XH_ambient_air_1m <- celsius.to.fahrenheit(KBS_2_2020$XH_ambient_air_1m)
 
 #check any columns with NA values, if present
 # which(is.na(KBS_2$X2H_ambient_air_1m))
