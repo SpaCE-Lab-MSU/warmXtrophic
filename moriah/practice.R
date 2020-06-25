@@ -21,7 +21,7 @@ file.choose() #this will open up a window on your computer so that you can navig
 
 # Data import and set working directory ===================================================
 # I want to look at plant composition data from 2019 at UMBS
-PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019 - Sheet1.csv")
+PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv")
 
 # I'm also going to read in the plot.csv table so that I can add new columns in the plant comp data frame
 # to add further plot information
@@ -61,18 +61,20 @@ ggplot(data = CestB2, aes(x = Date, y = Cover)) +
              subtitle = "2019",
              x = "Date", y = "Percent Cover")
 
-# Let's create a function ========================================
+# Let's create a function =========================================================================
 # This function will select a certain species in a single plot and graph it's cover over time
-cover <- PlantComp$Cover #not sure if I need to do this for anything - I don't use it in the function bellow
 
-perc_cover_plot <- function(Species, Plot) {
-        PlantComp$Species == "Species"
-        PlantComp$Plot == "Plot"
-        PlantComp$Date == "Date"
-        PlantComp$Cover == "Cover"
-        return(plot("Date", "Cover", type = "p"))
+perc_cover_plot <- function(Species, Plot) { 
+        PlantCompSubset <- filter(PlantComp, Species == Species & Plot == Plot) 
+        plot(Cover ~ Date, data=PlantCompSubset)
+} # No matter what variables I put into this function, it returns the same graph.
+
+# same thing as above but using piping to get desired result
+perc_cover_plot2 <- function (Species, Plot) {
+        PlantComp %>% 
+        filter(Species == Species & Plot == Plot) %>% 
+        plot(Cover ~ Date)
 }
-# this function doesn't work
 
 # Try creating a plot using ggplot =========================================
 
