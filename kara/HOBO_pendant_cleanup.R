@@ -28,6 +28,7 @@ for (package in c("tidyverse", "weathermetrics")) {
     library(package, character.only=T)
   }
 }
+
 #************************
 ####** DATA IMPORT **####
 #************************
@@ -300,24 +301,19 @@ pend20k$Site<-"KBS"
 pend20k$Temp_F_XP_air_1m <- celsius.to.fahrenheit(pend20k$Temp_F_XP_air_1m)
 
 # Merge KBS HOBO data from all years
-pendk<-rbind(pend17k,pend18k,pend19k,pend20k)
-head(pendk) # don't appear to be duplicates
-str(pendk) 
-dim(pendk) # dimensions = 294808 rows,  5 columns
-new.pendk<-unique( pendk[ , 1:5 ] ) #seems to have no duplicate data
-dim(pendk) # dimensions = 294808 rows,  5 columns (same dataset)
-str(new.pendk)
-setdiff(pendk,new.pendk) # no difference
-# not sure this code below is necessary
-# dplyr::anti_join(new.pendk, pendk)
+diff1718k <- anti_join(pend18k, pend17k, by = "Date_Time")
+diff1819k <- anti_join(pend19k, pend18k, by = "Date_Time")
+diff1920k <- anti_join(pend20k, pend19k, by = "Date_Time")
 
-ggplot(new.pendk, aes(x = Date_Time, y = Temp_F_XP_air_1m, color = Pendant_ID)) +
+pendk <- rbind(pend17k, diff1718k, diff1819k, diff1920k)
+
+#plot
+ggplot(pendk, aes(x = Date_Time, y = Temp_F_XP_air_1m, color = Pendant_ID)) +
   facet_grid(Pendant_ID ~ .) +
   geom_point(alpha=.5, size = 2) +
   ylab("Temperature F") +
   ylim(-100,200)+
   theme_gray() + theme(legend.position = "bottom")
-
 
 
 #### ** U/H stations included here - should they be in this script?** ###
@@ -679,13 +675,11 @@ pend20u$Site<-"UMBS"
 pend20u$Temp_F_XP_air_1m <- celsius.to.fahrenheit(pend20u$Temp_F_XP_air_1m)
 
 # merge UMBS HOBO data from all years
-pendu<-rbind(pend17u,pend18u,pend19u,pend20u)
-str(pendu)
-new.pendu<-unique( pendu[ , 1:5 ] ) #want to delete overlapping data from HOBO files, but don't know best way
-str(new.pendu)
-setdiff(pendu,new.pendu)
-dplyr::anti_join(new.pendu, pendu)
-head(new.pendu)
+diff1718u <- anti_join(pend18u, pend17u, by = "Date_Time")
+diff1819u <- anti_join(pend19u, pend18u, by = "Date_Time")
+diff1920u <- anti_join(pend20u, pend19u, by = "Date_Time")
+
+pendu <- rbind(pend17u, diff1718u, diff1819u, diff1920u)
 
 ### Add in station data ###
 Pend1P_1520u<-read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_1.csv", header =T)
