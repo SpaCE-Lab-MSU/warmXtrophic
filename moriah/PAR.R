@@ -2,6 +2,14 @@
 # Date: 2020 June 19
 # Author: Moriah Young
 
+# Required libraries =======================================
+for (package in c('tidyverse', 'googledrive', 'googlesheets4', 'tinytex')) {
+        if (!require(package, character.only=T, quietly=T)) {
+                install.packages(package)
+                library(package, character.only=T)
+        }
+}
+
 # Find the file you want to import into R =========================================================
 # Ideally I would do this directly from Google FileStream (don't have on computer) or from the
 # shared folder online, but for now I am downloading the desired files from the shared folder onto
@@ -22,23 +30,14 @@ PAR2019 <- read.csv("/Users/moriahyoung/Downloads/umbs_par_2019.csv")
 PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv")
 
 # Convert date column to date class ============================================================
-<<<<<<< HEAD
 PC$Date <- as.Date(PC$Date,
                    format = "%m/%d/%y")
 class(PC$Date) # check 
-=======
-PC$Date <- as.Date(PlantComp$Date,
-                          format = "%m/%d/%y")
->>>>>>> b65b544c4b8e7669281f3df1a432775d717071d6
 
 # Filter through the PC data to select the dates that correspond with the dates that PAR was 
 # recorded to create a new plant comp data frame with only those dates
 
-<<<<<<< HEAD
-PlantComp <- filter(PC, PC$Date == c("2020-06-04", "2020-06-19", "2020-07-12"))
-=======
 PlantComp <- filter(PC, Date == c("2020-06-04", "2020-06-19", "2020-07-12"))
->>>>>>> b65b544c4b8e7669281f3df1a432775d717071d6
 
 # Compute percent cover data as absolute ===================================================
 
@@ -56,13 +55,8 @@ PlantDat <- PlantComp %>%
 # Create a new column called "Total_Cover" in a new data frame with just those absolute cover values
 # for each plot
 AbsoluteCover <- PlantDat %>%
-        group_by(Site, Plot, Date, Species) %>%
+        group_by(Site, Plot, Date) %>%
         dplyr::summarize(Cover = sum(Cover, na.omit=T)) %>% 
         ungroup() #this doesn't work yet
 
 view(AbsoluteCover)
-<<<<<<< HEAD
-=======
-
-
->>>>>>> b65b544c4b8e7669281f3df1a432775d717071d6
