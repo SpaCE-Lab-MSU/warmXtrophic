@@ -21,7 +21,7 @@ file.choose() #this will open up a window on your computer so that you can navig
 
 # Start by looking at 2019 UMBS data so we will need to download Plant Comp and PAR data files 
 # PAR was collected on 6/03, 6/18, 7/28
-# Plant Comp collected on 6/4, 6/19, 7/12 - these dates are the closest dates to the PAR measurements taken
+# Plant Comp collected on 6/04, 6/19, 7/12 - these dates are the closest dates to the PAR measurements taken
 # from 2019
 
 
@@ -67,12 +67,35 @@ AbsoluteCover <- PlantDat %>%
         dplyr::summarize(Cover = sum(Cover, na.omit=T))
 
 View(AbsoluteCover)
-# It worked!!!!!! Although the totals don't add up to me... look into this more
+# It worked!!!!!! Although the totals don't add up to me... look into this more later
 
-# Combine the new data frame "AbsoluteCover" with the "PAR2019" data frame ==============================
-# How do you do this if the dates aren't the same?
+# Change the dates from the AbsoluteCover to match the corresponding PAR dates so that we can combine the cover
+# and PAR data frames by date
 
+AC <- mutate(AbsoluteCover,
+             NewDate = c("2020-06-04" == "2020-06-03" & "2020-06-19" == "2020-06-18" & "2020-07-12" == "2020-07-28"))
+
+AC <- AbsoluteCover %>% 
+        mutate(Date, "2020-06-04" == "2020-06-03" & "2020-06-19" == "2020-06-18" & "2020-07-12" == "2020-07-28")
+
+AC <- replace(
+        AbsoluteCover$Date,
+        c("2020-06-04", "2020-06-19", "2020-07-12"),
+        c("2020-06-03", "2020-06-18", "2020-07-28")
+        )
+
+View(AC) # none of these work!!
+# "2020-06-04" == "2020-06-03", "2020-06-19" == "2020-06-18", "2020-07-12" == "2020-07-28"
+
+# Combine the new data frame "AC" with the "PAR" data frame ====================================
 PARpc <- full_join(PAR, AbsoluteCover, by = "Date")
-View(PARpc)
-# this combines the two data frames but bc the dates aren't the same they don't combine as I would like
+View(PARpc) # this combines the two data frames but bc the dates aren't the same they don't combine 
+# as I would like (working on this above)
 
+# Plot PAR vs. Absolute Cover per plot per site (array of 24 plots per Site), through time
+
+for(i in unique(PARpc$Date)){
+        p <- subset(PARpc, Date == i)
+        plot(p$Average_Ground ~ p$Cover, main = i)
+}
+        
