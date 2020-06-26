@@ -2,7 +2,7 @@
 # Date: 2020 June 19
 # Author: Moriah Young
 
-# Required libraries =======================================
+# Required libraries ===================================================================================
 for (package in c('tidyverse', 'googledrive', 'googlesheets4', 'tinytex')) {
         if (!require(package, character.only=T, quietly=T)) {
                 install.packages(package)
@@ -10,7 +10,7 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets4', 'tinytex')) {
         }
 }
 
-# Find the file you want to import into R =========================================================
+# Find the file you want to import into R ==============================================================
 # Ideally I would do this directly from Google FileStream (don't have on computer) or from the
 # shared folder online, but for now I am downloading the desired files from the shared folder onto
 # my desktop to be called into R
@@ -25,21 +25,31 @@ file.choose() #this will open up a window on your computer so that you can navig
 # from 2019
 
 
-# Data import and set working directory =================================================== 
+# Import data files and set working directory =============================================================
+# Read in the PAR data
 PAR2019 <- read.csv("/Users/moriahyoung/Downloads/umbs_par_2019.csv")
+# Read in the Plant Composition data
 PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv")
 
-# Convert date column to date class ============================================================
+# Get these data frames ready to work with ===============================================================
+# For some reason when the this dataset is read in, there are extra columns - get rid of these:
+PAR <- PAR2019[,c(1:9)]
+
+# Convert date columns to date class 
 PC$Date <- as.Date(PC$Date,
                    format = "%m/%d/%y")
 class(PC$Date) # check 
 
-# Filter through the PC data to select the dates that correspond with the dates that PAR was 
-# recorded to create a new plant comp data frame with only those dates
+PAR$Date <- as.Date(PAR$Date,
+                    format = "%m/%d/%y")
+class(PAR$Date) # check
+
+# Filter through the PC data to select the dates that correspond with the dates that PAR was recorded to 
+# create a new plant comp data frame with only those dates
 
 PlantComp <- filter(PC, Date == c("2020-06-04", "2020-06-19", "2020-07-12"))
 
-# Compute percent cover data as absolute ===================================================
+# Compute percent cover data as absolute ================================================================
 
 # Remove non-plant taxa
 PlantDat <- PlantComp %>%
@@ -48,15 +58,21 @@ PlantDat <- PlantComp %>%
                       Species != "Unknown",
                       Species != "Litter",
                       Species != "Animal_Disturbance",
-                      Species != "Vert_litter",
+                      Species != "Vert_Litter",
                       Species != "Herbicide")
 
-# Calculate absolute cover for each plot per each date
-# Create a new column called "Total_Cover" in a new data frame with just those absolute cover values
-# for each plot
+# Calculate absolute cover for each plot per each date and create a new data frame with this information
 AbsoluteCover <- PlantDat %>%
-        group_by(Site, Plot, Date) %>%
-        dplyr::summarize(Cover = sum(Cover, na.omit=T)) %>% 
-        ungroup() #this doesn't work yet
+        group_by(Plot, Date) %>%
+        dplyr::summarize(Cover = sum(Cover, na.omit=T))
 
-view(AbsoluteCover)
+View(AbsoluteCover)
+# It worked!!!!!! Although the totals don't add up to me... look into this more
+
+# Combine the new data frame "AbsoluteCover" with the "PAR2019" data frame ==============================
+# How do you do this if the dates aren't the same?
+
+PARpc <- full_join(PAR, AbsoluteCover, by = "Date")
+View(PARpc)
+# this combines the two data frames but bc the dates aren't the same they don't combine as I would like
+
