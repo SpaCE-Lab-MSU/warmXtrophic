@@ -17,6 +17,9 @@ rm(list=ls())
 # Close graphics devices
 graphics.off()
 
+# Source functions
+source("~/warmXtrophic/kara/HOBO_functions.R")
+
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
@@ -72,183 +75,6 @@ pend10P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_10P_04052020.csv",
 pend11P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_11P_04052020.csv", skip=1, header=T)[ ,1:4]
 pend12P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_12P_04052020.csv", skip=1, header=T)[ ,1:4]
 
-
-# Change class of Date.Time column from factor to POSIXct date 
-pend4P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend4P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend5P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend5P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend6P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend6P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend7P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend7P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend8P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend8P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend9P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend9P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend10P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend10P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend11P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend11P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend12P_17k$Date.Time..GMT.05.00 <- as.POSIXct(pend12P_17k$Date.Time..GMT.05.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-pend4P_18k$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_18k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend5P_18k$Date.Time..GMT.04.00 <- as.POSIXct(pend5P_18k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend6P_18k$Date.Time..GMT.04.00 <- as.POSIXct(pend6P_18k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend7P_18k$Date.Time..GMT.04.00 <- as.POSIXct(pend7P_18k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend8P_18k$Date.Time..GMT.04.00 <- as.POSIXct(pend8P_18k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend10P_18k$Date.Time..GMT.04.00 <- as.POSIXct(pend10P_18k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend11P_18k$Date.Time..GMT.04.00 <- as.POSIXct(pend11P_18k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend12P_18k$Date.Time..GMT.04.00 <- as.POSIXct(pend12P_18k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-pend4P_19k$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_19k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend5P_19k$Date.Time..GMT.04.00 <- as.POSIXct(pend5P_19k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend6P_19k$Date.Time..GMT.04.00 <- as.POSIXct(pend6P_19k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend7P_19k$Date.Time..GMT.04.00 <- as.POSIXct(pend7P_19k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend8P_19k$Date.Time..GMT.04.00 <- as.POSIXct(pend8P_19k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend10P_19k$Date.Time..GMT.04.00 <- as.POSIXct(pend10P_19k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend11P_19k$Date.Time..GMT.04.00 <- as.POSIXct(pend11P_19k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend12P_19k$Date.Time..GMT.04.00 <- as.POSIXct(pend12P_19k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-pend4P_20k$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_20k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend5P_20k$Date.Time..GMT.04.00 <- as.POSIXct(pend5P_20k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend6P_20k$Date.Time..GMT.04.00 <- as.POSIXct(pend6P_20k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend7P_20k$Date.Time..GMT.04.00 <- as.POSIXct(pend7P_20k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend8P_20k$Date.Time..GMT.04.00 <- as.POSIXct(pend8P_20k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend10P_20k$Date.Time..GMT.04.00 <- as.POSIXct(pend10P_20k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend11P_20k$Date.Time..GMT.04.00 <- as.POSIXct(pend11P_20k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend12P_20k$Date.Time..GMT.04.00 <- as.POSIXct(pend12P_20k$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-# Rename columns and remove unnecessary rows.
-pend4P_17k$X.<-NULL
-names(pend4P_17k)[names(pend4P_17k)=="Temp...F..LGR.S.N..10747447..SEN.S.N..10747447..LBL..4P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend4P_17k)[names(pend4P_17k)=="Intensity..lum.ft...LGR.S.N..10747447..SEN.S.N..10747447..LBL..4P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend4P_17k)[names(pend4P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-pend5P_17k$X.<-NULL
-names(pend5P_17k)[names(pend5P_17k)=="Temp...F..LGR.S.N..10747440..SEN.S.N..10747440..LBL..5P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend5P_17k)[names(pend5P_17k)=="Intensity..lum.ft...LGR.S.N..10747440..SEN.S.N..10747440..LBL..5P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend5P_17k)[names(pend5P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-pend6P_17k$X.<-NULL
-names(pend6P_17k)[names(pend6P_17k)=="Temp...F..LGR.S.N..10747438..SEN.S.N..10747438..LBL..6P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend6P_17k)[names(pend6P_17k)=="Intensity..lum.ft...LGR.S.N..10747438..SEN.S.N..10747438..LBL..6P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend6P_17k)[names(pend6P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-pend7P_17k$X.<-NULL
-names(pend7P_17k)[names(pend7P_17k)=="Temp...F..LGR.S.N..10747439..SEN.S.N..10747439..LBL..7P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend7P_17k)[names(pend7P_17k)=="Intensity..lum.ft...LGR.S.N..10747439..SEN.S.N..10747439..LBL..7P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend7P_17k)[names(pend7P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-pend8P_17k$X.<-NULL
-names(pend8P_17k)[names(pend8P_17k)=="Temp...F..LGR.S.N..10747449..SEN.S.N..10747449..LBL..8P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend8P_17k)[names(pend8P_17k)=="Intensity..lum.ft...LGR.S.N..10747449..SEN.S.N..10747449..LBL..8P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend8P_17k)[names(pend8P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-pend9P_17k$X.<-NULL
-names(pend9P_17k)[names(pend9P_17k)=="Temp...F..LGR.S.N..10747448..SEN.S.N..10747448..LBL..9P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend9P_17k)[names(pend9P_17k)=="Intensity..lum.ft...LGR.S.N..10747448..SEN.S.N..10747448..LBL..9P_warmed_light_1.."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend9P_17k)[names(pend9P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-pend10P_17k$X.<-NULL
-names(pend10P_17k)[names(pend10P_17k)=="Temp...F..LGR.S.N..10747502..SEN.S.N..10747502..LBL..10P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend10P_17k)[names(pend10P_17k)=="Intensity..lum.ft...LGR.S.N..10747502..SEN.S.N..10747502..LBL..10P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend10P_17k)[names(pend10P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-pend11P_17k$X.<-NULL
-names(pend11P_17k)[names(pend11P_17k)=="Temp...F..LGR.S.N..10747503..SEN.S.N..10747503..LBL..11P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend11P_17k)[names(pend11P_17k)=="Intensity..lum.ft...LGR.S.N..10747503..SEN.S.N..10747503..LBL..11P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend11P_17k)[names(pend11P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-pend12P_17k$X.<-NULL
-names(pend12P_17k)[names(pend12P_17k)=="Temp...F..LGR.S.N..10747504..SEN.S.N..10747504..LBL..12P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend12P_17k)[names(pend12P_17k)=="Intensity..lum.ft...LGR.S.N..10747504..SEN.S.N..10747504..LBL..12P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend12P_17k)[names(pend12P_17k)=="Date.Time..GMT.05.00"] <- "Date_Time"
-
-pend4P_18k$X.<-NULL
-names(pend4P_18k)[names(pend4P_18k)=="Temp...F..LGR.S.N..10747447..SEN.S.N..10747447..LBL..4P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend4P_18k)[names(pend4P_18k)=="Intensity..lum.ft...LGR.S.N..10747447..SEN.S.N..10747447..LBL..4P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend4P_18k)[names(pend4P_18k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend5P_18k$X.<-NULL
-names(pend5P_18k)[names(pend5P_18k)=="Temp...F..LGR.S.N..10747440..SEN.S.N..10747440..LBL..5P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend5P_18k)[names(pend5P_18k)=="Intensity..lum.ft...LGR.S.N..10747440..SEN.S.N..10747440..LBL..5P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend5P_18k)[names(pend5P_18k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend6P_18k$X.<-NULL
-names(pend6P_18k)[names(pend6P_18k)=="Temp...F..LGR.S.N..10747438..SEN.S.N..10747438..LBL..6P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend6P_18k)[names(pend6P_18k)=="Intensity..lum.ft...LGR.S.N..10747438..SEN.S.N..10747438..LBL..6P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend6P_18k)[names(pend6P_18k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend7P_18k$X.<-NULL
-names(pend7P_18k)[names(pend7P_18k)=="Temp...F..LGR.S.N..10747439..SEN.S.N..10747439..LBL..7P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend7P_18k)[names(pend7P_18k)=="Intensity..lum.ft...LGR.S.N..10747439..SEN.S.N..10747439..LBL..7P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend7P_18k)[names(pend7P_18k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend8P_18k$X.<-NULL
-names(pend8P_18k)[names(pend8P_18k)=="Temp...F..LGR.S.N..10747449..SEN.S.N..10747449..LBL..8P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend8P_18k)[names(pend8P_18k)=="Intensity..lum.ft...LGR.S.N..10747449..SEN.S.N..10747449..LBL..8P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend8P_18k)[names(pend8P_18k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend10P_18k$X.<-NULL
-names(pend10P_18k)[names(pend10P_18k)=="Temp...F..LGR.S.N..10747502..SEN.S.N..10747502..LBL..10P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend10P_18k)[names(pend10P_18k)=="Intensity..lum.ft...LGR.S.N..10747502..SEN.S.N..10747502..LBL..10P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend10P_18k)[names(pend10P_18k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend11P_18k$X.<-NULL
-names(pend11P_18k)[names(pend11P_18k)=="Temp...F..LGR.S.N..10747503..SEN.S.N..10747503..LBL..11P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend11P_18k)[names(pend11P_18k)=="Intensity..lum.ft...LGR.S.N..10747503..SEN.S.N..10747503..LBL..11P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend11P_18k)[names(pend11P_18k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend12P_18k$X.<-NULL
-names(pend12P_18k)[names(pend12P_18k)=="Temp...F..LGR.S.N..10747504..SEN.S.N..10747504..LBL..12P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend12P_18k)[names(pend12P_18k)=="Intensity..lum.ft...LGR.S.N..10747504..SEN.S.N..10747504..LBL..12P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend12P_18k)[names(pend12P_18k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-
-pend4P_19k$X.<-NULL
-names(pend4P_19k)[names(pend4P_19k)=="Temp...F..LGR.S.N..10747447..SEN.S.N..10747447..LBL..4P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend4P_19k)[names(pend4P_19k)=="Intensity..lum.ft...LGR.S.N..10747447..SEN.S.N..10747447..LBL..4P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend4P_19k)[names(pend4P_19k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend5P_19k$X.<-NULL
-names(pend5P_19k)[names(pend5P_19k)=="Temp...F..LGR.S.N..10747440..SEN.S.N..10747440..LBL..5P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend5P_19k)[names(pend5P_19k)=="Intensity..lum.ft...LGR.S.N..10747440..SEN.S.N..10747440..LBL..5P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend5P_19k)[names(pend5P_19k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend6P_19k$X.<-NULL
-names(pend6P_19k)[names(pend6P_19k)=="Temp...F..LGR.S.N..10747438..SEN.S.N..10747438..LBL..6P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend6P_19k)[names(pend6P_19k)=="Intensity..lum.ft...LGR.S.N..10747438..SEN.S.N..10747438..LBL..6P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend6P_19k)[names(pend6P_19k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend7P_19k$X.<-NULL
-names(pend7P_19k)[names(pend7P_19k)=="Temp...F..LGR.S.N..10747439..SEN.S.N..10747439..LBL..7P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend7P_19k)[names(pend7P_19k)=="Intensity..lum.ft...LGR.S.N..10747439..SEN.S.N..10747439..LBL..7P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend7P_19k)[names(pend7P_19k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend8P_19k$X.<-NULL
-names(pend8P_19k)[names(pend8P_19k)=="Temp...F..LGR.S.N..10747449..SEN.S.N..10747449..LBL..8P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend8P_19k)[names(pend8P_19k)=="Intensity..lum.ft...LGR.S.N..10747449..SEN.S.N..10747449..LBL..8P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend8P_19k)[names(pend8P_19k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend10P_19k$X.<-NULL
-names(pend10P_19k)[names(pend10P_19k)=="Temp...F..LGR.S.N..10747502..SEN.S.N..10747502..LBL..10P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend10P_19k)[names(pend10P_19k)=="Intensity..lum.ft...LGR.S.N..10747502..SEN.S.N..10747502..LBL..10P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend10P_19k)[names(pend10P_19k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend11P_19k$X.<-NULL
-names(pend11P_19k)[names(pend11P_19k)=="Temp...F..LGR.S.N..10747503..SEN.S.N..10747503..LBL..11P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend11P_19k)[names(pend11P_19k)=="Intensity..lum.ft...LGR.S.N..10747503..SEN.S.N..10747503..LBL..11P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend11P_19k)[names(pend11P_19k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend12P_19k$X.<-NULL
-names(pend12P_19k)[names(pend12P_19k)=="Temp...F..LGR.S.N..10747504..SEN.S.N..10747504..LBL..12P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend12P_19k)[names(pend12P_19k)=="Intensity..lum.ft...LGR.S.N..10747504..SEN.S.N..10747504..LBL..12P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend12P_19k)[names(pend12P_19k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-
-pend4P_20k$X.<-NULL
-names(pend4P_20k)[names(pend4P_20k)=="Temp...C..LGR.S.N..10747447..SEN.S.N..10747447..LBL..4P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend4P_20k)[names(pend4P_20k)=="Intensity..Lux..LGR.S.N..10747447..SEN.S.N..10747447..LBL..4P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend4P_20k)[names(pend4P_20k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend5P_20k$X.<-NULL
-names(pend5P_20k)[names(pend5P_20k)=="Temp...C..LGR.S.N..10747438..SEN.S.N..10747438..LBL..5P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend5P_20k)[names(pend5P_20k)=="Intensity..Lux..LGR.S.N..10747438..SEN.S.N..10747438..LBL..5P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend5P_20k)[names(pend5P_20k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend6P_20k$X.<-NULL
-names(pend6P_20k)[names(pend6P_20k)=="Temp...C..LGR.S.N..10747438..SEN.S.N..10747438..LBL..6P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend6P_20k)[names(pend6P_20k)=="Intensity..Lux..LGR.S.N..10747438..SEN.S.N..10747438..LBL..6P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend6P_20k)[names(pend6P_20k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend7P_20k$X.<-NULL
-names(pend7P_20k)[names(pend7P_20k)=="Temp...C..LGR.S.N..10747439..SEN.S.N..10747439..LBL..7P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend7P_20k)[names(pend7P_20k)=="Intensity..Lux..LGR.S.N..10747439..SEN.S.N..10747439..LBL..7P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend7P_20k)[names(pend7P_20k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend8P_20k$X.<-NULL
-names(pend8P_20k)[names(pend8P_20k)=="Temp...C..LGR.S.N..10747449..SEN.S.N..10747449..LBL..8P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend8P_20k)[names(pend8P_20k)=="Intensity..Lux..LGR.S.N..10747449..SEN.S.N..10747449..LBL..8P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend8P_20k)[names(pend8P_20k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend10P_20k$X.<-NULL
-names(pend10P_20k)[names(pend10P_20k)=="Temp...C..LGR.S.N..10747502..SEN.S.N..10747502..LBL..10P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend10P_20k)[names(pend10P_20k)=="Intensity..Lux..LGR.S.N..10747502..SEN.S.N..10747502..LBL..10P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend10P_20k)[names(pend10P_20k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend11P_20k$X.<-NULL
-names(pend11P_20k)[names(pend11P_20k)=="Temp...C..LGR.S.N..10747503..SEN.S.N..10747503..LBL..11P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend11P_20k)[names(pend11P_20k)=="Intensity..Lux..LGR.S.N..10747503..SEN.S.N..10747503..LBL..11P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend11P_20k)[names(pend11P_20k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend12P_20k$X.<-NULL
-names(pend12P_20k)[names(pend12P_20k)=="Temp...C..LGR.S.N..10747504..SEN.S.N..10747504..LBL..12P_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend12P_20k)[names(pend12P_20k)=="Intensity..Lux..LGR.S.N..10747504..SEN.S.N..10747504..LBL..12P_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend12P_20k)[names(pend12P_20k)=="Date.Time..GMT.04.00"] <- "Date_Time"
-
-
 # Add in column "Pendant_ID"
 pend4P_17k$Pendant_ID<-"4P"
 pend5P_17k$Pendant_ID<-"5P"
@@ -287,11 +113,20 @@ pend10P_20k$Pendant_ID<-"10P"
 pend11P_20k$Pendant_ID<-"11P"
 pend12P_20k$Pendant_ID<-"12P"
 
+#List all files so that functions can be applied
+list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k,pend7P_17k=pend7P_17k,pend8P_17k=pend8P_17k,pend9P_17k=pend9P_17k,pend10P_17k=pend10P_17k,pend11P_17k=pend11P_17k,pend12P_17k=pend12P_17k,
+                pend4P_18k=pend4P_18k,pend5P_18k=pend5P_18k,pend6P_18k=pend6P_18k,pend7P_18k=pend7P_18k,pend8P_18k=pend8P_18k,pend10P_18k=pend10P_18k,pend11P_18k=pend11P_18k,pend12P_18k=pend12P_18k,
+                pend4P_19k=pend4P_19k,pend5P_19k=pend5P_19k,pend6P_19k=pend6P_19k,pend7P_19k=pend7P_19k,pend8P_19k=pend8P_19k,pend10P_19k=pend10P_19k,pend11P_19k=pend11P_19k,pend12P_19k=pend12P_19k,
+                pend4P_20k=pend4P_20k,pend5P_20k=pend5P_20k,pend6P_20k=pend6P_20k,pend7P_20k=pend7P_20k,pend8P_20k=pend8P_20k,pend10P_20k=pend10P_20k,pend11P_20k=pend11P_20k,pend12P_20k=pend12P_20k)
+
+list_k <- lapply(list_k, change_names)
+list_k <- lapply(list_k, change_POSIX)
+
 # Combine KBS pendant files
-pend17k<-rbind(pend4P_17k,pend5P_17k,pend6P_17k,pend7P_17k,pend8P_17k,pend9P_17k,pend10P_17k,pend11P_17k,pend12P_17k)
-pend18k<-rbind(pend4P_18k,pend5P_18k,pend6P_18k,pend7P_18k,pend8P_18k,pend10P_18k,pend11P_18k,pend12P_18k)
-pend19k<-rbind(pend4P_19k,pend5P_19k,pend6P_19k,pend7P_19k,pend8P_19k,pend10P_19k,pend11P_19k,pend12P_19k)
-pend20k<-rbind(pend4P_20k,pend5P_20k,pend6P_20k,pend7P_20k,pend8P_20k,pend10P_20k,pend11P_20k,pend12P_20k)
+pend17k<-rbind(list_k$pend4P_17k,list_k$pend5P_17k,list_k$pend6P_17k,list_k$pend7P_17k,list_k$pend8P_17k,list_k$pend9P_17k,list_k$pend10P_17k,list_k$pend11P_17k,list_k$pend12P_17k)
+pend18k<-rbind(list_k$pend4P_18k,list_k$pend5P_18k,list_k$pend6P_18k,list_k$pend7P_18k,list_k$pend8P_18k,list_k$pend10P_18k,list_k$pend11P_18k,list_k$pend12P_18k)
+pend19k<-rbind(list_k$pend4P_19k,list_k$pend5P_19k,list_k$pend6P_19k,list_k$pend7P_19k,list_k$pend8P_19k,list_k$pend10P_19k,list_k$pend11P_19k,list_k$pend12P_19k)
+pend20k<-rbind(list_k$pend4P_20k,list_k$pend5P_20k,list_k$pend6P_20k,list_k$pend7P_20k,list_k$pend8P_20k,list_k$pend10P_20k,list_k$pend11P_20k,list_k$pend12P_20k)
 pend17k$Site<-"KBS"
 pend18k$Site<-"KBS"
 pend19k$Site<-"KBS"
@@ -307,13 +142,6 @@ diff1920k <- anti_join(pend20k, pend19k, by = "Date_Time")
 
 pendk <- rbind(pend17k, diff1718k, diff1819k, diff1920k)
 
-#plot
-ggplot(pendk, aes(x = Date_Time, y = Temp_F_XP_air_1m, color = Pendant_ID)) +
-  facet_grid(Pendant_ID ~ .) +
-  geom_point(alpha=.5, size = 2) +
-  ylab("Temperature F") +
-  ylim(-100,200)+
-  theme_gray() + theme(legend.position = "bottom")
 
 
 #### ** U/H stations included here - should they be in this script?** ###
@@ -426,196 +254,6 @@ pend10P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_10P_06122020.csv
 pend11P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_11P_06122020.csv", skip=1, header =T)[ ,1:4]
 pend12P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_12P_06122020.csv", skip=1, header =T)[ ,1:4]
 
-# Change class of Datet.Time column from factor to POSIXct date 
-pend4P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend5P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend5P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend6P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend6P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend7P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend7P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend8P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend8P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend9P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend9P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend10P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend10P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend11P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend11P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend12P_17u$Date.Time..GMT.04.00 <- as.POSIXct(pend12P_17u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-pend4P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend5P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend5P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend6P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend6P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend7P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend7P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend8P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend8P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend9P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend9P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend10P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend10P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend11P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend11P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend12P_18u$Date.Time..GMT.04.00 <- as.POSIXct(pend12P_18u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-pend4P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend5P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend5P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend6P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend6P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend7P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend7P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend8P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend8P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend9P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend9P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend10P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend10P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend11P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend11P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend12P_19u$Date.Time..GMT.04.00 <- as.POSIXct(pend12P_19u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-pend4P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend4P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend5P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend5P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend6P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend6P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend7P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend7P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend8P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend8P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend9P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend9P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend10P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend10P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend11P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend11P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-pend12P_20u$Date.Time..GMT.04.00 <- as.POSIXct(pend12P_20u$Date.Time..GMT.04.00,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-# Rename columns and remove unnecessary rows.
-pend4P_17u$X.<-NULL
-names(pend4P_17u)[names(pend4P_17u)=="Temp...F..LGR.S.N..10747446..SEN.S.N..10747446..LBL..C1_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend4P_17u)[names(pend4P_17u)=="Intensity..lum.ft...LGR.S.N..10747446..SEN.S.N..10747446..LBL..C1_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend4P_17u)[names(pend4P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend5P_17u$X.<-NULL
-names(pend5P_17u)[names(pend5P_17u)=="Temp...F..LGR.S.N..10747507..SEN.S.N..10747507..LBL..A2_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend5P_17u)[names(pend5P_17u)=="Intensity..lum.ft...LGR.S.N..10747507..SEN.S.N..10747507..LBL..A2_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend5P_17u)[names(pend5P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend6P_17u$X.<-NULL
-names(pend6P_17u)[names(pend6P_17u)=="Temp...F..LGR.S.N..10747505..SEN.S.N..10747505..LBL..B2_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend6P_17u)[names(pend6P_17u)=="Intensity..lum.ft...LGR.S.N..10747505..SEN.S.N..10747505..LBL..B2_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend6P_17u)[names(pend6P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend7P_17u$X.<-NULL
-names(pend7P_17u)[names(pend7P_17u)=="Temp...F..LGR.S.N..10747506..SEN.S.N..10747506..LBL..B3_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend7P_17u)[names(pend7P_17u)=="Intensity..lum.ft...LGR.S.N..10747506..SEN.S.N..10747506..LBL..B3_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend7P_17u)[names(pend7P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend8P_17u$X.<-NULL
-names(pend8P_17u)[names(pend8P_17u)=="Temp...F..LGR.S.N..10747444..SEN.S.N..10747444..LBL..D3_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend8P_17u)[names(pend8P_17u)=="Intensity..lum.ft...LGR.S.N..10747444..SEN.S.N..10747444..LBL..D3_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend8P_17u)[names(pend8P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend9P_17u$X.<-NULL
-names(pend9P_17u)[names(pend9P_17u)=="Temp...F..LGR.S.N..10747445..SEN.S.N..10747445..LBL..A4_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend9P_17u)[names(pend9P_17u)=="Intensity..lum.ft...LGR.S.N..10747445..SEN.S.N..10747445..LBL..A4_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend9P_17u)[names(pend9P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend10P_17u$X.<-NULL
-names(pend10P_17u)[names(pend10P_17u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
-names(pend10P_17u)[names(pend10P_17u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend10P_17u)[names(pend10P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend11P_17u$X.<-NULL
-names(pend11P_17u)[names(pend11P_17u)=="Temp...F..LGR.S.N..10747443..SEN.S.N..10747443..LBL..C6_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend11P_17u)[names(pend11P_17u)=="Intensity..lum.ft...LGR.S.N..10747443..SEN.S.N..10747443..LBL..C6_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend11P_17u)[names(pend11P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend12P_17u$X.<-NULL
-names(pend12P_17u)[names(pend12P_17u)=="Temp...F..LGR.S.N..10747442..SEN.S.N..10747442..LBL..D6_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend12P_17u)[names(pend12P_17u)=="Intensity..lum.ft...LGR.S.N..10747442..SEN.S.N..10747442..LBL..D6_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend12P_17u)[names(pend12P_17u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-
-pend4P_18u$X.<-NULL
-names(pend4P_18u)[names(pend4P_18u)=="Temp...F..LGR.S.N..10747446..SEN.S.N..10747446..LBL..C1_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend4P_18u)[names(pend4P_18u)=="Intensity..lum.ft...LGR.S.N..10747446..SEN.S.N..10747446..LBL..C1_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend4P_18u)[names(pend4P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend5P_18u$X.<-NULL
-names(pend5P_18u)[names(pend5P_18u)=="Temp...F..LGR.S.N..10747507..SEN.S.N..10747507..LBL..A2_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend5P_18u)[names(pend5P_18u)=="Intensity..lum.ft...LGR.S.N..10747507..SEN.S.N..10747507..LBL..A2_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend5P_18u)[names(pend5P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend6P_18u$X.<-NULL
-names(pend6P_18u)[names(pend6P_18u)=="Temp...F..LGR.S.N..10747505..SEN.S.N..10747505..LBL..B2_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend6P_18u)[names(pend6P_18u)=="Intensity..lum.ft...LGR.S.N..10747505..SEN.S.N..10747505..LBL..B2_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend6P_18u)[names(pend6P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend7P_18u$X.<-NULL
-names(pend7P_18u)[names(pend7P_18u)=="Temp...F..LGR.S.N..10747506..SEN.S.N..10747506..LBL..B3_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend7P_18u)[names(pend7P_18u)=="Intensity..lum.ft...LGR.S.N..10747506..SEN.S.N..10747506..LBL..B3_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend7P_18u)[names(pend7P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend8P_18u$X.<-NULL
-names(pend8P_18u)[names(pend8P_18u)=="Temp...F..LGR.S.N..10747444..SEN.S.N..10747444..LBL..D3_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend8P_18u)[names(pend8P_18u)=="Intensity..lum.ft...LGR.S.N..10747444..SEN.S.N..10747444..LBL..D3_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend8P_18u)[names(pend8P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend9P_18u$X.<-NULL
-names(pend9P_18u)[names(pend9P_18u)=="Temp...F..LGR.S.N..10747445..SEN.S.N..10747445..LBL..A4_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend9P_18u)[names(pend9P_18u)=="Intensity..lum.ft...LGR.S.N..10747445..SEN.S.N..10747445..LBL..A4_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend9P_18u)[names(pend9P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend10P_18u$X.<-NULL
-names(pend10P_18u)[names(pend10P_18u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
-names(pend10P_18u)[names(pend10P_18u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend10P_18u)[names(pend10P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend11P_18u$X.<-NULL
-names(pend11P_18u)[names(pend11P_18u)=="Temp...F..LGR.S.N..10747443..SEN.S.N..10747443..LBL..C6_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend11P_18u)[names(pend11P_18u)=="Intensity..lum.ft...LGR.S.N..10747443..SEN.S.N..10747443..LBL..C6_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend11P_18u)[names(pend11P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend12P_18u$X.<-NULL
-names(pend12P_18u)[names(pend12P_18u)=="Temp...F..LGR.S.N..10747442..SEN.S.N..10747442..LBL..D6_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend12P_18u)[names(pend12P_18u)=="Intensity..lum.ft...LGR.S.N..10747442..SEN.S.N..10747442..LBL..D6_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend12P_18u)[names(pend12P_18u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-
-pend4P_19u$X.<-NULL
-names(pend4P_19u)[names(pend4P_19u)=="Temp...F..LGR.S.N..10747446..SEN.S.N..10747446..LBL..C1_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend4P_19u)[names(pend4P_19u)=="Intensity..lum.ft...LGR.S.N..10747446..SEN.S.N..10747446..LBL..C1_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend4P_19u)[names(pend4P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend5P_19u$X.<-NULL
-names(pend5P_19u)[names(pend5P_19u)=="Temp...F..LGR.S.N..10747507..SEN.S.N..10747507..LBL..A2_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend5P_19u)[names(pend5P_19u)=="Intensity..lum.ft...LGR.S.N..10747507..SEN.S.N..10747507..LBL..A2_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend5P_19u)[names(pend5P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend6P_19u$X.<-NULL
-names(pend6P_19u)[names(pend6P_19u)=="Temp...F..LGR.S.N..10747505..SEN.S.N..10747505..LBL..B2_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend6P_19u)[names(pend6P_19u)=="Intensity..lum.ft...LGR.S.N..10747505..SEN.S.N..10747505..LBL..B2_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend6P_19u)[names(pend6P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend7P_19u$X.<-NULL
-names(pend7P_19u)[names(pend7P_19u)=="Temp...F..LGR.S.N..10747506..SEN.S.N..10747506..LBL..B3_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend7P_19u)[names(pend7P_19u)=="Intensity..lum.ft...LGR.S.N..10747506..SEN.S.N..10747506..LBL..B3_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend7P_19u)[names(pend7P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend8P_19u$X.<-NULL
-names(pend8P_19u)[names(pend8P_19u)=="Temp...F..LGR.S.N..10747444..SEN.S.N..10747444..LBL..D3_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend8P_19u)[names(pend8P_19u)=="Intensity..lum.ft...LGR.S.N..10747444..SEN.S.N..10747444..LBL..D3_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend8P_19u)[names(pend8P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend9P_19u$X.<-NULL
-names(pend9P_19u)[names(pend9P_19u)=="Temp...F..LGR.S.N..10747445..SEN.S.N..10747445..LBL..A4_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend9P_19u)[names(pend9P_19u)=="Intensity..lum.ft...LGR.S.N..10747445..SEN.S.N..10747445..LBL..A4_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend9P_19u)[names(pend9P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend10P_19u$X.<-NULL
-names(pend10P_19u)[names(pend10P_19u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
-names(pend10P_19u)[names(pend10P_19u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend10P_19u)[names(pend10P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend11P_19u$X.<-NULL
-names(pend11P_19u)[names(pend11P_19u)=="Temp...F..LGR.S.N..10747443..SEN.S.N..10747443..LBL..C6_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend11P_19u)[names(pend11P_19u)=="Intensity..lum.ft...LGR.S.N..10747443..SEN.S.N..10747443..LBL..C6_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend11P_19u)[names(pend11P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend12P_19u$X.<-NULL
-names(pend12P_19u)[names(pend12P_19u)=="Temp...F..LGR.S.N..10747442..SEN.S.N..10747442..LBL..D6_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend12P_19u)[names(pend12P_19u)=="Intensity..lum.ft...LGR.S.N..10747442..SEN.S.N..10747442..LBL..D6_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend12P_19u)[names(pend12P_19u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-
-pend4P_20u$X.<-NULL
-names(pend4P_20u)[names(pend4P_20u)=="Temp...C..LGR.S.N..10747446..SEN.S.N..10747446..LBL..C1_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend4P_20u)[names(pend4P_20u)=="Intensity..Lux..LGR.S.N..10747446..SEN.S.N..10747446..LBL..C1_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend4P_20u)[names(pend4P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend5P_20u$X.<-NULL
-names(pend5P_20u)[names(pend5P_20u)=="Temp...C..LGR.S.N..10747507..SEN.S.N..10747507..LBL..A2_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend5P_20u)[names(pend5P_20u)=="Intensity..Lux..LGR.S.N..10747507..SEN.S.N..10747507..LBL..A2_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend5P_20u)[names(pend5P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend6P_20u$X.<-NULL
-names(pend6P_20u)[names(pend6P_20u)=="Temp...C..LGR.S.N..10747505..SEN.S.N..10747505..LBL..B2_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend6P_20u)[names(pend6P_20u)=="Intensity..Lux..LGR.S.N..10747505..SEN.S.N..10747505..LBL..B2_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend6P_20u)[names(pend6P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend7P_20u$X.<-NULL
-names(pend7P_20u)[names(pend7P_20u)=="Temp...C..LGR.S.N..10747506..SEN.S.N..10747506..LBL..B3_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend7P_20u)[names(pend7P_20u)=="Intensity..Lux..LGR.S.N..10747506..SEN.S.N..10747506..LBL..B3_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend7P_20u)[names(pend7P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend8P_20u$X.<-NULL
-names(pend8P_20u)[names(pend8P_20u)=="Temp...C..LGR.S.N..10747444..SEN.S.N..10747444..LBL..D3_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend8P_20u)[names(pend8P_20u)=="Intensity..Lux..LGR.S.N..10747444..SEN.S.N..10747444..LBL..D3_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend8P_20u)[names(pend8P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend9P_20u$X.<-NULL
-names(pend9P_20u)[names(pend9P_20u)=="Temp...C..LGR.S.N..10747445..SEN.S.N..10747445..LBL..A4_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend9P_20u)[names(pend9P_20u)=="Intensity..Lux..LGR.S.N..10747445..SEN.S.N..10747445..LBL..A4_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend9P_20u)[names(pend9P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend10P_20u$X.<-NULL
-names(pend10P_20u)[names(pend10P_20u)=="Temp...C..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
-names(pend10P_20u)[names(pend10P_20u)=="Intensity..Lux..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend10P_20u)[names(pend10P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend11P_20u$X.<-NULL
-names(pend11P_20u)[names(pend11P_20u)=="Temp...C..LGR.S.N..10747443..SEN.S.N..10747443..LBL..C6_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend11P_20u)[names(pend11P_20u)=="Intensity..Lux..LGR.S.N..10747443..SEN.S.N..10747443..LBL..C6_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend11P_20u)[names(pend11P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-pend12P_20u$X.<-NULL
-names(pend12P_20u)[names(pend12P_20u)=="Temp...C..LGR.S.N..10747442..SEN.S.N..10747442..LBL..D6_warmed_air_1m."] <- "Temp_F_XP_air_1m"
-names(pend12P_20u)[names(pend12P_20u)=="Intensity..Lux..LGR.S.N..10747442..SEN.S.N..10747442..LBL..D6_warmed_light_1m."] <- "Intensity_lum_ft_XP_light_1m"
-names(pend12P_20u)[names(pend12P_20u)=="Date.Time..GMT.04.00"] <- "Date_Time"
-
 # Add in column "Pendant_ID"
 pend4P_17u$Pendant_ID<-"4P"
 pend5P_17u$Pendant_ID<-"5P"
@@ -657,18 +295,33 @@ pend10P_20u$Pendant_ID<-"10P"
 pend11P_20u$Pendant_ID<-"11P"
 pend12P_20u$Pendant_ID<-"12P"
 
+#Manually change 2017 10p column names (they don't match the names of the others)
+names(pend10P_17u)[names(pend10P_17u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
+names(pend10P_17u)[names(pend10P_17u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
+names(pend10P_18u)[names(pend10P_18u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
+names(pend10P_18u)[names(pend10P_18u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
+names(pend10P_19u)[names(pend10P_19u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
+names(pend10P_19u)[names(pend10P_19u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
+names(pend10P_20u)[names(pend10P_20u)=="Temp...C..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
+names(pend10P_20u)[names(pend10P_20u)=="Intensity..Lux..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
+
+#List all files so that functions can be applied
+list_u <- list(pend4P_17u=pend4P_17u,pend5P_17u=pend5P_17u,pend6P_17u=pend6P_17u,pend7P_17u=pend7P_17u,pend8P_17u=pend8P_17u,pend9P_17u=pend9P_17u,pend10P_17u=pend10P_17u,pend11P_17u=pend11P_17u,pend12P_17u=pend12P_17u,
+                  pend4P_18u=pend4P_18u,pend5P_18u=pend5P_18u,pend6P_18u=pend6P_18u,pend7P_18u=pend7P_18u,pend8P_18u=pend8P_18u,pend10P_18u=pend10P_18u,pend11P_18u=pend11P_18u,pend12P_18u=pend12P_18u,
+                  pend4P_19u=pend4P_19u,pend5P_19u=pend5P_19u,pend6P_19u=pend6P_19u,pend7P_19u=pend7P_19u,pend8P_19u=pend8P_19u,pend10P_19u=pend10P_19u,pend11P_19u=pend11P_19u,pend12P_19u=pend12P_19u,
+                  pend4P_20u=pend4P_20u,pend5P_20u=pend5P_20u,pend6P_20u=pend6P_20u,pend7P_20u=pend7P_20u,pend8P_20u=pend8P_20u,pend10P_20u=pend10P_20u,pend11P_20u=pend11P_20u,pend12P_20u=pend12P_20u)
+
+list_u <- lapply(list_u, change_names)
+list_u <- lapply(list_u, change_POSIX)
 
 # combine UMBS pendant files for 2017 and 2018
-pend17u<-rbind(pend4P_17u,pend5P_17u,pend6P_17u,pend7P_17u,pend8P_17u,pend9P_17u,pend10P_17u,pend11P_17u,pend12P_17u) 
+pend17u<-rbind(list_u$pend4P_17u,list_u$pend5P_17u,list_u$pend6P_17u,list_u$pend7P_17u,list_u$pend8P_17u,list_u$pend9P_17u,list_u$pend10P_17u,list_u$pend11P_17u,list_u$pend12P_17u) 
+pend18u<-rbind(list_u$pend4P_18u,list_u$pend5P_18u,list_u$pend6P_18u,list_u$pend7P_18u,list_u$pend8P_18u,list_u$pend9P_18u,list_u$pend10P_18u,list_u$pend11P_18u,list_u$pend12P_18u)
+pend19u<-rbind(list_u$pend4P_19u,list_u$pend5P_19u,list_u$pend6P_19u,list_u$pend7P_19u,list_u$pend8P_19u,list_u$pend9P_19u,list_u$pend10P_19u,list_u$pend11P_19u,list_u$pend12P_19u)
+pend20u<-rbind(list_u$pend4P_20u,list_u$pend5P_20u,list_u$pend6P_20u,list_u$pend7P_20u,list_u$pend8P_20u,list_u$pend9P_20u,list_u$pend10P_20u,list_u$pend11P_20u,list_u$pend12P_20u)
 pend17u$Site<-"UMBS"
-
-pend18u<-rbind(pend4P_18u,pend5P_18u,pend6P_18u,pend7P_18u,pend8P_18u,pend9P_18u,pend10P_18u,pend11P_18u,pend12P_18u)
 pend18u$Site<-"UMBS"
-
-pend19u<-rbind(pend4P_19u,pend5P_19u,pend6P_19u,pend7P_19u,pend8P_19u,pend9P_19u,pend10P_19u,pend11P_19u,pend12P_19u)
 pend19u$Site<-"UMBS"
-
-pend20u<-rbind(pend4P_20u,pend5P_20u,pend6P_20u,pend7P_20u,pend8P_20u,pend9P_20u,pend10P_20u,pend11P_20u,pend12P_20u)
 pend20u$Site<-"UMBS"
 
 #Convert C to F for 2020 data
@@ -681,6 +334,8 @@ diff1920u <- anti_join(pend20u, pend19u, by = "Date_Time")
 
 pendu <- rbind(pend17u, diff1718u, diff1819u, diff1920u)
 
+
+# Section below has paired sensor data - not needed?
 ### Add in station data ###
 Pend1P_1520u<-read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_1.csv", header =T)
 Pend2P_1520u<-read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_2.csv", header =T)
@@ -738,6 +393,8 @@ a4
 #grid.arrange(a1,a2,ncol=2)
 
 
+
+# Move the code below to a different script?
 ###### ***DATA ANALYSIS*** ########
 ## plot it
 ggplot(new.pendu, aes(x = Date_Time, y = Temp_F_XP_air_1m, color = Pendant_ID)) +
