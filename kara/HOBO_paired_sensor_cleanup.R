@@ -147,7 +147,7 @@ names(KBS_1_2020)[names(KBS_1_2020)=="Date.Time..GMT.04.00"] <- "Date_Time"
 head(KBS_1_2020)
 
 #Convert to POSIXct date
-KBS_1_1516$Date_Time <- as.POSIXct(KBS_1_1516$Date_Time,format="%m/%d/%y %I:%M", tz="UTC")
+KBS_1_1516$Date_Time <- as.POSIXlt(KBS_1_1516$Date_Time,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
 KBS_1_2017$Date_Time <- as.POSIXct(KBS_1_2017$Date_Time,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
 KBS_1_2018$Date_Time <- as.POSIXct(KBS_1_2018$Date_Time,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
 KBS_1_2019$Date_Time <- as.POSIXct(KBS_1_2019$Date_Time,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
