@@ -8,7 +8,7 @@
     ## pend1520:     Combined HOBO pendant data from KBS and UMBS from 2015-2020
 # PROJECT: warmXtrophic
 # DATE: 2018
-    ## KD edit June 2020: Updated script to insert 2019 and 2020 data
+    ## KD edit June 2020: Updated script to insert 2019 and 2020 data & functions
 
 
 # Clear all existing data
@@ -119,7 +119,7 @@ list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k
                 pend4P_19k=pend4P_19k,pend5P_19k=pend5P_19k,pend6P_19k=pend6P_19k,pend7P_19k=pend7P_19k,pend8P_19k=pend8P_19k,pend10P_19k=pend10P_19k,pend11P_19k=pend11P_19k,pend12P_19k=pend12P_19k,
                 pend4P_20k=pend4P_20k,pend5P_20k=pend5P_20k,pend6P_20k=pend6P_20k,pend7P_20k=pend7P_20k,pend8P_20k=pend8P_20k,pend10P_20k=pend10P_20k,pend11P_20k=pend11P_20k,pend12P_20k=pend12P_20k)
 
-list_k <- lapply(list_k, change_names)
+list_k <- lapply(list_k, change_pend_names)
 list_k <- lapply(list_k, change_POSIX)
 
 # Combine KBS pendant files
@@ -295,7 +295,7 @@ pend10P_20u$Pendant_ID<-"10P"
 pend11P_20u$Pendant_ID<-"11P"
 pend12P_20u$Pendant_ID<-"12P"
 
-#Manually change 2017 10p column names (they don't match the names of the others)
+#Manually change 10p column names (they don't match the names of the others)
 names(pend10P_17u)[names(pend10P_17u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
 names(pend10P_17u)[names(pend10P_17u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
 names(pend10P_18u)[names(pend10P_18u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
@@ -311,7 +311,7 @@ list_u <- list(pend4P_17u=pend4P_17u,pend5P_17u=pend5P_17u,pend6P_17u=pend6P_17u
                   pend4P_19u=pend4P_19u,pend5P_19u=pend5P_19u,pend6P_19u=pend6P_19u,pend7P_19u=pend7P_19u,pend8P_19u=pend8P_19u,pend10P_19u=pend10P_19u,pend11P_19u=pend11P_19u,pend12P_19u=pend12P_19u,
                   pend4P_20u=pend4P_20u,pend5P_20u=pend5P_20u,pend6P_20u=pend6P_20u,pend7P_20u=pend7P_20u,pend8P_20u=pend8P_20u,pend10P_20u=pend10P_20u,pend11P_20u=pend11P_20u,pend12P_20u=pend12P_20u)
 
-list_u <- lapply(list_u, change_names)
+list_u <- lapply(list_u, change_pend_names)
 list_u <- lapply(list_u, change_POSIX)
 
 # combine UMBS pendant files for 2017 and 2018
