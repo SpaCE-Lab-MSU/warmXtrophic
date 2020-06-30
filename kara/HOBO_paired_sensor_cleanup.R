@@ -84,7 +84,7 @@ write.csv(list_pairk1$KBS_1_1516, file="L0/KBS/sensor_data/2015_2016/KBS_1_clean
 write.csv(list_pairk1$KBS_1_2017, file="L0/KBS/sensor_data/2017/KBS_1.csv")
 write.csv(list_pairk1$KBS_1_2018, file="L0/KBS/sensor_data/2018/KBS_1.csv")
 write.csv(list_pairk1$KBS_1_2019, file="L0/KBS/sensor_data/2019/KBS_1.csv")
-write.csv(list_pairk1$KBS_1_2020, file="L0/KBS/sensor_data/2019/KBS_1.csv")
+write.csv(list_pairk1$KBS_1_2020, file="L0/KBS/sensor_data/2020/KBS_1.csv")
 
 #Merge data from all years
 diff1617_1k <- anti_join(list_pairk1$KBS_1_2017, list_pairk1$KBS_1_1516, by = "Date_Time")
@@ -224,7 +224,7 @@ names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Water.Content..m..
 names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 
-#Convert C to F for 2020
+#Change C to F for 2020
 KBS_3_2020$XH_warmed_air_1m <- celsius.to.fahrenheit(KBS_3_2020$XH_warmed_air_1m)
 KBS_3_2020$XH_ambient_air_1m <- celsius.to.fahrenheit(KBS_3_2020$XH_ambient_air_1m)
 
@@ -317,6 +317,7 @@ list_pairu1 <- lapply(list_pairu1, change_pair_names)
 list_pairu1 <- lapply(list_pairu1, change_POSIX)
 
 #Manually rename columns with different names
+names(list_pairu1$UMBS_1_1516)[names(list_pairu1$UMBS_1_1516)=="X1U_ambient_soil_temp_5cm"] <- "XU_ambient_soil_temp_5cm"
 names(list_pairu1$UMBS_1_1516)[names(list_pairu1$UMBS_1_1516)=="X1U_warmed_soil_temp_5cm"] <- "XU_warmed_soil_temp_5cm"
 names(list_pairu1$UMBS_1_2017)[names(list_pairu1$UMBS_1_2017)=="X1U_ambient_soil_temp_5cm"] <- "XU_ambient_soil_temp_5cm"
 names(list_pairu1$UMBS_1_2017)[names(list_pairu1$UMBS_1_2017)=="X1U_warmed_soil_temp_5cm"] <- "XU_warmed_soil_temp_5cm"
@@ -386,7 +387,7 @@ UMBS_2_2019 <- merge(UMBS_2H_2019, UMBS_2U_2019, by="Date.Time..GMT.04.00", all.
 UMBS_2_2020 <- merge(UMBS_2H_2020, UMBS_2U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
 # rename columns to match manually curated data
-UMBS_2_1516$x<-NULL
+UMBS_2_1516$X<-NULL
 UMBS_2_2017$X..x <- NULL
 UMBS_2_2017$X..y<- NULL
 UMBS_2_2018$X..x<-NULL
@@ -431,6 +432,13 @@ names(list_pairu2$UMBS_2_2020)[names(list_pairu2$UMBS_2_2020)=="Temp...C..LGR.S.
 # subset(testing2, testing2<24) #09/26/2015 10:00 missing, likely because data was being downloaded/maintenance.
 # subset(testing2, testing2>24)
 
+#Create csv files for each year
+write.csv(list_pairu2$UMBS_2_1516, file="L0/UMBS/sensor_data/2015_2016/UMBS_2_clean.csv")
+write.csv(list_pairu2$UMBS_2_2017, file="L0/UMBS/sensor_data/2017/UMBS_2.csv")
+write.csv(list_pairu2$UMBS_2_2018, file="L0/UMBS/sensor_data/2018/UMBS_2.csv")
+write.csv(list_pairu2$UMBS_2_2019, file="L0/UMBS/sensor_data/2019/UMBS_2.csv")
+write.csv(list_pairu2$UMBS_2_2020, file="L0/UMBS/sensor_data/2020/UMBS_2.csv")
+
 #Merge data from all years
 diff1617_2u <- anti_join(list_pairu2$UMBS_2_2017, list_pairu2$UMBS_2_1516, by = "Date_Time")
 diff1718_2u <- anti_join(list_pairu2$UMBS_2_2018, list_pairu2$UMBS_2_2017, by = "Date_Time")
@@ -442,7 +450,7 @@ write.csv(UMBS_2, file="L0/UMBS/sensor_data/UMBS_2.csv")
 
 ############# UMBS Pair 3
 #Read in H
-UMBS_3_1516 <- read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_3.csv")
+UMBS_3_1516 <- read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_3.csv")[-1,]
 UMBS_3H_2017 <- read.csv("L0/UMBS/sensor_data/2017/08_15_2017/UMBS_3H_08152017.csv")
 UMBS_3H_2018 <- read.csv("L0/UMBS/sensor_data/2018/09_19_2018/UMBS_3H_09192018.csv", skip=1)
 UMBS_3H_2019 <- read.csv("L0/UMBS/sensor_data/2019/09_10_2019/UMBS_3H_09102019.csv", skip=1)
@@ -504,6 +512,13 @@ list_pairu3 <- lapply(list_pairu3, change_POSIX)
 # subset(testing3, testing3<24)
 # subset(testing3, testing3>24)
 
+#Create csv files for each year
+write.csv(list_pairu3$UMBS_3_1516, file="L0/UMBS/sensor_data/2015_2016/UMBS_3_clean.csv")
+write.csv(list_pairu3$UMBS_3_2017, file="L0/UMBS/sensor_data/2017/UMBS_3.csv")
+write.csv(list_pairu3$UMBS_3_2018, file="L0/UMBS/sensor_data/2018/UMBS_3.csv")
+write.csv(list_pairu3$UMBS_3_2019, file="L0/UMBS/sensor_data/2019/UMBS_3.csv")
+write.csv(list_pairu3$UMBS_3_2020, file="L0/UMBS/sensor_data/2020/UMBS_3.csv")
+
 #Merge data from all years
 diff1617_3u <- anti_join(list_pairu3$UMBS_3_2017, list_pairu3$UMBS_3_1516, by = "Date_Time")
 diff1718_3u <- anti_join(list_pairu3$UMBS_3_2018, list_pairu3$UMBS_3_2017, by = "Date_Time")
@@ -512,76 +527,3 @@ diff1920_3u <- anti_join(list_pairu3$UMBS_3_2020, list_pairu3$UMBS_3_2019, by = 
 
 UMBS_3 <- rbind(list_pairu3$UMBS_3_1516, diff1617_3u, diff1718_3u, diff1819_3u, diff1920_3u)
 write.csv(UMBS_3, file="L0/UMBS/sensor_data/UMBS_3.csv")
-
-
-
-### remove this section once the POSIX conversion is figured out for 1516 data
-
-####### Create a new merged file that contains data from all years for the both KBS and UMBS pairs.
-# write the merged file in the sensor_data folder #######
-
-#UMBS pair 1
-UMBS_1 <- read.csv("L0/UMBS/sensor_data/UMBS_1.csv")
-UMBS_1_1516 <- read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_1.csv")
-Merged_UMBS_1<-rbind(UMBS_1_s18,UMBS_1_s17,UMBS_1_s15_16)
-dim(Merged_UMBS_1)
-head(Merged_UMBS_1)
-new.Merged_UMBS_1<-distinct(Merged_UMBS_1)
-new.Merged_UMBS_1<- unique(Merged_UMBS_1) #function not working, clear duplicated in head(Merged_UMBS_1)
-dim(new.Merged_UMBS_1)
-write.csv(Merged_UMBS_1, file="final_data/UMBS/sensor_data/Merged_UMBS_1.csv")
-
-#UMBS pair 2
-UMBS_2_s18 <- read.csv("L0/UMBS/sensor_data/2018/UMBS_2.csv")
-UMBS_2_s17 <- read.csv("final_data/UMBS/sensor_data/2017/UMBS_2.csv")
-UMBS_2_s15_16 <- read.csv("final_data/UMBS/sensor_data/2015_2016/UMBS_2.csv")
-Merged_UMBS_2<-rbind(UMBS_2_s18,UMBS_2_s17,UMBS_2_s15_16)
-dim(Merged_UMBS_2)
-write.csv(Merged_UMBS_2, file="final_data/UMBS/sensor_data/Merged_UMBS_2.csv")
-
-#UMBS pair 3
-UMBS_3_s18 <- read.csv("final_data/UMBS/sensor_data/2018/UMBS_3.csv")
-UMBS_3_s17 <- read.csv("final_data/UMBS/sensor_data/2017/UMBS_3.csv")
-UMBS_3_s15_16 <- read.csv("final_data/UMBS/sensor_data/2015_2016/UMBS_3.csv")
-# edit column names "X3U_warmed_soil_5cm" and "X3U_ambient_soil_5cm"
-names(UMBS_3_s15_16)[names(UMBS_3_s15_16)=="X3U_warmed_soil_5cm"] <- "X3U_warmed_soil_temp_5cm"
-names(UMBS_3_s15_16)[names(UMBS_3_s15_16)=="X3U_ambient_soil_5cm"] <- "X3U_ambient_soil_temp_5cm"
-Merged_UMBS_3<-rbind(UMBS_3_s18,UMBS_3_s17,UMBS_3_s15_16)
-head(UMBS_3_s15_16)
-dim(Merged_UMBS_3)
-write.csv(Merged_UMBS_3, file="final_data/UMBS/sensor_data/Merged_UMBS_3.csv")
-
-#KBS pair 1
-KBS_1_s18 <- read.csv("final_data/KBS/sensor_data/2018/KBS_1.csv")
-KBS_1_s17 <- read.csv("final_data/KBS/sensor_data/2017/KBS_1.csv")
-KBS_1_s15_16 <- read.csv("final_data/KBS/sensor_data/2015_2016/KBS_1.csv")
-# edit column names "X1U_warmed_soil_5cm" and "X1U_ambient_soil_5cm"
-names(KBS_1_s15_16)[names(KBS_1_s15_16)=="X1U_warmed_soil_5cm"] <- "X1U_warmed_soil_temp_5cm"
-names(KBS_1_s15_16)[names(KBS_1_s15_16)=="X1U_ambient_soil_5cm"] <- "X1U_ambient_soil_temp_5cm"
-Merged_KBS_1<-rbind(KBS_1_s18,KBS_1_s17,KBS_1_s15_16)
-dim(Merged_KBS_1)
-write.csv(Merged_KBS_1, file="final_data/KBS/sensor_data/Merged_KBS_1.csv")
-
-#KBS pair 2
-KBS_2_s18 <- read.csv("final_data/KBS/sensor_data/2018/KBS_2.csv")
-KBS_2_s17 <- read.csv("final_data/KBS/sensor_data/2017/KBS_2.csv")
-KBS_2_s15_16 <- read.csv("final_data/KBS/sensor_data/2015_2016/KBS_2.csv")
-# edit column names "X2U_warmed_soil_5cm", "X2U_ambient_soil_5cm", and "X2H_ambient_soil_moist_5cm"
-names(KBS_2_s15_16)[names(KBS_2_s15_16)=="X2U_warmed_soil_5cm"] <- "X2U_warmed_soil_temp_5cm"
-names(KBS_2_s15_16)[names(KBS_2_s15_16)=="X2U_ambient_soil_5cm"] <- "X2U_ambient_soil_temp_5cm"
-Merged_KBS_2<-rbind(KBS_2_s18,KBS_2_s17,KBS_2_s15_16)
-head(KBS_2_s17)
-dim(Merged_KBS_2)
-write.csv(Merged_KBS_2, file="final_data/KBS/sensor_data/Merged_KBS_2.csv")
-
-#KBS pair 3
-KBS_3_s18 <- read.csv("final_data/KBS/sensor_data/2018/KBS_3.csv")
-KBS_3_s17 <- read.csv("final_data/KBS/sensor_data/2017/KBS_3.csv")
-KBS_3_s15_16 <- read.csv("final_data/KBS/sensor_data/2015_2016/KBS_3.csv")
-# edit column names "X3U_warmed_soil_5cm", and "X3U_ambient_soil_5cm"
-names(KBS_3_s15_16)[names(KBS_3_s15_16)=="X3U_warmed_soil_5cm"] <- "X3U_warmed_soil_temp_5cm"
-names(KBS_3_s15_16)[names(KBS_3_s15_16)=="X3U_ambient_soil_5cm"] <- "X3U_ambient_soil_temp_5cm"
-Merged_KBS_3<-rbind(KBS_3_s18,KBS_3_s17,KBS_3_s15_16)
-dim(Merged_KBS_3)
-write.csv(Merged_KBS_3, file="final_data/KBS/sensor_data/Merged_KBS_3.csv")
-###############################################################################

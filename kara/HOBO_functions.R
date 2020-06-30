@@ -35,7 +35,7 @@ change_pair_names <- function(df){
 
 #Change date format to POSIX format
 change_POSIX <- function(df){
-  df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],format="%m/%d/%y %I:%M:%S %p", tz="UTC")
+  df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],tryFormats = c("%m/%d/%y %I:%M:%S %p", "%m/%d/%Y %H:%M"), tz="UTC")
   return(df)
   }
 
