@@ -1,9 +1,10 @@
 # TITLE: HOBO paired sensor cleanup
 # AUTHORS: Nina Lany (original), Kathryn Schmidt (original), Kara Dobson (edited June 2020)
 # COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
-# DATA INPUT: Data imported as csv files from shared Google drive
-# DATA OUTPUT: This script reads in HOBO data from raw_data, combines the data from the U21 and the H12 units for each pair, and writes a CSV file to the final_data folder.
-    ## The KBS_sensors and UMBS_sensors scripts then take that data and summarize/analyze how the chambers affect the abiotic environment.
+# DATA INPUT: Data imported as csv files from shared Google drive L0 folder
+# DATA OUTPUT: This script combines the data from the U and H units for each pair and writes a csv file to the L1 HOBO_U_H_data folder.
+    ## A merged csv file is also created for each pair over every year within the same folder (i.e. KBS_pair1.csv)
+    ## This script also created KBS_allyears and UMBS_allyears, combining the data for all U and H paired sensors
 # PROJECT: warmXtrophic
 # DATE: 2016-2017
     ## KS edit May 23, 2018: created merged files for UMBS; August 1, 2018: remove manual preparation step and add 2018 data from KBS and UMBS
@@ -26,6 +27,11 @@ source("~/warmXtrophic/kara/HOBO_functions.R")
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+
+
+#######################################################################
+#    KBS
+#######################################################################
 
 ############ KBS Pair 1
 #Read in H
@@ -63,39 +69,23 @@ list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS
 list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
 
-#Convert C to F for 2020
-KBS_1_2020$XH_warmed_air_1m <- celsius.to.fahrenheit(KBS_1_2020$XH_warmed_air_1m)
-KBS_1_2020$XH_ambient_air_1m <- celsius.to.fahrenheit(KBS_1_2020$XH_ambient_air_1m)
-
-# #check any columns with NA values, if present
-# #check to see if all days contain 24h.(only first and last days not expected to have 24h.)
-# DateTime1 <- as.POSIXlt(KBS_1$Date_Time, format = "%m/%d/%y %H:%M")
-# str(DateTime1)
-# DateTime1_hours <- as.numeric(format(DateTime1, "%H"))
-# str(DateTime1_hours)
-# DateTime1_days <- format(DateTime1, "%m%d%y")
-# str(DateTime1_days)
-# testing1 <- tapply(DateTime1_hours, as.factor(DateTime1_days), length)
-# subset(testing1, testing1<24)
-# subset(testing1, testing1>24)
-
 #Write csv files
-write.csv(list_pairk1$KBS_1_1516, file="L0/KBS/sensor_data/2015_2016/KBS_1_clean.csv")
-write.csv(list_pairk1$KBS_1_2017, file="L0/KBS/sensor_data/2017/KBS_1.csv")
-write.csv(list_pairk1$KBS_1_2018, file="L0/KBS/sensor_data/2018/KBS_1.csv")
-write.csv(list_pairk1$KBS_1_2019, file="L0/KBS/sensor_data/2019/KBS_1.csv")
-write.csv(list_pairk1$KBS_1_2020, file="L0/KBS/sensor_data/2020/KBS_1.csv")
+write.csv(list_pairk1$KBS_1_1516, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1_1516.csv")
+write.csv(list_pairk1$KBS_1_2017, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1_2017.csv")
+write.csv(list_pairk1$KBS_1_2018, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1_2018.csv")
+write.csv(list_pairk1$KBS_1_2019, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1_2019.csv")
+write.csv(list_pairk1$KBS_1_2020, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1_2020.csv")
 
-#Merge data from all years
+#Merge data from all years & write merged csv
 diff1617_1k <- anti_join(list_pairk1$KBS_1_2017, list_pairk1$KBS_1_1516, by = "Date_Time")
 diff1718_1k <- anti_join(list_pairk1$KBS_1_2018, list_pairk1$KBS_1_2017, by = "Date_Time")
 diff1819_1k <- anti_join(list_pairk1$KBS_1_2019, list_pairk1$KBS_1_2018, by = "Date_Time")
 diff1920_1k <- anti_join(list_pairk1$KBS_1_2020, list_pairk1$KBS_1_2019, by = "Date_Time")
 
 KBS_1 <- rbind(list_pairk1$KBS_1_1516, diff1617_1k, diff1718_1k, diff1819_1k, diff1920_1k)
-write.csv(KBS_1, file="L0/KBS/sensor_data/KBS_1.csv")
+write.csv(KBS_1, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1.csv")
 
-############## KBS Pair 2
+############ KBS Pair 2
 #Read in H
 KBS_2_1516 <- read.csv("L0/KBS/sensor_data/2015_2016/KBS_2.csv")
 KBS_2H_2017 <- read.csv("L0/KBS/sensor_data/2017/09_01_2017/KBS_2H_09012017.csv")
@@ -137,44 +127,23 @@ names(list_pairk2$KBS_2_2018)[names(list_pairk2$KBS_2_2018)=="Water.Content..m..
 names(list_pairk2$KBS_2_2019)[names(list_pairk2$KBS_2_2019)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2020)[names(list_pairk2$KBS_2_2020)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 
-#Convert C to F for 2020
-KBS_2_2020$XH_warmed_air_1m <- celsius.to.fahrenheit(KBS_2_2020$XH_warmed_air_1m)
-KBS_2_2020$XH_ambient_air_1m <- celsius.to.fahrenheit(KBS_2_2020$XH_ambient_air_1m)
-
-#check any columns with NA values, if present
-# which(is.na(KBS_2$X2H_ambient_air_1m))
-# KBS_2[2538,]
-# KBS_2[2634,]#2H not logged data 2015-06-15 17:00 through 2015-06-19 09:00.  Will not be a problem becasue it gets subsetted out later.
-# which(is.na(KBS_2$X2U_ambient_air_10cm))
-# KBS_2[51,]
-# #check to see if all days contain 24h.(only first and last days not expected to have 24h.)
-# DateTime2 <- as.POSIXlt(KBS_2$Date_Time, format = "%m/%d/%y %H:%M")
-# str(DateTime2)
-# DateTime2_hours <- as.numeric(format(DateTime2, "%H"))
-# str(DateTime2_hours)
-# DateTime2_days <- format(DateTime2, "%m%d%y")
-# str(DateTime2_days)
-# testing2 <- tapply(DateTime2_hours, as.factor(DateTime2_days), length)
-# subset(testing2, testing2<24)
-# subset(testing2, testing2>24)
-
 #Write csv files
-write.csv(list_pairk2$KBS_2_1516, file="L0/KBS/sensor_data/2015_2016/KBS_2_clean.csv")
-write.csv(list_pairk2$KBS_2_2017, file="L0/KBS/sensor_data/2017/KBS_2.csv")
-write.csv(list_pairk2$KBS_2_2018, file="L0/KBS/sensor_data/2018/KBS_2.csv")
-write.csv(list_pairk2$KBS_2_2019, file="L0/KBS/sensor_data/2019/KBS_2.csv")
-write.csv(list_pairk2$KBS_2_2020, file="L0/KBS/sensor_data/2020/KBS_2.csv")
+write.csv(list_pairk2$KBS_2_1516, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair2_1516.csv")
+write.csv(list_pairk2$KBS_2_2017, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair2_2017.csv")
+write.csv(list_pairk2$KBS_2_2018, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair2_2018.csv")
+write.csv(list_pairk2$KBS_2_2019, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair2_2019.csv")
+write.csv(list_pairk2$KBS_2_2020, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair2_2020.csv")
 
-#Merge data from all years
+#Merge data from all years & write merged csv
 diff1617_2k <- anti_join(list_pairk2$KBS_2_2017, list_pairk2$KBS_2_1516, by = "Date_Time")
 diff1718_2k <- anti_join(list_pairk2$KBS_2_2018, list_pairk2$KBS_2_2017, by = "Date_Time")
 diff1819_2k <- anti_join(list_pairk2$KBS_2_2019, list_pairk2$KBS_2_2018, by = "Date_Time")
 diff1920_2k <- anti_join(list_pairk2$KBS_2_2020, list_pairk2$KBS_2_2019, by = "Date_Time")
 
 KBS_2 <- rbind(list_pairk2$KBS_2_1516, diff1617_2k, diff1718_2k, diff1819_2k, diff1920_2k)
-write.csv(KBS_2, file="L0/KBS/sensor_data/KBS_2.csv")
+write.csv(KBS_2, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair2.csv")
 
-############# KBS Pair 3
+############ KBS Pair 3
 #Read in H
 KBS_3_1516 <- read.csv("L0/KBS/sensor_data/2015_2016/KBS_3.csv")
 KBS_3H_2017 <- read.csv("L0/KBS/sensor_data/2017/09_01_2017/KBS_3H_09012017.csv")
@@ -224,37 +193,21 @@ names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Water.Content..m..
 names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 
-#Change C to F for 2020
-KBS_3_2020$XH_warmed_air_1m <- celsius.to.fahrenheit(KBS_3_2020$XH_warmed_air_1m)
-KBS_3_2020$XH_ambient_air_1m <- celsius.to.fahrenheit(KBS_3_2020$XH_ambient_air_1m)
-
-# #check any columns with NA values, if present
-# #check to see if all days contain 24h. (only first and last days not expected to have 24h.)
-#DateTime3 <- as.POSIXlt(KBS_3$Date_Time, format = "%m/%d/%y %H:%M")
-#str(DateTime3)
-#DateTime3_hours <- as.numeric(format(DateTime3, "%H"))
-#str(DateTime3_hours)
-#DateTime3_days <- format(DateTime3, "%m%d%y")
-#str(DateTime3_days)
-#testing3 <- tapply(DateTime3_hours, as.factor(DateTime3_days), length)
-#subset(testing3, testing3<24)
-#subset(testing3, testing3>24)
-
 #Create csv files for each year
-write.csv(list_pairk3$KBS_3_1516, file="L0/KBS/sensor_data/2015_2016/KBS_3_clean.csv")
-write.csv(list_pairk3$KBS_3_2017, file="L0/KBS/sensor_data/2017/KBS_3.csv")
-write.csv(list_pairk3$KBS_3_2018, file="L0/KBS/sensor_data/2018/KBS_3.csv")
-write.csv(list_pairk3$KBS_3_2019, file="L0/KBS/sensor_data/2019/KBS_3.csv")
-write.csv(list_pairk3$KBS_3_2020, file="L0/KBS/sensor_data/2020/KBS_3.csv")
+write.csv(list_pairk3$KBS_3_1516, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair3_1516.csv")
+write.csv(list_pairk3$KBS_3_2017, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair3_2017.csv")
+write.csv(list_pairk3$KBS_3_2018, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair3_2018.csv")
+write.csv(list_pairk3$KBS_3_2019, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair3_2019.csv")
+write.csv(list_pairk3$KBS_3_2020, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair3_2020.csv")
 
-#Merge data from all years
+#Merge data from all years & write merged csv
 diff1617_3k <- anti_join(list_pairk3$KBS_3_2017, list_pairk3$KBS_3_1516, by = "Date_Time")
 diff1718_3k <- anti_join(list_pairk3$KBS_3_2018, list_pairk3$KBS_3_2017, by = "Date_Time")
 diff1819_3k <- anti_join(list_pairk3$KBS_3_2019, list_pairk3$KBS_3_2018, by = "Date_Time")
 diff1920_3k <- anti_join(list_pairk3$KBS_3_2020, list_pairk3$KBS_3_2019, by = "Date_Time")
 
 KBS_3 <- rbind(list_pairk3$KBS_3_1516, diff1617_3k, diff1718_3k, diff1819_3k, diff1920_3k)
-write.csv(KBS_3, file="L0/KBS/sensor_data/KBS_3.csv")
+write.csv(KBS_3, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair3.csv")
 
 #Combine data from all years and all paired stations for KBS
 KBS_allyears <- rbind(KBS_1, KBS_2, KBS_3)
@@ -268,7 +221,7 @@ write.csv(KBS_all, file="L0/KBS/sensor_data/KBS_allyears")
 # KS: Relaunched HOBO loggers on 6-25-18 for U
 # KD: Relaunched HOBO loggers on 5-13-20 for U
 
-##UMBS Pair 1
+############ UMBS Pair 1
 #Read in H
 UMBS_1_1516 <- read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_1.csv")
 UMBS_1H_2017 <- read.csv("L0/UMBS/sensor_data/2017/08_15_2017/UMBS_1H_08152017.csv")
@@ -326,35 +279,24 @@ names(list_pairu1$UMBS_1_2018)[names(list_pairu1$UMBS_1_2018)=="Temp...F..LGR.S.
 names(list_pairu1$UMBS_1_2019)[names(list_pairu1$UMBS_1_2019)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(list_pairu1$UMBS_1_2019)[names(list_pairu1$UMBS_1_2019)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 
-# #check any columns with NA values, if present
-# #check to see if all days contain 24h.(only first and last days not expected to have 24h.)
-# DateTime1 <- as.POSIXlt(UMBS_1$Date_Time, format = "%m/%d/%y %H:%M")
-# str(DateTime1)
-# DateTime1_hours <- as.numeric(format(DateTime1, "%H"))
-# str(DateTime1_hours)
-# DateTime1_days <- format(DateTime1, "%m%d%y")
-# str(DateTime1_days)
-# testing1 <- tapply(DateTime1_hours, as.factor(DateTime1_days), length)
-# subset(testing1, testing1<24)
-# subset(testing1, testing1>24)
-
 #Create csv files for each year
-write.csv(list_pairu1$UMBS_1_1516, file="L0/UMBS/sensor_data/2015_2016/UMBS_1_clean.csv")
-write.csv(list_pairu1$UMBS_1_2017, file="L0/UMBS/sensor_data/2017/UMBS_1.csv")
-write.csv(list_pairu1$UMBS_1_2018, file="L0/UMBS/sensor_data/2018/UMBS_1.csv")
-write.csv(list_pairu1$UMBS_1_2019, file="L0/UMBS/sensor_data/2019/UMBS_1.csv")
-write.csv(list_pairu1$UMBS_1_2020, file="L0/UMBS/sensor_data/2020/UMBS_1.csv")
+write.csv(list_pairu1$UMBS_1_1516, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair1_1516.csv")
+write.csv(list_pairu1$UMBS_1_2017, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair1_2017.csv")
+write.csv(list_pairu1$UMBS_1_2018, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair1_2018.csv")
+write.csv(list_pairu1$UMBS_1_2019, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair1_2019.csv")
+write.csv(list_pairu1$UMBS_1_2020, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair1_2020.csv")
 
-#Merge data from all years
+#Merge data from all years & write merged csv
 diff1617_1u <- anti_join(list_pairu1$UMBS_1_2017, list_pairu1$UMBS_1_1516, by = "Date_Time")
 diff1718_1u <- anti_join(list_pairu1$UMBS_1_2018, list_pairu1$UMBS_1_2017, by = "Date_Time")
 diff1819_1u <- anti_join(list_pairu1$UMBS_1_2019, list_pairu1$UMBS_1_2018, by = "Date_Time")
 diff1920_1u <- anti_join(list_pairu1$UMBS_1_2020, list_pairu1$UMBS_1_2019, by = "Date_Time")
 
 UMBS_1 <- rbind(list_pairu1$UMBS_1_1516, diff1617_1u, diff1718_1u, diff1819_1u, diff1920_1u)
-write.csv(UMBS_1, file="L0/UMBS/sensor_data/UMBS_1.csv")
+write.csv(UMBS_1, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair1.csv")
 
-############## UMBS Pair 2
+############ UMBS Pair 2
+#2U was not logging from 7/28/2015 through 11/24/2015, when it was launched again
 #Read in H
 UMBS_2_1516 <- read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_2.csv")
 UMBS_2H_2017 <- read.csv("L0/UMBS/sensor_data/2017/08_15_2017/UMBS_2H_08152017.csv")
@@ -416,39 +358,23 @@ names(list_pairu2$UMBS_2_2019)[names(list_pairu2$UMBS_2_2019)=="Temp...F..LGR.S.
 names(list_pairu2$UMBS_2_2019)[names(list_pairu2$UMBS_2_2019)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(list_pairu2$UMBS_2_2020)[names(list_pairu2$UMBS_2_2020)=="Temp...C..LGR.S.N..10910775..SEN.S.N..10737461..LBL..2H_ambient_aim_1m."] <- "XH_ambient_air_1m"
 
-
-#check any columns with NA values, if present
-# UMBS_2[-which(is.na(UMBS_2$X2U_ambient_air_10cm)),1]
-#2U was not logging from 7/28/2015 19:: thorugh 11/24/2015, when it was launched again.
-
-# #check to see if all days contain 24h.(only first and last days not expected to have 24h.)
-# DateTime2 <- as.POSIXlt(UMBS_2$Date_Time, format = "%m/%d/%y %H:%M")
-# str(DateTime2)
-# DateTime2_hours <- as.numeric(format(DateTime2, "%H"))
-# str(DateTime2_hours)
-# DateTime2_days <- format(DateTime2, "%m%d%y")
-# str(DateTime2_days)
-# testing2 <- tapply(DateTime2_hours, as.factor(DateTime2_days), length)
-# subset(testing2, testing2<24) #09/26/2015 10:00 missing, likely because data was being downloaded/maintenance.
-# subset(testing2, testing2>24)
-
 #Create csv files for each year
-write.csv(list_pairu2$UMBS_2_1516, file="L0/UMBS/sensor_data/2015_2016/UMBS_2_clean.csv")
-write.csv(list_pairu2$UMBS_2_2017, file="L0/UMBS/sensor_data/2017/UMBS_2.csv")
-write.csv(list_pairu2$UMBS_2_2018, file="L0/UMBS/sensor_data/2018/UMBS_2.csv")
-write.csv(list_pairu2$UMBS_2_2019, file="L0/UMBS/sensor_data/2019/UMBS_2.csv")
-write.csv(list_pairu2$UMBS_2_2020, file="L0/UMBS/sensor_data/2020/UMBS_2.csv")
+write.csv(list_pairu2$UMBS_2_1516, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair2_1516.csv")
+write.csv(list_pairu2$UMBS_2_2017, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair2_2017.csv")
+write.csv(list_pairu2$UMBS_2_2018, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair2_2018.csv")
+write.csv(list_pairu2$UMBS_2_2019, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair2_2019.csv")
+write.csv(list_pairu2$UMBS_2_2020, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair2_2020.csv")
 
-#Merge data from all years
+#Merge data from all years & write merged csv
 diff1617_2u <- anti_join(list_pairu2$UMBS_2_2017, list_pairu2$UMBS_2_1516, by = "Date_Time")
 diff1718_2u <- anti_join(list_pairu2$UMBS_2_2018, list_pairu2$UMBS_2_2017, by = "Date_Time")
 diff1819_2u <- anti_join(list_pairu2$UMBS_2_2019, list_pairu2$UMBS_2_2018, by = "Date_Time")
 diff1920_2u <- anti_join(list_pairu2$UMBS_2_2020, list_pairu2$UMBS_2_2019, by = "Date_Time")
 
 UMBS_2 <- rbind(list_pairu2$UMBS_2_1516, diff1617_2u, diff1718_2u, diff1819_2u, diff1920_2u)
-write.csv(UMBS_2, file="L0/UMBS/sensor_data/UMBS_2.csv")
+write.csv(UMBS_2, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair2.csv")
 
-############# UMBS Pair 3
+############ UMBS Pair 3
 #Read in H
 UMBS_3_1516 <- read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_3.csv")[-1,]
 UMBS_3H_2017 <- read.csv("L0/UMBS/sensor_data/2017/08_15_2017/UMBS_3H_08152017.csv")
@@ -480,7 +406,7 @@ UMBS_3_2018 <- merge(UMBS_3H_2018, UMBS_3U_2018, by="Date.Time..GMT.04.00", all.
 UMBS_3_2019 <- merge(UMBS_3H_2019, UMBS_3U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_3_2020 <- merge(UMBS_3H_2020, UMBS_3U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
-# rename columns to match manually curated data
+#Rename columns to match manually curated data
 UMBS_3_1516$X<-NULL
 UMBS_3_2017$X..x <- NULL
 UMBS_3_2017$X..y<- NULL
@@ -496,34 +422,19 @@ list_pairu3 <- list(UMBS_3_1516=UMBS_3_1516, UMBS_3_2017=UMBS_3_2017, UMBS_3_201
 list_pairu3 <- lapply(list_pairu3, change_pair_names)
 list_pairu3 <- lapply(list_pairu3, change_POSIX)
 
-# #####NOTE: Columns atr labelled X1H (e.g.) rather than X3H. 
-# #check any columns with NA values, if present
-# which(is.na(UMBS_3$X3U_ambient_air_10cm))
-# UMBS_3[1132,] #11/24/15 11:00 No U12 readings.  Probably dpwloaded 1h earlier.
-# UMBS_3[1309,] #6/25/15 17:00 No U12 readings.  Probably launched 1h later. 
-# #check to see if all days contain 24h. (only first and last days not expected to have 24h.)
-# DateTime3 <- as.POSIXlt(UMBS_3$Date_Time, format = "%m/%d/%y %H:%M")
-# str(DateTime3)
-# DateTime3_hours <- as.numeric(format(DateTime3, "%H"))
-# str(DateTime3_hours)
-# DateTime3_days <- format(DateTime3, "%m%d%y")
-# str(DateTime3_days)
-# testing3 <- tapply(DateTime3_hours, as.factor(DateTime3_days), length)
-# subset(testing3, testing3<24)
-# subset(testing3, testing3>24)
-
 #Create csv files for each year
-write.csv(list_pairu3$UMBS_3_1516, file="L0/UMBS/sensor_data/2015_2016/UMBS_3_clean.csv")
-write.csv(list_pairu3$UMBS_3_2017, file="L0/UMBS/sensor_data/2017/UMBS_3.csv")
-write.csv(list_pairu3$UMBS_3_2018, file="L0/UMBS/sensor_data/2018/UMBS_3.csv")
-write.csv(list_pairu3$UMBS_3_2019, file="L0/UMBS/sensor_data/2019/UMBS_3.csv")
-write.csv(list_pairu3$UMBS_3_2020, file="L0/UMBS/sensor_data/2020/UMBS_3.csv")
+write.csv(list_pairu3$UMBS_3_1516, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair3_1516.csv")
+write.csv(list_pairu3$UMBS_3_2017, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair3_2017.csv")
+write.csv(list_pairu3$UMBS_3_2018, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair3_2018.csv")
+write.csv(list_pairu3$UMBS_3_2019, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair3_2019.csv")
+write.csv(list_pairu3$UMBS_3_2020, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair3_2020.csv")
 
-#Merge data from all years
+#Merge data from all years & write merged csv
 diff1617_3u <- anti_join(list_pairu3$UMBS_3_2017, list_pairu3$UMBS_3_1516, by = "Date_Time")
 diff1718_3u <- anti_join(list_pairu3$UMBS_3_2018, list_pairu3$UMBS_3_2017, by = "Date_Time")
 diff1819_3u <- anti_join(list_pairu3$UMBS_3_2019, list_pairu3$UMBS_3_2018, by = "Date_Time")
 diff1920_3u <- anti_join(list_pairu3$UMBS_3_2020, list_pairu3$UMBS_3_2019, by = "Date_Time")
 
 UMBS_3 <- rbind(list_pairu3$UMBS_3_1516, diff1617_3u, diff1718_3u, diff1819_3u, diff1920_3u)
-write.csv(UMBS_3, file="L0/UMBS/sensor_data/UMBS_3.csv")
+write.csv(UMBS_3, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair3.csv")
+
