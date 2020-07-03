@@ -1,11 +1,11 @@
 # TITLE: HOBO pendant data cleanup
 # AUTHORS: Nina Lany (original), Kara Dobson (edited June 2020)
 # COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young, Kathryn Schmidt
-# DATA INPUT: Data imported as csv files from shared Google drive
-# DATA OUTPUT: Makes the following datasets:
-    ## pendk:        KBS HOBO pendant data from 2015-2020
-    ## pendu:        UMBS HOBO pendant data from 2015-2020
-    ## pend1520:     Combined HOBO pendant data from KBS and UMBS from 2015-2020
+# DATA INPUT: Data imported as csv files from shared Google drive L0 folder
+# DATA OUTPUT: Makes the following datasets in the L1 HOBO_pendant_data folder:
+    ## KBS_combined:        KBS HOBO pendant data from 2015-2020
+    ## UMBS_combined:       UMBS HOBO pendant data from 2015-2020
+    ## Also creates csv files for each year separately (i.e KBS_2017)
 # PROJECT: warmXtrophic
 # DATE: 2018
     ## KD edit June 2020: Updated script to insert 2019 and 2020 data & functions
@@ -132,8 +132,11 @@ pend18k$Site<-"KBS"
 pend19k$Site<-"KBS"
 pend20k$Site<-"KBS"
 
-#Convert C to F for 2020 data
-pend20k$Temp_F_XP_air_1m <- celsius.to.fahrenheit(pend20k$Temp_F_XP_air_1m)
+#Create csv files for each year
+write.csv(pend17k, file="L1/HOBO_data/HOBO_pendant_data/KBS/KBS_2017.csv")
+write.csv(pend18k, file="L1/HOBO_data/HOBO_pendant_data/KBS/KBS_2018.csv")
+write.csv(pend19k, file="L1/HOBO_data/HOBO_pendant_data/KBS/KBS_2019.csv")
+write.csv(pend20k, file="L1/HOBO_data/HOBO_pendant_data/KBS/KBS_2020.csv")
 
 # Merge KBS HOBO data from all years
 diff1718k <- anti_join(pend18k, pend17k, by = "Date_Time")
@@ -141,75 +144,7 @@ diff1819k <- anti_join(pend19k, pend18k, by = "Date_Time")
 diff1920k <- anti_join(pend20k, pend19k, by = "Date_Time")
 
 pendk <- rbind(pend17k, diff1718k, diff1819k, diff1920k)
-
-
-
-#### ** U/H stations included here - should they be in this script?** ###
-# Add in station data #
-Pend1P_1520k<-read.csv("L0/KBS/sensor_data/2015_2016/KBS_1.csv", header =T)
-Pend2P_1520k<-read.csv("L0/KBS/sensor_data/2015_2016/KBS_2.csv", header =T)
-Pend3P_1520k<-read.csv("L0/KBS/sensor_data/2015_2016/KBS_3.csv", header =T)
-
-# remove HOBO ID's from coloumn and add 'Pendant_ID'
-Pend1P_1520k$Pendant_ID<-"1"
-Pend2P_1520k$Pendant_ID<-"2"
-Pend3P_1520k$Pendant_ID<-"3"
-
-# Extract only necessary columns
-Pend1P_ambient_1520k <-  Pend1P_1520k[,c(2,7,13)]
-names(Pend1P_ambient_1520k)[names(Pend1P_ambient_1520k)== "X1H_ambient_air_1m"] <- "XH_air_1m"
-Pend1P_ambient_1520k$State<-"ambient"
-Pend1P_warmed_1520k <-  Pend1P_1520k[,c(2,5,13)]
-names(Pend1P_warmed_1520k)[names(Pend1P_warmed_1520k)== "X1H_warmed_air_1m"] <- "XH_air_1m"
-Pend1P_warmed_1520k$State<-"warmed"
-Pend2P_warmed_1520k <-  Pend2P_1520k[,c(2,7,13)]
-names(Pend2P_warmed_1520k)[names(Pend2P_warmed_1520k)== "X2H_warmed_air_1m"] <- "XH_air_1m"
-Pend2P_warmed_1520k$State<-"warmed"
-Pend2P_ambient_1520k <-  Pend2P_1520k[,c(2,5,13)]
-names(Pend2P_ambient_1520k)[names(Pend2P_ambient_1520k)== "X2H_ambient_air_1m"] <- "XH_air_1m"
-Pend2P_ambient_1520k$State<-"ambient"
-Pend3P_warmed_1520k <-  Pend3P_1520k[,c(2,5,13)]
-names(Pend3P_warmed_1520k)[names(Pend3P_warmed_1520k)== "X3H_warmed_air_1m"] <- "XH_air_1m"
-Pend3P_warmed_1520k$State<-"warmed"
-Pend3P_ambient_1520k <-  Pend3P_1520k[,c(2,7,13)]
-names(Pend3P_ambient_1520k)[names(Pend3P_ambient_1520k)== "X3H_ambient_air_1m"] <- "XH_air_1m"
-Pend3P_ambient_1520k$State<-"ambient"
-
-# Merge dataframes
-New.Pend1P_1520k<-rbind(Pend1P_warmed_1520k,Pend1P_ambient_1520k)
-New.Pend2P_1520k<-rbind(Pend2P_warmed_1520k,Pend2P_ambient_1520k)
-New.Pend3P_1520k<-rbind(Pend3P_warmed_1520k,Pend3P_ambient_1520k)
-Pend13_1520k<-rbind(New.Pend1P_1520k,New.Pend2P_1520k,New.Pend3P_1520k) 
-Pend13_1520k$Site<-"KBS"
-
-# # Add column of warmed -ambient temp
-# # For each value in "Date_Time" want to subtract warmed, XH_air_1m value by ambient, XH_air_1m value
-# new.Pend13_1518k<-Pend13_1518k
-# new.Pend13_1518k$Temp.diff<-new.Pend13_1518k$XH_air_1m
-# tail(new.Pend13_1518k)
-# new.Pend13_1518k %>%  
-#   group_by(Date_Time) %>%  
-#   mutate(Temp.diff=XH_air_1m[State=="warmed"]-XH_air_1m[State=="ambient"])
-
-# Change class of Datet.Time column from factor to POSIXct date 
-Pend13_1520k$Date_Time <- as.POSIXct(Pend13_1520k$Date_Time,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-
-a1 <- ggplot(Pend13_1520k, aes(x = Date_Time, y = XH_air_1m, color = Pendant_ID)) +
-  facet_grid(Pendant_ID ~ State) +
-  geom_point(alpha=.5, size = 2) +
-  ylab("Temperature F") +
-  ylim(-100,200) +
-  theme_gray() + 
-  theme(legend.position = "bottom")
-a1
-
-a2 <- ggplot(Pend13_1520k, aes(x = Date_Time, y = XH_air_1m, color = State)) +
-  facet_grid(Pendant_ID ~ .) +
-  geom_point(alpha=.5, size = 2) +
-  ylab("Temperature F") +
-  ylim(-100,200)+
-  theme_gray() + theme(legend.position = "bottom")
-a2
+write.csv(pendk, file="L1/HOBO_data/HOBO_pendant_data/KBS/KBS_combined.csv")
 
 
 ### ***UMBS*** ###
@@ -324,8 +259,11 @@ pend18u$Site<-"UMBS"
 pend19u$Site<-"UMBS"
 pend20u$Site<-"UMBS"
 
-#Convert C to F for 2020 data
-pend20u$Temp_F_XP_air_1m <- celsius.to.fahrenheit(pend20u$Temp_F_XP_air_1m)
+#Create csv files for each year
+write.csv(pend17u, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_2017.csv")
+write.csv(pend18u, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_2018.csv")
+write.csv(pend19u, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_2019.csv")
+write.csv(pend20u, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_2020.csv")
 
 # merge UMBS HOBO data from all years
 diff1718u <- anti_join(pend18u, pend17u, by = "Date_Time")
@@ -333,157 +271,4 @@ diff1819u <- anti_join(pend19u, pend18u, by = "Date_Time")
 diff1920u <- anti_join(pend20u, pend19u, by = "Date_Time")
 
 pendu <- rbind(pend17u, diff1718u, diff1819u, diff1920u)
-
-
-# Section below has paired sensor data - not needed?
-### Add in station data ###
-Pend1P_1520u<-read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_1.csv", header =T)
-Pend2P_1520u<-read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_2.csv", header =T)
-Pend3P_1520u<-read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_3.csv", header =T)
-head(Pend1P_1520u)
-
-# remove HOBO ID's from coloumn and add 'Pendant_ID'
-Pend1P_1520u$Pendant_ID<-"1"
-Pend2P_1520u$Pendant_ID<-"2"
-Pend3P_1520u$Pendant_ID<-"3"
-
-# Extract only necessary columns
-Pend1P_ambient_1520u <-  Pend1P_1520u[,c(2,7,13)]
-names(Pend1P_ambient_1520u)[names(Pend1P_ambient_1520u)== "X1H_ambient_air_1m"] <- "XH_air_1m"
-Pend1P_ambient_1520u$State<-"ambient"
-Pend1P_warmed_1520u <-  Pend1P_1520u[,c(2,5,13)]
-names(Pend1P_warmed_1520u)[names(Pend1P_warmed_1520u)== "X1H_warmed_air_1m"] <- "XH_air_1m"
-Pend1P_warmed_1520u$State<-"warmed"
-Pend2P_warmed_1520u <-  Pend2P_1520u[,c(2,7,13)]
-names(Pend2P_warmed_1520u)[names(Pend2P_warmed_1520u)== "X2H_warmed_air_1m"] <- "XH_air_1m"
-Pend2P_warmed_1520u$State<-"warmed"
-Pend2P_ambient_1520u <-  Pend2P_1520u[,c(2,5,13)]
-names(Pend2P_ambient_1520u)[names(Pend2P_ambient_1520u)== "X2H_ambient_air_1m"] <- "XH_air_1m"
-Pend2P_ambient_1520u$State<-"ambient"
-Pend3P_warmed_1520u <-  Pend3P_1520u[,c(2,5,13)]
-names(Pend3P_warmed_1520u)[names(Pend3P_warmed_1520u)== "X3H_warmed_air_1m"] <- "XH_air_1m"
-Pend3P_warmed_1520u$State<-"warmed"
-Pend3P_ambient_1520u <-  Pend3P_1520u[,c(2,7,13)]
-names(Pend3P_ambient_1520u)[names(Pend3P_ambient_1520u)== "X3H_ambient_air_1m"] <- "XH_air_1m"
-Pend3P_ambient_1520u$State<-"ambient"
-
-# Merge dataframes
-New.Pend1P_1520u<-rbind(Pend1P_warmed_1520u,Pend1P_ambient_1520u)
-New.Pend2P_1520u<-rbind(Pend2P_warmed_1520u,Pend2P_ambient_1520u)
-New.Pend3P_1520u<-rbind(Pend3P_warmed_1520u,Pend3P_ambient_1520u)
-Pend13_1520u<-rbind(New.Pend1P_1520u,New.Pend2P_1520u,New.Pend3P_1520u) 
-Pend13_1520u$Site<-"UMBS"
-#Tempdiff <- aggregate( XH_air_1m~Date_Time+Pendant_ID, data=Pend13_1518u , diff )
-#head(Tempdiff)
-
-# Change class of Date.Time column from factor to POSIXct date 
-Pend13_1520u$Date_Time <- as.POSIXct(Pend13_1520u$Date_Time,format="%m/%d/%y %I:%M:%S %p", tz="UTC")
-a3<- ggplot(Pend13_1520u, aes(x = Date_Time, y = XH_air_1m, color = Pendant_ID)) +
-  facet_grid(Pendant_ID ~ State) +
-  geom_point(alpha=.5, size = 2) +
-  ylab("Temperature F") +
-  theme_gray() + theme(legend.position = "bottom")
-a3
-a4<- ggplot(Pend13_1520u, aes(x = Date_Time, y = XH_air_1m, color = State)) +
-  facet_grid(Pendant_ID ~ .) +
-  geom_point(alpha=.5, size = 2) +
-  ylab("Temperature F") +
-  theme_gray() + theme(legend.position = "bottom")
-a4
-#grid.arrange(a1,a2,ncol=2)
-
-
-
-# Move the code below to a different script?
-###### ***DATA ANALYSIS*** ########
-## plot it
-ggplot(new.pendu, aes(x = Date_Time, y = Temp_F_XP_air_1m, color = Pendant_ID)) +
-  facet_grid(. ~ Pendant_ID) +
-  # geom_errorbar(aes(ymin=mean_RFU-sd, ymax=mean_RFU+sd))+
-  geom_point(alpha=.5, size = 2) +
-  # geom_line(aes(group = sensitivity)) +
-  ylab("Temperature F") +
-  theme_minimal() + theme(legend.position = "bottom")
-
-#  take the mean temperature per month by year. 
-# UMBS average chamber temp per month, by year
-test.pendu<- new.pendu
-test.pendu$Month <- months(test.pendu$Date_Time)
-test.pendu$Year <- format(test.pendu$Date_Time,format="%y")
-mean_monthlyu <- aggregate( Temp_F_XP_air_1m ~ Month + Year , test.pendu , mean )
-mean_monthlyu$Month <- factor(mean_monthlyu$Month, levels =c("January","February","March","April","May","June","July","August","September","October","November","December"))
-head(mean_monthlyu)
-ggplot(mean_monthlyu, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
-  geom_point() +
-  #   geom_line(aes(group = sensitivity)) +
-  ylab("Temperature F") +
-  theme_minimal() + theme(legend.position = "bottom")
-# mean temp of the plot, per month, per year 
-test2.pendu<- new.pendu
-test2.pendu$Month <- months(test.pendu$Date_Time)
-test2.pendu$Year <- format(test.pendu$Date_Time,format="%y")
-mean_monthly_plotu <- aggregate( Temp_F_XP_air_1m ~ Month + Year + Pendant_ID , test2.pendu , mean )
-mean_monthly_plotu$Month <- factor(mean_monthly_plotu$Month, levels =c("January","February","March","April","May","June","July","August","September","October","November","December"))
-head(mean_monthly_plotu)
-ggplot(mean_monthly_plotu, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
-  geom_point() +
-  #   geom_line(aes(group = sensitivity)) +
-  ylab("Temperature F") +
-  theme_minimal() + theme(legend.position = "bottom")
-
-# KBS average chamber temp per month, by year
-test.pendk<-pendk
-head(test.pendk)
-test.pendk$Month <- months(test.pendk$Date_Time)
-test.pendk$Year <- format(test.pendk$Date_Time,format="%y")
-mean_monthlyk <- aggregate( Temp_F_XP_air_1m ~ Month + Year , test.pendk , mean )
-mean_monthlyk$Month <- factor(mean_monthlyk$Month, levels =c("January","February","March","April","May","June","July","August","September","October","November","December"))
-head(mean_monthlyk)
-ggplot(mean_monthlyk, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
-  geom_point() +
-  #   geom_line(aes(group = sensitivity)) +
-  ylab("Temperature F") +
-  theme_minimal() + theme(legend.position = "bottom")
-# mean temp of the plot, per month, per year 
-test2.pendk<- new.pendk
-test2.pendk$Month <- months(test2.pendk$Date_Time)
-test2.pendk$Year <- format(test2.pendk$Date_Time,format="%y")
-mean_monthly_plotk <- aggregate( Temp_F_XP_air_1m ~ Month + Year + Pendant_ID , test2.pendk , mean )
-mean_monthly_plotk$Month <- factor(mean_monthly_plotk$Month, levels =c("January","February","March","April","May","June","July","August","September","October","November","December"))
-head(mean_monthly_plotk)
-ggplot(mean_monthly_plotk, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
-  geom_point() +
-  #   geom_line(aes(group = sensitivity)) +
-  ylab("Temperature F") +
-  theme_minimal() + theme(legend.position = "bottom")
-
-# Compare ambient vs. warmed 
-# Take out station ID's in columns
-a <- Pend1P_1520u
-colnames(a) <- gsub("X1U","XU", colnames(a))
-colnames(a) <- gsub("X1H","XH", colnames(a))
-colnames(a)
-b <- Pend2P_1520u
-colnames(b) <- gsub("X2U","XU", colnames(b))
-colnames(b) <- gsub("X2H","XH", colnames(b))
-colnames(b)
-names(b)[names(b)== "XH_ambient_aim_1m"] <- "XH_ambient_air_1m"
-c <- Pend3P_1520u
-colnames(c) <- gsub("X3U","XU", colnames(c))
-colnames(c) <- gsub("X3H","XH", colnames(c))
-colnames(c)
-
-# Merge cleaned station data
-Merged.Pendstation_1520u<-rbind(a,b,c)
-head(Merged.Pendstation_1520u)
-Tempdiffu <- Merged.Pendstation_1520u %>%
-  select(Date_Time,Pendant_ID,XH_warmed_air_1m,XH_ambient_air_1m) %>%
-  group_by(Date_Time,Pendant_ID) %>%
-  mutate(Tempdiff.air_1m=XH_warmed_air_1m-XH_ambient_air_1m)
-head(Tempdiffu)
-new.Pend13_1520k %>%  
-  +   group_by(Date_Time) %>%  
-  +   mutate(Temp.diff=XH_air_1m[State=="warmed"]-XH_air_1m[State=="ambient"])
-
-
-
+write.csv(pendu, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_combined.csv")
