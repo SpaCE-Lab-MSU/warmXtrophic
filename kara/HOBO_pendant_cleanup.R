@@ -75,50 +75,12 @@ pend10P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_10P_04052020.csv",
 pend11P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_11P_04052020.csv", skip=1, header=T)[ ,1:4]
 pend12P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_12P_04052020.csv", skip=1, header=T)[ ,1:4]
 
-# Add in column "Pendant_ID"
-pend4P_17k$Pendant_ID<-"4P"
-pend5P_17k$Pendant_ID<-"5P"
-pend6P_17k$Pendant_ID<-"6P"
-pend7P_17k$Pendant_ID<-"7P"
-pend8P_17k$Pendant_ID<-"8P"
-pend9P_17k$Pendant_ID<-"9P"
-pend10P_17k$Pendant_ID<-"10P"
-pend11P_17k$Pendant_ID<-"11P"
-pend12P_17k$Pendant_ID<-"12P"
-
-pend4P_18k$Pendant_ID<-"4P"
-pend5P_18k$Pendant_ID<-"5P"
-pend6P_18k$Pendant_ID<-"6P"
-pend7P_18k$Pendant_ID<-"7P"
-pend8P_18k$Pendant_ID<-"8P"
-pend10P_18k$Pendant_ID<-"10P"
-pend11P_18k$Pendant_ID<-"11P"
-pend12P_18k$Pendant_ID<-"12P"
-
-pend4P_19k$Pendant_ID<-"4P"
-pend5P_19k$Pendant_ID<-"5P"
-pend6P_19k$Pendant_ID<-"6P"
-pend7P_19k$Pendant_ID<-"7P"
-pend8P_19k$Pendant_ID<-"8P"
-pend10P_19k$Pendant_ID<-"10P"
-pend11P_19k$Pendant_ID<-"11P"
-pend12P_19k$Pendant_ID<-"12P"
-
-pend4P_20k$Pendant_ID<-"4P"
-pend5P_20k$Pendant_ID<-"5P"
-pend6P_20k$Pendant_ID<-"6P"
-pend7P_20k$Pendant_ID<-"7P"
-pend8P_20k$Pendant_ID<-"8P"
-pend10P_20k$Pendant_ID<-"10P"
-pend11P_20k$Pendant_ID<-"11P"
-pend12P_20k$Pendant_ID<-"12P"
-
-#List all files so that functions can be applied
+# Apply functions
+add_id_col()
 list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k,pend7P_17k=pend7P_17k,pend8P_17k=pend8P_17k,pend9P_17k=pend9P_17k,pend10P_17k=pend10P_17k,pend11P_17k=pend11P_17k,pend12P_17k=pend12P_17k,
-                pend4P_18k=pend4P_18k,pend5P_18k=pend5P_18k,pend6P_18k=pend6P_18k,pend7P_18k=pend7P_18k,pend8P_18k=pend8P_18k,pend10P_18k=pend10P_18k,pend11P_18k=pend11P_18k,pend12P_18k=pend12P_18k,
-                pend4P_19k=pend4P_19k,pend5P_19k=pend5P_19k,pend6P_19k=pend6P_19k,pend7P_19k=pend7P_19k,pend8P_19k=pend8P_19k,pend10P_19k=pend10P_19k,pend11P_19k=pend11P_19k,pend12P_19k=pend12P_19k,
-                pend4P_20k=pend4P_20k,pend5P_20k=pend5P_20k,pend6P_20k=pend6P_20k,pend7P_20k=pend7P_20k,pend8P_20k=pend8P_20k,pend10P_20k=pend10P_20k,pend11P_20k=pend11P_20k,pend12P_20k=pend12P_20k)
-
+               pend4P_18k=pend4P_18k,pend5P_18k=pend5P_18k,pend6P_18k=pend6P_18k,pend7P_18k=pend7P_18k,pend8P_18k=pend8P_18k,pend10P_18k=pend10P_18k,pend11P_18k=pend11P_18k,pend12P_18k=pend12P_18k,
+               pend4P_19k=pend4P_19k,pend5P_19k=pend5P_19k,pend6P_19k=pend6P_19k,pend7P_19k=pend7P_19k,pend8P_19k=pend8P_19k,pend10P_19k=pend10P_19k,pend11P_19k=pend11P_19k,pend12P_19k=pend12P_19k,
+               pend4P_20k=pend4P_20k,pend5P_20k=pend5P_20k,pend6P_20k=pend6P_20k,pend7P_20k=pend7P_20k,pend8P_20k=pend8P_20k,pend10P_20k=pend10P_20k,pend11P_20k=pend11P_20k,pend12P_20k=pend12P_20k)
 list_k <- lapply(list_k, change_pend_names)
 list_k <- lapply(list_k, change_POSIX)
 
@@ -189,47 +151,6 @@ pend10P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_10P_06122020.csv
 pend11P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_11P_06122020.csv", skip=1, header =T)[ ,1:4]
 pend12P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_12P_06122020.csv", skip=1, header =T)[ ,1:4]
 
-# Add in column "Pendant_ID"
-pend4P_17u$Pendant_ID<-"4P"
-pend5P_17u$Pendant_ID<-"5P"
-pend6P_17u$Pendant_ID<-"6P"
-pend7P_17u$Pendant_ID<-"7P"
-pend8P_17u$Pendant_ID<-"8P"
-pend9P_17u$Pendant_ID<-"9P"
-pend10P_17u$Pendant_ID<-"10P"
-pend11P_17u$Pendant_ID<-"11P"
-pend12P_17u$Pendant_ID<-"12P"
-
-pend4P_18u$Pendant_ID<-"4P"
-pend5P_18u$Pendant_ID<-"5P"
-pend6P_18u$Pendant_ID<-"6P"
-pend7P_18u$Pendant_ID<-"7P"
-pend8P_18u$Pendant_ID<-"8P"
-pend9P_18u$Pendant_ID<-"9P"
-pend10P_18u$Pendant_ID<-"10P"
-pend11P_18u$Pendant_ID<-"11P"
-pend12P_18u$Pendant_ID<-"12P"
-
-pend4P_19u$Pendant_ID<-"4P"
-pend5P_19u$Pendant_ID<-"5P"
-pend6P_19u$Pendant_ID<-"6P"
-pend7P_19u$Pendant_ID<-"7P"
-pend8P_19u$Pendant_ID<-"8P"
-pend9P_19u$Pendant_ID<-"9P"
-pend10P_19u$Pendant_ID<-"10P"
-pend11P_19u$Pendant_ID<-"11P"
-pend12P_19u$Pendant_ID<-"12P"
-
-pend4P_20u$Pendant_ID<-"4P"
-pend5P_20u$Pendant_ID<-"5P"
-pend6P_20u$Pendant_ID<-"6P"
-pend7P_20u$Pendant_ID<-"7P"
-pend8P_20u$Pendant_ID<-"8P"
-pend9P_20u$Pendant_ID<-"9P"
-pend10P_20u$Pendant_ID<-"10P"
-pend11P_20u$Pendant_ID<-"11P"
-pend12P_20u$Pendant_ID<-"12P"
-
 #Manually change 10p column names (they don't match the names of the others)
 names(pend10P_17u)[names(pend10P_17u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
 names(pend10P_17u)[names(pend10P_17u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
@@ -240,7 +161,8 @@ names(pend10P_19u)[names(pend10P_19u)=="Intensity..lum.ft...LGR.S.N..10747441..S
 names(pend10P_20u)[names(pend10P_20u)=="Temp...C..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
 names(pend10P_20u)[names(pend10P_20u)=="Intensity..Lux..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
 
-#List all files so that functions can be applied
+# Apply functions
+add_id_col()
 list_u <- list(pend4P_17u=pend4P_17u,pend5P_17u=pend5P_17u,pend6P_17u=pend6P_17u,pend7P_17u=pend7P_17u,pend8P_17u=pend8P_17u,pend9P_17u=pend9P_17u,pend10P_17u=pend10P_17u,pend11P_17u=pend11P_17u,pend12P_17u=pend12P_17u,
                   pend4P_18u=pend4P_18u,pend5P_18u=pend5P_18u,pend6P_18u=pend6P_18u,pend7P_18u=pend7P_18u,pend8P_18u=pend8P_18u,pend10P_18u=pend10P_18u,pend11P_18u=pend11P_18u,pend12P_18u=pend12P_18u,
                   pend4P_19u=pend4P_19u,pend5P_19u=pend5P_19u,pend6P_19u=pend6P_19u,pend7P_19u=pend7P_19u,pend8P_19u=pend8P_19u,pend10P_19u=pend10P_19u,pend11P_19u=pend11P_19u,pend12P_19u=pend12P_19u,
@@ -249,7 +171,7 @@ list_u <- list(pend4P_17u=pend4P_17u,pend5P_17u=pend5P_17u,pend6P_17u=pend6P_17u
 list_u <- lapply(list_u, change_pend_names)
 list_u <- lapply(list_u, change_POSIX)
 
-# combine UMBS pendant files for 2017 and 2018
+# Combine UMBS pendant files for 2017 and 2018
 pend17u<-rbind(list_u$pend4P_17u,list_u$pend5P_17u,list_u$pend6P_17u,list_u$pend7P_17u,list_u$pend8P_17u,list_u$pend9P_17u,list_u$pend10P_17u,list_u$pend11P_17u,list_u$pend12P_17u) 
 pend18u<-rbind(list_u$pend4P_18u,list_u$pend5P_18u,list_u$pend6P_18u,list_u$pend7P_18u,list_u$pend8P_18u,list_u$pend9P_18u,list_u$pend10P_18u,list_u$pend11P_18u,list_u$pend12P_18u)
 pend19u<-rbind(list_u$pend4P_19u,list_u$pend5P_19u,list_u$pend6P_19u,list_u$pend7P_19u,list_u$pend8P_19u,list_u$pend9P_19u,list_u$pend10P_19u,list_u$pend11P_19u,list_u$pend12P_19u)
