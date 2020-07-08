@@ -52,6 +52,7 @@ add_id_col <- function(df)
     }
 }
 
+#Remove columns from paired sensors
 remove_col <- function(df,name){
   vec <- which(names(df) %in% name)
   df = df[,-vec]
