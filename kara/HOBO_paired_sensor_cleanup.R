@@ -53,21 +53,11 @@ KBS_1_2018 <- merge(KBS_1H_2018, KBS_1U_2018, by="Date.Time..GMT.04.00", all.x=T
 KBS_1_2019 <- merge(KBS_1H_2019, KBS_1U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_1_2020 <- merge(KBS_1H_2020, KBS_1U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
-# Rename columns to match manually curated data
-KBS_1_1516$X<-NULL
-KBS_1_2017$X..x<-NULL
-KBS_1_2017$X..y<-NULL
-KBS_1_2018$X..x<-NULL
-KBS_1_2018$X..y<-NULL
-KBS_1_2019$X..x<-NULL
-KBS_1_2019$X..y<-NULL
-KBS_1_2020$X..x<-NULL
-KBS_1_2020$X..y<-NULL
-
 #Apply functions
 list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS_1_2018, KBS_1_2019=KBS_1_2019, KBS_1_2020=KBS_1_2020)
 list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
+list_pairk1 <- lapply(list_pairk1, remove_col, name=c('X', 'X..x', 'X..y'))
 
 #Write csv files
 write.csv(list_pairk1$KBS_1_1516, file="L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1_1516.csv")
@@ -105,21 +95,11 @@ KBS_2_2018 <- merge(KBS_2H_2018, KBS_2U_2018, by="Date.Time..GMT.04.00", all.x=T
 KBS_2_2019 <- merge(KBS_2H_2019, KBS_2U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_2_2020 <- merge(KBS_2H_2020, KBS_2U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
-#Rename columns to match manually curated data
-KBS_2_1516$X<-NULL
-KBS_2_2017$X..x<-NULL
-KBS_2_2017$X..y<-NULL
-KBS_2_2018$X..x<-NULL
-KBS_2_2018$X..y<-NULL
-KBS_2_2019$X..x<-NULL
-KBS_2_2019$X..y<-NULL
-KBS_2_2020$X..x<-NULL
-KBS_2_2020$X..y<-NULL
-
 #Apply functions
 list_pairk2 <- list(KBS_2_1516=KBS_2_1516, KBS_2_2017=KBS_2_2017, KBS_2_2018=KBS_2_2018, KBS_2_2019=KBS_2_2019, KBS_2_2020=KBS_2_2020)
 list_pairk2 <- lapply(list_pairk2, change_pair_names)
 list_pairk2 <- lapply(list_pairk2, change_POSIX)
+list_pairk2 <- lapply(list_pairk2, remove_col, name=c('X', 'X..x', 'X..y'))
 
 #Manually rename columns with different names
 names(list_pairk2$KBS_2_2017)[names(list_pairk2$KBS_2_2017)=="X2H_ambient_soil_moist_5cm"] <- "XH_ambient_soil_moisture_5cm"
@@ -163,21 +143,11 @@ KBS_3_2018 <- merge(KBS_3H_2018, KBS_3U_2018, by="Date.Time..GMT.04.00", all.x=T
 KBS_3_2019 <- merge(KBS_3H_2019, KBS_3U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_3_2020 <- merge(KBS_3H_2020, KBS_3U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
-#Rename columns to match manually curated data
-KBS_3_1516$X<-NULL
-KBS_3_2017$X..x<-NULL
-KBS_3_2017$X..y<-NULL
-KBS_3_2018$X..x<-NULL
-KBS_3_2018$X..y<-NULL
-KBS_3_2019$X..x<-NULL
-KBS_3_2019$X..y<-NULL
-KBS_3_2020$X..x<-NULL
-KBS_3_2020$X..y<-NULL
-
 #Apply functions
 list_pairk3 <- list(KBS_3_1516=KBS_3_1516, KBS_3_2017=KBS_3_2017, KBS_3_2018=KBS_3_2018, KBS_3_2019=KBS_3_2019, KBS_3_2020=KBS_3_2020)
 list_pairk3 <- lapply(list_pairk3, change_pair_names)
 list_pairk3 <- lapply(list_pairk3, change_POSIX)
+list_pairk3 <- lapply(list_pairk3, remove_col, name=c('X', 'X..x', 'X..y'))
 
 #Manually rename columns with different names
 names(list_pairk3$KBS_3_2017)[names(list_pairk3$KBS_3_2017)=="X3U_warmed_soil_temp_5cm"] <- "XU_warmed_soil_temp_5cm"
@@ -253,21 +223,11 @@ UMBS_1_2018 <- merge(UMBS_1H_2018, UMBS_1U_2018, by="Date.Time..GMT.04.00", all.
 UMBS_1_2019 <- merge(UMBS_1H_2019, UMBS_1U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_1_2020 <- merge(UMBS_1H_2020, UMBS_1U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
-# rename columns to match manually curated data
-UMBS_1_1516$X<-NULL
-UMBS_1_2017$X..x <- NULL
-UMBS_1_2017$X..y<- NULL
-UMBS_1_2018$X..x<-NULL
-UMBS_1_2018$X..y<-NULL
-UMBS_1_2019$X..x<-NULL
-UMBS_1_2019$X..y<-NULL
-UMBS_1_2020$X..x<-NULL
-UMBS_1_2020$X..y<-NULL
-
 #Apply functions
 list_pairu1 <- list(UMBS_1_1516=UMBS_1_1516, UMBS_1_2017=UMBS_1_2017, UMBS_1_2018=UMBS_1_2018, UMBS_1_2019=UMBS_1_2019, UMBS_1_2020=UMBS_1_2020)
 list_pairu1 <- lapply(list_pairu1, change_pair_names)
 list_pairu1 <- lapply(list_pairu1, change_POSIX)
+list_pairu1 <- lapply(list_pairu1, remove_col, name=c('X', 'X..x', 'X..y'))
 
 #Manually rename columns with different names
 names(list_pairu1$UMBS_1_1516)[names(list_pairu1$UMBS_1_1516)=="X1U_ambient_soil_temp_5cm"] <- "XU_ambient_soil_temp_5cm"
@@ -328,21 +288,11 @@ UMBS_2_2018 <- merge(UMBS_2H_2018, UMBS_2U_2018, by="Date.Time..GMT.04.00", all.
 UMBS_2_2019 <- merge(UMBS_2H_2019, UMBS_2U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_2_2020 <- merge(UMBS_2H_2020, UMBS_2U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
-# rename columns to match manually curated data
-UMBS_2_1516$X<-NULL
-UMBS_2_2017$X..x <- NULL
-UMBS_2_2017$X..y<- NULL
-UMBS_2_2018$X..x<-NULL
-UMBS_2_2018$X..y<-NULL
-UMBS_2_2019$X..x<-NULL
-UMBS_2_2019$X..y<-NULL
-UMBS_2_2020$X..x<-NULL
-UMBS_2_2020$X..y<-NULL
-
 #Apply functions
 list_pairu2 <- list(UMBS_2_1516=UMBS_2_1516, UMBS_2_2017=UMBS_2_2017, UMBS_2_2018=UMBS_2_2018, UMBS_2_2019=UMBS_2_2019, UMBS_2_2020=UMBS_2_2020)
 list_pairu2 <- lapply(list_pairu2, change_pair_names)
 list_pairu2 <- lapply(list_pairu2, change_POSIX)
+list_pairu2 <- lapply(list_pairu2, remove_col, name=c('X', 'X..x', 'X..y'))
 
 #Manually rename columns with different names
 names(list_pairu2$UMBS_2_1516)[names(list_pairu2$UMBS_2_1516)=="X2U_warmed_soil_temp_5cm"] <- "XU_warmed_soil_temp_5cm"
@@ -406,21 +356,11 @@ UMBS_3_2018 <- merge(UMBS_3H_2018, UMBS_3U_2018, by="Date.Time..GMT.04.00", all.
 UMBS_3_2019 <- merge(UMBS_3H_2019, UMBS_3U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_3_2020 <- merge(UMBS_3H_2020, UMBS_3U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
-#Rename columns to match manually curated data
-UMBS_3_1516$X<-NULL
-UMBS_3_2017$X..x <- NULL
-UMBS_3_2017$X..y<- NULL
-UMBS_3_2018$X..x<-NULL
-UMBS_3_2018$X..y<-NULL
-UMBS_3_2019$X..x<-NULL
-UMBS_3_2019$X..y<-NULL
-UMBS_3_2020$X..x<-NULL
-UMBS_3_2020$X..y<-NULL
-
 #Apply functions
 list_pairu3 <- list(UMBS_3_1516=UMBS_3_1516, UMBS_3_2017=UMBS_3_2017, UMBS_3_2018=UMBS_3_2018, UMBS_3_2019=UMBS_3_2019, UMBS_3_2020=UMBS_3_2020)
 list_pairu3 <- lapply(list_pairu3, change_pair_names)
 list_pairu3 <- lapply(list_pairu3, change_POSIX)
+list_pairu3 <- lapply(list_pairu3, remove_col, name=c('X', 'X..x', 'X..y'))
 
 #Create csv files for each year
 write.csv(list_pairu3$UMBS_3_1516, file="L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair3_1516.csv")

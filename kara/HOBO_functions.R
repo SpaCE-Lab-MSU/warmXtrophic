@@ -51,3 +51,9 @@ add_id_col <- function(df)
       assign(i, df, envir = globalenv())
     }
 }
+
+remove_col <- function(df,name){
+  vec <- which(names(df) %in% name)
+  df = df[,-vec]
+  return(df)
+}
