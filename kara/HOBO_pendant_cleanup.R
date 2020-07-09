@@ -1,13 +1,13 @@
-# TITLE: HOBO pendant data cleanup
-# AUTHORS: Nina Lany (original), Kara Dobson (edited June 2020)
-# COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young, Kathryn Schmidt
-# DATA INPUT: Data imported as csv files from shared Google drive L0 folder
-# DATA OUTPUT: Makes the following datasets in the L1 HOBO_pendant_data folder:
+# TITLE:            HOBO pendant data cleanup
+# AUTHORS:          Nina Lany (original), Kara Dobson (edited June 2020)
+# COLLABORATORS:    Phoebe Zarnetske, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young, Kathryn Schmidt
+# DATA INPUT:       Data imported as csv files from shared Google drive L0 folder
+# DATA OUTPUT:      Makes the following datasets in the L1 HOBO_pendant_data folder:
     ## KBS_combined:        KBS HOBO pendant data from 2015-2020
     ## UMBS_combined:       UMBS HOBO pendant data from 2015-2020
     ## Also creates csv files for each year separately (i.e KBS_2017)
-# PROJECT: warmXtrophic
-# DATE: 2018
+# PROJECT:          warmXtrophic
+# DATE:             2018 (initiated)
     ## KD edit June 2020: Updated script to insert 2019 and 2020 data & functions
 
 
@@ -33,7 +33,7 @@ for (package in c("tidyverse", "weathermetrics")) {
 }
 
 #************************
-####** DATA IMPORT **####
+###*** DATA IMPORT ***###
 #************************
 
 ### ***KBS*** ###
@@ -181,16 +181,14 @@ pend18u$Site<-"UMBS"
 pend19u$Site<-"UMBS"
 pend20u$Site<-"UMBS"
 
-#Create csv files for each year
-write.csv(pend17u, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_2017.csv")
-write.csv(pend18u, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_2018.csv")
-write.csv(pend19u, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_2019.csv")
-write.csv(pend20u, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_2020.csv")
-
 # merge UMBS HOBO data from all years
 diff1718u <- anti_join(pend18u, pend17u, by = "Date_Time")
 diff1819u <- anti_join(pend19u, pend18u, by = "Date_Time")
 diff1920u <- anti_join(pend20u, pend19u, by = "Date_Time")
 
 pendu <- rbind(pend17u, diff1718u, diff1819u, diff1920u)
-write.csv(pendu, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_combined.csv")
+write.csv(pendu, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv") 
+#example of RData file:
+save(pendu, file="L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.RData")
+# to load those in:
+load("UMBS_HOBOpendant_L1.RData")
