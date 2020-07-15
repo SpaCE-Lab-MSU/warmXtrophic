@@ -11,7 +11,7 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets4', 'tinytex')) {
 }
 
 # Find the file you want to import into R ==============================================================
-# Ideally I would do this directly from Google FileStream (don't have on computer) or from the
+# Ideally I would do this directly from Google FileStream (don't have on my computer) or from the
 # shared folder online, but for now I am downloading the desired files from the shared folder onto
 # my desktop to be called into R
 
@@ -26,10 +26,15 @@ file.choose() #this will open up a window on your computer so that you can navig
 
 
 # Import data files and set working directory =============================================================
+
 # Read in the PAR data
 PAR2019 <- read.csv("/Users/moriahyoung/Downloads/umbs_par_2019.csv")
+
 # Read in the Plant Composition data
 PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv")
+
+# Read in the plot key csv
+PlotKey <- read.csv("/Users/moriahyoung/Downloads/plot.csv")
 
 # Get these data frames ready to work with ===============================================================
 # For some reason when the this dataset is read in, there are extra columns - get rid of these:
@@ -83,11 +88,14 @@ View(AbsoluteCover)
 PARpc <- full_join(PAR, AbsoluteCover, by = c("Date", "Plot"))
 View(PARpc)
 
+PAR_PC <- full_join(PARpc, PlotKey, by = c("Plot" = "plot"), na.rm = TRUE)
+View(PAR_PC)
+
 # Plot PAR vs. Absolute Cover per plot per site (array of 24 plots per Site), through time
 
 par(mfrow = c(2,2)) 
-for(i in unique(PARpc$Date)){
-        p <- subset(PARpc, Date == i)
+for(i in unique(PAR_PC$Date)){
+        p <- subset(PAR_PC, Date == i)
         plot(p$Average_Ground ~ p$Cover, 
              xlab = "Absolute Percent Cover", ylab = "Avg Ground PAR",
              main = i,
@@ -95,7 +103,6 @@ for(i in unique(PARpc$Date)){
              pch = 19)
         text(p$Average_Ground ~ p$Cover, labels = Plot, data = PARpc, cex = 0.9, font = 2, pos = 3)
 }
-# Next steps: go back towards the beginning and add the plot key information. Combine this with the
-# percent cover data. I want to do this so we can visually look at the differences btw warming and ambient 
-# plot and PAR measurements when graphing. Also need to figure out why the actual date isn't showing up 
-# in the title of the plot 
+# Next steps: I want to visually look at the differences btw warming and ambient plot and PAR 
+# measurements when graphing. Also need to figure out why the actual date isn't showing up 
+# in the title of the plot.
