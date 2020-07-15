@@ -113,6 +113,9 @@ KBS_3_2018 <- merge(KBS_3H_2018, KBS_3U_2018, by="Date.Time..GMT.04.00", all.x=T
 KBS_3_2019 <- merge(KBS_3H_2019, KBS_3U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_3_2020 <- merge(KBS_3H_2020, KBS_3U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
+#Fix the outlier values for 2015
+KBS_3_1516 <- KBS_3_1516 %>% dplyr::na_if(-888.88)
+
 #Apply functions
 list_pairk3 <- list(KBS_3_1516=KBS_3_1516, KBS_3_2017=KBS_3_2017, KBS_3_2018=KBS_3_2018, KBS_3_2019=KBS_3_2019, KBS_3_2020=KBS_3_2020)
 list_pairk3 <- lapply(list_pairk3, change_pair_names)
