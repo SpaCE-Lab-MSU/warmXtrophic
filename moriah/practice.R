@@ -27,18 +27,11 @@ PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv")
 # to add further plot information
 PlotKey <- read.csv("/Users/moriahyoung/Downloads/plot.csv")
 
-# Data Checks ==================================================================================
-str(PC)
-names(PC)
-
-str(PlotKey)
-names(PlotKey)
-
 # Join the two data frames together and create a new data frame called "PlantComp" ===================
 
 PlantComp <- full_join(PC, PlotKey, by = c("Plot" = "plot"), na.rm = TRUE)
 
-# Convert date column to date class ============================================================
+# Convert date column to date class ===================================================================
 PlantComp$Date <- as.Date(PlantComp$Date,
                           format = "%m/%d/%y")
 
@@ -48,6 +41,7 @@ class(PlantComp$Date)
 # view results and other desired data checks
 head(PlantComp$Date)
 names(PlantComp)
+str(PlantComp)
 
 # This was my first attempt when I subsetted the data and had a string of literals =====================
 # I want to look at the percent cover of the species Cest in plot B2 over one growing season and plot its 
@@ -63,26 +57,26 @@ ggplot(data = CestB2, aes(x = Date, y = Cover)) +
 
 # Let's create a function =========================================================================
 # This function will select a certain species in a single plot and graph it's cover over time
+# I had a lot of trouble creating this function to work, but someone on StackOverFlow told me, 
+# "This is yet another issue of scoping variables with the same names in different environments. 
+# The easiest way to bypass that is to rename the variables internally before applying the filter. Example:
 
 perc_cover_plot <- function(Species, Plot) { 
-        PlantCompSubset <- filter(PlantComp, Species == Species & Plot == Plot) 
-        plot(Cover ~ Date, data=PlantCompSubset)
-} # No matter what variables I put into this function, it returns the same graph.
+        sp <- Species
+        pl <- Plot
+        PlantCompSub <- subset(PlantComp, Species == sp & Plot == pl)
+        return(plot(Cover ~ Date, 
+                    data = PlantCompSub, 
+                    main = "2019 Percent Cover Over Time", 
+                    col = "blue", 
+                    pch = 19))
+} #this works!
 
-# same thing as above but using piping to get desired result
-perc_cover_plot2 <- function (Species, Plot) {
-        PlantComp %>% 
-        filter(Species == Species & Plot == Plot) %>% 
-        plot(Cover ~ Date)
-}
+# Is there a way to have the title change with the different plot and species every time you call the 
+# function? How could I create a function that returns a plot for each 24 plots for one species? Or a single
+# plot that has each plot graphed with each plot being a different color for a single species?
 
-# Try creating a plot using ggplot =========================================
 
-ggplot(data = PlantComp %>% 
-               filter(PlantComp, Species == "Species", Plot == "Plot"), 
-        aes(x = Date, y = Cover)) +
-        geom_point(stat = "identity", fill = "purple") +
-        labs(title = "Cest Composition in Plot B2 at UMBS",
-             subtitle = "2019",
-             x = "Date", y = "Percent Cover")
-# this doesn't work...
+
+
+
