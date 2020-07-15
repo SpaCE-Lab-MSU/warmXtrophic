@@ -69,33 +69,33 @@ AbsoluteCover <- PlantDat %>%
 View(AbsoluteCover)
 # It worked!!!!!! Although the totals don't add up to me... look into this more later
 
-# Change the dates from the AbsoluteCover to match the corresponding PAR dates so that we can combine the cover
-# and PAR data frames by date
+# Change the dates from the AbsoluteCover to match the corresponding PAR dates ===========================
+# so that we can combine the cover and PAR data frames by date
 
-AC <- mutate(AbsoluteCover,
-             NewDate = c("2020-06-04" == "2020-06-03" & "2020-06-19" == "2020-06-18" & "2020-07-12" == "2020-07-28"))
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-06-04')), 'Date'] = as.Date('2020-06-03')
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-06-19')), 'Date'] = as.Date('2020-06-18')
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-07-12')), 'Date'] = as.Date('2020-07-28')
 
-AC <- AbsoluteCover %>% 
-        mutate(Date, "2020-06-04" == "2020-06-03" & "2020-06-19" == "2020-06-18" & "2020-07-12" == "2020-07-28")
+View(AbsoluteCover)
 
-AC <- replace(
-        AbsoluteCover$Date,
-        c("2020-06-04", "2020-06-19", "2020-07-12"),
-        c("2020-06-03", "2020-06-18", "2020-07-28")
-        )
+# Combine the new data frame "AC" with the "PAR" data frame to create a new data fram "PARpc" ============
 
-View(AC) # none of these work!!
-# "2020-06-04" == "2020-06-03", "2020-06-19" == "2020-06-18", "2020-07-12" == "2020-07-28"
-
-# Combine the new data frame "AC" with the "PAR" data frame ====================================
-PARpc <- full_join(PAR, AbsoluteCover, by = "Date")
-View(PARpc) # this combines the two data frames but bc the dates aren't the same they don't combine 
-# as I would like (working on this above)
+PARpc <- full_join(PAR, AbsoluteCover, by = c("Date", "Plot"))
+View(PARpc)
 
 # Plot PAR vs. Absolute Cover per plot per site (array of 24 plots per Site), through time
 
+par(mfrow = c(2,2)) 
 for(i in unique(PARpc$Date)){
         p <- subset(PARpc, Date == i)
-        plot(p$Average_Ground ~ p$Cover, main = i)
+        plot(p$Average_Ground ~ p$Cover, 
+             xlab = "Absolute Percent Cover", ylab = "Avg Ground PAR",
+             main = i,
+             col = "blue", 
+             pch = 19)
+        text(p$Average_Ground ~ p$Cover, labels = Plot, data = PARpc, cex = 0.9, font = 2, pos = 3)
 }
-        
+# Next steps: go back towards the beginning and add the plot key information. Combine this with the
+# percent cover data. I want to do this so we can visually look at the differences btw warming and ambient 
+# plot and PAR measurements when graphing. Also need to figure out why the actual date isn't showing up 
+# in the title of the plot 
