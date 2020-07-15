@@ -14,7 +14,7 @@
 rm(list=ls())
 
 #Load packages
-for (package in c("tidyverse")) {
+for (package in c("tidyverse", "weathermetrics")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -58,6 +58,7 @@ list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS
 list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
 list_pairk1 <- lapply(list_pairk1, remove_col, name=c('X', 'X..x', 'X..y'))
+list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
 
 ############ KBS Pair 2
 #Read in H
@@ -84,6 +85,7 @@ list_pairk2 <- list(KBS_2_1516=KBS_2_1516, KBS_2_2017=KBS_2_2017, KBS_2_2018=KBS
 list_pairk2 <- lapply(list_pairk2, change_pair_names)
 list_pairk2 <- lapply(list_pairk2, change_POSIX)
 list_pairk2 <- lapply(list_pairk2, remove_col, name=c('X', 'X..x', 'X..y'))
+list_pairk2[2:4] <- lapply(list_pairk2[2:4], f_to_c)
 
 #Manually rename columns with different names
 names(list_pairk2$KBS_2_2017)[names(list_pairk2$KBS_2_2017)=="X2H_ambient_soil_moist_5cm"] <- "XH_ambient_soil_moisture_5cm"
@@ -130,6 +132,8 @@ names(list_pairk3$KBS_3_2019)[names(list_pairk3$KBS_3_2019)=="Temp...F..LGR.S.N.
 names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Water.Content..m..m...LGR.S.N..10736968..SEN.S.N..10736054..LBL..3H_ambient_soil_moistire_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
+
+list_pairk3[2:4] <- lapply(list_pairk3[2:4], f_to_c)
 
 #Create .RData file
 save(list_pairk1, list_pairk2, list_pairk3, file="L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.RData")
@@ -190,6 +194,8 @@ names(list_pairu1$UMBS_1_2018)[names(list_pairu1$UMBS_1_2018)=="Temp...F..LGR.S.
 names(list_pairu1$UMBS_1_2019)[names(list_pairu1$UMBS_1_2019)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(list_pairu1$UMBS_1_2019)[names(list_pairu1$UMBS_1_2019)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 
+list_pairu1[2:4] <- lapply(list_pairu1[2:4], f_to_c)
+
 ############ UMBS Pair 2
 #2U was not logging from 7/28/2015 through 11/24/2015, when it was launched again
 #Read in H
@@ -243,6 +249,8 @@ names(list_pairu2$UMBS_2_2019)[names(list_pairu2$UMBS_2_2019)=="Temp...F..LGR.S.
 names(list_pairu2$UMBS_2_2019)[names(list_pairu2$UMBS_2_2019)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(list_pairu2$UMBS_2_2020)[names(list_pairu2$UMBS_2_2020)=="Temp...C..LGR.S.N..10910775..SEN.S.N..10737461..LBL..2H_ambient_aim_1m."] <- "XH_ambient_air_1m"
 
+list_pairu2[2:4] <- lapply(list_pairu2[2:4], f_to_c)
+
 ############ UMBS Pair 3
 #Read in H
 UMBS_3_1516 <- read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_3.csv")[-1,]
@@ -280,6 +288,7 @@ list_pairu3 <- list(UMBS_3_1516=UMBS_3_1516, UMBS_3_2017=UMBS_3_2017, UMBS_3_201
 list_pairu3 <- lapply(list_pairu3, change_pair_names)
 list_pairu3 <- lapply(list_pairu3, change_POSIX)
 list_pairu3 <- lapply(list_pairu3, remove_col, name=c('X', 'X..x', 'X..y'))
+list_pairu3[2:4] <- lapply(list_pairu3[2:4], f_to_c)
 
 #Create .RData file
 save(list_pairu1, list_pairu2, list_pairu3, file="L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.RData")

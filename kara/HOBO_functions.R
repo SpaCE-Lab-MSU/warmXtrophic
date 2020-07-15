@@ -31,7 +31,20 @@ change_pair_names <- function(df){
   colnames(df) <- sub("^Temp.*ambient_soil_5cm.", "XU_ambient_soil_temp_5cm", colnames(df))
   colnames(df) <- sub("^Temp.*ambient_air_10cm.", "XU_ambient_air_10cm", colnames(df))
   return(df)
-  }
+}
+
+#Change 2017, 2018, and 2019 dataframes to celsius for paired sensors
+f_to_c <- function(df){
+  df[["XH_warmed_air_1m"]] <- fahrenheit.to.celsius(df[["XH_warmed_air_1m"]])
+  df[["XH_warmed_RH_1m"]] <- fahrenheit.to.celsius(df[["XH_warmed_RH_1m"]])
+  df[["XH_ambient_air_1m"]] <- fahrenheit.to.celsius(df[["XH_ambient_air_1m"]])
+  df[["XH_ambient_RH_1m"]] <- fahrenheit.to.celsius(df[["XH_ambient_RH_1m"]])
+  df[["XU_warmed_air_10cm"]] <- fahrenheit.to.celsius(df[["XU_warmed_air_10cm"]])
+  df[["XU_warmed_soil_temp_5cm"]] <- fahrenheit.to.celsius(df[["XU_warmed_soil_temp_5cm"]])
+  df[["XU_ambient_air_10cm"]] <- fahrenheit.to.celsius(df[["XU_ambient_air_10cm"]])
+  df[["XU_ambient_soil_temp_5cm"]] <- fahrenheit.to.celsius(df[["XU_ambient_soil_temp_5cm"]])
+  return(df)
+}
 
 #Change date format to POSIX format
 change_POSIX <- function(df){
