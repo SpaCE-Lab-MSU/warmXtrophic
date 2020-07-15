@@ -67,6 +67,7 @@ list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS
 list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
 list_pairk1 <- lapply(list_pairk1, remove_col, name=c('X', 'X..x', 'X..y'))
+list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
 ```
 
 These steps are then repeated for every paired sensor, at both KBS and UMBS.
@@ -77,6 +78,12 @@ names(list_pairk2$KBS_2_2017)[names(list_pairk2$KBS_2_2017)=="X2H_ambient_soil_m
 names(list_pairk2$KBS_2_2018)[names(list_pairk2$KBS_2_2018)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2019)[names(list_pairk2$KBS_2_2019)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2020)[names(list_pairk2$KBS_2_2020)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
+```
+
+Sensor 3 for KBS contains some outliers for warmed air temperature, so I remove those and replace the values with NA
+```{r}
+#Fix the outlier values for 2015
+KBS_3_1516 <- KBS_3_1516 %>% dplyr::na_if(-888.88)
 ```
 
 The data import for the U sensors at UMBS is different, due to sensors being reset.
