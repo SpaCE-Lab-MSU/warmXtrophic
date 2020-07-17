@@ -6,8 +6,11 @@
 # PROJECT: warmXtrophic
 # DATE: June 2020
 
+# Clear all existing data
+rm(list=ls())
+
 #Set wd and load in the data
-for (package in c("tidyverse")) {
+for (package in c("tidyverse","ggpubr")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -16,53 +19,38 @@ for (package in c("tidyverse")) {
 
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
-###### Paired sensor plots ######
-KBS_1 <- read_csv("L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1.csv")
-KBS_2 <- read_csv("L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair2.csv")
-KBS_3 <- read_csv("L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair3.csv")
+################### Paired sensor plots ###################
+###### KBS ######
+
+KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
+KBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair2_L1.csv")
+KBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv")
 
 ## 1H Plot ##
 test_KBS_1 <- KBS_1
 test_KBS_1$month <- format(test_KBS_1$Date_Time,format="%m")
 test_KBS_1$year <- format(test_KBS_1$Date_Time,format="%y")
 
-#Aggregate data by month and year for temps
-mean_monthly_warm1 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_1 , mean )
-mean_monthly_amb1 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_1, mean)
-mean_monthly1 <- merge(mean_monthly_amb1, mean_monthly_warm1, by=c("month", "year"))
+# Aggregate data by month and year for temps
+mean_monthly_warmk1 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_1 , mean )
+mean_monthly_ambk1 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_1, mean)
+mean_monthlyk1 <- merge(mean_monthly_ambk1, mean_monthly_warmk1, by=c("month", "year"))
 
-mean_monthly_gather1 <- mean_monthly1 %>%
+mean_monthly_gatherk1 <- mean_monthlyk1 %>%
   gather(key = "treatment",value="temp", -month, -year)
 
-#Plot the data
-ggplot(mean_monthly_gather1, aes(x = as.numeric(month), y = temp)) +
-  geom_point(aes(color = treatment, shape = year), size = 2) +
-  ylab("Air Temperature (F)") +
-  xlab("Month") +
-  theme_minimal() + theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather1$month), max(mean_monthly_gather1$month), by = 1),1))
+# Plot the data
+ggplot(mean_monthly_gatherk1, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
 
-p1 <- ggplot(mean_monthly1, aes(x = year, y = XH_warmed_air_1m)) +
-  geom_point(aes(color = month), size = 2) +
-  ylab("Warmed Air Temperature (F)") +
-  ylim(0, 100) +
-  xlab("Year") +
-  theme_minimal() +
-  theme(legend.position = "none")
-
-p2 <- ggplot(mean_monthly1, aes(x = year, y = XH_ambient_air_1m)) +
-  geom_point(aes(color = month), size = 2) +
-  ylab("Ambient Air Temperature (F)") +
-  ylim(0, 100) +
-  xlab("Year") +
-  theme_minimal()
-
-ggarrange(p1, p2, ncol = 2)
-
-ggplot(mean_monthly_gather1, aes(x = year, y = temp)) +
+ggplot(mean_monthly_gatherk1, aes(x = year, y = temp)) +
   geom_point(aes(color = treatment), size = 2) +
   ylab("Air Temperature (F)") +
-  ylim(0, 100) +
   xlab("Year") +
   theme_minimal() + 
   labs(colour = "Treatment")
@@ -74,21 +62,28 @@ test_KBS_2$month <- format(test_KBS_2$Date_Time,format="%m")
 test_KBS_2$year <- format(test_KBS_2$Date_Time,format="%y")
 
 #Aggregate data by month and year for temps
-mean_monthly_warm2 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_2 , mean )
-mean_monthly_amb2 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_2, mean)
-mean_monthly2 <- merge(mean_monthly_amb2, mean_monthly_warm2, by=c("month", "year"))
+mean_monthly_warmk2 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_2 , mean )
+mean_monthly_ambk2 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_2, mean)
+mean_monthlyk2 <- merge(mean_monthly_ambk2, mean_monthly_warmk2, by=c("month", "year"))
 
-mean_monthly_gather2 <- mean_monthly2 %>%
+mean_monthly_gatherk2 <- mean_monthlyk2 %>%
   gather(key = "treatment",value="temp", -month, -year)
 
 #Plot the data
-ggplot(mean_monthly_gather2, aes(x = as.numeric(month), y = temp)) +
-  geom_point(aes(color = treatment, shape = year), size = 2) +
-  ylab("Air Temperature (F)") +
-  xlab("Month") +
-  theme_minimal() + theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather2$month), max(mean_monthly_gather2$month), by = 1),1))
+ggplot(mean_monthly_gatherk2, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
 
+ggplot(mean_monthly_gatherk2, aes(x = year, y = temp)) +
+  geom_point(aes(color = treatment), size = 2) +
+  ylab("Air Temperature (F)") +
+  xlab("Year") +
+  theme_minimal() + 
+  labs(colour = "Treatment")
 
 ## 3H Plot ##
 #Format the dates to be in POSIXlt format
@@ -97,31 +92,129 @@ test_KBS_3$month <- format(test_KBS_3$Date_Time,format="%m")
 test_KBS_3$year <- format(test_KBS_3$Date_Time,format="%y")
 
 #Aggregate data by month and year for temps
-mean_monthly_warm3 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_3 , mean )
-mean_monthly_amb3 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_3, mean)
-mean_monthly3 <- merge(mean_monthly_amb3, mean_monthly_warm3, by=c("month", "year"))
+mean_monthly_warmk3 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_3 , mean )
+mean_monthly_ambk3 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_3, mean)
+mean_monthlyk3 <- merge(mean_monthly_ambk3, mean_monthly_warmk3, by=c("month", "year"))
 
-mean_monthly_gather3 <- mean_monthly3 %>%
+mean_monthly_gatherk3 <- mean_monthlyk3 %>%
   gather(key = "treatment",value="temp", -month, -year)
 
 #Plot the data
-ggplot(mean_monthly_gather3, aes(x = as.numeric(month), y = temp)) +
-  geom_point(aes(color = treatment, shape = year), size = 2) +
+ggplot(mean_monthly_gatherk3, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+
+ggplot(mean_monthly_gatherk3, aes(x = year, y = temp)) +
+  geom_point(aes(color = treatment), size = 2) +
   ylab("Air Temperature (F)") +
-  xlab("Month") +
-  theme_minimal() + theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather3$month), max(mean_monthly_gather3$month), by = 1),1))
+  xlab("Year") +
+  theme_minimal() + 
+  labs(colour = "Treatment")
+
+
+###### UMBS ######
+UMBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
+UMBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair2_L1.csv")
+UMBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv")
+
+## 1H Plot ##
+test_UMBS_1 <- UMBS_1
+test_UMBS_1$month <- format(test_UMBS_1$Date_Time,format="%m")
+test_UMBS_1$year <- format(test_UMBS_1$Date_Time,format="%y")
+
+# Aggregate data by month and year for temps
+mean_monthly_warmu1 <- aggregate( XH_warmed_air_1m ~ month + year , test_UMBS_1 , mean )
+mean_monthly_ambu1 <- aggregate( XH_ambient_air_1m ~ month + year, test_UMBS_1, mean)
+mean_monthlyu1 <- merge(mean_monthly_ambu1, mean_monthly_warmu1, by=c("month", "year"))
+
+mean_monthly_gatheru1 <- mean_monthlyu1 %>%
+  gather(key = "treatment",value="temp", -month, -year)
+
+# Plot the data
+ggplot(mean_monthly_gatheru1, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+
+ggplot(mean_monthly_gatheru1, aes(x = year, y = temp)) +
+  geom_point(aes(color = treatment), size = 2) +
+  ylab("Air Temperature (F)") +
+  xlab("Year") +
+  theme_minimal() + 
+  labs(colour = "Treatment")
+
+## 2H Plot ##
+#Format the dates to be in POSIXlt format
+test_UMBS_2 <- UMBS_2
+test_UMBS_2$month <- format(test_UMBS_2$Date_Time,format="%m")
+test_UMBS_2$year <- format(test_UMBS_2$Date_Time,format="%y")
+
+#Aggregate data by month and year for temps
+mean_monthly_warmu2 <- aggregate( XH_warmed_air_1m ~ month + year , test_UMBS_2 , mean )
+mean_monthly_ambu2 <- aggregate( XH_ambient_air_1m ~ month + year, test_UMBS_2, mean)
+mean_monthlyu2 <- merge(mean_monthly_ambu2, mean_monthly_warmu2, by=c("month", "year"))
+
+mean_monthly_gatheru2 <- mean_monthlyu2 %>%
+  gather(key = "treatment",value="temp", -month, -year)
+
+#Plot the data
+ggplot(mean_monthly_gatheru2, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+
+ggplot(mean_monthly_gatheru2, aes(x = year, y = temp)) +
+  geom_point(aes(color = treatment), size = 2) +
+  ylab("Air Temperature (F)") +
+  xlab("Year") +
+  theme_minimal() + 
+  labs(colour = "Treatment")
+
+## 3H Plot ##
+#Format the dates to be in POSIXlt format
+test_UMBS_3 <- UMBS_3
+test_UMBS_3$month <- format(test_UMBS_3$Date_Time,format="%m")
+test_UMBS_3$year <- format(test_UMBS_3$Date_Time,format="%y")
+
+#Aggregate data by month and year for temps
+mean_monthly_warmu3 <- aggregate( XH_warmed_air_1m ~ month + year , test_UMBS_3 , mean )
+mean_monthly_ambu3 <- aggregate( XH_ambient_air_1m ~ month + year, test_UMBS_3, mean)
+mean_monthlyu3 <- merge(mean_monthly_ambu3, mean_monthly_warmu3, by=c("month", "year"))
+
+mean_monthly_gatheru3 <- mean_monthlyu3 %>%
+  gather(key = "treatment",value="temp", -month, -year)
+
+#Plot the data
+ggplot(mean_monthly_gatheru3, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+
+ggplot(mean_monthly_gatheru3, aes(x = year, y = temp)) +
+  geom_point(aes(color = treatment), size = 2) +
+  ylab("Air Temperature (F)") +
+  xlab("Year") +
+  theme_minimal() + 
+  labs(colour = "Treatment")
+
 
 
 ###### Nina's old plots ######
-KBS_combined <- read.csv("L1/HOBO_data/HOBO_pendant_data/KBS/KBS_combined.csv")
-UMBS_combined <- read.csv("L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_combined.csv")
-Pend1P_1520k<-read.csv("L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair1_1516.csv", header =T)
-Pend2P_1520k<-read.csv("L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair2_1516.csv", header =T)
-Pend3P_1520k<-read.csv("L1/HOBO_data/HOBO_U_H_data/KBS/KBS_pair3_1516.csv", header =T)
-Pend1P_1520u<-read.csv("L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair1_1516.csv", header =T)
-Pend2P_1520u<-read.csv("L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair2_1516.csv", header =T)
-Pend3P_1520u<-read.csv("L1/HOBO_data/HOBO_U_H_data/UMBS/UMBS_pair3_1516.csv", header =T)
+KBS_combined <- read_csv("L1/HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv")
+UMBS_combined <- read_csv("L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv")
 
 ## From pendant clean up script
 ggplot(KBS_combined, aes(x = Date_Time, y = Temp_F_XP_air_1m, color = Pendant_ID)) +
@@ -132,24 +225,21 @@ ggplot(KBS_combined, aes(x = Date_Time, y = Temp_F_XP_air_1m, color = Pendant_ID
   theme_gray() + theme(legend.position = "bottom")
 
 ggplot(UMBS_combined, aes(x = Date_Time, y = Temp_F_XP_air_1m, color = Pendant_ID)) +
-  facet_grid(. ~ Pendant_ID) +
-  # geom_errorbar(aes(ymin=mean_RFU-sd, ymax=mean_RFU+sd))+
+  facet_grid(Pendant_ID ~ .) +
   geom_point(alpha=.5, size = 2) +
-  # geom_line(aes(group = sensitivity)) +
   ylab("Temperature F") +
   theme_minimal() + theme(legend.position = "bottom")
 
 ## KBS average chamber temp per month, by year
 test.pendk<-KBS_combined
 head(test.pendk)
-test.pendk$Month <- months(test.pendk$Date_Time)
+test.pendk$Month <- format(test.pendk$Date_Time,format="%m")
 test.pendk$Year <- format(test.pendk$Date_Time,format="%y")
 mean_monthlyk <- aggregate( Temp_F_XP_air_1m ~ Month + Year , test.pendk , mean )
-mean_monthlyk$Month <- factor(mean_monthlyk$Month, levels =c("January","February","March","April","May","June","July","August","September","October","November","December"))
 head(mean_monthlyk)
 ggplot(mean_monthlyk, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
   geom_point() +
-  ylab("Temperature F") +
+  ylab("Temperature °C") +
   theme_minimal() + theme(legend.position = "bottom")
 
 ## KBS mean temp of the plot, per month, per year 
@@ -161,8 +251,7 @@ mean_monthly_plotk$Month <- factor(mean_monthly_plotk$Month, levels =c("January"
 head(mean_monthly_plotk)
 ggplot(mean_monthly_plotk, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
   geom_point() +
-  #   geom_line(aes(group = sensitivity)) +
-  ylab("Temperature F") +
+  ylab("Temperature °C") +
   theme_minimal() + theme(legend.position = "bottom")
 
 ## UMBS average chamber temp per month, by year
@@ -174,7 +263,7 @@ mean_monthlyu$Month <- factor(mean_monthlyu$Month, levels =c("January","February
 head(mean_monthlyu)
 ggplot(mean_monthlyu, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
   geom_point() +
-  ylab("Temperature F") +
+  ylab("Temperature °C") +
   theme_minimal() + theme(legend.position = "bottom")
 
 ## UMBS mean temp of the plot, per month, per year 
@@ -186,7 +275,7 @@ mean_monthly_plotu$Month <- factor(mean_monthly_plotu$Month, levels =c("January"
 head(mean_monthly_plotu)
 ggplot(mean_monthly_plotu, aes(x = Month, y = Temp_F_XP_air_1m, color = Year)) +
   geom_point() +
-  ylab("Temperature F") +
+  ylab("Temperature °C") +
   theme_minimal() + theme(legend.position = "bottom")
 
 ## For KBS paired sensors from 2015/2016

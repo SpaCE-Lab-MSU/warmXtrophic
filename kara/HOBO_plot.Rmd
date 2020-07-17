@@ -1,7 +1,7 @@
 ---
 title: "HOBO Data Plots"
 author: "Kara Dobson"
-date: "6/23/2020"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
 
@@ -20,100 +20,69 @@ for (package in c("tidyverse", "ggpubr")) {
 
 ```{r, include = FALSE}
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
-KBS_1 <- read_csv("L0/KBS/sensor_data/KBS_1.csv")
-KBS_2 <- read_csv("L0/KBS/sensor_data/KBS_2.csv")
-KBS_3 <- read_csv("L0/KBS/sensor_data/KBS_3.csv")
+KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
+KBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair2_L1.csv")
+KBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv")
 
-KBS_1$Date_Time <- as.POSIXlt(KBS_1$Date_Time, format = "%m/%d/%y %H:%M")
 test_KBS_1 <- KBS_1
 test_KBS_1$month <- format(test_KBS_1$Date_Time,format="%m")
 test_KBS_1$year <- format(test_KBS_1$Date_Time,format="%y")
-mean_monthly_warm1 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_1 , mean )
-mean_monthly_amb1 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_1, mean)
-mean_monthly1 <- merge(mean_monthly_amb1, mean_monthly_warm1, by=c("month", "year"))
-mean_monthly_gather1 <- mean_monthly1 %>%
+mean_monthly_warmk1 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_1 , mean )
+mean_monthly_ambk1 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_1, mean)
+mean_monthlyk1 <- merge(mean_monthly_ambk1, mean_monthly_warmk1, by=c("month", "year"))
+mean_monthly_gatherk1 <- mean_monthlyk1 %>%
   gather(key = "treatment",value="temp", -month, -year)
 
-KBS_2$Date_Time <- as.POSIXlt(KBS_2$Date_Time, format = "%m/%d/%y %H:%M")
 test_KBS_2 <- KBS_2
 test_KBS_2$month <- format(test_KBS_2$Date_Time,format="%m")
 test_KBS_2$year <- format(test_KBS_2$Date_Time,format="%y")
-mean_monthly_warm2 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_2 , mean )
-mean_monthly_amb2 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_2, mean)
-mean_monthly2 <- merge(mean_monthly_amb2, mean_monthly_warm2, by=c("month", "year"))
-mean_monthly_gather2 <- mean_monthly2 %>%
+mean_monthly_warmk2 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_2 , mean )
+mean_monthly_ambk2 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_2, mean)
+mean_monthlyk2 <- merge(mean_monthly_ambk2, mean_monthly_warmk2, by=c("month", "year"))
+mean_monthly_gatherk2 <- mean_monthlyk2 %>%
   gather(key = "treatment",value="temp", -month, -year)
 
-KBS_3$Date_Time <- as.POSIXlt(KBS_3$Date_Time, format = "%m/%d/%y %H:%M")
 test_KBS_3 <- KBS_3
 test_KBS_3$month <- format(test_KBS_3$Date_Time,format="%m")
 test_KBS_3$year <- format(test_KBS_3$Date_Time,format="%y")
-mean_monthly_warm3 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_3 , mean )
-mean_monthly_amb3 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_3, mean)
-mean_monthly3 <- merge(mean_monthly_amb3, mean_monthly_warm3, by=c("month", "year"))
-mean_monthly_gather3 <- mean_monthly3 %>%
+mean_monthly_warmk3 <- aggregate( XH_warmed_air_1m ~ month + year , test_KBS_3 , mean )
+mean_monthly_ambk3 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_3, mean)
+mean_monthlyk3 <- merge(mean_monthly_ambk3, mean_monthly_warmk3, by=c("month", "year"))
+mean_monthly_gatherk3 <- mean_monthlyk3 %>%
   gather(key = "treatment",value="temp", -month, -year)
 ```
 
-# 1. These plots look at air temperatures for each month, each year between warmed and ambient plots - There's probably a better way to present this
+## These plots average the chamber temperatures for each month, each year per treatment
 
 ### 1H sensor
-```{r, echo = FALSE}
-ggplot(mean_monthly_gather1, aes(x = as.numeric(month), y = temp)) +
-  geom_point(aes(color = treatment, shape = year), size = 2) +
-  ylab("Air Temperature (F)") +
-  xlab("Month") +
-  theme_minimal() + theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather1$month), max(mean_monthly_gather1$month), by = 1),1))
+```{r, echo = FALSE, message=FALSE}
+ggplot(mean_monthly_gatherk1, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
 ```
 
 ### 2H sensor
-```{r, echo = FALSE}
-ggplot(mean_monthly_gather2, aes(x = as.numeric(month), y = temp)) +
-  geom_point(aes(color = treatment, shape = year), size = 2) +
-  ylab("Air Temperature (F)") +
-  xlab("Month") +
-  theme_minimal() + theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather2$month), max(mean_monthly_gather2$month), by = 1),1))
+```{r, echo = FALSE, message=FALSE}
+ggplot(mean_monthly_gatherk2, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
 ```
 
 ### 3H sensor
-```{r, echo = FALSE}
-ggplot(mean_monthly_gather3, aes(x = as.numeric(month), y = temp)) +
-  geom_point(aes(color = treatment, shape = year), size = 2) +
-  ylab("Air Temperature (F)") +
-  xlab("Month") +
-  theme_minimal() + theme(legend.position = "bottom") +
-  scale_x_continuous(breaks = round(seq(min(mean_monthly_gather3$month), max(mean_monthly_gather3$month), by = 1),1))
-```
-
-# 2. These plots also look at air temperatures for each month, each year, but only for the 1H sensor
-```{r, echo = FALSE}
-p1 <- ggplot(mean_monthly1, aes(x = year, y = XH_warmed_air_1m)) +
-  geom_point(aes(color = month), size = 2) +
-  ylab("Warmed Air Temperature (F)") +
-  ylim(0, 100) +
-  xlab("Year") +
-  theme_minimal() +
-  theme(legend.position = "none")
-
-p2 <- ggplot(mean_monthly1, aes(x = year, y = XH_ambient_air_1m)) +
-  geom_point(aes(color = month), size = 2) +
-  ylab("Ambient Air Temperature (F)") +
-  ylim(0, 100) +
-  xlab("Year") +
-  theme_minimal()
-
-ggarrange(p1, p2, ncol = 2)
-```
-
-# 3. This plot compares the warmed and ambient treatment groups' air temperatures for each month, each year for the 1H sensor
-```{r, echo = FALSE}
-ggplot(mean_monthly_gather1, aes(x = year, y = temp)) +
-  geom_point(aes(color = treatment), size = 2) +
-  ylab("Air Temperature (F)") +
-  ylim(0, 100) +
-  xlab("Year") +
+```{r, echo = FALSE, message=FALSE}
+ggplot(mean_monthly_gatherk3, aes(x = as.numeric(month), y = temp)) +
+  geom_point(aes(col = treatment, shape = year), size = 1) +
+  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+              fill = "grey90") +
+  labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  labs(colour = "Treatment")
+  theme(legend.position = "bottom")
 ```
