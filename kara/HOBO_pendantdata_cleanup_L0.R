@@ -83,6 +83,7 @@ list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k
                pend4P_20k=pend4P_20k,pend5P_20k=pend5P_20k,pend6P_20k=pend6P_20k,pend7P_20k=pend7P_20k,pend8P_20k=pend8P_20k,pend10P_20k=pend10P_20k,pend11P_20k=pend11P_20k,pend12P_20k=pend12P_20k)
 list_k <- lapply(list_k, change_pend_names)
 list_k <- lapply(list_k, change_POSIX)
+list_k[1:25] <- lapply(list_k[1:25], f_to_c2)
 
 # Combine KBS pendant files
 pend17k<-rbind(list_k$pend4P_17k,list_k$pend5P_17k,list_k$pend6P_17k,list_k$pend7P_17k,list_k$pend8P_17k,list_k$pend9P_17k,list_k$pend10P_17k,list_k$pend11P_17k,list_k$pend12P_17k)
@@ -159,6 +160,7 @@ list_u <- list(pend4P_17u=pend4P_17u,pend5P_17u=pend5P_17u,pend6P_17u=pend6P_17u
 
 list_u <- lapply(list_u, change_pend_names)
 list_u <- lapply(list_u, change_POSIX)
+list_u[1:25] <- lapply(list_u[1:25], f_to_c2)
 
 # Combine UMBS pendant files for 2017 and 2018
 pend17u<-rbind(list_u$pend4P_17u,list_u$pend5P_17u,list_u$pend6P_17u,list_u$pend7P_17u,list_u$pend8P_17u,list_u$pend9P_17u,list_u$pend10P_17u,list_u$pend11P_17u,list_u$pend12P_17u) 

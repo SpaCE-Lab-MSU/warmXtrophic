@@ -46,6 +46,12 @@ f_to_c <- function(df){
   return(df)
 }
 
+#Change 2020 dataframe to celsius for pendant sensors
+f_to_c2 <- function(df){
+  df[["Temp_F_XP_air_1m"]] <- fahrenheit.to.celsius(df[["Temp_F_XP_air_1m"]])
+  return(df)
+}
+
 #Change date format to POSIX format
 change_POSIX <- function(df){
   df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],tryFormats = c("%m/%d/%y %I:%M:%S %p", "%m/%d/%Y %H:%M"), tz="UTC")
