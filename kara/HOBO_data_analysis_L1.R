@@ -35,6 +35,7 @@ KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
 
 KBS_season <- KBS_season %>%
   filter(month > "03") %>%
+  filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
@@ -50,7 +51,7 @@ ggplot(KBS_avg, aes(x = year, y = average_temp, fill = treatment)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
                 position = position_dodge(0.9)) +
-  ylim(0, 20) +
+  ylim(0, 30) +
   scale_fill_manual(values=c('grey90','grey60'))+
   theme_minimal() +
   labs(x="Year", y = "Average Temperature (°C)")
