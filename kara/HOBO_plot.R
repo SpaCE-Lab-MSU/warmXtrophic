@@ -46,7 +46,8 @@ ggplot(mean_monthly_gatherk1, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 
 ggplot(mean_monthly_gatherk1, aes(x = year, y = temp)) +
   geom_point(aes(color = treatment), size = 2) +
@@ -76,7 +77,8 @@ ggplot(mean_monthly_gatherk2, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 
 ggplot(mean_monthly_gatherk2, aes(x = year, y = temp)) +
   geom_point(aes(color = treatment), size = 2) +
@@ -106,7 +108,8 @@ ggplot(mean_monthly_gatherk3, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 
 ggplot(mean_monthly_gatherk3, aes(x = year, y = temp)) +
   geom_point(aes(color = treatment), size = 2) +
@@ -141,7 +144,8 @@ ggplot(mean_monthly_gatheru1, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 
 ggplot(mean_monthly_gatheru1, aes(x = year, y = temp)) +
   geom_point(aes(color = treatment), size = 2) +
@@ -171,7 +175,8 @@ ggplot(mean_monthly_gatheru2, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 
 ggplot(mean_monthly_gatheru2, aes(x = year, y = temp)) +
   geom_point(aes(color = treatment), size = 2) +
@@ -201,7 +206,8 @@ ggplot(mean_monthly_gatheru3, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 
 ggplot(mean_monthly_gatheru3, aes(x = year, y = temp)) +
   geom_point(aes(color = treatment), size = 2) +

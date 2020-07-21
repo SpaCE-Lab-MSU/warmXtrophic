@@ -8,7 +8,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-for (package in c("tidyverse", "ggpubr")) {
+for (package in c("tidyverse", "plotrix")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -50,9 +50,38 @@ mean_monthly_ambk3 <- aggregate( XH_ambient_air_1m ~ month + year, test_KBS_3, m
 mean_monthlyk3 <- merge(mean_monthly_ambk3, mean_monthly_warmk3, by=c("month", "year"))
 mean_monthly_gatherk3 <- mean_monthlyk3 %>%
   gather(key = "treatment",value="temp", -month, -year)
+
+
+KBS <- rbind(KBS_1, KBS_2, KBS_3)
+KBS_season <- KBS
+KBS_season$month <- format(KBS_season$Date_Time,format="%m")
+KBS_season$year <- format(KBS_season$Date_Time,format="%y")
+KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
+KBS_season <- KBS_season %>%
+  filter(month > "03") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+KBS_avg <- KBS_season %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(year, treatment) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se = std.error(temp, na.rm = TRUE))
 ```
 
-## These plots average the chamber temperatures for each month, each year per treatment
+## This plot looks at yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)
+```{r, echo = FALSE, message=FALSE}
+ggplot(KBS_avg, aes(x = year, y = average_temp, fill = treatment)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = position_dodge(0.9)) +
+  ylim(0, 20) +
+  scale_fill_manual(values=c('grey90','grey60'))+
+  theme_minimal() +
+  labs(x="Year", y = "Average Temperature (°C)")
+```
+
+## These plots average the chamber temperatures for each month over all years for each treatment
 
 ### 1H sensor
 ```{r, echo = FALSE, message=FALSE}
@@ -62,7 +91,8 @@ ggplot(mean_monthly_gatherk1, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 ```
 
 ### 2H sensor
@@ -73,7 +103,8 @@ ggplot(mean_monthly_gatherk2, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 ```
 
 ### 3H sensor
@@ -84,5 +115,6 @@ ggplot(mean_monthly_gatherk3, aes(x = as.numeric(month), y = temp)) +
               fill = "grey90") +
   labs(x = "Month",y = "Temperature °C") +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 ```
