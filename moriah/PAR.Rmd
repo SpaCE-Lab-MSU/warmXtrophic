@@ -1,5 +1,5 @@
 ---
-title: "PAR"
+title: "PAR Analysis"
 author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
@@ -12,4 +12,91 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, include=FALSE}
 options(tinytex.verbose = TRUE)
 ```
+
+The purpose of this analysis is to look at light intensity data, which is measured as Photosynthetically Active Radiation (PAR), in relation to the plant composition data at both UMBS and KBS. We expect to see more light intensity at UMBS vs. KBS at ground level because there is less biomass and therefore less litter at UMBS. We want to see if this is true. This script will plot the light intesity vs live vegetation per plot per site through time and see if UMBS and KBS show differences. 
+
+Start off by making sure the necessary packages are in your working environment:
+```{r, message = FALSE}
+for (package in c('tidyverse', 'googledrive', 'googlesheets4', 'tinytex')) {
+        if (!require(package, character.only=T, quietly=T)) {
+                install.packages(package)
+                library(package, character.only=T)
+        }
+}
+```
+
+I'll first look at UMBS data for 2019 - import the PAR and Plant Composition data as well as the general Plot Key csv.
+```{r}
+PAR2019 <- read.csv("/Users/moriahyoung/Downloads/umbs_par_2019.csv")
+
+PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv")
+
+PlotKey <- read.csv("/Users/moriahyoung/Downloads/plot.csv")
+```
+
+Get these data frames ready to work with
+```{r}
+PAR <- PAR2019[,c(1:9)]
+
+PC$Date <- as.Date(PC$Date,
+                   format = "%m/%d/%y")
+
+PAR$Date <- as.Date(PAR$Date,
+                    format = "%m/%d/%y")
+```
+
+For 2019 at UMBS, PAR was collected on 6/03, 6/18, and 7/28. The plant composition dates that correspond closest to those dates are 6/04, 6/19, and 7/12.
+
+Filter through the PC data to select the dates that correspond with the dates that PAR was recorded to 
+create a new plant comp data frame with only those dates
+```{r}
+PlantComp <- filter(PC, Date == c("2020-06-04", "2020-06-19", "2020-07-12"))
+```
+
+Compute percent cover data as absolute. First I'll remove the non-taxa codes in the data before computing to absolute cover.
+```{r}
+PlantDat <- PlantComp %>%
+        dplyr::filter(Species != "Brown",  # Remove the non-taxa codes
+                      Species != "Bare_Ground",
+                      Species != "Unknown",
+                      Species != "Litter",
+                      Species != "Animal_Disturbance",
+                      Species != "Vert_Litter",
+                      Species != "Herbicide")
+
+AbsoluteCover <- PlantDat %>%
+        group_by(Plot, Date) %>%
+        dplyr::summarize(Cover = sum(Cover, na.omit=T))
+```
+
+We want to combine the cover and PAR data frames into one. To do that we need to change the dates from the AbsoluteCover to match the corresponding PAR dates
+```{r}
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-06-04')), 'Date'] = as.Date('2020-06-03')
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-06-19')), 'Date'] = as.Date('2020-06-18')
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-07-12')), 'Date'] = as.Date('2020-07-28')
+```
+
+Combine "AbsoluteCover" with the "PAR" data frame to create a new data fram "PARpc" and then create another new data frame with the "PlotKey" data frame
+```{r}
+PARpc <- full_join(PAR, AbsoluteCover, by = c("Date", "Plot"))
+View(PARpc)
+
+PAR_PC <- full_join(PARpc, PlotKey, by = c("Plot" = "plot"), na.rm = TRUE)
+View(PAR_PC)
+```
+
+Now for some exciting work. With out new data frame, plot PAR vs. Absolute Cover per plot per site (array of 24 plots per Site), through time
+```{r}
+par(mfrow = c(2,2)) 
+for(i in unique(PAR_PC$Date)){
+        p <- subset(PAR_PC, Date == i)
+        plot(p$Average_Ground ~ p$Cover, 
+             xlab = "Absolute Percent Cover", ylab = "Avg Ground PAR",
+             main = i,
+             col = "blue", 
+             pch = 19)
+        text(p$Average_Ground ~ p$Cover, labels = Plot, data = PARpc, cex = 0.9, font = 2, pos = 3)
+}
+```
+
 

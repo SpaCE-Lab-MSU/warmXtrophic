@@ -105,4 +105,5 @@ for(i in unique(PAR_PC$Date)){
 }
 # Next steps: I want to visually look at the differences btw warming and ambient plot and PAR 
 # measurements when graphing. Also need to figure out why the actual date isn't showing up 
-# in the title of the plot.
+# in the title of the plot. Look at KBS 2019 PAR and plant composition data as well and compare that to
+# UMBS. 
