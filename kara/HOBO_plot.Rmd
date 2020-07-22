@@ -8,7 +8,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-for (package in c("tidyverse", "plotrix")) {
+for (package in c("tidyverse", "plotrix", "ggpubr")) {
   if (!require(package, character.only=T, quietly=T)) {
     install.packages("package")
     library(package, character.only=T)
@@ -23,6 +23,9 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
 KBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair2_L1.csv")
 KBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv")
+UMBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair1_L1.csv")
+UMBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair2_L1.csv")
+UMBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair3_L1.csv")
 
 test_KBS_1 <- KBS_1
 test_KBS_1$month <- format(test_KBS_1$Date_Time,format="%m")
@@ -68,18 +71,46 @@ KBS_avg <- KBS_season %>%
   group_by(year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
+
+UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
+UMBS_season <- UMBS
+UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
+UMBS_season$year <- format(UMBS_season$Date_Time,format="%y")
+UMBS_season$hour <- format(UMBS_season$Date_Time, format="%H")
+UMBS_season <- UMBS_season %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+UMBS_avg <- UMBS_season %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(year, treatment) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se = std.error(temp, na.rm = TRUE))
 ```
 
 ## This plot looks at yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)
 ```{r, echo = FALSE, message=FALSE}
-ggplot(KBS_avg, aes(x = year, y = average_temp, fill = treatment)) + 
+k <- ggplot(KBS_avg, aes(x = year, y = average_temp, fill = treatment)) + 
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
                 position = position_dodge(0.9)) +
   ylim(0, 30) +
-  scale_fill_manual(values=c('grey90','grey60'))+
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('grey90','grey60'))+
   theme_minimal() +
-  labs(x="Year", y = "Average Temperature (°C)")
+  labs(title = "KBS", x="Year", y = "Average Temperature (°C)", fill = "Treatment") +
+  theme(legend.position = "none")
+u <- ggplot(UMBS_avg, aes(x = year, y = average_temp, fill = treatment)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = position_dodge(0.9)) +
+  ylim(0, 30) +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('grey90','grey60'))+
+  theme_minimal() +
+  labs(title = "UMBS", x="Year", y = NULL, fill = "Treatment") +
+  theme(legend.position = "none")
+ggarrange(k, u, ncol = 2, common.legend = TRUE, legend = "bottom")
 ```
 
 ## These plots average the chamber temperatures for each month over all years for each treatment
