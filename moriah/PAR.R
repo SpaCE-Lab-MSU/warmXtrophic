@@ -28,13 +28,13 @@ file.choose() #this will open up a window on your computer so that you can navig
 # Import data files and set working directory =============================================================
 
 # Read in the PAR data
-PAR2019 <- read.csv("/Users/moriahyoung/Downloads/umbs_par_2019.csv")
+PAR2019 <- read.csv("/Users/moriahyoung/Downloads/umbs_par_2019.csv",stringsAsFactors = FALSE)
 
 # Read in the Plant Composition data
-PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv")
+PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv",stringsAsFactors = FALSE)
 
 # Read in the plot key csv
-PlotKey <- read.csv("/Users/moriahyoung/Downloads/plot.csv")
+PlotKey <- read.csv("/Users/moriahyoung/Downloads/plot.csv",stringsAsFactors = FALSE)
 
 # Get these data frames ready to work with ===============================================================
 # For some reason when the this dataset is read in, there are extra columns - get rid of these:

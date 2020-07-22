@@ -27,11 +27,11 @@ for (package in c('tidyverse', 'googledrive', 'googlesheets4', 'tinytex')) {
 
 I'll first look at UMBS data for 2019 - import the PAR and Plant Composition data as well as the general Plot Key csv.
 ```{r}
-PAR2019 <- read.csv("/Users/moriahyoung/Downloads/umbs_par_2019.csv")
+PAR2019 <- read.csv("/Users/moriahyoung/Downloads/umbs_par_2019.csv",stringsAsFactors = FALSE)
 
-PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv")
+PC <- read.csv("/Users/moriahyoung/Downloads/umbs_plantcomp_2019.csv",stringsAsFactors = FALSE)
 
-PlotKey <- read.csv("/Users/moriahyoung/Downloads/plot.csv")
+PlotKey <- read.csv("/Users/moriahyoung/Downloads/plot.csv",stringsAsFactors = FALSE)
 ```
 
 Get these data frames ready to work with
