@@ -22,7 +22,7 @@ for (package in c("tidyverse", "weathermetrics")) {
 }
 
 # Source functions
-source("~/warmXtrophic/kara/HOBO_functions.R")
+source("~/warmXtrophic/kara/HOBO_scripts/HOBO_functions.R")
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
