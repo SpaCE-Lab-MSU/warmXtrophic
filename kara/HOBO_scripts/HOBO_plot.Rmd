@@ -58,7 +58,7 @@ mean_monthly_gatherk3 <- mean_monthlyk3 %>%
 KBS <- rbind(KBS_1, KBS_2, KBS_3)
 KBS_season <- KBS
 KBS_season$month <- format(KBS_season$Date_Time,format="%m")
-KBS_season$year <- format(KBS_season$Date_Time,format="%y")
+KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
 KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
 KBS_season <- KBS_season %>%
   filter(month > "03") %>%
@@ -66,7 +66,12 @@ KBS_season <- KBS_season %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
-KBS_avg <- KBS_season %>%
+KBS_avg_month <- KBS_season %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(month, year, treatment) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se = std.error(temp, na.rm = TRUE))
+KBS_avg_year <- KBS_season %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
@@ -75,7 +80,7 @@ KBS_avg <- KBS_season %>%
 UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
 UMBS_season <- UMBS
 UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
-UMBS_season$year <- format(UMBS_season$Date_Time,format="%y")
+UMBS_season$year <- format(UMBS_season$Date_Time,format="%Y")
 UMBS_season$hour <- format(UMBS_season$Date_Time, format="%H")
 UMBS_season <- UMBS_season %>%
   filter(month > "03") %>%
@@ -83,7 +88,12 @@ UMBS_season <- UMBS_season %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
-UMBS_avg <- UMBS_season %>%
+UMBS_avg_month <- UMBS_season %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(month, year, treatment) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se = std.error(temp, na.rm = TRUE))
+UMBS_avg_year <- UMBS_season %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
@@ -92,25 +102,52 @@ UMBS_avg <- UMBS_season %>%
 
 ## This plot looks at yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)
 ```{r, echo = FALSE, message=FALSE}
-k <- ggplot(KBS_avg, aes(x = year, y = average_temp, fill = treatment)) + 
-  geom_bar(stat = "identity", position = position_dodge()) +
+k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)) + 
+  geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
-                position = position_dodge(0.9)) +
+                position = "identity") +
   ylim(0, 30) +
-  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('grey90','grey60'))+
-  theme_minimal() +
-  labs(title = "KBS", x="Year", y = "Average Temperature (°C)", fill = "Treatment") +
-  theme(legend.position = "none")
-u <- ggplot(UMBS_avg, aes(x = year, y = average_temp, fill = treatment)) + 
-  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
+  theme_classic() +
+  labs(title = "KBS", x=NULL, y = NULL, fill = "Treatment")
+u_year <- ggplot(UMBS_avg_year, aes(x = year, y = average_temp, fill = treatment)) + 
+  geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
-                position = position_dodge(0.9)) +
+                position = "identity") +
   ylim(0, 30) +
-  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('grey90','grey60'))+
-  theme_minimal() +
-  labs(title = "UMBS", x="Year", y = NULL, fill = "Treatment") +
-  theme(legend.position = "none")
-ggarrange(k, u, ncol = 2, common.legend = TRUE, legend = "bottom")
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
+  theme_classic() +
+  labs(title = "UMBS", x="Year", y = NULL, fill = "Treatment")
+final_year <- ggarrange(k_year, u_year, nrow = 2, common.legend = TRUE, legend = "bottom")
+annotate_figure(final_year,
+                left = text_grob("Average Temperature (°C)", color = "black", rot = 90))
+```
+
+## These plot looks at monthly averages during the growing season, over time (KBS on top and UMBS on bottom)
+```{r, echo = FALSE, message=FALSE}
+k_month <- ggplot(KBS_avg_month, aes(x = month, y = average_temp, fill = treatment)) + 
+  facet_grid(.~year) +
+  geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = "identity") +
+  ylim(0, 30) +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
+  theme_classic() +
+  labs(x = NULL, y = NULL, fill = "Treatment") +
+  scale_x_discrete(labels = rep("", 5), breaks = 1:5)
+u_month <- ggplot(UMBS_avg_month, aes(x = month, y = average_temp, fill = treatment)) + 
+  facet_grid(.~year) +
+  geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = "identity") +
+  ylim(0, 30) +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
+  theme_classic() +
+  labs(x="Month", y = NULL, fill = "Treatment")
+final_month <- ggarrange(k_month, u_month, nrow = 2, common.legend = TRUE, legend = "bottom")
+annotate_figure(final_month,
+                left = text_grob("Average Temperature (°C)", color = "black", rot = 90),
+                top = text_grob("Year"))
 ```
 
 ## These plots average the chamber temperatures for each month over all years for each treatment
