@@ -59,16 +59,11 @@ change_POSIX <- function(df){
   }
 
 #Adding in pendant_ID column
-add_id_col <- function(df)
-{
-  my_global <- ls(envir = globalenv())
-  for(i in my_global)
-    if(class(get(i)) == "data.frame" & grepl("pend", i))
-    {
-      df <- get(i)
-      df$Pendant_ID <- gsub("^pend(.{2,3})_...", "\\1", i)
-      assign(i, df, envir = globalenv())
-    }
+add_name_cols <- function(l){
+  for(i in seq_along(l)){
+    l[[i]]$Pendant_ID <- gsub("^pend(.{2,3})_.*$", "\\1", names(l)[i])
+  }
+  return(l)
 }
 
 #Remove columns from paired sensors

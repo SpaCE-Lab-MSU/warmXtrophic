@@ -38,6 +38,7 @@ for (package in c("tidyverse", "weathermetrics")) {
 
 ### ***KBS*** ###
 # Read in KBS HOBO data from all years
+                    
 pend4P_17k<-read.csv("L0/KBS/sensor_data/2017/09_01_2017/KBS_4P_09012017.csv", skip=1, header =T)
 pend5P_17k<-read.csv("L0/KBS/sensor_data/2017/09_01_2017/KBS_5P_09012017.csv", skip=1, header =T)
 pend6P_17k<-read.csv("L0/KBS/sensor_data/2017/09_01_2017/KBS_6P_09012017.csv", skip=1, header =T)
@@ -76,7 +77,6 @@ pend11P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_11P_04052020.csv",
 pend12P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_12P_04052020.csv", skip=1, header=T)[ ,1:4]
 
 # Apply functions
-add_id_col()
 list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k,pend7P_17k=pend7P_17k,pend8P_17k=pend8P_17k,pend9P_17k=pend9P_17k,pend10P_17k=pend10P_17k,pend11P_17k=pend11P_17k,pend12P_17k=pend12P_17k,
                pend4P_18k=pend4P_18k,pend5P_18k=pend5P_18k,pend6P_18k=pend6P_18k,pend7P_18k=pend7P_18k,pend8P_18k=pend8P_18k,pend10P_18k=pend10P_18k,pend11P_18k=pend11P_18k,pend12P_18k=pend12P_18k,
                pend4P_19k=pend4P_19k,pend5P_19k=pend5P_19k,pend6P_19k=pend6P_19k,pend7P_19k=pend7P_19k,pend8P_19k=pend8P_19k,pend10P_19k=pend10P_19k,pend11P_19k=pend11P_19k,pend12P_19k=pend12P_19k,
@@ -84,6 +84,7 @@ list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k
 list_k <- lapply(list_k, change_pend_names)
 list_k <- lapply(list_k, change_POSIX)
 list_k[1:25] <- lapply(list_k[1:25], f_to_c2)
+list_k <- add_name_cols(list_k)
 
 # Combine KBS pendant files
 pend17k<-rbind(list_k$pend4P_17k,list_k$pend5P_17k,list_k$pend6P_17k,list_k$pend7P_17k,list_k$pend8P_17k,list_k$pend9P_17k,list_k$pend10P_17k,list_k$pend11P_17k,list_k$pend12P_17k)

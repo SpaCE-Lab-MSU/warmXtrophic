@@ -17,7 +17,7 @@ for (package in c("tidyverse")) {
   }
 }
 
-source("~/warmXtrophic/kara/PAR_functions.R")
+source("~/warmXtrophic/kara/PAR_scripts/PAR_functions.R")
 
 # set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer

@@ -7,6 +7,7 @@ column_names <- function(df){
   colnames(df) <- sub("^Above_Biomass", "Overstory", colnames(df))
   colnames(df) <- sub("^Ground_1", "Understory_1", colnames(df))
   colnames(df) <- sub("^Gound_2", "Understory_2", colnames(df))
+  colnames(df) <- sub("^Date", "Date_Time", colnames(df))
   return(df)
 }
 
@@ -19,6 +20,6 @@ remove_column <- function(df,name){
 
 # change date format to POSIX
 change_POSIX <- function(df){
-  df[["Date"]] <- as.POSIXct(df[["Date"]],tryFormats = c("%m/%d/%Y"), tz="UTC")
+  df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],tryFormats = c("%m/%d/%Y"), tz="UTC")
   return(df)
 }
