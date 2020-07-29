@@ -1,4 +1,4 @@
-# TITLE: HOBO paired sensor data analysis
+# TITLE: OTC data plots
 # AUTHORS: Kara Dobson
 # COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
 # DATA INPUT: CSV files are located in the HOBO_data folder in the shared Google drive
@@ -24,20 +24,27 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
 KBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair2_L1.csv")
 KBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv")
+KBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv")
 
 UMBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair1_L1.csv")
 UMBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair2_L1.csv")
 UMBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair3_L1.csv")
+UMBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv")
 
 KBS_par <- read_csv("L1/PAR_data/KBS_PAR_L1.csv")
 UMBS_par <- read_csv("L1/PAR_data/UMBS_PAR_L1.csv")
+
+
+
 
 #########################################
               # KBS #
 #########################################
 
-###### air temperatures ######
 
+
+
+###### microstation air temperatures ######
 # merge the data
 KBS <- rbind(KBS_1, KBS_2, KBS_3)
 
@@ -70,7 +77,8 @@ KBS_avg_month <- KBS_season %>%
 KBS_avg_year <- KBS_season %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(year, treatment) %>%
-  summarize(average_temp = mean(temp, na.rm = TRUE),
+  summarize(count = n(),
+            average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
 
 KBS_avg_july <- KBS_season2 %>%
@@ -107,6 +115,27 @@ k_july <- ggplot(KBS_avg_july, aes(x = year, y = average_temp, fill = treatment)
   scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
   theme_classic() +
   labs(title = "KBS — July", x=NULL, y = NULL, fill = "Treatment")
+
+
+
+
+## note to self — how to incorporate pendant temperatures to look at warming over time?
+###### pendant air temperatures ######
+# format the data 
+KBS_pend$year <- format(KBS_pend$Date_Time,format="%Y")
+
+KBS_pend_4P <- KBS_pend %>%
+  filter(Pendant_ID == "4P") %>%
+  group_by(year) %>%
+  summarize(average_temp = mean(Temp_F_XP_air_1m, na.rm = TRUE),
+            se = std.error(Temp_F_XP_air_1m, na.rm = TRUE))
+KBS_pend_5P <- KBS_pend %>%
+  filter(Pendant_ID == "5P") %>%
+  group_by(year) %>%
+  summarize(average_temp = mean(Temp_F_XP_air_1m, na.rm = TRUE),
+            se = std.error(Temp_F_XP_air_1m, na.rm = TRUE))
+
+
 
 
 ###### par data ######
@@ -236,6 +265,9 @@ ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
               # UMBS #
 #########################################
 
+
+
+
 ###### air temperature ######
 # merge the data
 UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
@@ -306,6 +338,9 @@ u_july <- ggplot(UMBS_avg_july, aes(x = year, y = average_temp, fill = treatment
   scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
   theme_classic() +
   labs(title = "UMBS — July", x="Year", y = NULL, fill = "Treatment")
+
+
+
 
 
 # arrange the data to show both KBS and UMBS plots on the same figure
