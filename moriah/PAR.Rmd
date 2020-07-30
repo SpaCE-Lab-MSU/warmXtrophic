@@ -79,10 +79,8 @@ AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-07-12')), 'Date'] = as.D
 Combine "AbsoluteCover" with the "PAR" data frame to create a new data fram "PARpc" and then create another new data frame with the "PlotKey" data frame
 ```{r}
 PARpc <- full_join(PAR, AbsoluteCover, by = c("Date", "Plot"))
-View(PARpc)
 
 PAR_PC <- full_join(PARpc, PlotKey, by = c("Plot" = "plot"), na.rm = TRUE)
-View(PAR_PC)
 ```
 
 Now for some exciting work. With out new data frame, plot PAR vs. Absolute Cover per plot per site (array of 24 plots per Site), through time
@@ -91,9 +89,11 @@ par(mfrow = c(2,2))
 for(i in unique(PAR_PC$Date)){
         p <- subset(PAR_PC, Date == i)
         plot(p$Average_Ground ~ p$Cover, 
-             xlab = "Absolute Percent Cover", ylab = "Avg Ground PAR",
+             xlab = "Absolute Percent Cover", ylab = "Average Ground PAR",
              main = i,
              col = "blue", 
+             xlim = c(0, 100),
+             ylim = c(0, 2000),
              pch = 19)
         text(p$Average_Ground ~ p$Cover, labels = Plot, data = PARpc, cex = 0.9, font = 2, pos = 3)
 }

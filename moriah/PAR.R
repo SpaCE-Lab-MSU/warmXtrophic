@@ -97,12 +97,15 @@ par(mfrow = c(2,2))
 for(i in unique(PAR_PC$Date)){
         p <- subset(PAR_PC, Date == i)
         plot(p$Average_Ground ~ p$Cover, 
-             xlab = "Absolute Percent Cover", ylab = "Avg Ground PAR",
+             xlab = "Absolute Percent Cover", ylab = "Average Ground PAR",
              main = i,
              col = "blue", 
+             xlim = c(0, 100),
+             ylim = c(0, 2000),
              pch = 19)
         text(p$Average_Ground ~ p$Cover, labels = Plot, data = PARpc, cex = 0.9, font = 2, pos = 3)
 }
+                       
 # Next steps: I want to visually look at the differences btw warming and ambient plot and PAR 
 # measurements when graphing. Also need to figure out why the actual date isn't showing up 
 # in the title of the plot. Look at KBS 2019 PAR and plant composition data as well and compare that to
