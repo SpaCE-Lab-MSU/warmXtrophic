@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(eval = FALSE)
 ```
 
-# This doc will describe the steps taken to clean the L0 HOBO data in the HOBO_pairedsensor_cleanup_L0.R script. The cleanup script is located in the warmXtrophic Github repository.
+## This doc will describe the steps taken to clean the L0 HOBO data in the HOBO_pairedsensor_cleanup_L0.R script. The cleanup script is located in the warmXtrophic Github repository.
 
 First, the existing data is cleared from the environment and the needed packages are loaded in.
 ```{r}
@@ -36,7 +36,7 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 ```
 
 The data is then read in as csv files, separately for both U and H sensors.
-The U and H sensor data is then merged based on the date_time column.
+The U and H sensor data is then merged based on the date_time column. The 1516 dataframes do not have separate U and H files.
 ```{r}
 ############ KBS Pair 1
 #Read in H
@@ -60,7 +60,7 @@ KBS_1_2020 <- merge(KBS_1H_2020, KBS_1U_2020, by="Date.Time..GMT.04.00", all.x=T
 ```
 
 The merged dataframes are then added to a list so functions can be applied over every dataframe.
-lapply is used to apply the necessary functions to the list.
+lapply is used to apply the necessary functions to the list. The functions can be found in the HOBO_functions.R script.
 ```{r}
 #Apply functions
 list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS_1_2018, KBS_1_2019=KBS_1_2019, KBS_1_2020=KBS_1_2020)
@@ -68,6 +68,7 @@ list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
 list_pairk1 <- lapply(list_pairk1, remove_col, name=c('X', 'X..x', 'X..y'))
 list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
+list_pairk1 <- lapply(list_pairk1, remove_outliers)
 ```
 
 These steps are then repeated for every paired sensor, at both KBS and UMBS.
@@ -78,12 +79,6 @@ names(list_pairk2$KBS_2_2017)[names(list_pairk2$KBS_2_2017)=="X2H_ambient_soil_m
 names(list_pairk2$KBS_2_2018)[names(list_pairk2$KBS_2_2018)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2019)[names(list_pairk2$KBS_2_2019)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2020)[names(list_pairk2$KBS_2_2020)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
-```
-
-Sensor 3 for KBS contains some outliers for warmed air temperature, so I remove those and replace the values with NA
-```{r}
-#Fix the outlier values for 2015
-KBS_3_1516 <- KBS_3_1516 %>% dplyr::na_if(-888.88)
 ```
 
 The data import for the U sensors at UMBS is different, due to sensors being reset.
