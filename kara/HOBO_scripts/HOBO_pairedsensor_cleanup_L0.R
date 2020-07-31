@@ -59,6 +59,7 @@ list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
 list_pairk1 <- lapply(list_pairk1, remove_col, name=c('X', 'X..x', 'X..y'))
 list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
+list_pairk1 <- lapply(list_pairk1, remove_outliers)
 
 ############ KBS Pair 2
 #Read in H
@@ -93,6 +94,8 @@ names(list_pairk2$KBS_2_2018)[names(list_pairk2$KBS_2_2018)=="Water.Content..m..
 names(list_pairk2$KBS_2_2019)[names(list_pairk2$KBS_2_2019)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2020)[names(list_pairk2$KBS_2_2020)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 
+list_pairk2 <- lapply(list_pairk2, remove_outliers)
+
 ############ KBS Pair 3
 #Read in H
 KBS_3_1516 <- read.csv("L0/KBS/sensor_data/2015_2016/KBS_3.csv")
@@ -112,9 +115,6 @@ KBS_3_2017 <- merge(KBS_3H_2017, KBS_3U_2017, by="Date_Time", all.x=T, all.y=T)
 KBS_3_2018 <- merge(KBS_3H_2018, KBS_3U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_3_2019 <- merge(KBS_3H_2019, KBS_3U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_3_2020 <- merge(KBS_3H_2020, KBS_3U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
-
-#Fix the outlier values for 2015
-KBS_3_1516 <- KBS_3_1516 %>% dplyr::na_if(-888.88)
 
 #Apply functions
 list_pairk3 <- list(KBS_3_1516=KBS_3_1516, KBS_3_2017=KBS_3_2017, KBS_3_2018=KBS_3_2018, KBS_3_2019=KBS_3_2019, KBS_3_2020=KBS_3_2020)
@@ -137,6 +137,7 @@ names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N.
 names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 
 list_pairk3[2:4] <- lapply(list_pairk3[2:4], f_to_c)
+list_pairk3 <- lapply(list_pairk3, remove_outliers)
 
 #Create .RData file
 save(list_pairk1, list_pairk2, list_pairk3, file="L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.RData")
@@ -198,6 +199,7 @@ names(list_pairu1$UMBS_1_2019)[names(list_pairu1$UMBS_1_2019)=="Temp...F..LGR.S.
 names(list_pairu1$UMBS_1_2019)[names(list_pairu1$UMBS_1_2019)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 
 list_pairu1[2:4] <- lapply(list_pairu1[2:4], f_to_c)
+list_pairu1 <- lapply(list_pairu1, remove_outliers)
 
 ############ UMBS Pair 2
 #2U was not logging from 7/28/2015 through 11/24/2015, when it was launched again
@@ -253,6 +255,7 @@ names(list_pairu2$UMBS_2_2019)[names(list_pairu2$UMBS_2_2019)=="Temp...F..LGR.S.
 names(list_pairu2$UMBS_2_2020)[names(list_pairu2$UMBS_2_2020)=="Temp...C..LGR.S.N..10910775..SEN.S.N..10737461..LBL..2H_ambient_aim_1m."] <- "XH_ambient_air_1m"
 
 list_pairu2[2:4] <- lapply(list_pairu2[2:4], f_to_c)
+list_pairu2 <- lapply(list_pairu2, remove_outliers)
 
 ############ UMBS Pair 3
 #Read in H
@@ -292,6 +295,7 @@ list_pairu3 <- lapply(list_pairu3, change_pair_names)
 list_pairu3 <- lapply(list_pairu3, change_POSIX)
 list_pairu3 <- lapply(list_pairu3, remove_col, name=c('X', 'X..x', 'X..y'))
 list_pairu3[2:4] <- lapply(list_pairu3[2:4], f_to_c)
+list_pairu3 <- lapply(list_pairu3, remove_outliers)
 
 #Create .RData file
 save(list_pairu1, list_pairu2, list_pairu3, file="L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.RData")
