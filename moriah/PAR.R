@@ -42,17 +42,17 @@ PAR <- PAR2019[,c(1:9)]
 
 # Convert date columns to date class 
 PC$Date <- as.Date(PC$Date,
-                   format = "%m/%d/%y")
+                   format = "%m/%d/%Y")
 class(PC$Date) # check 
 
 PAR$Date <- as.Date(PAR$Date,
-                    format = "%m/%d/%y")
+                    format = "%m/%d/%Y")
 class(PAR$Date) # check
 
 # Filter through the PC data to select the dates that correspond with the dates that PAR was recorded to 
 # create a new plant comp data frame with only those dates
 
-PlantComp <- filter(PC, Date == c("2020-06-04", "2020-06-19", "2020-07-12"))
+PlantComp <- filter(PC, Date == c("2019-06-04", "2019-06-19", "2019-07-12"))
 
 # Compute percent cover data as absolute ================================================================
 
@@ -77,9 +77,9 @@ View(AbsoluteCover)
 # Change the dates from the AbsoluteCover to match the corresponding PAR dates ===========================
 # so that we can combine the cover and PAR data frames by date
 
-AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-06-04')), 'Date'] = as.Date('2020-06-03')
-AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-06-19')), 'Date'] = as.Date('2020-06-18')
-AbsoluteCover[which(AbsoluteCover$Date == as.Date('2020-07-12')), 'Date'] = as.Date('2020-07-28')
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2019-06-04')), 'Date'] = as.Date('2019-06-03')
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2019-06-19')), 'Date'] = as.Date('2019-06-18')
+AbsoluteCover[which(AbsoluteCover$Date == as.Date('2019-07-12')), 'Date'] = as.Date('2019-07-28')
 
 View(AbsoluteCover)
 
@@ -91,10 +91,10 @@ View(PARpc)
 PAR_PC <- full_join(PARpc, PlotKey, by = c("Plot" = "plot"), na.rm = TRUE)
 View(PAR_PC)
 
-# Plot PAR vs. Absolute Cover per plot per site (array of 24 plots per Site), through time
+# Plot PAR vs. Absolute Cover
 
-par(mfrow = c(2,2)) 
-for(i in unique(PAR_PC$Date)){
+par(mfrow = c(2,2), mar = (c(4, 4, 4, 4))) 
+for(i in as.list(unique(PAR_PC$Date))){
         p <- subset(PAR_PC, Date == i)
         plot(p$Average_Ground ~ p$Cover, 
              xlab = "Absolute Percent Cover", ylab = "Average Ground PAR",
@@ -103,7 +103,7 @@ for(i in unique(PAR_PC$Date)){
              xlim = c(0, 100),
              ylim = c(0, 2000),
              pch = 19)
-        text(p$Average_Ground ~ p$Cover, labels = Plot, data = PARpc, cex = 0.9, font = 2, pos = 3)
+        text(p$Average_Ground ~ p$Cover, labels = Plot, data = p, cex = 0.9, font = 2, pos = 3)
 }
                        
 # Next steps: I want to visually look at the differences btw warming and ambient plot and PAR 
