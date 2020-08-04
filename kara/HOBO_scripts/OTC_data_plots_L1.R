@@ -107,6 +107,16 @@ k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)
   theme_classic() +
   labs(title = "KBS", x=NULL, y = NULL, fill = "Treatment")
 
+# alt k_year graph
+ggplot(KBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = position_dodge(0.9)) +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('grey90','grey60'))+
+  theme_minimal() +
+  labs(title = "KBS", x="Year", y = "Average Air Temperature - 1m (°C)", fill = "Treatment") +
+  theme(legend.position = "bottom")
+
 k_july <- ggplot(KBS_avg_july, aes(x = year, y = average_temp, fill = treatment)) + 
   geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.1,
@@ -341,21 +351,20 @@ u_july <- ggplot(UMBS_avg_july, aes(x = year, y = average_temp, fill = treatment
 
 
 
-
-
+### final figures ###
 # arrange the data to show both KBS and UMBS plots on the same figure
 final_year <- ggarrange(k_year, u_year, nrow = 2, common.legend = TRUE, legend = "bottom")
 annotate_figure(final_year,
-                left = text_grob("Average Temperature (°C)", color = "black", rot = 90))
+                left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90))
 
 final_month <- ggarrange(k_month, u_month, nrow = 2, common.legend = TRUE, legend = "bottom")
 annotate_figure(final_month,
-                left = text_grob("Average Temperature (°C)", color = "black", rot = 90),
+                left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90),
                 top = text_grob("Year"))
 
 final_july <- ggarrange(k_july, u_july, nrow = 2, common.legend = TRUE, legend = "bottom")
 annotate_figure(final_july,
-                left = text_grob("Average Temperature (°C)", color = "black", rot = 90),
+                left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90),
                 top = text_grob("Year"))
 
 
@@ -366,8 +375,9 @@ annotate_figure(final_july,
 
 
 ## soil temperatures ##
-# can't do this until KBS_1 has values fixed for the XU_warmed_soil_temp column — many values are >100
+
 # create a new data frame
+KBS <- rbind(KBS_1, KBS_2, KBS_3)
 KBS_season_soil <- KBS
 KBS_season_soil$month <- format(KBS_season_soil$Date_Time,format="%m")
 KBS_season_soil$year <- format(KBS_season_soil$Date_Time,format="%y")
@@ -394,10 +404,10 @@ ggplot(KBS_avg_soil, aes(x = year, y = average_temp, fill = treatment)) +
   scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('grey90','grey60'))+
   theme_minimal() +
   labs(title = "KBS", x="Year", y = "Average Soil Temperature (°C)", fill = "Treatment") +
-  theme(legend.position = "none")
+  theme(legend.position = "bottom")
 
 ## soil moisture ##
-# can't do this until 2015 warmed and ambient soil moisture is fixed
+
 # create a new data frame
 KBS_season_moist <- KBS
 KBS_season_moist$month <- format(KBS_season_moist$Date_Time,format="%m")

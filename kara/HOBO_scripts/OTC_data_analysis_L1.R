@@ -83,3 +83,58 @@ pairwise.comp <- KBS_avg_year %>%
   )
 pairwise.comp
 
+
+
+#########################################
+# UMBS #
+#########################################
+
+
+
+###### testing for sig diff between microstation air temps ######
+
+# merge the data + filter data for only the daytime during the growing season
+UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
+UMBS_season <- UMBS
+UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
+UMBS_season$year <- format(UMBS_season$Date_Time,format="%Y")
+UMBS_season$hour <- format(UMBS_season$Date_Time, format="%H")
+
+UMBS_season <- UMBS_season %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+
+# create new dataframes for temperatures averaged by year & averaged by month and year
+UMBS_avg_year <- UMBS_season %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+
+# test for outliers - none extreme
+outliers <- UMBS_avg_year %>%
+  group_by(treatment, year) %>%
+  identify_outliers(temp)
+view(outliers)
+
+# check for normality - can't get this to run
+UMBS_avg_year %>%
+  group_by(treatment, year) %>%
+  shapiro_test(temp)
+# visual check for normality - seems normal?
+ggqqplot(UMBS_avg_year, "temp", ggtheme = theme_bw()) +
+  facet_grid(year ~ treatment, labeller = "label_both")
+
+# run anova - no significant interaction btw year and treatment
+anova.res <- aov(temp ~ treatment * year, data = UMBS_avg_year)
+summary(anova.res)
+
+# main effect of treatment on temp
+pairwise.comp <- UMBS_avg_year %>%
+  group_by(year) %>%
+  pairwise_t_test(
+    temp ~ treatment, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pairwise.comp
+
