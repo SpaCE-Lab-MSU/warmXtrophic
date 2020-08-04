@@ -93,7 +93,7 @@ View(PAR_PC)
 
 # Plot PAR vs. Absolute Cover
 
-par(mfrow = c(2,2), mar = (c(4, 4, 4, 4))) 
+par(mar = (c(4, 4, 4, 4))) 
 for(i in as.list(unique(PAR_PC$Date))){
         p <- subset(PAR_PC, Date == i)
         plot(p$Average_Ground ~ p$Cover, 
@@ -103,7 +103,7 @@ for(i in as.list(unique(PAR_PC$Date))){
              xlim = c(0, 100),
              ylim = c(0, 2000),
              pch = 19)
-        text(p$Average_Ground ~ p$Cover, labels = Plot, data = p, cex = 0.9, font = 2, pos = 3)
+        text(p$Average_Ground ~ p$Cover, labels = Plot, data = p, cex = 0.6, font = 2, pos = 3)
 }
                        
 # Next steps: I want to visually look at the differences btw warming and ambient plot and PAR 
