@@ -267,9 +267,14 @@ ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
   theme_classic()+
   theme(legend.position="bottom")
 
-
-
-
+# simple linear regression
+KBS_comb_lm <- KBS_comb_2019 %>%
+  filter(treatment == "XH_warmed_air_1m")
+lm_kbs <- lm(average_temp ~ average_par, data = KBS_comb_lm)
+plot(average_temp ~ average_par, data = KBS_comb_lm)
+abline(lm_kbs)
+summary(lm_kbs)
+lm_kbs
 
 #########################################
               # UMBS #

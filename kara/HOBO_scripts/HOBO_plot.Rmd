@@ -297,6 +297,15 @@ ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
   theme(legend.position="bottom")
 ```
 
+## Simple linear regression between temp and par: F(1,3) = 32.21, p-value = 0.011
+```{r, echo = FALSE, message=FALSE}
+KBS_comb_lm <- KBS_comb_2019 %>%
+  filter(treatment == "XH_warmed_air_1m")
+lm_kbs <- lm(average_temp ~ average_par, data = KBS_comb_lm)
+plot(average_temp ~ average_par, data = KBS_comb_lm)
+abline(lm_kbs)
+```
+
 ## These plots average the chamber temperatures for each month over all years for each treatment
 
 ### 1H sensor
