@@ -15,9 +15,18 @@ for (package in c("tidyverse", "plotrix", "ggpubr")) {
   }
 }
 ```
-
-# Plotting HOBO data
-
+Guide  
+Page 2: Yearly average air temperatures between KBS and UMBS  
+Page 3: Monthly average air temperatures between KBS and UMBS for all years  
+Page 4: Average July air temperatures between KBS and UMBS  
+Page 5: Comparing PAR to HOBO between 2017-2019  
+Page 6: Another comparison of PAR to HOBO from 2017-2019  
+Page 7: Comparing PAR to HOBO for multiple 2019 dates & a Linear regression between 2019 warmed chamber PAR and HOBO  
+Page 8: KBS soil temperature over time  
+Page 9: KBS soil moisture over time  
+Page 10: 1H sensor average air temperature by month over all years  
+Page 11: 2H sensor average air temperature by month over all years  
+Page 12: 3H sensor average air temperature by month over all years  
 ```{r, include = FALSE}
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
@@ -85,6 +94,36 @@ KBS_season2 <- KBS_season %>%
 KBS_avg_july <- KBS_season2 %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(month, year, treatment) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se = std.error(temp, na.rm = TRUE))
+KBS_season_soil <- KBS
+KBS_season_soil$month <- format(KBS_season_soil$Date_Time,format="%m")
+KBS_season_soil$year <- format(KBS_season_soil$Date_Time,format="%y")
+KBS_season_soil$hour <- format(KBS_season_soil$Date_Time, format="%H")
+KBS_season_soil <- KBS_season_soil %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
+KBS_avg_soil <- KBS_season_soil %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(year, treatment) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se = std.error(temp, na.rm = TRUE))
+KBS_season_moist <- KBS
+KBS_season_moist$month <- format(KBS_season_moist$Date_Time,format="%m")
+KBS_season_moist$year <- format(KBS_season_moist$Date_Time,format="%y")
+KBS_season_moist$hour <- format(KBS_season_moist$Date_Time, format="%H")
+KBS_season_moist <- KBS_season_moist %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
+KBS_avg_moist <- KBS_season_moist %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
 
@@ -181,7 +220,7 @@ ym2 <- c(paste0(KBS_comb2$year,'_',KBS_comb2$month,'_',KBS_comb2$day))
 KBS_comb_2019 <- data.frame(KBS_comb2,ym2)
 ```
 
-## This plot looks at yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)
+## Yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)
 ```{r, echo = FALSE, message=FALSE}
 k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)) + 
   geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
@@ -204,7 +243,11 @@ annotate_figure(final_year,
                 left = text_grob("Average Temperature (°C)", color = "black", rot = 90))
 ```
 
-## These plot looks at monthly averages during the growing season, over time (KBS on top and UMBS on bottom) — these could be separated to see individual months over time (i.e. July temps over each year)
+
+
+
+
+## Monthly averages during the growing season, over time (KBS on top and UMBS on bottom) — these could be separated to see individual months over time (i.e. July temps over each year, as shown on the next page)
 ```{r, echo = FALSE, message=FALSE}
 k_month <- ggplot(KBS_avg_month, aes(x = month, y = average_temp, fill = treatment)) + 
   facet_grid(.~year) +
@@ -230,7 +273,7 @@ annotate_figure(final_month,
                 top = text_grob("Year"))
 ```
 
-## Comparing average July temperatures during the daytime - KBS shows a smaller difference between warmed + ambient in later years than UMBS
+## Average July temperatures during the daytime - KBS shows a smaller difference between warmed + ambient in later years than UMBS
 ```{r, echo = FALSE, message=FALSE}
 k_july <- ggplot(KBS_avg_july, aes(x = year, y = average_temp, fill = treatment)) + 
   geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
@@ -304,6 +347,29 @@ KBS_comb_lm <- KBS_comb_2019 %>%
 lm_kbs <- lm(average_temp ~ average_par, data = KBS_comb_lm)
 plot(average_temp ~ average_par, data = KBS_comb_lm)
 abline(lm_kbs)
+```
+
+## Soil temperature over time - doesn't seem to be a difference between treatments
+```{r, echo = FALSE, message=FALSE}
+ggplot(KBS_avg_soil, aes(x = year, y = average_temp, fill = treatment)) + 
+  geom_bar(stat = "identity", position = position_dodge(), color = 'black') +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = position_dodge(0.9)) +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#d8ecf2'))+
+  theme_classic() +
+  labs(title = "KBS", x="Year", y = "Average Soil Temperature (°C)", fill = "Treatment") +
+  theme(legend.position = "bottom")
+```
+
+## Soil moisture over time - ambient retains more moisture
+```{r, echo = FALSE, message=FALSE}
+ggplot(KBS_avg_moist, aes(x = year, y = average_temp, fill = treatment)) + 
+  geom_bar(position = "identity", stat = "identity", color = 'black', alpha = 1) +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = "identity") +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#d8ecf2'))+
+  theme_classic() +
+  labs(title = "KBS", x="Year", y = "Soil Moisture", fill = "Treatment")
 ```
 
 ## These plots average the chamber temperatures for each month over all years for each treatment

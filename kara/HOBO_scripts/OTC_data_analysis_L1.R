@@ -83,6 +83,13 @@ pairwise.comp <- KBS_avg_year %>%
   )
 pairwise.comp
 
+# simple linear regression
+KBS_comb_lm <- KBS_comb_2019 %>%
+  filter(treatment == "XH_warmed_air_1m")
+lm_kbs <- lm(average_temp ~ average_par, data = KBS_comb_lm)
+summary(lm_kbs)
+lm_kbs
+
 
 
 #########################################
@@ -137,4 +144,5 @@ pairwise.comp <- UMBS_avg_year %>%
     p.adjust.method = "bonferroni"
   )
 pairwise.comp
+
 
