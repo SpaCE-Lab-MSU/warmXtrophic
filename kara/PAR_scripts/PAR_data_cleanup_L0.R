@@ -62,6 +62,9 @@ UMBS_18$Average_Ground <- UMBS_18$Understory.PAR
 UMBS_18$Percent_Sunlight <- UMBS_18$Average_Ground/UMBS_18$Overstory
 UMBS_18$Understory_2 <- NA
 
+# fix site column for 2018
+UMBS_18$Site <- "umbs"
+
 # add data to a list to apply functions
 list_umbs <- list(UMBS_17 = UMBS_17, UMBS_18 = UMBS_18, UMBS_19 = UMBS_19)
 list_umbs <- lapply(list_umbs, remove_column, name=c('Julian.Date', 'Julian', 'PAR'))
