@@ -21,18 +21,14 @@ for (package in c("tidyverse", "plotrix", "ggpubr")) {
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # load in the data
-KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
-KBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair2_L1.csv")
-KBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv")
+KBS <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv")
 KBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv")
-
-UMBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair1_L1.csv")
-UMBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair2_L1.csv")
-UMBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair3_L1.csv")
-UMBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv")
-
 KBS_par <- read_csv("L1/PAR_data/KBS_PAR_L1.csv")
+
+UMBS <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv")
+UMBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv")
 UMBS_par <- read_csv("L1/PAR_data/UMBS_PAR_L1.csv")
+
 
 
 
@@ -45,9 +41,6 @@ UMBS_par <- read_csv("L1/PAR_data/UMBS_PAR_L1.csv")
 
 
 ###### microstation air temperatures ######
-# merge the data
-KBS <- rbind(KBS_1, KBS_2, KBS_3)
-
 # create new dataframe with only data from april - august from 7 AM - 7 PM (growing season during the day)
 KBS_season <- KBS
 KBS_season$month <- format(KBS_season$Date_Time,format="%m")
@@ -131,8 +124,6 @@ ggplot(KBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
 
 ###### par data ######
 # format the hobo data to match the dates for the par data
-KBS <- rbind(KBS_1, KBS_2, KBS_3)
-
 KBS_hobo <- KBS
 KBS_hobo$month <- format(KBS_hobo$Date_Time,format="%m")
 KBS_hobo$year <- format(KBS_hobo$Date_Time,format="%Y")
@@ -276,7 +267,6 @@ ggplot(KBS_comb_lm, aes(x = average_par, y = average_temp)) +
 
 ###### soil temperatures ######
 # create a new data frame for soil temperatures during the day in the growing season
-KBS <- rbind(KBS_1, KBS_2, KBS_3)
 KBS_season_soil <- KBS
 KBS_season_soil$month <- format(KBS_season_soil$Date_Time,format="%m")
 KBS_season_soil$year <- format(KBS_season_soil$Date_Time,format="%y")
@@ -359,9 +349,6 @@ ggplot(KBS_avg_moist, aes(x = year, y = average_temp, fill = treatment)) +
 
 
 ###### air temperature ######
-# merge the data
-UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
-
 # create new dataframe with only data from april - august from 7 AM - 7 PM (growing season during the day)
 UMBS_season <- UMBS
 UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
@@ -429,6 +416,98 @@ u_july <- ggplot(UMBS_avg_july, aes(x = year, y = average_temp, fill = treatment
   scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
   theme_classic() +
   labs(title = "UMBS — July", x="Year", y = NULL, fill = "Treatment")
+
+
+
+###### par data ######
+# format the hobo data to match the dates for the par data
+UMBS_hobo <- UMBS
+UMBS_hobo$month <- format(UMBS_hobo$Date_Time,format="%m")
+UMBS_hobo$year <- format(UMBS_hobo$Date_Time,format="%Y")
+UMBS_hobo$day <- format(UMBS_hobo$Date_Time,format="%d")
+
+# create a new dataframe for comparing par and hobo across years
+UMBS_hobo1 <- UMBS_hobo %>%
+  select(Date_Time, year, month, day, XH_warmed_air_1m, XH_ambient_air_1m) %>%
+  gather(key = "treatment", value = "temp", -year, -month, -day, -Date_Time) %>%
+  group_by(month, year, day, treatment) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se_temp = std.error(temp, na.rm = TRUE)) %>%
+  filter(year == "2017" & month == "07" & day == "03"|
+           year == '2017' & month == '07' & day == '10'|
+           year == '2017' & month == '07' & day == '17'|
+           year == '2017' & month == '07' & day == '24'|
+           year == '2017' & month == '08' & day == '09'|
+           year == '2017' & month == '08' & day == '16'|
+           year == '2018' & month == '08' & day == '03'|
+           year == '2018' & month == '08' & day == '13'|
+           year == '2018' & month == '08' & day == '22'|
+           year == '2018' & month == '08' & day == '31'|
+           year == '2018' & month == '09' & day == '07'|
+           year == '2018' & month == '09' & day == '13'|
+           year == '2019' & month == '06' & day == '03'|
+           year == '2019' & month == '06' & day == '18'|
+           year == '2019' & month == '07' & day == '28')
+
+# format the par data for the needed dates
+UMBS_par$month <- format(UMBS_par$Date_Time,format="%m")
+UMBS_par$year <- format(UMBS_par$Date_Time,format="%Y")
+UMBS_par$day <- format(UMBS_par$Date_Time,format="%d")
+
+# new dataframe for comparing par and hobo across years
+UMBS_par1 <- UMBS_par %>%
+  select(Date_Time, Plot, year, month, day, Percent_Sunlight) %>%
+  filter(Plot == "A5"|Plot == "A6"|Plot == "B4"|Plot == "C4"|Plot == "C2"|Plot == "D2")
+
+# substituting treatment type for plot name
+par_names2 <- c(A5="XH_warmed_air_1m", C4="XH_warmed_air_1m", D2="XH_warmed_air_1m", 
+               A6="XH_ambient_air_1m", B4="XH_ambient_air_1m", C2="XH_ambient_air_1m")
+UMBS_par1$treatment <- as.character(par_names2[UMBS_par1$Plot])
+
+
+# generate averages based on date & treatment
+UMBS_par1 <- UMBS_par1 %>%
+  group_by(month, year, day, treatment) %>%
+  summarize(average_par = mean(Percent_Sunlight, na.rm = TRUE),
+            se_par = std.error(Percent_Sunlight, na.rm = TRUE))
+
+# combine the formatted hobo and par data into one file
+UMBS_comb <- merge(UMBS_hobo1,UMBS_par1,by=c("year","month","day","treatment")) # over the years
+
+# add year/month/day column
+ym3 <- c(paste0(UMBS_comb$year,'_',UMBS_comb$month,'_',UMBS_comb$day))
+UMBS_comb <- data.frame(UMBS_comb,ym3)
+
+# plot the data
+# par and hobo for all years
+ggplot(UMBS_comb, aes(x = ym3, color = treatment, shape = treatment)) +
+  geom_point(aes(y = average_temp)) +
+  geom_point(aes(y = average_par * 100)) +
+  geom_line(aes(y = average_temp, group = treatment)) +
+  geom_line(aes(y = average_par * 100, group = treatment), linetype = 'dashed') +
+  scale_y_continuous(
+    name = "Air Temperature (°C)",
+    sec.axis = sec_axis(~./100, name="PAR")) + 
+  labs(x = "Year, month, day") +
+  scale_color_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c('midnightblue','coral')) +
+  scale_shape_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c(17,16)) +
+  theme_classic()+
+  theme(legend.position="bottom")
+
+# simple linear regression
+UMBS_comb_lm <- UMBS_comb %>%
+  filter(treatment == "XH_warmed_air_1m")
+lm_umbs <- lm(average_temp ~ average_par, data = UMBS_comb_lm)
+plot(average_temp ~ average_par, data = UMBS_comb_lm)
+abline(lm_umbs)
+summary(lm_umbs)
+lm_kbs
+# OR
+ggplot(KBS_comb_lm, aes(x = average_par, y = average_temp)) + 
+  geom_point() +
+  stat_smooth(method = "lm", color = 'black') +
+  theme_classic() +
+  labs(y = 'Average air temperature (°C)', x = 'Average PAR')
 
 
 

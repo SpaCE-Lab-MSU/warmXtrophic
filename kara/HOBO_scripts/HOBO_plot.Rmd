@@ -31,10 +31,10 @@ Guide
 Page 2: Yearly average air temperatures between KBS and UMBS  
 Page 3: Monthly average air temperatures between KBS and UMBS for all years  
 Page 4: Average July air temperatures between KBS and UMBS  
-Page 5: Comparing PAR to HOBO between 2017-2019  
-Page 6: Another comparison of PAR to HOBO from 2017-2019  
-Page 7: Comparing PAR to HOBO for multiple 2019 dates & a Linear regression between 2019 warmed chamber PAR and HOBO  
-Page 8: KBS soil temperature over time  
+Page 5: KBS - Comparing PAR to HOBO between 2017-2019  
+Page 6: KBS - Another comparison of PAR to HOBO from 2017-2019  
+Page 7: KBS - Comparing PAR to HOBO for multiple 2019 dates & a linear regression between 2019 warmed chamber PAR and HOBO  
+Page 8: UMBS linear regression between warmed temp and PAR & KBS soil temperature over time  
 Page 9: KBS soil moisture over time  
 Page 10: 1H sensor average air temperature by month over all years  
 Page 11: 2H sensor average air temperature by month over all years  
@@ -230,6 +230,49 @@ ym <- c(paste0(KBS_comb$year,'_',KBS_comb$month,'_',KBS_comb$day))
 KBS_comb <- data.frame(KBS_comb,ym)
 ym2 <- c(paste0(KBS_comb2$year,'_',KBS_comb2$month,'_',KBS_comb2$day))
 KBS_comb_2019 <- data.frame(KBS_comb2,ym2)
+
+
+UMBS_hobo <- UMBS
+UMBS_hobo$month <- format(UMBS_hobo$Date_Time,format="%m")
+UMBS_hobo$year <- format(UMBS_hobo$Date_Time,format="%Y")
+UMBS_hobo$day <- format(UMBS_hobo$Date_Time,format="%d")
+UMBS_hobo1 <- UMBS_hobo %>%
+  select(Date_Time, year, month, day, XH_warmed_air_1m, XH_ambient_air_1m) %>%
+  gather(key = "treatment", value = "temp", -year, -month, -day, -Date_Time) %>%
+  group_by(month, year, day, treatment) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se_temp = std.error(temp, na.rm = TRUE)) %>%
+  filter(year == "2017" & month == "07" & day == "03"|
+           year == '2017' & month == '07' & day == '10'|
+           year == '2017' & month == '07' & day == '17'|
+           year == '2017' & month == '07' & day == '24'|
+           year == '2017' & month == '08' & day == '09'|
+           year == '2017' & month == '08' & day == '16'|
+           year == '2018' & month == '08' & day == '03'|
+           year == '2018' & month == '08' & day == '13'|
+           year == '2018' & month == '08' & day == '22'|
+           year == '2018' & month == '08' & day == '31'|
+           year == '2018' & month == '09' & day == '07'|
+           year == '2018' & month == '09' & day == '13'|
+           year == '2019' & month == '06' & day == '03'|
+           year == '2019' & month == '06' & day == '18'|
+           year == '2019' & month == '07' & day == '28')
+UMBS_par$month <- format(UMBS_par$Date_Time,format="%m")
+UMBS_par$year <- format(UMBS_par$Date_Time,format="%Y")
+UMBS_par$day <- format(UMBS_par$Date_Time,format="%d")
+UMBS_par1 <- UMBS_par %>%
+  select(Date_Time, Plot, year, month, day, Percent_Sunlight) %>%
+  filter(Plot == "A5"|Plot == "A6"|Plot == "B4"|Plot == "C4"|Plot == "C2"|Plot == "D2")
+par_names2 <- c(A5="XH_warmed_air_1m", C4="XH_warmed_air_1m", D2="XH_warmed_air_1m", 
+               A6="XH_ambient_air_1m", B4="XH_ambient_air_1m", C2="XH_ambient_air_1m")
+UMBS_par1$treatment <- as.character(par_names2[UMBS_par1$Plot])
+UMBS_par1 <- UMBS_par1 %>%
+  group_by(month, year, day, treatment) %>%
+  summarize(average_par = mean(Percent_Sunlight, na.rm = TRUE),
+            se_par = std.error(Percent_Sunlight, na.rm = TRUE))
+UMBS_comb <- merge(UMBS_hobo1,UMBS_par1,by=c("year","month","day","treatment")) # over the years
+ym3 <- c(paste0(UMBS_comb$year,'_',UMBS_comb$month,'_',UMBS_comb$day))
+UMBS_comb <- data.frame(UMBS_comb,ym3)
 ```
 
 ## Yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)
@@ -308,7 +351,7 @@ annotate_figure(final_july,
                 left = text_grob("Average Temperature (°C)", color = "black", rot = 90))
 ```
 
-## Comparing PAR to HOBO from 2017-2019; only one day is shown for each year because PAR measurements were only taken on one day at KBS for 2017 and 2018
+## KBS - Comparing PAR to HOBO from 2017-2019; only one day is shown for each year because PAR measurements were only taken on one day at KBS for 2017 and 2018
 ```{r, echo = FALSE, message=FALSE}
 ggplot(KBS_comb, aes(x=ym, fill=treatment, color = treatment)) +
   geom_bar( aes(y=average_temp), position = "identity",alpha = 0.5, stat = "identity", color = 'black') + 
@@ -324,7 +367,7 @@ ggplot(KBS_comb, aes(x=ym, fill=treatment, color = treatment)) +
   theme_classic()
 ```
 
-## Again, comparing PAR to HOBO, this time in line format - PAR in dashed lines
+## KBS - Again, comparing PAR to HOBO, this time in line format - PAR in dashed lines
 ```{r, echo = FALSE, message=FALSE}
 ggplot(KBS_comb, aes(x = ym, color = treatment, shape = treatment)) +
   geom_point(aes(y = average_temp)) +
@@ -341,7 +384,7 @@ ggplot(KBS_comb, aes(x = ym, color = treatment, shape = treatment)) +
   theme(legend.position="bottom")
 ```
 
-## Comparing PAR to HOBO for only 2019 because multiple PAR measurements were taken that year - PAR in dashed lines
+## KBS- Comparing PAR to HOBO for only 2019 because multiple PAR measurements were taken that year - PAR in dashed lines
 ```{r, echo = FALSE, message=FALSE}
 ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
   geom_point(aes(y = average_temp)) +
@@ -358,13 +401,22 @@ ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
   theme(legend.position="bottom")
 ```
 
-## Simple linear regression between temp and par: F(1,3) = 32.21, p-value = 0.011
+## KBS - Simple linear regression between temp and par: F(1,3) = 32.21, p-value = 0.011
 ```{r, echo = FALSE, message=FALSE}
 KBS_comb_lm <- KBS_comb_2019 %>%
   filter(treatment == "XH_warmed_air_1m")
 lm_kbs <- lm(average_temp ~ average_par, data = KBS_comb_lm)
 plot(average_temp ~ average_par, data = KBS_comb_lm)
 abline(lm_kbs)
+```
+
+## UMBS - Simple linear regression between temp and par: F(1,13) = 1.45, p-value = 0.25
+```{r, echo = FALSE, message=FALSE}
+UMBS_comb_lm <- UMBS_comb %>%
+  filter(treatment == "XH_warmed_air_1m")
+lm_umbs <- lm(average_temp ~ average_par, data = UMBS_comb_lm)
+plot(average_temp ~ average_par, data = UMBS_comb_lm)
+abline(lm_umbs)
 ```
 
 ## Soil temperature over time - doesn't seem to be a difference between treatments

@@ -20,13 +20,10 @@ for (package in c("tidyverse", "plotrix", "ggpubr",'rstatix')) {
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # load in the data
-KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
-KBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair2_L1.csv")
-KBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv")
-
-UMBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair1_L1.csv")
-UMBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair2_L1.csv")
-UMBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair3_L1.csv")
+KBS <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv")
+UMBS <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv")
+KBS_par <- read_csv("L1/PAR_data/KBS_PAR_L1.csv")
+UMBS_par <- read_csv("L1/PAR_data/UMBS_PAR_L1.csv")
 
 
 
@@ -39,7 +36,6 @@ UMBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair3_L1.csv"
 ###### testing for sig diff between microstation air temps ######
 
 # merge the data + filter data for only the daytime during the growing season
-KBS <- rbind(KBS_1, KBS_2, KBS_3)
 KBS_season <- KBS
 KBS_season$month <- format(KBS_season$Date_Time,format="%m")
 KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
@@ -83,13 +79,6 @@ pairwise.comp <- KBS_avg_year %>%
   )
 pairwise.comp
 
-# simple linear regression
-KBS_comb_lm <- KBS_comb_2019 %>%
-  filter(treatment == "XH_warmed_air_1m")
-lm_kbs <- lm(average_temp ~ average_par, data = KBS_comb_lm)
-summary(lm_kbs)
-lm_kbs
-
 
 
 #########################################
@@ -101,7 +90,6 @@ lm_kbs
 ###### testing for sig diff between microstation air temps ######
 
 # merge the data + filter data for only the daytime during the growing season
-UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
 UMBS_season <- UMBS
 UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
 UMBS_season$year <- format(UMBS_season$Date_Time,format="%Y")
