@@ -1,5 +1,5 @@
 ---
-title: "HOBO Data Plots"
+title: "OTC Data Plots"
 author: "Kara Dobson"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
@@ -15,6 +15,18 @@ for (package in c("tidyverse", "plotrix", "ggpubr")) {
   }
 }
 ```
+TITLE: OTC data plots  
+AUTHORS: Kara Dobson  
+COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young  
+DATA INPUT: CSV files are located in the HOBO_data folder in the shared Google drive  
+DATA OUTPUT: Plots of each graph are in the HOBO_plot.pdf in Github  
+ note: plots are saved for each station and merged into a final figure at the bottom of the script  
+PROJECT: warmXtrophic  
+DATE: July 2020  
+
+
+
+
 Guide  
 Page 2: Yearly average air temperatures between KBS and UMBS  
 Page 3: Monthly average air temperatures between KBS and UMBS for all years  
@@ -312,30 +324,36 @@ ggplot(KBS_comb, aes(x=ym, fill=treatment, color = treatment)) +
   theme_classic()
 ```
 
-## Again, comparing PAR to HOBO, this time in line format (bottom lines are PAR data, I need to change their color)
+## Again, comparing PAR to HOBO, this time in line format - PAR in dashed lines
 ```{r, echo = FALSE, message=FALSE}
 ggplot(KBS_comb, aes(x = ym, color = treatment, shape = treatment)) +
   geom_point(aes(y = average_temp)) +
   geom_point(aes(y = average_par * 100)) +
   geom_line(aes(y = average_temp, group = treatment)) +
-  geom_line(aes(y = average_par * 100, group = treatment)) +
+  geom_line(aes(y = average_par * 100, group = treatment), linetype = "dashed") +
   scale_y_continuous(
     name = "Air Temperature (°C)",
     sec.axis = sec_axis(~./100, name="PAR")) + 
-  theme_classic()+
+  labs(x = "Year, month, day") +
+  scale_color_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c('midnightblue','coral')) +
+  scale_shape_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c(17,16)) +
+  theme_classic() +
   theme(legend.position="bottom")
 ```
 
-## Comparing PAR to HOBO for only 2019 because multiple PAR measurements were taken that year — need to change the color for the PAR lines
+## Comparing PAR to HOBO for only 2019 because multiple PAR measurements were taken that year - PAR in dashed lines
 ```{r, echo = FALSE, message=FALSE}
 ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
   geom_point(aes(y = average_temp)) +
   geom_point(aes(y = average_par * 100)) +
   geom_line(aes(y = average_temp, group = treatment)) +
-  geom_line(aes(y = average_par * 100, group = treatment)) +
+  geom_line(aes(y = average_par * 100, group = treatment), linetype = 'dashed') +
   scale_y_continuous(
     name = "Air Temperature (°C)",
     sec.axis = sec_axis(~./100, name="PAR")) + 
+  labs(x = "Year, month, day") +
+  scale_color_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c('midnightblue','coral')) +
+  scale_shape_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c(17,16)) +
   theme_classic()+
   theme(legend.position="bottom")
 ```

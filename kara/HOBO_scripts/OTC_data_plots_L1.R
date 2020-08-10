@@ -233,11 +233,14 @@ ggplot(KBS_comb, aes(x = ym, color = treatment, shape = treatment)) +
   geom_point(aes(y = average_temp)) +
   geom_point(aes(y = average_par * 100)) +
   geom_line(aes(y = average_temp, group = treatment)) +
-  geom_line(aes(y = average_par * 100, group = treatment)) +
+  geom_line(aes(y = average_par * 100, group = treatment), linetype = "dashed") +
   scale_y_continuous(
     name = "Air Temperature (°C)",
     sec.axis = sec_axis(~./100, name="PAR")) + 
-  theme_classic()+
+  labs(x = "Year, month, day") +
+  scale_color_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c('midnightblue','coral')) +
+  scale_shape_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c(17,16)) +
+  theme_classic() +
   theme(legend.position="bottom")
 
 # par and hobo for only 2019, both as line graphs
@@ -245,10 +248,13 @@ ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
   geom_point(aes(y = average_temp)) +
   geom_point(aes(y = average_par * 100)) +
   geom_line(aes(y = average_temp, group = treatment)) +
-  geom_line(aes(y = average_par * 100, group = treatment)) +
+  geom_line(aes(y = average_par * 100, group = treatment), linetype = 'dashed') +
   scale_y_continuous(
     name = "Air Temperature (°C)",
     sec.axis = sec_axis(~./100, name="PAR")) + 
+  labs(x = "Year, month, day") +
+  scale_color_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c('midnightblue','coral')) +
+  scale_shape_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c(17,16)) +
   theme_classic()+
   theme(legend.position="bottom")
 
@@ -260,7 +266,12 @@ plot(average_temp ~ average_par, data = KBS_comb_lm)
 abline(lm_kbs)
 summary(lm_kbs)
 lm_kbs
-
+# OR
+ggplot(KBS_comb_lm, aes(x = average_par, y = average_temp)) + 
+  geom_point() +
+  stat_smooth(method = "lm", color = 'black') +
+  theme_classic() +
+  labs(y = 'Average air temperature (°C)', x = 'Average PAR')
 
 
 ###### soil temperatures ######
