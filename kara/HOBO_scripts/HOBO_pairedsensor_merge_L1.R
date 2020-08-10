@@ -54,6 +54,13 @@ diff1920_3k <- anti_join(list_pairk3$KBS_3_2020, list_pairk3$KBS_3_2019, by = "D
 KBS_3 <- rbind(list_pairk3$KBS_3_1516, diff1617_3k, diff1718_3k, diff1819_3k, diff1920_3k)
 write.csv(KBS_3, file="L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv")
 
+# create one file for all KBS
+KBS_1$site <- "KBS1"
+KBS_2$site <- "KBS2"
+KBS_3$site <- "KBS3"
+KBS <- rbind(KBS_1, KBS_2, KBS_3)
+write.csv(KBS, file="L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv")
+
 
 ### UMBS ###
 # Merge data from pair 1 for all years
@@ -82,3 +89,11 @@ diff1920_3u <- anti_join(list_pairu3$UMBS_3_2020, list_pairu3$UMBS_3_2019, by = 
 
 UMBS_3 <- rbind(list_pairu3$UMBS_3_1516, diff1617_3u, diff1718_3u, diff1819_3u, diff1920_3u)
 write.csv(UMBS_3, file="L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair3_L1.csv")
+
+# create one file for all UMBS
+UMBS_1$site <- "UMBS1"
+UMBS_2$site <- "UMBS2"
+UMBS_3$site <- "UMBS3"
+UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
+write.csv(KBS, file="L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv")
+
