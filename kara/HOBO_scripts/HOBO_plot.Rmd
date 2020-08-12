@@ -34,11 +34,12 @@ Page 4: Average July air temperatures between KBS and UMBS
 Page 5: KBS - Comparing PAR to HOBO between 2017-2019  
 Page 6: KBS - Another comparison of PAR to HOBO from 2017-2019  
 Page 7: KBS - Comparing PAR to HOBO for multiple 2019 dates & a linear regression between 2019 warmed chamber PAR and HOBO  
-Page 8: UMBS linear regression between warmed temp and PAR & KBS soil temperature over time  
-Page 9: KBS soil moisture over time  
-Page 10: 1H sensor average air temperature by month over all years  
-Page 11: 2H sensor average air temperature by month over all years  
-Page 12: 3H sensor average air temperature by month over all years  
+Page 8: UMBS linear regression between warmed temp and PAR  
+Page 9: KBS soil temperature over time  
+Page 10: KBS soil moisture over time  
+Page 11: 1H sensor average air temperature by month over all years  
+Page 12: 2H sensor average air temperature by month over all years  
+Page 13: 3H sensor average air temperature by month over all years  
 ```{r, include = FALSE}
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
@@ -275,7 +276,8 @@ ym3 <- c(paste0(UMBS_comb$year,'_',UMBS_comb$month,'_',UMBS_comb$day))
 UMBS_comb <- data.frame(UMBS_comb,ym3)
 ```
 
-## Yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)
+## Yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)  
+## p-value < 0.001 for all
 ```{r, echo = FALSE, message=FALSE}
 k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)) + 
   geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
@@ -419,7 +421,8 @@ plot(average_temp ~ average_par, data = UMBS_comb_lm)
 abline(lm_umbs)
 ```
 
-## Soil temperature over time - doesn't seem to be a difference between treatments
+## Soil temperature over time - varies between ambient or warmed treatments
+## no sig difference for 2018 (p-value = 0.87)
 ```{r, echo = FALSE, message=FALSE}
 ggplot(KBS_avg_soil, aes(x = year, y = average_temp, fill = treatment)) + 
   geom_bar(stat = "identity", position = position_dodge(), color = 'black') +
@@ -431,7 +434,7 @@ ggplot(KBS_avg_soil, aes(x = year, y = average_temp, fill = treatment)) +
   theme(legend.position = "bottom")
 ```
 
-## Soil moisture over time - ambient retains more moisture
+## Soil moisture over time - ambient retains more moisture (p-value < 0.001 for all)
 ```{r, echo = FALSE, message=FALSE}
 ggplot(KBS_avg_moist, aes(x = year, y = average_temp, fill = treatment)) + 
   geom_bar(position = "identity", stat = "identity", color = 'black', alpha = 1) +

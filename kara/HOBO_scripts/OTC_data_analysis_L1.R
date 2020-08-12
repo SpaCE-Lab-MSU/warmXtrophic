@@ -67,11 +67,142 @@ ggqqplot(KBS_avg_year, "temp", ggtheme = theme_bw()) +
   facet_grid(year ~ treatment, labeller = "label_both")
 
 # run anova - significant interaction btw year and treatment
-anova.res <- aov(temp ~ treatment * year, data = KBS_avg_year)
-summary(anova.res)
+anova.res.kbs <- aov(temp ~ treatment * year, data = KBS_avg_year)
+summary(anova.res.kbs)
 
 # post-hoc test
 pairwise.comp <- KBS_avg_year %>%
+  group_by(year) %>%
+  pairwise_t_test(
+    temp ~ treatment, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pairwise.comp
+
+
+###### testing for sig diff between microstation soil temps for July ######
+KBS_season_july <- KBS_season %>%
+  filter(month == "07") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+
+# create new dataframes for temperatures averaged by year & averaged by month and year
+KBS_season_july <- KBS_season_july %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+
+# test for outliers - none extreme
+outliers <- KBS_season_july %>%
+  group_by(treatment, year) %>%
+  identify_outliers(temp)
+view(outliers)
+
+# check for normality - can't get this to run
+KBS_season_july %>%
+  group_by(treatment, year) %>%
+  shapiro_test(temp)
+# visual check for normality - seems normal?
+ggqqplot(KBS_season_july, "temp", ggtheme = theme_bw()) +
+  facet_grid(year ~ treatment, labeller = "label_both")
+
+# run anova - significant interaction btw year and treatment
+anova.res.july <- aov(temp ~ treatment * year, data = KBS_season_july)
+summary(anova.res.july)
+
+# post-hoc test
+pairwise.comp <- KBS_season_july %>%
+  group_by(year) %>%
+  pairwise_t_test(
+    temp ~ treatment, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pairwise.comp
+
+
+###### testing for sig diff between microstation soil temps ######
+# merge the data + filter data for only the daytime during the growing season
+KBS_season_soil <- KBS
+KBS_season_soil$month <- format(KBS_season_soil$Date_Time,format="%m")
+KBS_season_soil$year <- format(KBS_season_soil$Date_Time,format="%y")
+KBS_season_soil$hour <- format(KBS_season_soil$Date_Time, format="%H")
+
+KBS_season_soil <- KBS_season_soil %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
+
+# create new dataframes for temperatures averaged by year & averaged by month and year
+KBS_avg_soil <- KBS_season_soil %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+
+# test for outliers - some extreme, but they seem like reasonable values
+outliers <- KBS_avg_soil %>%
+  group_by(treatment, year) %>%
+  identify_outliers(temp)
+view(outliers)
+
+# check for normality - can't get this to run
+KBS_avg_soil %>%
+  group_by(treatment, year) %>%
+  shapiro_test(temp)
+# visual check for normality - seems normal?
+ggqqplot(KBS_avg_soil, "temp", ggtheme = theme_bw()) +
+  facet_grid(year ~ treatment, labeller = "label_both")
+
+# run anova - significant interaction btw year and treatment
+anova.res.soil <- aov(temp ~ treatment * year, data = KBS_avg_soil)
+summary(anova.res.soil)
+
+# post-hoc test
+pairwise.comp <- KBS_avg_soil %>%
+  group_by(year) %>%
+  pairwise_t_test(
+    temp ~ treatment, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pairwise.comp
+
+
+###### testing for sig diff between microstation soil moisture ######
+# merge the data + filter data for only the daytime during the growing season
+KBS_season_moist <- KBS
+KBS_season_moist$month <- format(KBS_season_moist$Date_Time,format="%m")
+KBS_season_moist$year <- format(KBS_season_moist$Date_Time,format="%y")
+KBS_season_moist$hour <- format(KBS_season_moist$Date_Time, format="%H")
+
+KBS_season_moist <- KBS_season_moist %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
+
+# create new dataframes for temperatures averaged by year & averaged by month and year
+KBS_avg_moist <- KBS_season_moist %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+
+# test for outliers - some extreme, but they seem like reasonable values
+outliers <- KBS_avg_moist %>%
+  group_by(treatment, year) %>%
+  identify_outliers(temp)
+view(outliers)
+
+# check for normality - can't get this to run
+KBS_avg_moist %>%
+  group_by(treatment, year) %>%
+  shapiro_test(temp)
+# visual check for normality - seems normal?
+ggqqplot(KBS_avg_moist, "temp", ggtheme = theme_bw()) +
+  facet_grid(year ~ treatment, labeller = "label_both")
+
+# run anova - significant interaction btw year and treatment
+anova.res.moist <- aov(temp ~ treatment * year, data = KBS_avg_moist)
+summary(anova.res.moist)
+
+# post-hoc test
+pairwise.comp <- KBS_avg_moist %>%
   group_by(year) %>%
   pairwise_t_test(
     temp ~ treatment, paired = TRUE,
@@ -121,8 +252,8 @@ ggqqplot(UMBS_avg_year, "temp", ggtheme = theme_bw()) +
   facet_grid(year ~ treatment, labeller = "label_both")
 
 # run anova - no significant interaction btw year and treatment
-anova.res <- aov(temp ~ treatment * year, data = UMBS_avg_year)
-summary(anova.res)
+anova.res.umbs <- aov(temp ~ treatment * year, data = UMBS_avg_year)
+summary(anova.res.umbs)
 
 # main effect of treatment on temp
 pairwise.comp <- UMBS_avg_year %>%

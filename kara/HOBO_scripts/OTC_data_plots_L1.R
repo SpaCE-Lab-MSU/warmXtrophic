@@ -111,13 +111,13 @@ k_july <- ggplot(KBS_avg_july, aes(x = year, y = average_temp, fill = treatment)
   labs(title = "KBS — July", x=NULL, y = NULL, fill = "Treatment")
 
 # alternate k_year graph
-ggplot(KBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
+altk <- ggplot(KBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
   geom_bar(stat = "identity", position = position_dodge(), color='black') +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
                 position = position_dodge(0.9)) +
-  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue','lightcyan2'))+
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#d8ecf2'))+
   theme_classic() +
-  labs(title = "KBS", x="Year", y = "Average Air Temperature - 1m (°C)", fill = "Treatment") +
+  labs(title = "KBS", x=NULL, y = NULL, fill = "Treatment") +
   theme(legend.position = "bottom")
 
 
@@ -153,6 +153,7 @@ KBS_hobo2 <- KBS_hobo %>%
            year == '2019' & month == '08' & day == '29'|
            year == '2019' & month == '09' & day == '18')
 
+
 # format the par data for the needed dates
 KBS_par$month <- format(KBS_par$Date_Time,format="%m")
 KBS_par$year <- format(KBS_par$Date_Time,format="%Y")
@@ -176,11 +177,22 @@ KBS_par2 <- KBS_par %>%
            year == '2019' & month == '09' & day == '18') %>%
   filter(Plot == "B6"|Plot == "A6"|Plot == "B3"|Plot == "B4"|Plot == "C1"|Plot == "B1")
 
+# new dataframe for par and hobo for 2019 - understory par instead of percent sunlight
+KBS_par3 <- KBS_par %>%
+  select(Date_Time, Plot, year, month, day, Average_Ground) %>%
+  filter(year == "2019" & month == "05" & day == "15"|
+           year == '2019' & month == '07' & day == '08'|
+           year == '2019' & month == '08' & day == '02'|
+           year == '2019' & month == '08' & day == '29'|
+           year == '2019' & month == '09' & day == '18') %>%
+  filter(Plot == "B6"|Plot == "A6"|Plot == "B3"|Plot == "B4"|Plot == "C1"|Plot == "B1")
+
 # substituting treatment type for plot name
 par_names <- c(B6="XH_warmed_air_1m", B3="XH_warmed_air_1m", C1="XH_warmed_air_1m", 
                 A6="XH_ambient_air_1m", B4="XH_ambient_air_1m", B1="XH_ambient_air_1m")
 KBS_par1$treatment <- as.character(par_names[KBS_par1$Plot])
 KBS_par2$treatment <- as.character(par_names[KBS_par2$Plot])
+KBS_par3$treatment <- as.character(par_names[KBS_par3$Plot])
 
 # generate averages based on date & treatment
 KBS_par1 <- KBS_par1 %>%
@@ -193,9 +205,15 @@ KBS_par2 <- KBS_par2 %>%
   summarize(average_par = mean(Percent_Sunlight, na.rm = TRUE),
             se_par = std.error(Percent_Sunlight, na.rm = TRUE))
 
+KBS_par3 <- KBS_par3 %>%
+  group_by(month, year, day, treatment) %>%
+  summarize(average_par = mean(Average_Ground, na.rm = TRUE),
+            se_par = std.error(Average_Ground, na.rm = TRUE))
+
 # combine the formatted hobo and par data into one file
 KBS_comb <- merge(KBS_hobo1,KBS_par1,by=c("year","month","day","treatment")) # over the years
-KBS_comb2 <- merge(KBS_hobo2,KBS_par2,by=c("year","month","day","treatment")) # only 2019
+KBS_comb2 <- merge(KBS_hobo2,KBS_par2,by=c("year","month","day","treatment")) # only 2019 - % sun
+KBS_comb3 <- merge(KBS_hobo2,KBS_par3,by=c("year","month","day","treatment")) # only 2019 - understory
 
 # add year/month/day column
 ym <- c(paste0(KBS_comb$year,'_',KBS_comb$month,'_',KBS_comb$day))
@@ -203,6 +221,9 @@ KBS_comb <- data.frame(KBS_comb,ym)
 
 ym2 <- c(paste0(KBS_comb2$year,'_',KBS_comb2$month,'_',KBS_comb2$day))
 KBS_comb_2019 <- data.frame(KBS_comb2,ym2)
+
+ym3 <- c(paste0(KBS_comb3$year,'_',KBS_comb3$month,'_',KBS_comb3$day))
+KBS_comb_2019_2 <- data.frame(KBS_comb3,ym3)
 
 # plot the data
 # par + hobo over the years with a bar and line graph
@@ -234,7 +255,7 @@ ggplot(KBS_comb, aes(x = ym, color = treatment, shape = treatment)) +
   theme_classic() +
   theme(legend.position="bottom")
 
-# par and hobo for only 2019, both as line graphs
+# par and hobo for only 2019, percent sunlight
 ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
   geom_point(aes(y = average_temp)) +
   geom_point(aes(y = average_par * 100)) +
@@ -249,7 +270,23 @@ ggplot(KBS_comb_2019, aes(x = ym2, color = treatment, shape = treatment)) +
   theme_classic()+
   theme(legend.position="bottom")
 
-# simple linear regression
+# par and hobo for only 2019, understory par
+# this graph needs work -  axis are wrong
+ggplot(KBS_comb_2019_2, aes(x = ym3, color = treatment, shape = treatment)) +
+  geom_point(aes(y = average_temp)) +
+  geom_point(aes(y = average_par/100)) +
+  geom_line(aes(y = average_temp, group = treatment)) +
+  geom_line(aes(y = average_par/100, group = treatment), linetype = 'dashed') +
+  scale_y_continuous(
+    name = "Air Temperature (°C)",
+    sec.axis = sec_axis(~.*100, name="PAR")) + 
+  labs(x = "Year, month, day") +
+  scale_color_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c('midnightblue','coral')) +
+  scale_shape_manual(labels = c("Ambient", "Warmed"), name = "Treatment", values=c(17,16)) +
+  theme_classic()+
+  theme(legend.position="bottom")
+
+# simple linear regression - percent sunlight
 KBS_comb_lm <- KBS_comb_2019 %>%
   filter(treatment == "XH_warmed_air_1m")
 lm_kbs <- lm(average_temp ~ average_par, data = KBS_comb_lm)
@@ -263,6 +300,15 @@ ggplot(KBS_comb_lm, aes(x = average_par, y = average_temp)) +
   stat_smooth(method = "lm", color = 'black') +
   theme_classic() +
   labs(y = 'Average air temperature (°C)', x = 'Average PAR')
+
+# simple linear regression - understory par
+KBS_comb_lm2 <- KBS_comb_2019_2 %>%
+  filter(treatment == "XH_warmed_air_1m")
+lm_kbs2 <- lm(average_temp ~ average_par, data = KBS_comb_lm2)
+plot(average_temp ~ average_par, data = KBS_comb_lm2)
+abline(lm_kbs2)
+summary(lm_kbs2)
+lm_kbs2
 
 
 ###### soil temperatures ######
@@ -417,6 +463,16 @@ u_july <- ggplot(UMBS_avg_july, aes(x = year, y = average_temp, fill = treatment
   theme_classic() +
   labs(title = "UMBS — July", x="Year", y = NULL, fill = "Treatment")
 
+# alternate year graph
+altu <- ggplot(UMBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
+  geom_bar(stat = "identity", position = position_dodge(), color='black') +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = position_dodge(0.9)) +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#d8ecf2'))+
+  theme_classic() +
+  labs(title = "UMBS", x="Year", y = NULL, fill = "Treatment") +
+  theme(legend.position = "bottom")
+
 
 
 ###### par data ######
@@ -526,4 +582,8 @@ final_july <- ggarrange(k_july, u_july, nrow = 2, common.legend = TRUE, legend =
 annotate_figure(final_july,
                 left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90),
                 top = text_grob("Year"))
+
+final_alt <- ggarrange(altk, altu, nrow = 2, common.legend = TRUE, legend = "bottom")
+annotate_figure(final_alt,
+                left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90))
 
