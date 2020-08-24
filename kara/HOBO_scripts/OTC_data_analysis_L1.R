@@ -22,8 +22,12 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 # load in the data
 KBS <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv")
 UMBS <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv")
+
 KBS_par <- read_csv("L1/PAR_data/KBS_PAR_L1.csv")
 UMBS_par <- read_csv("L1/PAR_data/UMBS_PAR_L1.csv")
+
+KBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv")
+UMBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv")
 
 
 
@@ -80,7 +84,8 @@ pairwise.comp <- KBS_avg_year %>%
 pairwise.comp
 
 
-###### testing for sig diff between microstation soil temps for July ######
+###### testing for sig diff between microstation air temps for July ######
+
 KBS_season_july <- KBS_season %>%
   filter(month == "07") %>%
   filter(hour > "06") %>%
@@ -120,6 +125,7 @@ pairwise.comp
 
 
 ###### testing for sig diff between microstation soil temps ######
+
 # merge the data + filter data for only the daytime during the growing season
 KBS_season_soil <- KBS
 KBS_season_soil$month <- format(KBS_season_soil$Date_Time,format="%m")
@@ -166,6 +172,7 @@ pairwise.comp
 
 
 ###### testing for sig diff between microstation soil moisture ######
+
 # merge the data + filter data for only the daytime during the growing season
 KBS_season_moist <- KBS
 KBS_season_moist$month <- format(KBS_season_moist$Date_Time,format="%m")
@@ -209,6 +216,21 @@ pairwise.comp <- KBS_avg_moist %>%
     p.adjust.method = "bonferroni"
   )
 pairwise.comp
+
+
+###### testing for stnd dev over time in chambers - pendant data ######
+
+KBS_pend_avg <- KBS_pend %>%
+  group_by(Date_Time) %>%
+  summarize(average_temp = mean(Temp_F_XP_air_1m, na.rm = TRUE),
+            stnd_dev = sd(Temp_F_XP_air_1m, na.rm = TRUE))
+
+KBS_pend_avg$year <- format(KBS_pend_avg$Date_Time,format="%Y")
+
+KBS_pend_med <- KBS_pend_avg %>%
+  group_by(year) %>%
+  summarize(median = median(stnd_dev, na.rm = TRUE))
+
 
 
 
