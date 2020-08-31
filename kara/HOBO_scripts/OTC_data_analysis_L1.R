@@ -231,6 +231,16 @@ KBS_pend_med <- KBS_pend_avg %>%
   group_by(year) %>%
   summarize(median = median(stnd_dev, na.rm = TRUE))
 
+ggplot(KBS_avg_month, aes(x = month, y = average_temp, fill = treatment)) + 
+  facet_grid(.~year) +
+  geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
+  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
+                position = "identity") +
+  ylim(0, 30) +
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
+  theme_classic() +
+  labs(x = NULL, y = NULL, fill = "Treatment")
+
 
 
 
