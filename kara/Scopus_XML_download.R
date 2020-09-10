@@ -19,7 +19,8 @@ for (package in c('rscopus')) {
 
 
 # set API key - need to load the API key into R prior to this step (Elsevier API key download found online)
-api_key = get_api_key(NULL, error = FALSE)
+options("elsevier_api_key" = "5e9a6d5ce776fbd6f0e536ab2b79812b")
+
 
 # attempt to read in a paper - taken from rscopus documentation
 # error: resource not found; fails for doi and eid
