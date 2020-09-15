@@ -18,8 +18,8 @@ for (package in c('rscopus')) {
 }
 
 
-# set API key - need to load the API key into R prior to this step (Elsevier API key download found online)
-options("elsevier_api_key" = "5e9a6d5ce776fbd6f0e536ab2b79812b")
+# set API key - Elsevier API key download found online
+options("elsevier_api_key" = "key-goes-here")
 
 
 # attempt to read in a paper - taken from rscopus documentation
