@@ -72,7 +72,6 @@ otc.msu <- data.frame(docs = row.names(otc.msu), as.matrix(otc.msu), row.names =
 names(otc.msu)
 
 dim(otc.msu)
-otc.msu$sum<-rowSums(otc.msu[,2:26]) # This edit was made after running this entire script
 otc.msu$priority<-0
 otc.msu$priority[otc.msu$chamber>0]<-1
 otc.msu$priority[otc.msu$chambers>0]<-1
@@ -83,7 +82,7 @@ otc.msu$priority[otc.msu$warming.chamber.1>0]<-1
 otc.msu$passiveotc<-(otc.msu$passive + otc.msu$open.top + otc.msu$open.top.1)
 otc.msu$priority[otc.msu$passiveotc>0]<-1
 
-write.csv(otc.msu,file="~/Documents/otc_papers/otc_papers_msu.csv")
+#write.csv(otc.msu,file="~/Documents/otc_papers/otc_papers_msu.csv")
 #write.csv(otc,file="/Volumes/plz-lab/DATA/OTCmeta/final_data/otc_papers.csv")
 
-save.image("../../final_data/otcmeta_msu.RData")
+#save.image("../../final_data/otcmeta_msu.RData")
