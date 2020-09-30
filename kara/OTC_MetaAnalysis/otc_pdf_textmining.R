@@ -65,12 +65,13 @@ otc.msu <- DocumentTermMatrix(msu.pdfs.data,
 otc.msu <- otc.msu[slam::row_sums(otc.msu) > 0,
                      slam::col_sums(otc.msu) > 0]
 
-# now some code to determine the high priority papers for using in the meta-analysis:
-# by default, paper is 0 priority unless meets following criteria:
 otc.msu <- data.frame(docs = row.names(otc.msu), as.matrix(otc.msu), row.names = NULL)
-# Column headers with spaces become (.) or with dashes become (.1):
+
+# column headers with spaces become (.) or with dashes become (.1):
 names(otc.msu)
 
+# now some code to determine the high priority papers for using in the meta-analysis:
+# by default, paper is 0 priority unless meets following criteria:
 dim(otc.msu)
 otc.msu$priority<-0
 otc.msu$priority[otc.msu$chamber>0]<-1
@@ -82,7 +83,10 @@ otc.msu$priority[otc.msu$warming.chamber.1>0]<-1
 otc.msu$passiveotc<-(otc.msu$passive + otc.msu$open.top + otc.msu$open.top.1)
 otc.msu$priority[otc.msu$passiveotc>0]<-1
 
+# keep only the paper names + priority columns
+otc.msu <- subset(otc.msu, select = c("docs", "priority"))
+
 #write.csv(otc.msu,file="~/Documents/otc_papers/otc_papers_msu.csv")
-#write.csv(otc,file="/Volumes/plz-lab/DATA/OTCmeta/final_data/otc_papers.csv")
+#write.csv(otc.msu, file = "/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/OTC_MetaAnalysis/otc_msu.csv")
 
 #save.image("../../final_data/otcmeta_msu.RData")
