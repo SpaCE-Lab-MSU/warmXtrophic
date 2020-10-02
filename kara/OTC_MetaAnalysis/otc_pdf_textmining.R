@@ -27,19 +27,16 @@
 # clear all existing data
 rm(list=ls())
 
-# close graphics devices
-graphics.off()
-
-# set working directory to where the PDFs are stored
-
 # load packages
 library(tm)
 library(pdftools)
 
 ####** PDF WORK: MSU **####
-# get a list of all the PDF files (but when run command below
-# the PDFs need to be in this working directory, not elsewhere)
-msu.pdfs<-list.files(path=".",pattern="pdf$")
+
+# find the pdf folder and list them all
+#### make sure this is set for the hpcc ####
+pdf_folder <- "/mnt/home/dobsonk2/pdfs"
+msu.pdfs<-list.files(path=pdf_folder,pattern="pdf$")
 
 # function to read in PDFs and maintain layout:
 Rpdf <- readPDF(control = list(text = "-layout"))
@@ -86,7 +83,6 @@ otc.msu$priority[otc.msu$passiveotc>0]<-1
 # keep only the paper names + priority columns
 otc.msu <- subset(otc.msu, select = c("docs", "priority"))
 
-#write.csv(otc.msu,file="~/Documents/otc_papers/otc_papers_msu.csv")
-#write.csv(otc.msu, file = "/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/OTC_MetaAnalysis/otc_msu.csv")
-
-#save.image("../../final_data/otcmeta_msu.RData")
+# save output
+#### make sure this is set for the hpcc ####
+write.csv(otc.msu,file="~/otc_papers_msu.csv")
