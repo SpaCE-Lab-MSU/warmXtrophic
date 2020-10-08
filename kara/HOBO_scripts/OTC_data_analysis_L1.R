@@ -10,12 +10,10 @@
 rm(list=ls())
 
 # load in packages and set working directory
-for (package in c("tidyverse", "plotrix", "ggpubr",'rstatix')) {
-  if (!require(package, character.only=T, quietly=T)) {
-    install.packages("package")
-    library(package, character.only=T)
-  }
-}
+library(tidyverse)
+library(plotrix)
+library(ggpubr)
+library(rstatix)
 
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 

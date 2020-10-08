@@ -11,12 +11,9 @@
 rm(list=ls())
 
 # load in packages and set working directory
-for (package in c("tidyverse", "plotrix", "ggpubr")) {
-  if (!require(package, character.only=T, quietly=T)) {
-    install.packages("package")
-    library(package, character.only=T)
-  }
-}
+library(tidyverse)
+library(plotrix)
+library(ggpubr)
 
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
@@ -385,6 +382,27 @@ ggplot(KBS_avg_moist, aes(x = year, y = average_temp, fill = treatment)) +
   theme(legend.position = "none")
 
 
+###### pendant data ######
+# this graph is not in the Rmarkdown hobo plot file
+
+# filter to include only april - august from 7am-7pm
+KBS_pend_season <- KBS_pend
+KBS_pend_season$month <- format(KBS_pend_season$Date_Time,format="%m")
+KBS_pend_season$year <- format(KBS_pend_season$Date_Time,format="%Y")
+KBS_pend_season$hour <- format(KBS_pend_season$Date_Time, format="%H")
+
+KBS_pend_season <- KBS_pend_season %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, Pendant_ID, Temp_F_XP_air_1m)
+
+# boxplot of each pendant by year - need to update 2020 pendant data
+ggplot(KBS_pend_season, aes(x = Pendant_ID, y = Temp_F_XP_air_1m)) +
+  facet_grid(.~year) +
+  geom_boxplot() +
+  theme_classic()
 
 
 #########################################
@@ -564,6 +582,30 @@ ggplot(KBS_comb_lm, aes(x = average_par, y = average_temp)) +
   stat_smooth(method = "lm", color = 'black') +
   theme_classic() +
   labs(y = 'Average air temperature (°C)', x = 'Average PAR')
+
+
+###### pendant data ######
+# this graph is not in the Rmarkdown hobo plot file
+
+#  filter for april-august from 7am-7pm
+UMBS_pend_season <- UMBS_pend
+UMBS_pend_season$month <- format(UMBS_pend_season$Date_Time,format="%m")
+UMBS_pend_season$year <- format(UMBS_pend_season$Date_Time,format="%Y")
+UMBS_pend_season$hour <- format(UMBS_pend_season$Date_Time, format="%H")
+
+UMBS_pend_season <- UMBS_pend_season %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  na.omit(Temp_F_XP_air_1m) %>%
+  select(Date_Time, year, month, hour, Pendant_ID, Temp_F_XP_air_1m)
+
+# boxplot of pendant air temps - not in Rmarkdown hobo plot file
+ggplot(UMBS_pend_season, aes(x = Pendant_ID, y = Temp_F_XP_air_1m)) +
+  facet_grid(.~year) +
+  geom_boxplot() +
+  theme_classic()
 
 
 

@@ -8,13 +8,11 @@
 # PROJECT:          warmXtrophic
 # DATE:             July, 2020
 
+# clear environment
+rm(list = ls())
+
 # Load packages
-for (package in c("tidyverse")) {
-  if (!require(package, character.only=T, quietly=T)) {
-    install.packages("package")
-    library(package, character.only=T)
-  }
-}
+library(tidyverse)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer

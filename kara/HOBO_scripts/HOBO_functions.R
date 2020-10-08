@@ -56,7 +56,14 @@ f_to_c2 <- function(df){
 change_POSIX <- function(df){
   df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],tryFormats = c("%m/%d/%y %I:%M:%S %p", "%m/%d/%Y %H:%M"), tz="UTC")
   return(df)
-  }
+}
+
+#Change date format to POSIX format for 2020
+change_POSIX2 <- function(df){
+  df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],tryFormats = c("%m/%d/%y %H:%M"), tz="UTC")
+  return(df)
+}
+
 
 #Adding in pendant_ID column
 add_name_cols <- function(l){

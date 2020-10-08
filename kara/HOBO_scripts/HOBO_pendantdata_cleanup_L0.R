@@ -25,12 +25,8 @@ source("~/warmXtrophic/kara/HOBO_scripts/HOBO_functions.R")
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Load packages
-for (package in c("tidyverse", "weathermetrics")) {
-  if (!require(package, character.only=T, quietly=T)) {
-    install.packages("package")
-    library(package, character.only=T)
-  }
-}
+library(tidyverse)
+library(weathermetrics)
 
 #************************
 ###*** DATA IMPORT ***###
@@ -67,14 +63,14 @@ pend10P_19k<-read.csv("L0/KBS/sensor_data/2019/09_23_2019/KBS_10P_09232019.csv",
 pend11P_19k<-read.csv("L0/KBS/sensor_data/2019/09_23_2019/KBS_11P_09232019.csv", skip=1, header =T)[ ,1:4]
 pend12P_19k<-read.csv("L0/KBS/sensor_data/2019/09_23_2019/KBS_12P_09232019.csv", skip=1, header =T)[ ,1:4]
 
-pend4P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_4P_04052020.csv", skip=1, header=T)[ ,1:4]
-pend5P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_5P_04052020.csv", skip=1, header=T)[ ,1:4]
-pend6P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_6P_04052020.csv", skip=1, header=T)[ ,1:4]
-pend7P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_7P_04052020.csv", skip=1, header=T)[ ,1:4]
-pend8P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_8P_04052020.csv", skip=1, header=T)[ ,1:4]
-pend10P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_10P_04052020.csv", skip=1, header=T)[ ,1:4]
-pend11P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_11P_04052020.csv", skip=1, header=T)[ ,1:4]
-pend12P_20k<-read.csv("L0/KBS/sensor_data/2020/04_05_2020/KBS_12P_04052020.csv", skip=1, header=T)[ ,1:4]
+pend4P_20k<-read.csv("L0/KBS/sensor_data/2020/09_17_2020/KBS_4P_09172020.csv", skip=1, header=T)[ ,1:4]
+pend5P_20k<-read.csv("L0/KBS/sensor_data/2020/09_17_2020/KBS_5P_09162020.csv", skip=1, header=T)[ ,1:4]
+pend6P_20k<-read.csv("L0/KBS/sensor_data/2020/09_17_2020/KBS_6P_09162020.csv", skip=1, header=T)[ ,1:4]
+pend7P_20k<-read.csv("L0/KBS/sensor_data/2020/09_17_2020/KBS_7P_09162020.csv", skip=1, header=T)[ ,1:4]
+pend8P_20k<-read.csv("L0/KBS/sensor_data/2020/09_17_2020/KBS_8P_09172020.csv", skip=1, header=T)[ ,1:4]
+pend10P_20k<-read.csv("L0/KBS/sensor_data/2020/09_17_2020/KBS_10P_09162020.csv", skip=1, header=T)[ ,1:4]
+pend11P_20k<-read.csv("L0/KBS/sensor_data/2020/09_17_2020/KBS_11P_09172020.csv", skip=1, header=T)[ ,1:4]
+pend12P_20k<-read.csv("L0/KBS/sensor_data/2020/09_17_2020/KBS_12P_09172020.csv", skip=1, header=T)[ ,1:4]
 
 # Apply functions
 list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k,pend7P_17k=pend7P_17k,pend8P_17k=pend8P_17k,pend9P_17k=pend9P_17k,pend10P_17k=pend10P_17k,pend11P_17k=pend11P_17k,pend12P_17k=pend12P_17k,
@@ -82,7 +78,8 @@ list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k
                pend4P_19k=pend4P_19k,pend5P_19k=pend5P_19k,pend6P_19k=pend6P_19k,pend7P_19k=pend7P_19k,pend8P_19k=pend8P_19k,pend10P_19k=pend10P_19k,pend11P_19k=pend11P_19k,pend12P_19k=pend12P_19k,
                pend4P_20k=pend4P_20k,pend5P_20k=pend5P_20k,pend6P_20k=pend6P_20k,pend7P_20k=pend7P_20k,pend8P_20k=pend8P_20k,pend10P_20k=pend10P_20k,pend11P_20k=pend11P_20k,pend12P_20k=pend12P_20k)
 list_k <- lapply(list_k, change_pend_names)
-list_k <- lapply(list_k, change_POSIX)
+list_k[1:25] <- lapply(list_k[1:25], change_POSIX)
+list_k[26:33] <- lapply(list_k[26:33], change_POSIX2)
 list_k[1:25] <- lapply(list_k[1:25], f_to_c2)
 list_k <- add_name_cols(list_k)
 
@@ -132,15 +129,15 @@ pend10P_19u<-read.csv("L0/UMBS/sensor_data/2019/09_05_2019/UMBS_10P_09052019.csv
 pend11P_19u<-read.csv("L0/UMBS/sensor_data/2019/09_05_2019/UMBS_11P_09052019.csv", skip=1, header =T)[ ,1:4]
 pend12P_19u<-read.csv("L0/UMBS/sensor_data/2019/09_05_2019/UMBS_12P_09052019.csv", skip=1, header =T)[ ,1:4]
 
-pend4P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_4P_06122020.csv", skip=1, header =T)[ ,1:4]
-pend5P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_5P_06122020.csv", skip=1, header =T)[ ,1:4]
-pend6P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_6P_06122020.csv", skip=1, header =T)[ ,1:4]
-pend7P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_7P_06122020.csv", skip=1, header =T)[ ,1:4]
-pend8P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_8P_06122020.csv", skip=1, header =T)[ ,1:4]
-pend9P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_9P_06122020.csv", skip=1, header =T)[ ,1:4]
-pend10P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_10P_06122020.csv", skip=1, header =T)[ ,1:4]
-pend11P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_11P_06122020.csv", skip=1, header =T)[ ,1:4]
-pend12P_20u<-read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_12P_06122020.csv", skip=1, header =T)[ ,1:4]
+pend4P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_4P_20200831.csv", skip=1, header =T)[ ,1:4]
+pend5P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_5P_20200831.csv", skip=1, header =T)[ ,1:4]
+pend6P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_6P_20200831.csv", skip=1, header =T)[ ,1:4]
+pend7P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_7P_20200831.csv", skip=1, header =T)[ ,1:4]
+pend8P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_8P_20200831.csv", skip=1, header =T)[ ,1:4]
+pend9P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_9P_20200831.csv", skip=1, header =T)[ ,1:4]
+pend10P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_10P_20200831.csv", skip=1, header =T)[ ,1:4]
+pend11P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_11P_20200831.csv", skip=1, header =T)[ ,1:4]
+pend12P_20u<-read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_12P_20200831.csv", skip=1, header =T)[ ,1:4]
 
 #Manually change 10p column names (they don't match the names of the others)
 names(pend10P_17u)[names(pend10P_17u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
@@ -153,15 +150,14 @@ names(pend10P_20u)[names(pend10P_20u)=="Temp...C..LGR.S.N..10747441..SEN.S.N..10
 names(pend10P_20u)[names(pend10P_20u)=="Intensity..Lux..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
 
 # Apply functions
-add_id_col()
 list_u <- list(pend4P_17u=pend4P_17u,pend5P_17u=pend5P_17u,pend6P_17u=pend6P_17u,pend7P_17u=pend7P_17u,pend8P_17u=pend8P_17u,pend9P_17u=pend9P_17u,pend10P_17u=pend10P_17u,pend11P_17u=pend11P_17u,pend12P_17u=pend12P_17u,
                   pend4P_18u=pend4P_18u,pend5P_18u=pend5P_18u,pend6P_18u=pend6P_18u,pend7P_18u=pend7P_18u,pend8P_18u=pend8P_18u,pend10P_18u=pend10P_18u,pend11P_18u=pend11P_18u,pend12P_18u=pend12P_18u,
                   pend4P_19u=pend4P_19u,pend5P_19u=pend5P_19u,pend6P_19u=pend6P_19u,pend7P_19u=pend7P_19u,pend8P_19u=pend8P_19u,pend10P_19u=pend10P_19u,pend11P_19u=pend11P_19u,pend12P_19u=pend12P_19u,
                   pend4P_20u=pend4P_20u,pend5P_20u=pend5P_20u,pend6P_20u=pend6P_20u,pend7P_20u=pend7P_20u,pend8P_20u=pend8P_20u,pend10P_20u=pend10P_20u,pend11P_20u=pend11P_20u,pend12P_20u=pend12P_20u)
-
 list_u <- lapply(list_u, change_pend_names)
 list_u <- lapply(list_u, change_POSIX)
 list_u[1:25] <- lapply(list_u[1:25], f_to_c2)
+list_u <- add_name_cols(list_u)
 
 # Combine UMBS pendant files for 2017 and 2018
 pend17u<-rbind(list_u$pend4P_17u,list_u$pend5P_17u,list_u$pend6P_17u,list_u$pend7P_17u,list_u$pend8P_17u,list_u$pend9P_17u,list_u$pend10P_17u,list_u$pend11P_17u,list_u$pend12P_17u) 
