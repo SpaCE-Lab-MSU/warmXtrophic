@@ -28,18 +28,19 @@ DATE: July 2020
 
 
 Guide  
-Page 2: Yearly average air temperatures between KBS and UMBS  
-Page 3: Monthly average air temperatures between KBS and UMBS for all years  
-Page 4: Average July air temperatures between KBS and UMBS  
-Page 5: KBS - Comparing PAR to HOBO between 2017-2019  
-Page 6: KBS - Another comparison of PAR to HOBO from 2017-2019  
-Page 7: KBS - Comparing PAR to HOBO for multiple 2019 dates & a linear regression between 2019 warmed chamber PAR and HOBO  
-Page 8: UMBS linear regression between warmed temp and PAR  
-Page 9: KBS soil temperature over time  
-Page 10: KBS soil moisture over time  
-Page 11: 1H sensor average air temperature by month over all years  
-Page 12: 2H sensor average air temperature by month over all years  
-Page 13: 3H sensor average air temperature by month over all years  
+Page 2: Pendant air temps from KBS and UMBS
+Page 3: Yearly average air temperatures between KBS and UMBS  
+Page 4: Monthly average air temperatures between KBS and UMBS for all years  
+Page 5: Average July air temperatures between KBS and UMBS  
+Page 6: KBS - Comparing PAR to HOBO between 2017-2019  
+Page 7: KBS - Another comparison of PAR to HOBO from 2017-2019  
+Page 8: KBS - Comparing PAR to HOBO for multiple 2019 dates & a linear regression between 2019 warmed chamber PAR and HOBO  
+Page 9: UMBS linear regression between warmed temp and PAR  
+Page 10: KBS soil temperature over time  
+Page 11: KBS soil moisture over time  
+Page 12: 1H sensor average air temperature by month over all years  
+Page 13: 2H sensor average air temperature by month over all years  
+Page 14: 3H sensor average air temperature by month over all years  
 ```{r, include = FALSE}
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
@@ -50,6 +51,8 @@ UMBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair2_L1.csv"
 UMBS_3 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair3_L1.csv")
 KBS_par <- read_csv("L1/PAR_data/KBS_PAR_L1.csv")
 UMBS_par <- read_csv("L1/PAR_data/UMBS_PAR_L1.csv")
+KBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv")
+UMBS_pend <- read_csv("L1/HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv")
 
 test_KBS_1 <- KBS_1
 test_KBS_1$month <- format(test_KBS_1$Date_Time,format="%m")
@@ -274,6 +277,43 @@ UMBS_par1 <- UMBS_par1 %>%
 UMBS_comb <- merge(UMBS_hobo1,UMBS_par1,by=c("year","month","day","treatment")) # over the years
 ym3 <- c(paste0(UMBS_comb$year,'_',UMBS_comb$month,'_',UMBS_comb$day))
 UMBS_comb <- data.frame(UMBS_comb,ym3)
+
+UMBS_pend_season <- UMBS_pend
+UMBS_pend_season$month <- format(UMBS_pend_season$Date_Time,format="%m")
+UMBS_pend_season$year <- format(UMBS_pend_season$Date_Time,format="%Y")
+UMBS_pend_season$hour <- format(UMBS_pend_season$Date_Time, format="%H")
+UMBS_pend_season <- UMBS_pend_season %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  na.omit(Temp_F_XP_air_1m) %>%
+  select(Date_Time, year, month, hour, Pendant_ID, Temp_F_XP_air_1m)
+
+KBS_pend_season <- KBS_pend
+KBS_pend_season$month <- format(KBS_pend_season$Date_Time,format="%m")
+KBS_pend_season$year <- format(KBS_pend_season$Date_Time,format="%Y")
+KBS_pend_season$hour <- format(KBS_pend_season$Date_Time, format="%H")
+KBS_pend_season <- KBS_pend_season %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  select(Date_Time, year, month, hour, Pendant_ID, Temp_F_XP_air_1m)
+```
+
+```{r, echo = FALSE, message=FALSE}
+ggplot(KBS_pend_season, aes(x = Pendant_ID, y = Temp_F_XP_air_1m)) +
+  facet_grid(.~year) +
+  geom_boxplot() +
+  theme_classic() +
+  labs(title = "KBS")
+
+ggplot(UMBS_pend_season, aes(x = Pendant_ID, y = Temp_F_XP_air_1m)) +
+  facet_grid(.~year) +
+  geom_boxplot() +
+  theme_classic() +
+  labs(title = "UMBS")
 ```
 
 ## Yearly average chamber temperatures during the day for the growing season (I defined this as April-August from 7 AM - 7 PM, but this could easily be changed)  
