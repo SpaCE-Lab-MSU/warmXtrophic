@@ -5,8 +5,9 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 for (package in c("tidyverse", "plotrix", "ggpubr")) {
   if (!require(package, character.only=T, quietly=T)) {
@@ -41,7 +42,7 @@ Page 11: KBS soil moisture over time
 Page 12: 1H sensor average air temperature by month over all years  
 Page 13: 2H sensor average air temperature by month over all years  
 Page 14: 3H sensor average air temperature by month over all years  
-```{r, include = FALSE}
+```{r, include = FALSE, message = FALSE}
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 KBS_1 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair1_L1.csv")
 KBS_2 <- read_csv("L1/HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair2_L1.csv")
