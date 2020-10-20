@@ -14,12 +14,8 @@
 rm(list=ls())
 
 #Load packages
-for (package in c("tidyverse", "weathermetrics")) {
-  if (!require(package, character.only=T, quietly=T)) {
-    install.packages("package")
-    library(package, character.only=T)
-  }
-}
+library(tidyverse)
+library(weathermetrics)
 
 # Source functions
 source("~/warmXtrophic/kara/HOBO_scripts/HOBO_functions.R")
@@ -156,8 +152,8 @@ UMBS_1_1516 <- read.csv("L0/UMBS/sensor_data/2015_2016/UMBS_1.csv")
 UMBS_1H_2017 <- read.csv("L0/UMBS/sensor_data/2017/08_15_2017/UMBS_1H_08152017.csv")
 UMBS_1H_2018 <- read.csv("L0/UMBS/sensor_data/2018/09_19_2018/UMBS_1H_09192018.csv", skip=1)
 UMBS_1H_2019 <- read.csv("L0/UMBS/sensor_data/2019/09_10_2019/UMBS_1H_09102019.csv", skip=1)
-UMBS_1H_2020 <- read.csv("L0/UMBS/sensor_data/2020/06_12_2020/UMBS_1H_06122020.csv", skip=1)
-
+UMBS_1H_2020 <- read.csv("L0/UMBS/sensor_data/2020/08_31_2020/UMBS_1H_200200901.csv", skip=1)
+#*********** only updated 1H above
 #Read in U
 UMBS_1U_2017 <- read.csv("L0/UMBS/sensor_data/2017/08_15_2017/UMBS_1U_08152017.csv")
 UMBS_1U_2018a <- read.csv("L0/UMBS/sensor_data/2018/06_25_2018/UMBS_1U_06252018.csv", skip=1)
