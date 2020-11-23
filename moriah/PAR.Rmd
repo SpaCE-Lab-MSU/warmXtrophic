@@ -1,8 +1,12 @@
 ---
-title: "PAR Analysis"
-author: "Moriah Young"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
-output: pdf_document
+TITLE: "PAR Analysis"
+AUTHORS: "Moriah Young"
+COLLABORATORS: "Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Kara Dobson"
+DATA INPUT:
+DATA OUTPUT:
+PROJECT: "warmXtrophic"
+DATE: "July 2020"
+OUTPUT: pdf_document
 ---
 
 ```{r setup, include = FALSE}
