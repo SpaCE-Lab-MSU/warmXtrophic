@@ -21,9 +21,9 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 biomass <- read.csv("L0/KBS/2020/kbs_ancillary_ANPP_2020.csv")
 taxa <- read.csv("/Users/moriahyoung/Desktop/taxon_list.csv")
 
-biomass1 <- biomass %>% 
+# Clean biomass data 
+biomass1 <- biomass %>% # get ride of unneeded columns
         select(-dry_weight_g, -bag, -bag.size, -weight, -X..of.bags, -bag.weight, -bag.code)
-View(biomass1)
 
 names(biomass1)[names(biomass1)=="final_biomass_g"] <- "weight_g"
 
@@ -31,8 +31,8 @@ names(biomass1)[names(biomass1)=="final_biomass_g"] <- "weight_g"
 biomass.final <- with(biomass1, biomass1[order(plot, weight_g),])
 View(biomass.final)
 
-table(unique(biomass.final$plot)) 
-unique(biomass.final$species)
+table(unique(biomass.final$plot)) # Are there 19 plots?
+unique(biomass.final$species) # Are all the species unique?
 
 # Check for any misspelling of species code names and compare species codes 
 # with the taxon lookup table (spp)
