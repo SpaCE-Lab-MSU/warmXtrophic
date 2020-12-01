@@ -1,6 +1,7 @@
 ###################################
 #1. clean reproductive phenology data
 #created by Nina Lany 11-Jun-2019
+#updated by Moriah Young 2020-12
 ###################################
 
 #this script reads in the L0 csv for each site-year one at a time, cleans the data, and writes it out as a csv in the L1/reproductive_phenology directory on Google Drive.
