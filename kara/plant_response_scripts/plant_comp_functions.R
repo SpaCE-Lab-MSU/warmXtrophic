@@ -12,3 +12,15 @@ remove_col <- function(df,name){
   df = df[,-vec]
   return(df)
 }
+
+# change data format
+change_date <- function(df){
+  df[["Date"]] <- as.Date(df[["Date"]],format="%m/%d/%Y")
+  return(df)
+}
+
+# check that there are no species mispellings
+spp_name <- function(df){
+  spp <- unique(sort(df[["Species"]]))
+  return(spp)
+}
