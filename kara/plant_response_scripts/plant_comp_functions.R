@@ -13,7 +13,7 @@ remove_col <- function(df,name){
   return(df)
 }
 
-# change data format
+# change date format
 change_date <- function(df){
   df[["Date"]] <- as.Date(df[["Date"]],format="%m/%d/%Y")
   return(df)

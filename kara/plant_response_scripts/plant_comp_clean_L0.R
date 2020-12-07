@@ -44,7 +44,7 @@ umbs_2016$Site <- "umbs"
 # Change column name for umbs 2016
 colnames(umbs_2016) <- sub("Percent_Cover", "Cover", colnames(umbs_2016))
 
-# Remove uneeded columns 
+# Add dataframes into a list so that needed functions can be applied 
 comp_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
                   umbs_2015=umbs_2015, umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, umbs_2019=umbs_2019, umbs_2020=umbs_2020)
 comp_list <- lapply(comp_list, remove_col, name=c("Julian", "Notes", "Quadrat", "Julian_Day"))
@@ -56,10 +56,8 @@ lapply(comp_list, spp_name) # need to fix a few species names
 comp_list <- lapply(comp_list, change_spp)
 lapply(comp_list, spp_name) # looks good
 
-# Save cleaned list of dataframes to the google drive
-save(comp_list, file="L1/plant_composition/clean_plantcomp_L1.RData")
-
 # Merge final data
 comp_merge <- rbind(comp_list$kbs_2015, comp_list$kbs_2016, comp_list$kbs_2017, comp_list$kbs_2018, comp_list$kbs_2019, comp_list$kbs_2020, 
                     comp_list$umbs_2015, comp_list$umbs_2016, comp_list$umbs_2017, comp_list$umbs_2018, comp_list$umbs_2019, comp_list$umbs_2020)
+str(comp_merge)
 write.csv(comp_merge, file="L1/plant_composition/final_plantcomp_L1.csv")
