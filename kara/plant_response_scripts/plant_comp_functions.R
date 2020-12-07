@@ -31,6 +31,16 @@ change_spp <- function(df){
   df$Species[df$Species == "Sosp"] <- "Spsp"
   df$Species[df$Species == "Syal"] <- "Syla"
   df$Species[df$Species == "phpr"] <- "Phpr"
+  df$Species[df$Species == "Elrre"] <- "Elre"
+  df$Species[df$Species == "Bown"] <- "Brown"
+  df$Species[df$Species == "Brown "] <- "Brown"
+  df$Species[df$Species == "Ramu"] <- "Romu"
+  df$Species[df$Species == "Anspp"] <- "Ansp"
+  df$Species[df$Species == "Bare"] <- "Bare_Ground"
+  df$Species[df$Species == "Bare Groud"] <- "Bare_Ground"
+  df$Species[df$Species == "Bare Ground "] <- "Bare_Ground"
+  df$Species[df$Species == "Bare Ground"] <- "Bare_Ground"
+  df$Species[df$Species == "Bare Groud "] <- "Bare_Ground"
   return(df)
 }
 
