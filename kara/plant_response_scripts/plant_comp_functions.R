@@ -24,3 +24,12 @@ spp_name <- function(df){
   spp <- unique(sort(df[["Species"]]))
   return(spp)
 }
+
+# change species names
+change_spp <- function(df){
+  df$Species[df$Species == "Rubsp"] <- "Rusp"
+  df$Species[df$Species == "Sosp"] <- "Spsp"
+  df$Species[df$Species == "Syal"] <- "Syla"
+  return(df)
+}
+
