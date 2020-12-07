@@ -30,6 +30,7 @@ change_spp <- function(df){
   df$Species[df$Species == "Rubsp"] <- "Rusp"
   df$Species[df$Species == "Sosp"] <- "Spsp"
   df$Species[df$Species == "Syal"] <- "Syla"
+  df$Species[df$Species == "phpr"] <- "Phpr"
   return(df)
 }
 
