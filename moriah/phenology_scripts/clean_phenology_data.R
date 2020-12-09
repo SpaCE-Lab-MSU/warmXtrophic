@@ -15,7 +15,7 @@ library(tidyverse)
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 #source script with useful functions
-#source("scripts/functions.R")
+
 
 #######################################
 #load the plot, taxon, and event lookup tables:
@@ -173,16 +173,8 @@ dat <- dat[,c("Site","Year","Date", "Plot", "Species", "Event")]
 str(dat)
 
 #Save the L1 data file to googledrive
-googledrive::drive_ls("~/warmXtrophic/data/L1/reproductive_phenology")
-# temp write local
-readr::write_csv(dat, "kbs_reproductive_phen_2017.csv")
-drive_rm("kbs_reproductive_phen_2017.csv") #delete old version
-drive_upload("kbs_reproductive_phen_2017.csv", 
-             path = "~/warmXtrophic/data/L1/reproductive_phenology", 
-             name = "kbs_reproductive_phen_2017.csv", 
-             type = NULL,
-             verbose = TRUE)
-drive_share("kbs_reproductive_phen_2017.csv", role = "write", type = "anyone") #change permissions to 'anyone with the link can edit'
+write_csv(dat, "kbs_reproductive_phen_2017.csv")
+
 #remove local file
 file.remove("kbs_reproductive_phen_2017.csv")
 
