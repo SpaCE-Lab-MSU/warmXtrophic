@@ -11,18 +11,11 @@ rm(list = ls())
 # Check for and install required packages
 library(tidyverse)
 
+# Set working directory to file stream
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 #source script with useful functions
 #source("scripts/functions.R")
-
-#import metadata on files in relevant Google Drive directories
-#L0_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L0_data_entry")
-#L2_data_dir <- googledrive::drive_ls("~/warmXtrophic/data/L2")
-
-#if you will be using Google Drive File Stream or Back Up and Sync (not the 'googledrive' and 'googlesheets' packages), set your working directory to the warmXtrophic folder on the shared Google Drive.
-#setwd("~/Google Drive File Stream/My Drive/warmXtrophic")
-
 
 #######################################
 #load the plot, taxon, and event lookup tables:
