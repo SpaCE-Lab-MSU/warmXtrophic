@@ -14,13 +14,15 @@ rm(list=ls())
 library(tidyverse)
 
 # Set working directory to Google Drive
-# **** Update with the path to your Google drive on your computer
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Source in needed functions
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/kara/plant_response_scripts/plant_comp_functions.R")
 
-# Read in data (only need columns 1-7 for the umbs files)
+# Read in species list
+taxa <- read.csv("L2/taxon_uptodate.csv", stringsAsFactors=F)
+
+# Read in data
 kbs_2015 <- read.csv("L0/KBS/2015/kbs_flwr_sd_2015.csv")
 kbs_2016 <- read.csv("L0/KBS/2016/kbs_flwr_sd_2016.csv")
 kbs_2017 <- read.csv("L0/KBS/2017/kbs_flwr_sd_2017.csv")
@@ -57,7 +59,7 @@ colnames(kbs_2015) <- sub("event", "Action", colnames(kbs_2015))
 
 #function to change column names
 change_colnames <- function(df){
-        names(df)[names(df) == "Site"] <- "Site"
+        names(df)[names(df) == "site"] <- "Site"
         names(df)[names(df) == "date"] <- "Date"
         names(df)[names(df) == "plot"] <- "Plot"
         names(df)[names(df) == "species"] <- "Species"
@@ -69,8 +71,7 @@ order_colnames <- c("Site", "Year", "Date", "Plot", "Species", "Action")
 colnames_ordered <- function(df){
         df <- df[,order_colnames]
         return(df)
-}
-
+} # this won't work bc "undefined columns selected"
 
 # Add dataframes into a list so that needed functions can be applied 
 phen_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
@@ -80,6 +81,9 @@ phen_list <- lapply(phen_list, remove_col, name=c("Julian", "Notes", "collector"
 phen_list <- lapply(phen_list, colnames_ordered)
 phen_list <- lapply(phen_list, change_date)
 lapply(phen_list, spp_name)
+
+unique(phen_list$Species) #this doesn't work
+setdiff(unique(phen_list$Species), unique(taxa$code)) #this doesn't work
 
 # Merge final data
 #phen_merge <- rbind(phen_list$kbs_2015, phen_list$kbs_2016, phen_list$kbs_2017, phen_list$kbs_2018, phen_list$kbs_2019, phen_list$kbs_2020,
