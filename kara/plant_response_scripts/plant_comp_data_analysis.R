@@ -11,6 +11,7 @@ rm(list=ls())
 
 # Load packages
 library(tidyverse)
+library(plotrix)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -19,34 +20,45 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 # Read in plant comp data & metadata
 plant_comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
 meta <- read.csv("L2/plot.csv")
-str(plant_comp) # for some reason, data column converted back to character
+str(plant_comp) # for some reason, date column converted back to character
 
-# Fix date column & add column for the year and day
+# Fix date column & add column for the year and julian day
 plant_comp$Date <- as.Date(plant_comp$Date,format="%Y-%m-%d")
 str(plant_comp)
 plant_comp$Year <- format(plant_comp$Date,format="%Y")
-plant_comp$month_day <- format(plant_comp$Date,format="%m/%d")
+plant_comp$Julian <- format(plant_comp$Date, "%j")
+
+# Make julian column numeric
+plant_comp$Julian <- as.numeric(plant_comp$Julian)
+str(plant_comp)
 
 # Change column names to lowercase so they can be merged with metadata
 names(plant_comp) <- tolower(names(plant_comp))
 
 # Merge metadata with data
 plant_comp_merge <- left_join(meta, plant_comp, by = "plot")
+str(plant_comp_merge)
 
 # Filter data to contain the date of first occurance for each species
 filter_comp <- plant_comp_merge %>%
-  group_by(state, species, year) %>%
-  filter(date == min(date)) %>%
-  select(cover, state, plot, species, month_day, year)
+  group_by(plot, year, species, state) %>%
+  summarize(julian = min(julian))
 
-###### fix this plot ######
+sum_comp <- filter_comp %>%
+  group_by(state, species, year) %>%
+  summarize(avg_julian = mean(julian, na.rm = TRUE),
+            se = std.error(julian, na.rm = TRUE))
+
 # Function to make a plot for any species
 greenup_plot <- function(spp) { 
-  greenup_spp <- subset(filter_comp, species == spp)
-  return(ggplot(greenup_spp, aes(x = year, y = month_day)) +
-           geom_line(aes(color = state)) +
-           geom_point(aes(color = state)) +
-           labs(x = "Year", y = "Date of Greenup") +
+  greenup_spp <- subset(sum_comp, species == spp)
+  return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", alpha = 0.5, stat = "identity") +
+           geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "State", y = "Julian Day of Greenup") +
            theme_classic())
 }
-greenup_plot("Cest")
+greenup_plot("Popr")
+
