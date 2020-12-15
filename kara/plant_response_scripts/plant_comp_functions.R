@@ -19,13 +19,13 @@ change_date <- function(df){
   return(df)
 }
 
-# check that there are no species mispellings
+# check that there are no species misspellings
 spp_name <- function(df){
   spp <- unique(sort(df[["Species"]]))
   return(spp)
 }
 
-# check that there are no site name mispellings
+# check that there are no site name misspellings
 site_name <- function(df){
   spp <- unique(sort(df[["Site"]]))
   return(spp)
