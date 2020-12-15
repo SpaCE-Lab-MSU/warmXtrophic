@@ -65,6 +65,7 @@ change_spp <- function(df){
         df$Species[df$Species == "Dach"] <- "Daca"
         df$Species[df$Species == "Drin"] <- "Brin"
         df$Species[df$Species == "Dafl"] <- "Dagl"
+        df$Species[df$Species == "Agre"] <- "Elre"
         df$Species[df$Species == "unknown"] <- "Unknown"
         return(df)
 }
