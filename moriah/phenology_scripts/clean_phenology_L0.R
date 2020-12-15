@@ -81,11 +81,8 @@ phen_list <- lapply(phen_list, colnames_ordered)
 phen_list <- lapply(phen_list, change_date)
 lapply(phen_list, spp_name)
 
-unique(phen_list$Species) #this doesn't work
-setdiff(unique(phen_list$Species), unique(taxa$code)) #this doesn't work
-
 # Merge final data
-#phen_merge <- rbind(phen_list$kbs_2015, phen_list$kbs_2016, phen_list$kbs_2017, phen_list$kbs_2018, phen_list$kbs_2019, phen_list$kbs_2020,
-#                    phen_list$umbs_2016, phen_list$umbs_2017, phen_list$umbs_2018, phen_list$umbs_2019, phen_list$umbs_2020)
-#str(phen_merge)
-#write.csv(phen_merge, file="L1/reproductive_phenology/final_flw_sd_L1.csv")
+phen_merge <- rbind(phen_list$kbs_2015, phen_list$kbs_2016, phen_list$kbs_2017, phen_list$kbs_2018, phen_list$kbs_2019, phen_list$kbs_2020,
+                    phen_list$umbs_2016, phen_list$umbs_2017, phen_list$umbs_2018, phen_list$umbs_2019, phen_list$umbs_2020)
+str(phen_merge)
+write.csv(phen_merge, file="L1/reproductive_phenology/final_flw_sd_L1.csv")
