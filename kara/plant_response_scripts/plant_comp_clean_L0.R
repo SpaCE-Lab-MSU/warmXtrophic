@@ -52,7 +52,7 @@ comp_list <- lapply(comp_list, change_date)
 lapply(comp_list, spp_name) # need to fix a few species names
 
 # Fixing species names
-# Umsp (Ulsp?), Ruag (Rual, Ruac?), Smooth_oat (Arre?), Cofo (?)
+# Ruag (Rual), Smooth_oat (Arre? Arel?), Cofo (?)
 comp_list <- lapply(comp_list, change_spp)
 lapply(comp_list, spp_name) # looks good
 
