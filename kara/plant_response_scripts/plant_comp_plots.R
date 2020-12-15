@@ -41,24 +41,25 @@ str(plant_comp_merge)
 
 # Filter data to contain the date of first occurance for each species
 filter_comp <- plant_comp_merge %>%
-  group_by(plot, year, species, state) %>%
+  group_by(plot, year, species, state, site) %>%
   summarize(julian = min(julian))
 
 sum_comp <- filter_comp %>%
-  group_by(state, species, year) %>%
+  group_by(state, species, year, site) %>%
   summarize(avg_julian = mean(julian, na.rm = TRUE),
             se = std.error(julian, na.rm = TRUE))
 
 # Function to make a plot for any species
-greenup_plot <- function(spp) { 
-  greenup_spp <- subset(sum_comp, species == spp)
+greenup_plot <- function(spp, loc) { 
+  greenup_spp <- subset(sum_comp, species == spp & site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
            facet_grid(.~year) +
            geom_bar(position = "identity", alpha = 0.5, stat = "identity") +
            geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                          position = "identity") +
            labs(x = "State", y = "Julian Day of Greenup") +
+           scale_fill_manual(values = c("blue4", "red")) +
            theme_classic())
 }
-greenup_plot("Popr")
+greenup_plot("Popr", "umbs")
 

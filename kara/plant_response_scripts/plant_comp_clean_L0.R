@@ -50,11 +50,16 @@ comp_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2
 comp_list <- lapply(comp_list, remove_col, name=c("Julian", "Notes", "Quadrat", "Julian_Day"))
 comp_list <- lapply(comp_list, change_date)
 lapply(comp_list, spp_name) # need to fix a few species names
+lapply(comp_list, site_name) # need to make these all the same for each site
 
 # Fixing species names
 # Ruag (Rual), Smooth_oat (Arre? Arel?), Cofo (?)
 comp_list <- lapply(comp_list, change_spp)
 lapply(comp_list, spp_name) # looks good
+
+# Fixing site name
+comp_list <- lapply(comp_list, change_site)
+lapply(comp_list, site_name) # looks good
 
 # Merge final data
 comp_merge <- rbind(comp_list$kbs_2015, comp_list$kbs_2016, comp_list$kbs_2017, comp_list$kbs_2018, comp_list$kbs_2019, comp_list$kbs_2020, 

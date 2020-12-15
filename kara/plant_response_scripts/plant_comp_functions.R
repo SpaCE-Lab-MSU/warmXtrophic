@@ -25,6 +25,12 @@ spp_name <- function(df){
   return(spp)
 }
 
+# check that there are no site name mispellings
+site_name <- function(df){
+  spp <- unique(sort(df[["Site"]]))
+  return(spp)
+}
+
 # change species names
 change_spp <- function(df){
   df$Species[df$Species == "Rubsp"] <- "Rusp"
@@ -36,11 +42,21 @@ change_spp <- function(df){
   df$Species[df$Species == "Brown "] <- "Brown"
   df$Species[df$Species == "Ramu"] <- "Romu"
   df$Species[df$Species == "Anspp"] <- "Ansp"
+  df$Species[df$Species == "Smooth_oat"] <- "Arel"
   df$Species[df$Species == "Bare"] <- "Bare_Ground"
   df$Species[df$Species == "Bare Groud"] <- "Bare_Ground"
   df$Species[df$Species == "Bare Ground "] <- "Bare_Ground"
   df$Species[df$Species == "Bare Ground"] <- "Bare_Ground"
   df$Species[df$Species == "Bare Groud "] <- "Bare_Ground"
+  return(df)
+}
+
+# change site names
+change_site <- function(df){
+  df$Site[df$Site == "KBS"] <- "kbs"
+  df$Site[df$Site == "UMBS"] <- "umbs"
+  df$Site[df$Site == "umbs "] <- "umbs"
+  df$Site[df$Site == "Uu"] <- "umbs"
   return(df)
 }
 
