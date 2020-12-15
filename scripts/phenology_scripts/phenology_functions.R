@@ -45,6 +45,7 @@ change_colnames <- function(df){
 change_spp <- function(df){
         df$Species[df$Species == "Aspi "] <- "Aspi"
         df$Species[df$Species == "Daca "] <- "Daca"
+        df$Species[df$Species == "Aca"] <- "Daca"
         df$Species[df$Species == "Hype "] <- "Hype"
         df$Species[df$Species == "Soca "] <- "Soca"
         df$Species[df$Species == "Acmi "] <- "Acmi"
