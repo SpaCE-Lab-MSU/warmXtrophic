@@ -44,6 +44,9 @@ filter_comp <- plant_comp_merge %>%
   group_by(plot, year, species, state, site) %>%
   summarize(julian = min(julian))
 
+
+
+#### First date by species & site ####
 sum_comp <- filter_comp %>%
   group_by(state, species, year, site) %>%
   summarize(avg_julian = mean(julian, na.rm = TRUE),
@@ -54,12 +57,36 @@ greenup_plot <- function(spp, loc) {
   greenup_spp <- subset(sum_comp, species == spp & site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
            facet_grid(.~year) +
-           geom_bar(position = "identity", alpha = 0.5, stat = "identity") +
+           geom_bar(position = "identity", stat = "identity") +
            geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                          position = "identity") +
-           labs(x = "State", y = "Julian Day of Greenup") +
-           scale_fill_manual(values = c("blue4", "red")) +
+           labs(x = "State", y = "Julian Day of Greenup", title = spp) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
 greenup_plot("Popr", "umbs")
+
+
+
+#### First date by site ####
+sum_comp_all <- filter_comp %>%
+  group_by(state, year, site) %>%
+  summarize(avg_julian = mean(julian, na.rm = TRUE),
+            se = std.error(julian, na.rm = TRUE))
+
+# Plot for all species between warmed and ambient
+greenup_plot_all <- function(loc) { 
+  greenup_spp <- subset(sum_comp_all, site == loc)
+  return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity") +
+           geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+greenup_plot_all("kbs")
 
