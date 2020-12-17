@@ -18,7 +18,7 @@ library(tidyverse)
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Source in needed functions
-source("~/warmXtrophic/kara/plant_response_scripts/plant_comp_functions.R")
+source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
 
 # Read in data (only need columns 1-7 for the umbs files)
 kbs_2015 <- read.csv("L0/KBS/2015/kbs_plant_comp_2015.csv")

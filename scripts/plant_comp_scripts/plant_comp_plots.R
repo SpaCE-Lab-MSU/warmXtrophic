@@ -1,8 +1,8 @@
 # TITLE:          Plant composition data analysis
 # AUTHORS:        Kara Dobson
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Moriah Young
-# DATA INPUT:     Data imported as csv file from shared Google drive L1 plant comp folder
-# DATA OUTPUT:    
+# DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder
+# DATA OUTPUT:    Plots for greenup data for each species and per site
 # PROJECT:        warmXtrophic
 # DATE:           December, 2020
 
@@ -88,5 +88,14 @@ greenup_plot_all <- function(loc) {
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-greenup_plot_all("kbs")
+greenup_plot_all("umbs")
 
+#### messing around with a boxplot ####
+#boxplot_func <- function(loc){
+#  box_filt <- subset(filter_comp, site == loc)
+#  ggplot(box_filt, aes(x = state, y = julian)) +
+#    facet_grid(.~year) +
+#    geom_boxplot() +
+#    geom_jitter()
+#}
+#boxplot_func("kbs")
