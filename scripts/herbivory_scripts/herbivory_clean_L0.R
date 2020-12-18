@@ -33,6 +33,10 @@ umbs_2018 <- read.csv("L0/UMBS/2018/umbs_leaf_herbivory_2018.csv")
 umbs_2019 <- read.csv("L0/UMBS/2019/umbs_herbivory_2019.csv")
 umbs_2020 <- read.csv("L0/UMBS/2020/umbs_herbivory_2020.csv")
 
+# add site column for kbs & umbs 2016
+kbs_2016$Site <- "kbs"
+umbs_2016$Site <- "umbs"
+
 # Put dataframes into a list so that functions can be applied
 herb_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
                   umbs_2015=umbs_2015, umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, umbs_2019=umbs_2019, umbs_2020=umbs_2020)
@@ -46,11 +50,23 @@ herb_list[7] <- lapply(herb_list[7], transform,
                                                "\\1", ID), "%Y_%m_%d"), "%m/%d/%Y"))
 
 # Apply other cleaning functions
-#herb_list <- lapply(herb_list, remove_col, name=c("Julian", "Notes"))
+herb_list <- lapply(herb_list, lowercase)
+herb_list <- lapply(herb_list, change_col_names)
 herb_list <- lapply(herb_list, change_date)
+# only apply this function to non-2015 data because it removes all data from those files (??)
+herb_list[2:6] <- lapply(herb_list[2:6], remove_col, name=c("julian", "notes"))
+herb_list[8:12] <- lapply(herb_list[8:12], remove_col, name=c("julian", "notes"))
 
-### note to self: remove column function doesn't work
-# need to change ID column to date for 2015 files
-# everything lower case 
+### note to self: check this
 # check for misspellings
+lapply(herb_list, spp_name)
+lapply(herb_list, site_name)
+
+### and this
+# fix misspellings for site and species names
+herb_list <- lapply(herb_list, change_site)
+herb_list <- lapply(herb_list, change_spp)
+
+### note to self
+# add plant number column for 2015 and remove total column
 

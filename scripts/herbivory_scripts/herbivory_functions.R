@@ -6,6 +6,27 @@
 # PROJECT:        warmXtrophic
 # DATE:           December, 2020
 
+
+# change columns to lowercase so dataframes can be merged
+lowercase <- function(df){
+  names(df) <- tolower(names(df))
+  return(df)
+}
+
+# change column names + remove needed columns
+change_col_names <- function(df){
+  colnames(df) <- sub("eaten", "p_eaten", colnames(df))
+  colnames(df) <- sub("damage", "p_damage", colnames(df))
+  colnames(df) <- sub("id", "date", colnames(df))
+  return(df)
+}
+
+# change date format
+change_date <- function(df){
+  df[["date"]] <- as.Date(df[["date"]],format="%m/%d/%Y")
+  return(df)
+}
+
 # remove certain columns
 remove_col <- function(df,name){
   vec <- which(names(df) %in% name)
@@ -15,13 +36,13 @@ remove_col <- function(df,name){
 
 # check that there are no species misspellings
 spp_name <- function(df){
-  spp <- unique(sort(df[["Species"]]))
+  spp <- unique(sort(df[["species"]]))
   return(spp)
 }
 
 # check that there are no site name misspellings
 site_name <- function(df){
-  spp <- unique(sort(df[["Site"]]))
+  spp <- unique(sort(df[["site"]]))
   return(spp)
 }
 
@@ -29,14 +50,6 @@ site_name <- function(df){
 change_site <- function(df){
   df$Site[df$Site == "KBS"] <- "kbs"
   df$Site[df$Site == "UMBS"] <- "umbs"
-  df$Site[df$Site == "umbs "] <- "umbs"
-  df$Site[df$Site == "Uu"] <- "umbs"
-  return(df)
-}
-
-# change date format
-change_date <- function(df){
-  df[["Date"]] <- as.Date(df[["Date"]],format="%m/%d/%Y")
   return(df)
 }
 
