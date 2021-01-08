@@ -37,6 +37,15 @@ umbs_2020 <- read.csv("L0/UMBS/2020/umbs_herbivory_2020.csv")
 kbs_2016$Site <- "kbs"
 umbs_2016$Site <- "umbs"
 
+# made a plant number column for 2015 - each plot only had one plant measured as opposed to later years where plots had multiple
+# plants measured. Technically the plant number for each plot could be 1, but it doesn't matter in the end
+kbs_2015$plant_number <- sapply(strsplit(as.character(kbs_2015$plot), ""), "[", 2)
+umbs_2015$plant_number <- sapply(strsplit(as.character(umbs_2015$plot), ""), "[", 2)
+
+# remove "total" column for 2015 data
+kbs_2015 <- subset (kbs_2015, select = -total)
+umbs_2015 <- subset (umbs_2015, select = -total)
+
 # Put dataframes into a list so that functions can be applied
 herb_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
                   umbs_2015=umbs_2015, umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, umbs_2019=umbs_2019, umbs_2020=umbs_2020)
@@ -51,22 +60,24 @@ herb_list[7] <- lapply(herb_list[7], transform,
 
 # Apply other cleaning functions
 herb_list <- lapply(herb_list, lowercase)
-herb_list <- lapply(herb_list, change_col_names)
+herb_list[1] <- lapply(herb_list[1], change_col_names)
+herb_list[7] <- lapply(herb_list[7], change_col_names)
 herb_list <- lapply(herb_list, change_date)
 # only apply this function to non-2015 data because it removes all data from those files (??)
 herb_list[2:6] <- lapply(herb_list[2:6], remove_col, name=c("julian", "notes"))
 herb_list[8:12] <- lapply(herb_list[8:12], remove_col, name=c("julian", "notes"))
 
-### note to self: check this
 # check for misspellings
+# ones im not sure of: Sora (kbs2017), no other misspellings
 lapply(herb_list, spp_name)
 lapply(herb_list, site_name)
 
-### and this
 # fix misspellings for site and species names
 herb_list <- lapply(herb_list, change_site)
 herb_list <- lapply(herb_list, change_spp)
 
-### note to self
-# add plant number column for 2015 and remove total column
-
+# Merge final data
+herb_merge <- rbind(herb_list$kbs_2015, herb_list$kbs_2016, herb_list$kbs_2017, herb_list$kbs_2018, herb_list$kbs_2019, herb_list$kbs_2020, 
+                    herb_list$umbs_2015, herb_list$umbs_2016, herb_list$umbs_2017, herb_list$umbs_2018, herb_list$umbs_2019, herb_list$umbs_2020)
+str(herb_merge)
+write.csv(herb_merge, file="L1/herbivory/final_herbivory_L1.csv")

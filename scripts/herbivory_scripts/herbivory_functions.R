@@ -47,9 +47,15 @@ site_name <- function(df){
 }
 
 # change site names
+change_spp <- function(df){
+  df$species[df$species == "Sora"] <- "Soca"
+  return(df)
+}
+
+# change site names
 change_site <- function(df){
-  df$Site[df$Site == "KBS"] <- "kbs"
-  df$Site[df$Site == "UMBS"] <- "umbs"
+  df$site[df$site == "UMBS"] <- "umbs"
+  df$site[df$site == "KBS"] <- "kbs"
   return(df)
 }
 
