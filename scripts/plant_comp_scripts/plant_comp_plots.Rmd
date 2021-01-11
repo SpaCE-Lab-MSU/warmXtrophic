@@ -1,15 +1,15 @@
 ---
 title: "Plant Comp Plots"
 author: "Kara Dobson"
-date: "12/14/2020"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
 
 COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young  
 DATA INPUT: Clean plant comp csv from the shared Google drive  
-DATA OUTPUT: Plots of each graph are in the plant_comp_plots.pdf in Github  
+DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
 PROJECT: warmXtrophic  
-DATE: July 2020  
+DATE: January 2021  
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
