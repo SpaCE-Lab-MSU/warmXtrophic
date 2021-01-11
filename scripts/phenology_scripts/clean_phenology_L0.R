@@ -16,7 +16,7 @@ library(tidyverse)
 # Set working directory to Google Drive
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
-# Source in needed functions from Kara's plant_comp_functions.R
+# Source in needed functions from phenology_functions.R
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/scripts/phenology_scripts/phenology_functions.R")
 
 # Read in species list
