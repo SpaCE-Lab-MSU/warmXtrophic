@@ -48,7 +48,7 @@ filter_comp <- plant_comp_merge %>%
 
 #### First date by species & site ####
 sum_comp <- filter_comp %>%
-  group_by(state, species, year, site) %>%
+  group_by(site, state, species, year) %>%
   summarize(avg_julian = mean(julian, na.rm = TRUE),
             se = std.error(julian, na.rm = TRUE))
 
@@ -66,12 +66,13 @@ greenup_plot <- function(spp, loc) {
            theme_classic())
 }
 greenup_plot("Popr", "umbs")
-
+greenup_plot("Eugr", "kbs")
+greenup_plot("Soca", "kbs")
 
 
 #### First date by site ####
 sum_comp_all <- filter_comp %>%
-  group_by(state, year, site) %>%
+  group_by(site, state, year) %>%
   summarize(avg_julian = mean(julian, na.rm = TRUE),
             se = std.error(julian, na.rm = TRUE))
 
@@ -89,6 +90,7 @@ greenup_plot_all <- function(loc) {
            theme_classic())
 }
 greenup_plot_all("umbs")
+greenup_plot_all("kbs")
 
 #### messing around with a boxplot ####
 #boxplot_func <- function(loc){
