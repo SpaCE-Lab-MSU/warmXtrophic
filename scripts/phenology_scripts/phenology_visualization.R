@@ -11,6 +11,7 @@ rm(list=ls())
 
 #Load packages
 library(tidyverse)
+library(plotrix)
 
 # Set working directory to Google Drive
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
@@ -24,6 +25,12 @@ phen_data <- phen_data %>%
 # Change column names to lowercase
 names(phen_data) <- tolower(names(phen_data))
 str(phen_data)
+
+# Fix date column & add column for the year and julian day
+phen_data$date <- as.Date(phen_data$date, format="%Y-%m-%d")
+str(phen_data)
+phen_data$year <- format(phen_data$date,format="%Y")
+phen_data$julian <- format(phen_data$date, "%j")
 
 # plot level information from L2
 plot_meta <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L2/plot.csv")
@@ -42,19 +49,44 @@ phen_data <- phen_data3 %>%
         select(-old_name, -old_species, -site.y, -resolution)
 colnames(phen_data) <- sub("site.x", "site", colnames(phen_data))
 
-# Fix date column & add column for the year and julian day
-phen_data$Date <- as.Date(phen_data$Date,format="%Y-%m-%d")
-str(phen_data4)
-phen_data$Year <- format(phen_data$Date,format="%Y")
-phen_data$Julian <- format(phen_data$Date, "%j")
-
-# Make julian column numeric
-phen_data$Julian <- as.numeric(phen_data$Julian)
+# Change column names to lowercase (again)
+names(phen_data) <- tolower(names(phen_data))
 str(phen_data)
 
+# Make julian column numeric
+phen_data$julian <- as.numeric(phen_data$julian)
+str(phen_data)
 
-# This creates a data frame that returns the the first date of flower per species per plot
-firstflower <- phen_data %>%
+# Create sperate data frames for flowering and seeding
+phen_data_flwr <- subset(phen_data, action == "flower")
+phen_data_sd <- subset(phen_data, action == "seed")
+
+# This creates a data frame that returns the first date of flower per species per plot
+# Filter data to contain the date of first occurrence for each species
+
+FirstFlower <- phen_data_flwr %>%
         group_by(plot, year, species, state, site, action) %>%
         summarize(julian = min(julian, na.rm=T))
 
+sum_FirstFlower <- FirstFlower %>%
+        group_by(site, state, species, year) %>%
+        summarize(avg_julian = mean(julian, na.rm = TRUE),
+                  se = std.error(julian, na.rm = TRUE))
+
+FirstFlower_plot <- function(spp, loc) { 
+        FirstFlower_spp <- subset(sum_FirstFlower, species == spp & site == loc)
+        return(ggplot(FirstFlower_spp, aes(x = state, y = avg_julian, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_bar(position = "identity", stat = "identity") +
+                       geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                                     position = "identity") +
+                       labs(x = "State", y = "Julian Day of First Flower", title = spp, subtitle = loc) +
+                       scale_fill_manual(values = c("blue", "darkred")) +
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+                       theme_grey())
+}
+
+FirstFlower_plot("Popr", "umbs")
+FirstFlower_plot("Cest", "umbs")
+FirstFlower_plot("Eugr", "kbs")
+FirstFlower_plot("Soca", "kbs")
