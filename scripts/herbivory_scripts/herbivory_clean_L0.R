@@ -20,6 +20,7 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 source("~/warmXtrophic/scripts/herbivory_scripts/herbivory_functions.R")
 
 # Read in data
+meta <- read.csv("L2/plot.csv")
 kbs_2015 <- read.csv("L0/KBS/2015/kbs_leaf_herbivory_2015.csv")
 kbs_2016 <- read.csv("L0/KBS/2016/kbs_leaf_herbivory_2016.csv")
 kbs_2017 <- read.csv("L0/KBS/2017/kbs_leaf_herbivory_2017.csv")
@@ -80,4 +81,13 @@ herb_list <- lapply(herb_list, change_spp)
 herb_merge <- rbind(herb_list$kbs_2015, herb_list$kbs_2016, herb_list$kbs_2017, herb_list$kbs_2018, herb_list$kbs_2019, herb_list$kbs_2020, 
                     herb_list$umbs_2015, herb_list$umbs_2016, herb_list$umbs_2017, herb_list$umbs_2018, herb_list$umbs_2019, herb_list$umbs_2020)
 str(herb_merge)
-write.csv(herb_merge, file="L1/herbivory/final_herbivory_L1.csv")
+
+# Add year column
+herb_merge$year <- format(herb_merge$date,format="%Y")
+
+# Merge metadata with data
+herb <- left_join(meta, herb_merge, by = "plot")
+str(herb)
+
+# Upload clean csv to google drive
+write.csv(herb, file="L1/herbivory/final_herbivory_L1.csv")

@@ -28,30 +28,24 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in plant comp data & metadata
 herb <- read.csv("L1/herbivory/final_herbivory_L1.csv")
-meta <- read.csv("L2/plot.csv")
 #str(herb) # for some reason, date column converted back to character
 
 # Fix date column & add column for the year and julian day
 herb$date <- as.Date(herb$date,format="%Y-%m-%d")
 #str(herb)
-herb$year <- format(herb$date,format="%Y")
-
-# Merge metadata with data
-herb_merge <- left_join(meta, herb, by = "plot")
-#str(herb_merge)
 
 # Remove weird X column
-herb_merge <- subset(herb_merge, select = -X)
+herb <- subset(herb, select = -X)
 
 
 #### Total herb by site and species ####
-sum_herb <- herb_merge %>%
+sum_herb <- herb %>%
   group_by(site, state, species, year) %>%
   summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
             se = std.error(p_eaten, na.rm = TRUE))
 
-#### First date by site ####
-sum_herb_all <- herb_merge %>%
+#### Total herb by site ####
+sum_herb_all <- herb %>%
   group_by(site, state, year) %>%
   summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
             se = std.error(p_eaten, na.rm = TRUE))
@@ -72,8 +66,8 @@ herb_plot_all <- function(loc) {
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-herb_plot_all("umbs")
 herb_plot_all("kbs")
+herb_plot_all("umbs")
 ```
 
 ### Makes a plot for a given species and site
