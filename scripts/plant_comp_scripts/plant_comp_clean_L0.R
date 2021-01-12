@@ -21,6 +21,7 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
 
 # Read in data (only need columns 1-7 for the umbs files)
+meta <- read.csv("L2/plot.csv")
 kbs_2015 <- read.csv("L0/KBS/2015/kbs_plant_comp_2015.csv")
 kbs_2016 <- read.csv("L0/KBS/2016/kbs_plant_comp_2016.csv")
 kbs_2017 <- read.csv("L0/KBS/2017/kbs_plant_comp_2017.csv")
@@ -65,4 +66,19 @@ lapply(comp_list, site_name) # looks good
 comp_merge <- rbind(comp_list$kbs_2015, comp_list$kbs_2016, comp_list$kbs_2017, comp_list$kbs_2018, comp_list$kbs_2019, comp_list$kbs_2020, 
                     comp_list$umbs_2015, comp_list$umbs_2016, comp_list$umbs_2017, comp_list$umbs_2018, comp_list$umbs_2019, comp_list$umbs_2020)
 str(comp_merge)
-write.csv(comp_merge, file="L1/plant_composition/final_plantcomp_L1.csv")
+
+# Change column names to lowercase so they can be merged with metadata
+names(comp_merge) <- tolower(names(comp_merge))
+
+# Make year and julian date columns
+comp_merge$year <- format(comp_merge$date,format="%Y")
+comp_merge$julian <- format(comp_merge$date, "%j")
+
+# Make julian column numeric
+comp_merge$julian <- as.numeric(comp_merge$julian)
+
+# Merge meta-data with plant comp data
+plant_comp_merge <- left_join(meta, comp_merge, by = "plot")
+
+# Upload clean data csv to google drive
+write.csv(plant_comp_merge, file="L1/plant_composition/final_plantcomp_L1.csv")

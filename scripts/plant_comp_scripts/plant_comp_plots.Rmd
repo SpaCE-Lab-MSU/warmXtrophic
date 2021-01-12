@@ -27,30 +27,16 @@ library(plotrix)
 # **** Update with the path to your Google drive on your computer
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
-# Read in plant comp data & metadata
+# Read in plant comp data
 plant_comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
-meta <- read.csv("L2/plot.csv")
 #str(plant_comp) # for some reason, date column converted back to character
 
-# Fix date column & add column for the year and julian day
-plant_comp$Date <- as.Date(plant_comp$Date,format="%Y-%m-%d")
+# Fix date column
+plant_comp$date <- as.Date(plant_comp$date,format="%Y-%m-%d")
 #str(plant_comp)
-plant_comp$Year <- format(plant_comp$Date,format="%Y")
-plant_comp$Julian <- format(plant_comp$Date, "%j")
-
-# Make julian column numeric
-plant_comp$Julian <- as.numeric(plant_comp$Julian)
-#str(plant_comp)
-
-# Change column names to lowercase so they can be merged with metadata
-names(plant_comp) <- tolower(names(plant_comp))
-
-# Merge metadata with data
-plant_comp_merge <- left_join(meta, plant_comp, by = "plot")
-#str(plant_comp_merge)
 
 # Filter data to contain the date of first occurance for each species
-filter_comp <- plant_comp_merge %>%
+filter_comp <- plant_comp %>%
   group_by(plot, year, species, state, site) %>%
   summarize(julian = min(julian))
 
