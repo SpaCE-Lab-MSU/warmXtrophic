@@ -31,6 +31,12 @@ site_name <- function(df){
         return(spp)
 }
 
+# check that there are no weird dates
+date_check <- function(df){
+        date <- unique(sort(df[["Date"]]))
+        return(date)
+}
+
 #function to change column names
 change_colnames <- function(df){
         names(df)[names(df) == "site"] <- "Site"
@@ -71,6 +77,7 @@ change_spp <- function(df){
         return(df)
 }
 
+# change site names
 change_site <- function(df){
         df$Site[df$Site == "KBS"] <- "kbs"
         df$Site[df$Site == "umbs "] <- "umbs"
@@ -78,3 +85,14 @@ change_site <- function(df){
         return(df)
 }
 
+# change dates
+change_dates <- function(df){
+        df$Date[df$Date == "0207-08-09"] <- "2017-08-09"
+        df$Date[df$Date == "1017-06-01"] <- "2017-06-01"
+        df$Date[df$Date == "1017-07-11"] <- "2017-07-11"
+        df$Date[df$Date == "2011-07-14"] <- "2017-07-14"
+        df$Date[df$Date == "3017-06-23"] <- "3017-06-23"
+        df$Date[df$Date == "3017-06-30"] <- "3017-06-30"
+        df$Date[df$Date == "3017-07-23"] <- "3017-07-23"
+        return(df)
+}
