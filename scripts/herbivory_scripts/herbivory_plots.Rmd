@@ -14,6 +14,7 @@ DATA INPUT: Clean & plot herb csv from the shared Google drive
 DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
 PROJECT: warmXtrophic  
 
+* Still working on plots with insecticide included as a factor *
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 # Clear all existing data
 rm(list=ls())

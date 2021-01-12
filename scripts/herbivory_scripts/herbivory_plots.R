@@ -29,7 +29,8 @@ str(herb)
 herb <- subset(herb, select = -X)
 
 
-#### Total herb by site and species ####
+
+#### Total herb by site and species (ignoring insecticide) ####
 sum_herb <- herb %>%
   group_by(site, state, species, year) %>%
   summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
@@ -51,6 +52,30 @@ herb_plot <- function(spp, loc) {
 herb_plot("Popr", "umbs")
 herb_plot("Eugr", "kbs")
 herb_plot("Soca", "kbs")
+
+
+############### FIX #################
+#### Total herb by site and species with insecticide treatment####
+sum_herb_in <- herb %>%
+  group_by(site, treatment_key, year) %>%
+  summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+            se = std.error(p_eaten, na.rm = TRUE))
+
+# Function to make a plot for any species
+herb_plot_in <- function(loc) { 
+  herb_spp <- subset(sum_herb_in, site == loc)
+  return(ggplot(herb_spp, aes(x = treatment_key, y = avg_eaten, fill = treatment_key)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity") +
+           geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "Treatment", y = "Average Percent of Leaf Eaten", title = loc) +
+           scale_fill_manual(values = c("#abd9e9", "#2c7bb6", "#fdae61", "#d7191c")) +
+           theme_classic())
+}
+herb_plot_in("umbs")
+herb_plot_in("kbs")
+
 
 
 #### Total herb by site ####
