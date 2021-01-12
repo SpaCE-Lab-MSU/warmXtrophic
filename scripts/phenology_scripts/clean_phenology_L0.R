@@ -71,7 +71,7 @@ phen_list <- lapply(phen_list, remove_col, name=c("Julian", "Notes", "collector"
 phen_list <- lapply(phen_list, change_date)
 lapply(phen_list, spp_name) # look over species code to see what needs to be fixed
 lapply(phen_list, site_name) # need to make these all the same for each site
-lapply(phen_list, date_check)
+lapply(phen_list, date_check) # see if any dates were entered incorrectly, like the year
 
 # Fixing species names
 phen_list <- lapply(phen_list, change_spp)
@@ -90,9 +90,9 @@ lapply(phen_list, spp_name) # looks good
 phen_list <- lapply(phen_list, change_site)
 lapply(phen_list, site_name) # looks good
 
-# Fixing site years
+# Fixing site dates
 phen_list <- lapply(phen_list, change_date)
-lapply(phen_list, date_check) # 
+lapply(phen_list, date_check) # looks good
 
 # Merge final data
 phen_merge <- rbind(phen_list$kbs_2015, phen_list$kbs_2016, phen_list$kbs_2017, phen_list$kbs_2018, phen_list$kbs_2019, phen_list$kbs_2020,
