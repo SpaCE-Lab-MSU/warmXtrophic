@@ -57,7 +57,7 @@ str(phen_data)
 phen_data$julian <- as.numeric(phen_data$julian)
 str(phen_data)
 
-# Create sperate data frames for flowering and seeding
+# Create separate data frames for flowering and seeding
 phen_data_flwr <- subset(phen_data, action == "flower")
 phen_data_sd <- subset(phen_data, action == "seed")
 

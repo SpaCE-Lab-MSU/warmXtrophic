@@ -1,7 +1,8 @@
 # TITLE:          Phenology Data Cleanup
 # AUTHORS:        Moriah Young
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Kara Dobson
-# DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
+# DATA INPUT:     Data imported as csv files from shared Google drive L0 folder - all phenology data
+#                 for each site and every year 
 # DATA OUTPUT:    A csv file containing phenology data for all sites & years is uploaded
 #                 to the L1 plant comp folder
 # PROJECT:        warmXtrophic
@@ -14,15 +15,22 @@ rm(list=ls())
 library(tidyverse)
 
 # Set working directory to Google Drive
+# Pat said he doesn't setwd --> figure out .renviron
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Source in needed functions from phenology_functions.R
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/scripts/phenology_scripts/phenology_functions.R")
 
+### Read in meta data files
 # Read in species list
-#taxa <- read.csv("L2/taxon_uptodate.csv", stringsAsFactors=F)
+taxa <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L0/taxon.csv", stringsAsFactors=F)
+# Change column name for from "code" to "Species" to match cleaned phenology data
+colnames(taxa) <- sub("code", "species", colnames(taxa))
 
-# Read in data
+# Read in plot list
+plot_info <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L0/plot.csv")
+
+# Read in phenology data
 kbs_2015 <- read.csv("L0/KBS/2015/kbs_flwr_sd_2015.csv")
 kbs_2016 <- read.csv("L0/KBS/2016/kbs_flwr_sd_2016.csv")
 kbs_2017 <- read.csv("L0/KBS/2017/kbs_flwr_sd_2017.csv")
@@ -39,28 +47,8 @@ umbs_2020 <- read.csv("L0/UMBS/2020/umbs_flwr_sd_2020.csv")
 kbs_2016$Site <- "kbs"
 umbs_2016$Site <- "umbs"
 
-# Add a "Year" column for kbs and umbs for all years 
-# Don't need to do this here... but you can
-#kbs_2015$Year <- 2015
-#kbs_2016$Year <- 2016
-#kbs_2017$Year <- 2017
-#kbs_2018$Year <- 2018
-#kbs_2019$Year <- 2019
-#kbs_2020$Year <- 2020
-#umbs_2016$Year <- 2016
-#umbs_2017$Year <- 2017
-#umbs_2018$Year <- 2018
-#umbs_2019$Year <- 2019
-#umbs_2020$Year <- 2020
-
 # Change column name for kbs 2015
 colnames(kbs_2015) <- sub("event", "Action", colnames(kbs_2015))
-
-#order_colnames <- c("Site", "Year", "Date", "Plot", "Species", "Action")
-#colnames_ordered <- function(df){
-#        df <- df[,order_colnames]
-#        return(df)
-#} # this won't work bc "undefined columns selected"
 
 # Add dataframes into a list so that needed functions can be applied 
 phen_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
@@ -94,8 +82,35 @@ lapply(phen_list, site_name) # looks good
 phen_list <- lapply(phen_list, change_date)
 lapply(phen_list, date_check) # looks good
 
-# Merge final data
+# Merge final data (make a single data frame from all of the lists)
 phen_merge <- rbind(phen_list$kbs_2015, phen_list$kbs_2016, phen_list$kbs_2017, phen_list$kbs_2018, phen_list$kbs_2019, phen_list$kbs_2020,
                     phen_list$umbs_2016, phen_list$umbs_2017, phen_list$umbs_2018, phen_list$umbs_2019, phen_list$umbs_2020)
 str(phen_merge)
-write.csv(phen_merge, file="L1/reproductive_phenology/final_flw_sd_L1.csv")
+
+# Change column names to lowercase
+names(phen_merge) <- tolower(names(phen_merge))
+
+# Fix date column & add column for the year and julian day
+phen_merge$date <- as.Date(phen_merge$date, format="%Y-%m-%d")
+str(phen_merge)
+phen_merge$year <- format(phen_merge$date,format="%Y")
+phen_merge$julian <- format(phen_merge$date, "%j")
+
+# merge cleaned data with the plot and species level information
+phen_data2 <- merge(phen_data, plot_meta, by = "plot")
+phen_data3 <- merge(phen_data2, taxa, by = "species")
+
+phen_data <- phen_data3 %>% 
+        select(-old_name, -old_species, -site.y, -resolution)
+colnames(phen_data) <- sub("site.x", "site", colnames(phen_data))
+
+# Change column names to lowercase (again)
+names(phen_data) <- tolower(names(phen_data))
+str(phen_data)
+
+# Make julian column numeric
+phen_data$julian <- as.numeric(phen_data$julian)
+str(phen_data)
+
+# write a new cvs with the cleaned and merge data and upload to the shared google drive
+write.csv(phen_merge, file="L1/phenology/final_flw_sd_L1.csv")
