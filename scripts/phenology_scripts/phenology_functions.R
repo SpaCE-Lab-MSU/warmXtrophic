@@ -87,12 +87,22 @@ change_site <- function(df){
 
 # change dates
 change_date <- function(df){
-        df$Date[df$Date == "0207-08-09"] <- "2017-08-09"
-        df$Date[df$Date == "1017-06-01"] <- "2017-06-01"
-        df$Date[df$Date == "1017-07-11"] <- "2017-07-11"
-        df$Date[df$Date == "2011-07-14"] <- "2017-07-14"
-        df$Date[df$Date == "3017-06-23"] <- "2017-06-23"
-        df$Date[df$Date == "3017-06-30"] <- "2017-06-30"
-        df$Date[df$Date == "3017-07-23"] <- "2017-07-23"
+        df$Date[df$Date == "8/9/0207"] <- "8/9/2017"
+        df$Date[df$Date == "6/1/1017"] <- "6/1/2017"
+        df$Date[df$Date == "7/11/1017"] <- "7/11/2017"
+        df$Date[df$Date == "7/14/2011"] <- "7/14/2017"
+        df$Date[df$Date == "6/23/3017"] <- "6/23/2017"
+        df$Date[df$Date == "6/30/3017"] <- "6/30/2017"
+        df$Date[df$Date == "7/23/3017"] <- "7/23/2017"
         return(df)
 }
+#change_date <- function(df){
+#        df$Date[df$Date == "0207-08-09"] <- "2017-08-09"
+#        df$Date[df$Date == "1017-06-01"] <- "2017-06-01"
+#        df$Date[df$Date == "1017-07-11"] <- "2017-07-11"
+#        df$Date[df$Date == "2011-07-14"] <- "2017-07-14"
+#        df$Date[df$Date == "3017-06-23"] <- "2017-06-23"
+#        df$Date[df$Date == "3017-06-30"] <- "2017-06-30"
+#        df$Date[df$Date == "3017-07-23"] <- "2017-07-23"
+#        return(df)
+#}
