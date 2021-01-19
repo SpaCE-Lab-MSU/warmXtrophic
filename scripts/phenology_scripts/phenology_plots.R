@@ -90,3 +90,8 @@ FirstFlower_plot("Popr", "umbs")
 FirstFlower_plot("Cest", "umbs")
 FirstFlower_plot("Eugr", "kbs")
 FirstFlower_plot("Soca", "kbs")
+
+# create a function that returns plots (1 for each year at each site) for a given site and year comparing
+# warmed vs ambient plots for average first date of flower (add by functional groups next?)
+
+# calculate the average date of first flower for each plot
