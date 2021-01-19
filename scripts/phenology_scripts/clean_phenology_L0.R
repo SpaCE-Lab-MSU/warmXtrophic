@@ -91,16 +91,16 @@ str(phen_merge)
 names(phen_merge) <- tolower(names(phen_merge))
 
 # Fix date column & add column for the year and julian day
-phen_merge$date <- as.Date(phen_merge$date, format="%Y-%m-%d")
+phen_merge$date <- as.Date(phen_merge$date, format="%m/%d/%Y")
 str(phen_merge)
 phen_merge$year <- format(phen_merge$date,format="%Y")
 phen_merge$julian <- format(phen_merge$date, "%j")
 
 # merge cleaned data with the plot and species level information
-phen_data2 <- merge(phen_data, plot_meta, by = "plot")
-phen_data3 <- merge(phen_data2, taxa, by = "species")
+phen_merge2 <- merge(phen_merge, plot_info, by = "plot")
+phen_merge3 <- merge(phen_merge2, taxa, by = "species")
 
-phen_data <- phen_data3 %>% 
+phen_data <- phen_merge3 %>% 
         select(-old_name, -old_species, -site.y, -resolution)
 colnames(phen_data) <- sub("site.x", "site", colnames(phen_data))
 
@@ -112,5 +112,10 @@ str(phen_data)
 phen_data$julian <- as.numeric(phen_data$julian)
 str(phen_data)
 
+phen_data <- phen_data[, c("site", "plot", "species", "action", "date", "julian", "year", "treatment_key", "state",
+                          "insecticide", "scientific_name", "common_name", "usda_species", "lter_species",
+                          "origin", "group", "family", "duration", "growth_habit")]
+
 # write a new cvs with the cleaned and merge data and upload to the shared google drive
-write.csv(phen_merge, file="L1/phenology/final_flw_sd_L1.csv")
+write.csv(phen_data, file="L1/phenology/final_flw_sd_L1.csv")
+
