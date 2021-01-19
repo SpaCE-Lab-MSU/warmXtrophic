@@ -116,6 +116,8 @@ phen_data <- phen_data[, c("site", "plot", "species", "action", "date", "julian"
                           "insecticide", "scientific_name", "common_name", "usda_species", "lter_species",
                           "origin", "group", "family", "duration", "growth_habit")]
 
+str(phen_data)
+
 # write a new cvs with the cleaned and merge data and upload to the shared google drive
 write.csv(phen_data, file="L1/phenology/final_flw_sd_L1.csv")
 
