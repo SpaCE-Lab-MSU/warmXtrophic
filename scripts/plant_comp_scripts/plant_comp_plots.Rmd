@@ -29,36 +29,78 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in plant comp data
 plant_comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
+meta <- read.csv("L0/plot.csv")
 #str(plant_comp) # for some reason, date column converted back to character
 
 # Fix date column
 plant_comp$date <- as.Date(plant_comp$date,format="%Y-%m-%d")
 #str(plant_comp)
 
-# Filter data to contain the date of first occurance for each species
-filter_comp <- plant_comp %>%
-  group_by(plot, year, species, state, site) %>%
-  summarize(julian = min(julian))
+# split the plant_comp dataframe
+dataus <- split(x = plant_comp, f = plant_comp[, c("plot", "species","site", "year")])
+
+# Determine dates for each plot-species combination where the value of `cover` is at least half the max value
+half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
+  x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
+  }))
+
+# make into a dataframe
+half_cover_dates_df <- data.frame("plot.species.site.year" = names(half_cover_dates),
+                                  "half_cover_date" = unname(half_cover_dates), stringsAsFactors = FALSE)
+
+# fix species and plot column
+half_cover_dates_df[["plot"]] <- sapply(X = strsplit(x = half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 1L)
+half_cover_dates_df[["species"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 2L)
+half_cover_dates_df[["site"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 3L)
+half_cover_dates_df[["year"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 4L)
+half_cover_dates_df$plot.species.site.year <- NULL
+
+# determine first date of emergence for correlation with 'green-up' index
+min_date <- aggregate(plant_comp$julian,by=plant_comp[,c("plot","species")],FUN=min)
+colnames(min_date) <- c("plot", "species", "min_emerg_date")
+
+# merge min date dateframe with "green-up index" df
+combined <- merge(half_cover_dates_df, min_date, by=c("plot", "species"))
+
+# calculate correlation
+#cor.test(combined$min_emerg_date, combined$half_cover_date)
+
+# re-merge data with meta data info
+final <- left_join(meta, combined, by = "plot")
+
+# remove uneeded columns
+final$date <- NULL
+final$species.y <- NULL
+final$cover <- NULL
+final$julian <- NULL
+final$X <- NULL
+final$site.y <- NULL
+final$year.y <- NULL
+
+# fix column names
+colnames(final)[which(names(final) == "species.x")] <- "species"
+colnames(final)[which(names(final) == "site.x")] <- "site"
+colnames(final)[which(names(final) == "year.x")] <- "year"
 
 
 
-#### First date by species & site ####
-sum_comp <- filter_comp %>%
+# filter data to contain the averages and std error for each site & species
+sum_comp_spp <- final %>%
   group_by(site, state, species, year) %>%
-  summarize(avg_julian = mean(julian, na.rm = TRUE),
-            se = std.error(julian, na.rm = TRUE))
+  summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
+            se = std.error(half_cover_date, na.rm = TRUE))
 
-#### First date by site ####
-sum_comp_all <- filter_comp %>%
+# filter data to contain the averages and std error for each site
+sum_comp_site <- final %>%
   group_by(site, state, year) %>%
-  summarize(avg_julian = mean(julian, na.rm = TRUE),
-            se = std.error(julian, na.rm = TRUE))
+  summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
+            se = std.error(half_cover_date, na.rm = TRUE))
 ```
 
 ### Makes a plot for a given site
 ```{r}
 greenup_plot_all <- function(loc) { 
-  greenup_spp <- subset(sum_comp_all, site == loc)
+  greenup_spp <- subset(sum_comp_site, site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
            facet_grid(.~year) +
            geom_bar(position = "identity", stat = "identity") +
@@ -69,15 +111,15 @@ greenup_plot_all <- function(loc) {
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-greenup_plot_all("umbs")
 greenup_plot_all("kbs")
+greenup_plot_all("umbs")
 ```
 
 ### Makes a plot for a given species & site
 ### Ex: Soca at KBS, Cest at UMBS
 ```{r}
 greenup_plot <- function(spp, loc) { 
-  greenup_spp <- subset(sum_comp, species == spp & site == loc)
+  greenup_spp <- subset(sum_comp_spp, species == spp & site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
            facet_grid(.~year) +
            geom_bar(position = "identity", stat = "identity") +
