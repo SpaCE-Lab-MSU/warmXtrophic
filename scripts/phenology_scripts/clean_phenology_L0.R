@@ -1,6 +1,6 @@
 # TITLE:          Phenology Data Cleanup
 # AUTHORS:        Moriah Young
-# COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Kara Dobson
+# COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Pat Bills, Kara Dobson
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder - all phenology data
 #                 for each site and every year 
 # DATA OUTPUT:    A csv file containing phenology data for all sites & years is uploaded
