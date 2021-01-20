@@ -7,6 +7,12 @@ output:
   html_document: default
 ---
 
+COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Kara Dobson  
+DATA INPUT: Claned phenology data csv from the shared Google drive  
+DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
+PROJECT: warmXtrophic  
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -52,7 +58,7 @@ sum_FirstFlwr <- FirstFlower %>%
 # this gives the average julian day of first flower for each site and year for warmed and ambient
 ```
 
-## This creates a plot for a given species and site
+# This creates a plot for a given species and site
 ```{r}
 FirstFlower_plot <- function(spp, loc) { 
         FirstFlower_spp <- subset(sum_FirstFlower, species == spp & site == loc)
@@ -66,13 +72,16 @@ FirstFlower_plot <- function(spp, loc) {
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
 }
+```
+
+```{r}
 FirstFlower_plot("Popr", "umbs")
 FirstFlower_plot("Popr", "kbs")
 FirstFlower_plot("Eugr", "kbs")
 FirstFlower_plot("Soca", "kbs")
 ```
 
-## This creates a function that returns plots for a given site and year for average first date of flower comparing ambient vs warmed plots
+# This creates a function that returns plots for a given site and year for average first date of flower comparing ambient vs warmed plots
 ```{r}
 sum_FirstFlwr_plot <- function(loc, yr) { 
         FirstFlwr_sub <- subset(sum_FirstFlwr, site == loc & year == yr)
