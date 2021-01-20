@@ -29,11 +29,11 @@ phen_sd <- subset(phen_data, action == "seed")
 
 # This creates a data frame that returns the first date of flower per species per plot
 # Filter data to contain the date of first occurrence for each species
-
 FirstFlower <- phen_flwr %>%
         group_by(plot, year, species, state, site, action) %>%
         summarize(julian = min(julian, na.rm=T))
-        
+
+# This creates a data frame that returns the mean julian date of first flower         
 sum_FirstFlower <- FirstFlower %>%
         group_by(site, state, species, year) %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
@@ -63,6 +63,7 @@ FirstFlower_plot("Popr", "kbs")
 FirstFlower_plot("Eugr", "kbs")
 FirstFlower_plot("Soca", "kbs")
 
+# This creates a function that returns plots for a given site and year for average first date of flower comparing ambient vs warmed plots
 sum_FirstFlwr_plot <- function(loc, yr) { 
         FirstFlwr_sub <- subset(sum_FirstFlwr, site == loc & year == yr)
         return(ggplot(FirstFlwr_sub, aes(x = state, y = avg_julian, fill = state)) +
@@ -70,11 +71,11 @@ sum_FirstFlwr_plot <- function(loc, yr) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Flower", title = year, subtitle = loc) +
+                       labs(x = "State", y = "Julian Day of First Flower", title = yr, subtitle = loc) +
                        scale_fill_manual(values = c("blue", "darkred")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
-} # this creates a function that returns plots for a given site and year for average first date of flower comparing ambient vs warmed plots
+}
 
 # kbs plots
 kbs_2015 <- sum_FirstFlwr_plot("kbs", "2015")
@@ -96,8 +97,5 @@ umbs_2020 <- sum_FirstFlwr_plot("umbs", "2020")
 
 plot_grid(umbs_2016, umbs_2017, umbs_2018, umbs_2019, umbs_2020,
           ncol = 3, nrow = 2)
-
-# create a function that returns plots (1 for each year at each site) for a given site and year comparing
-# warmed vs ambient plots for average first date of flower (add by functional groups next?)
 
 # calculate the average date of first flower for each plot
