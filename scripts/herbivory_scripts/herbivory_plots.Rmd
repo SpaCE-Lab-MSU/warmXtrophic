@@ -68,7 +68,7 @@ herb_plot_in <- function(loc, key, key2) {
            geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
                          position = "identity") +
            labs(x = "Treatment", y = "Average Percent of Leaf Eaten", title = loc) +
-           #scale_fill_manual(values = c("#abd9e9", "#2c7bb6", "#fdae61", "#d7191c")) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            theme_classic())
 }
 herb_plot_in("umbs", "A0", "W0")
