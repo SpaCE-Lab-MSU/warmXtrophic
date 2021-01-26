@@ -82,6 +82,7 @@ change_site <- function(df){
         df$Site[df$Site == "KBS"] <- "kbs"
         df$Site[df$Site == "umbs "] <- "umbs"
         df$Site[df$Site == "kbs "] <- "kbs"
+        df$Site[df$Site == "UMBS"] <- "umbs"
         return(df)
 }
 
