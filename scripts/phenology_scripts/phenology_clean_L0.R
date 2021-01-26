@@ -37,6 +37,7 @@ kbs_2017 <- read.csv("L0/KBS/2017/kbs_flwr_sd_2017.csv")
 kbs_2018 <- read.csv("L0/KBS/2018/kbs_flwr_sd_2018.csv")
 kbs_2019 <- read.csv("L0/KBS/2019/kbs_flwr_sd_2019.csv")
 kbs_2020 <- read.csv("L0/KBS/2020/kbs_flwr_sd_2020.csv")
+umbs_2015 <- read.csv("L0/UMBS/2015/umbs_flwr_sd_2015.csv")
 umbs_2016 <- read.csv("L0/UMBS/2016/umbs_flwr_sd_2016.csv")
 umbs_2017 <- read.csv("L0/UMBS/2017/umbs_flwr_sd_2017.csv")
 umbs_2018 <- read.csv("L0/UMBS/2018/umbs_flwr_sd_2018.csv")
@@ -49,10 +50,11 @@ umbs_2016$Site <- "umbs"
 
 # Change column name for kbs 2015
 colnames(kbs_2015) <- sub("event", "Action", colnames(kbs_2015))
+colnames(umbs_2015) <- sub("event", "Action", colnames(umbs_2015))
 
 # Add dataframes into a list so that needed functions can be applied 
 phen_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
-                  umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, umbs_2019=umbs_2019, umbs_2020=umbs_2020)
+                  umbs_2015=umbs_2015, umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, umbs_2019=umbs_2019, umbs_2020=umbs_2020)
 phen_list <- lapply(phen_list, change_colnames) 
 phen_list <- lapply(phen_list, remove_col, name=c("Julian", "Notes", "collector", "julian", "notes"))
 #phen_list <- lapply(phen_list, colnames_ordered)
@@ -120,4 +122,3 @@ str(phen_data)
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive
 write.csv(phen_data, file="L1/phenology/final_flw_sd_L1.csv")
-
