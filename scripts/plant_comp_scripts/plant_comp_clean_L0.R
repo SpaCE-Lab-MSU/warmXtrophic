@@ -21,7 +21,7 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
 
 # Read in data (only need columns 1-7 for the umbs files)
-meta <- read.csv("L2/plot.csv")
+meta <- read.csv("L0/plot.csv")
 kbs_2015 <- read.csv("L0/KBS/2015/kbs_plant_comp_2015.csv")
 kbs_2016 <- read.csv("L0/KBS/2016/kbs_plant_comp_2016.csv")
 kbs_2017 <- read.csv("L0/KBS/2017/kbs_plant_comp_2017.csv")
