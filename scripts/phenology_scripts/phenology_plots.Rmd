@@ -37,23 +37,23 @@ phen_data <- phen_data %>%
 phen_flwr <- subset(phen_data, action == "flower")
 phen_sd <- subset(phen_data, action == "seed")
 
-# This creates a data frame that returns the first date of flower per species per plot
+# This creates a data frame that returns the first date of flower for every species and plot
 # Filter data to contain the date of first occurrence for each species
-
-FirstFlower <- phen_flwr %>%
+FirstFlower_all <- phen_flwr %>%
         group_by(plot, year, species, state, site, action) %>%
         summarize(julian = min(julian, na.rm=T))
-        
-sum_FirstFlower <- FirstFlower %>%
+
+# This creates a data frame that returns the mean julian date of first flower by site, state, species and year         
+sum_FirstFlower <- FirstFlower_all %>%
         group_by(site, state, species, year) %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
                   se = std.error(julian, na.rm = TRUE))
 
-sum_FirstFlwr <- FirstFlower %>%
+# This gives the average julian day of first flower for all species for each site and year for warmed and ambient
+sum_FirstFlwr_state <- FirstFlower_all %>%
         group_by(site, state, year) %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
                   se = std.error(julian, na.rm = TRUE)) 
-# this gives the average julian day of first flower for each site and year for warmed and ambient
 ```
 
 ## This creates a plot for a given species and site and for every year
@@ -66,7 +66,8 @@ FirstFlower_plot <- function(spp, loc) {
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
                        labs(x = "State", y = "Julian Day of First Flower", title = spp, subtitle = loc) +
-                       scale_fill_manual(values = c("blue", "darkred")) +
+                       coord_cartesian(ylim = c(100, 250)) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
 }
@@ -81,41 +82,28 @@ FirstFlower_plot("Soca", "kbs")
 
 ## This creates a function that returns plots for a given site and year for average first date of flower comparing ambient vs warmed plots
 ```{r}
-sum_FirstFlwr_plot <- function(loc, yr) { 
-        FirstFlwr_sub <- subset(sum_FirstFlwr, site == loc & year == yr)
+sum_FirstFlwr_plot <- function(loc) { 
+        FirstFlwr_sub <- subset(sum_FirstFlwr_state, site == loc)
         return(ggplot(FirstFlwr_sub, aes(x = state, y = avg_julian, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Flower", title = yr, subtitle = loc) +
-                       scale_fill_manual(values = c("blue", "darkred")) +
+                       labs(x = "State", y = "Julian Day of First Flower", title = loc) +
+                       coord_cartesian(ylim = c(150, 200)) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
 }
 ```
 
-## KBS Plots
+## KBS
 ```{r, echo=FALSE}
-kbs_2015 <- sum_FirstFlwr_plot("kbs", "2015")
-kbs_2016 <- sum_FirstFlwr_plot("kbs", "2016")
-kbs_2017 <- sum_FirstFlwr_plot("kbs", "2017")
-kbs_2018 <- sum_FirstFlwr_plot("kbs", "2018")
-kbs_2019 <- sum_FirstFlwr_plot("kbs", "2019")
-kbs_2020 <- sum_FirstFlwr_plot("kbs", "2020")
-
-plot_grid(kbs_2015, kbs_2016, kbs_2017, kbs_2018, kbs_2019, kbs_2020,
-          ncol = 3, nrow = 2)
+sum_FirstFlwr_plot("kbs")
 ```
 
-## UMBS Plots
+## UMBS
 ```{r, echo=FALSE}
-umbs_2016 <- sum_FirstFlwr_plot("umbs", "2016")
-umbs_2017 <- sum_FirstFlwr_plot("umbs", "2017")
-umbs_2018 <- sum_FirstFlwr_plot("umbs", "2018")
-umbs_2019 <- sum_FirstFlwr_plot("umbs", "2019")
-umbs_2020 <- sum_FirstFlwr_plot("umbs", "2020")
-
-plot_grid(umbs_2016, umbs_2017, umbs_2018, umbs_2019, umbs_2020,
-          ncol = 3, nrow = 2)
+sum_FirstFlwr_plot("umbs")
 ```
+
