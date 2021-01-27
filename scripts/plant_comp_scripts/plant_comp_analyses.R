@@ -80,17 +80,26 @@ final_umbs <- subset(final, site == "umbs")
 
 
 
+
 ## partially taken from kileighs old models ##
 # do we need plot as a random effect?
 moda <- lmer(half_cover_date ~ state + insecticide + (1|species) + (1|plot), final_kbs)
-modb <- lmer(half_cover_date ~ treatment_key + (1|species), final_kbs)
+modb <- lmer(half_cover_date ~ state + insecticide + (1|species), final_kbs)
 anova(modb, moda) #yes
 summary(modb)
 anova(modb)
 
+#year?
+modb2 <- lmer(half_cover_date ~ treatment_key + (1|species) + (1|year), final_kbs)
+anova(modb, modb2) # yes
+summary(modb2)
+anova(modb2)
+confint(modb2, method="boot", nsim=999)
+difflsmeans(modb2, test.effs=NULL, ddf="Satterthwaite")
+
 # do we need insects?
-modc <- lmer(half_cover_date ~ state + (1|species) + (1|plot), final_kbs, REML=FALSE)
-anova(moda, modc) #yes
+#modc <- lmer(half_cover_date ~ state + (1|species) + (1|plot), final_kbs, REML=FALSE)
+#anova(moda, modc) #yes
 
 
 ##### attempting different models #######
