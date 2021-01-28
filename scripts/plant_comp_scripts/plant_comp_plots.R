@@ -90,7 +90,7 @@ greenup_plot <- function(spp, loc) {
                          position = "identity") +
            labs(x = "State", y = "Julian Day of Greenup", title = spp) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           coord_cartesian(ylim = c(100, 225)) +
+           coord_cartesian(ylim = c(100, 250)) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
