@@ -1,4 +1,4 @@
-# TITLE:          Plant composition plots
+# TITLE:          Greenup plots
 # AUTHORS:        Kara Dobson
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Moriah Young
 # DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder
@@ -20,6 +20,7 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 # Read in plant comp data
 plant_comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
 meta <- read.csv("L0/plot.csv")
+taxon <- read.csv("L0/taxon.csv")
 str(plant_comp) # for some reason, date column converted back to character
 
 # Fix date column
@@ -55,8 +56,12 @@ combined <- merge(half_cover_dates_df, min_date, by=c("plot", "species"))
 # calculate correlation
 cor.test(combined$min_emerg_date, combined$half_cover_date)
 
+# change taxon column name for merging
+colnames(taxon)[which(names(taxon) == "code")] <- "species"
+
 # re-merge data with meta data info
 final <- left_join(meta, combined, by = "plot")
+final <- left_join(taxon, final, by = "species")
 
 # remove uneeded columns
 final$date <- NULL
@@ -64,12 +69,21 @@ final$species.y <- NULL
 final$cover <- NULL
 final$julian <- NULL
 final$X <- NULL
-final$site.y <- NULL
+final$site.x <- NULL
 final$year.y <- NULL
+final$scientific_name <- NULL
+final$USDA_code <- NULL
+final$LTER_code <- NULL
+final$old_code <- NULL
+final$old_name <- NULL
+final$resolution <- NULL
+final$group <- NULL
+final$family <- NULL
+final$common_name <- NULL
 
 # fix column names
 colnames(final)[which(names(final) == "species.x")] <- "species"
-colnames(final)[which(names(final) == "site.x")] <- "site"
+colnames(final)[which(names(final) == "site.y")] <- "site"
 colnames(final)[which(names(final) == "year.x")] <- "year"
 
 
@@ -85,12 +99,12 @@ greenup_plot <- function(spp, loc) {
   greenup_spp <- subset(sum_comp_spp, species == spp & site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
            facet_grid(.~year) +
-           geom_bar(position = "identity", stat = "identity") +
+           geom_bar(position = "identity", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                          position = "identity") +
            labs(x = "State", y = "Julian Day of Greenup", title = spp) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           coord_cartesian(ylim = c(100, 250)) +
+           #coord_cartesian(ylim = c(100, 250)) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
@@ -111,7 +125,7 @@ greenup_plot_all <- function(loc) {
   greenup_spp <- subset(sum_comp_site, site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
            facet_grid(.~year) +
-           geom_bar(position = "identity", stat = "identity") +
+           geom_bar(position = "identity", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                          position = "identity") +
            labs(x = "State", y = "Julian Day of Greenup", title = loc) +
@@ -123,3 +137,27 @@ greenup_plot_all <- function(loc) {
 greenup_plot_all("umbs")
 greenup_plot_all("kbs")
 
+
+
+# by plant origin (native/exotic)
+sum_comp_org <- final %>%
+  group_by(site, origin, state) %>%
+  summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
+            se = std.error(half_cover_date, na.rm = TRUE))
+sum_comp_org <- subset(sum_comp_org, origin == "Exotic" | origin == "Native")
+
+greenup_plot_org <- function(loc) { 
+  greenup_spp <- subset(sum_comp_org, site == loc)
+  return(ggplot(greenup_spp, aes(x = origin, y = avg_julian, fill = state)) +
+           #facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           coord_cartesian(ylim = c(100, 200)) +
+           theme_classic())
+}
+greenup_plot_org("umbs")
+greenup_plot_org("kbs")                       

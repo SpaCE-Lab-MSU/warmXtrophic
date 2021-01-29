@@ -1,4 +1,4 @@
-# TITLE:          Plant composition data analysis
+# TITLE:          Greenup data analysis
 # AUTHORS:        Kara Dobson
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Moriah Young
 # DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder
@@ -6,6 +6,10 @@
 # PROJECT:        warmXtrophic
 # DATE:           Jan 2021
 
+
+
+
+######### very much in progress - looks bad rn ############
 # Clear all existing data
 rm(list=ls())
 
@@ -14,6 +18,7 @@ library(tidyverse)
 library(lme4)
 library(nlme)
 library(lmerTest)
+library(olsrr)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -79,6 +84,18 @@ final_kbs <- subset(final, site == "kbs")
 final_umbs <- subset(final, site == "umbs")
 
 
+###### statistical analysis #########
+# first, checking that residuals are normal
+fit <- lm(half_cover_date~state*insecticide, data = final_kbs)
+residual <- fit$residuals
+predicted <- fit$fitted.values
+shapiro.test(residual)
+ols_plot_resid_hist(fit)
+ols_plot_resid_qq(fit)
+ols_test_normality(fit)
+ols_plot_resid_fit(fit)
+plot(predicted, residual, main = "Residuals vs. predicted values", las = 1, xlab = "Predicted values", ylab = "Residuals")
+hist(residual) # i think they are? looks pretty good to me
 
 
 ## partially taken from kileighs old models ##
@@ -127,3 +144,33 @@ coef(lme3)
 # no sig difference between warmed and ambient with or without insecticide
 # could be due to the chambers not influencing warming in early spring as much as in summer?
 
+
+
+
+### testing 3-way mixed anova
+library(rstatix)
+library(ggpubr)
+
+# generate summary stats
+final_kbs %>%
+  group_by(state, insecticide, year) %>%
+  get_summary_stats(half_cover_date, type = "mean_sd")
+
+# boxplot of data
+ggboxplot(
+  final_kbs, x = "state", y = "half_cover_date",
+  color = "year", palette = "jco",
+  facet.by = "insecticide", short.panel.labs = FALSE
+)
+
+# any extreme outliers? no
+outlier <- final_kbs %>%
+  group_by(state, insecticide, year) %>%
+  identify_outliers(half_cover_date)
+
+normal <- final_kbs %>%
+  group_by(state, insecticide, year) %>%
+  shapiro_test(half_cover_date)
+
+ggqqplot(final_kbs, "half_cover_date", ggtheme = theme_bw()) +
+  facet_grid(state + insecticide ~ year, labeller = "label_both")

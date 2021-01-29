@@ -4,6 +4,7 @@
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    A csv file containing plant comp data for all sites & years is uploaded
 #                 to the L1 plant comp folder
+#                 ** plant comp files used for both greenup and plant comp plots & analyses
 # PROJECT:        warmXtrophic
 # DATE:           December, 2020
 
