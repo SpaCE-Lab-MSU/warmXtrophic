@@ -22,16 +22,14 @@ rm(list=ls())
 # Load packages
 library(tidyverse)
 library(plotrix)
-library(cowplot)
 
 # Set working directory to Google Drive
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in data 
 phen_data <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flw_sd_L1.csv", stringsAsFactors=FALSE)
-# Get rid of "X" column that shows up
 phen_data <- phen_data %>% 
-        select(-X) 
+        select(-X) # get rid of "X" column that shows up
 
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(phen_data, action == "flower")
@@ -54,8 +52,26 @@ sum_FirstFlwr_state <- FirstFlower_all %>%
         group_by(site, state, year) %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
                   se = std.error(julian, na.rm = TRUE)) 
-```
 
+# This creates a data frame that returns the first date of seed for every species and plot
+# Filter data to contain the date of first occurrence for each species
+FirstSeed_all <- phen_sd %>%
+        group_by(plot, year, species, state, site, action) %>%
+        summarize(julian = min(julian, na.rm=T))
+
+# This creates a data frame that returns the mean julian date of first seed by site, state, species and year         
+sum_FirstSeed <- FirstSeed_all %>%
+        group_by(site, state, species, year) %>%
+        summarize(avg_julian = mean(julian, na.rm = TRUE),
+                  se = std.error(julian, na.rm = TRUE))
+
+# This gives the average julian day of first flower for all species for each site and year for warmed and ambient
+sum_FirstSeed_state <- FirstSeed_all %>%
+        group_by(site, state, year) %>%
+        summarize(avg_julian = mean(julian, na.rm = TRUE),
+                  se = std.error(julian, na.rm = TRUE)) 
+```
+## Flowering
 ## This creates a plot for a given species and site and for every year
 ```{r}
 FirstFlower_plot <- function(spp, loc) { 
@@ -71,9 +87,6 @@ FirstFlower_plot <- function(spp, loc) {
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
 }
-```
-
-```{r out.width=c('50%', '50%'), fig.show='hold', echo=FALSE}
 FirstFlower_plot("Popr", "umbs")
 FirstFlower_plot("Popr", "kbs")
 FirstFlower_plot("Eugr", "kbs")
@@ -105,5 +118,54 @@ sum_FirstFlwr_plot("kbs")
 ## UMBS
 ```{r, echo=FALSE}
 sum_FirstFlwr_plot("umbs")
+```
+
+## Seeding
+# This creates function so that you can look at a specific species at either kbs or umbs and it's mean julian day of first seed for every year of data collection
+```{r}
+FirstSeed_plot <- function(spp, loc) { 
+        FirstSeed_spp <- subset(sum_FirstSeed, species == spp & site == loc)
+        return(ggplot(FirstSeed_spp, aes(x = state, y = avg_julian, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_bar(position = "identity", stat = "identity") +
+                       geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                                     position = "identity") +
+                       labs(x = "State", y = "Julian Day of First Seed", title = spp, subtitle = loc) +
+                       #coord_cartesian(ylim = c(150, 300)) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+                       theme_grey())
+}
+FirstSeed_plot("Popr", "umbs")
+FirstSeed_plot("Popr", "kbs")
+FirstSeed_plot("Eugr", "kbs")
+FirstSeed_plot("Soca", "kbs")
+```
+
+## This creates a function that returns plots for a given site and year for average first date of seed comparing ambient vs warmed plots
+```{r}
+sum_FirstSeed_plot <- function(loc) { 
+        FirstSeed_sub <- subset(sum_FirstSeed_state, site == loc)
+        return(ggplot(FirstSeed_sub, aes(x = state, y = avg_julian, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_bar(position = "identity", stat = "identity") +
+                       geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                                     position = "identity") +
+                       labs(x = "State", y = "Julian Day of First Seed", title = loc) +
+                       coord_cartesian(ylim = c(150, 250)) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+                       theme_grey())
+}
+```
+
+## KBS
+```{r, echo=FALSE}
+sum_FirstSeed_plot("kbs")
+```
+
+## UMBS
+```{r, echo=FALSE}
+sum_FirstSeed_plot("umbs")
 ```
 
