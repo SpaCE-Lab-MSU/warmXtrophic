@@ -4,7 +4,7 @@
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    A csv file containing plant comp data for all sites & years is uploaded
 #                 to the L1 plant comp folder
-#                 ** plant comp files used for both greenup and plant comp plots & analyses
+#                 Also, a csv containing data for the date of 50% cover (greenup) is uploaded
 # PROJECT:        warmXtrophic
 # DATE:           December, 2020
 
@@ -23,6 +23,7 @@ source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
 
 # Read in data (only need columns 1-7 for the umbs files)
 meta <- read.csv("L0/plot.csv")
+taxon <- read.csv("L0/taxon.csv")
 kbs_2015 <- read.csv("L0/KBS/2015/kbs_plant_comp_2015.csv")
 kbs_2016 <- read.csv("L0/KBS/2016/kbs_plant_comp_2016.csv")
 kbs_2017 <- read.csv("L0/KBS/2017/kbs_plant_comp_2017.csv")
@@ -83,3 +84,68 @@ plant_comp_merge <- left_join(meta, comp_merge, by = "plot")
 
 # Upload clean data csv to google drive
 write.csv(plant_comp_merge, file="L1/plant_composition/final_plantcomp_L1.csv")
+
+
+
+### making a csv for greenup (date at which 50% of max cover was reached) ###
+# split the plant_comp dataframe
+dataus <- split(x = plant_comp_merge, f = plant_comp_merge[, c("plot", "species","site", "year")])
+
+# Determine dates for each plot-species combination where the value of `cover` is at least half the max value
+half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
+  x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
+}))
+
+# make into a dataframe
+half_cover_dates_df <- data.frame("plot.species.site.year" = names(half_cover_dates),
+                                  "half_cover_date" = unname(half_cover_dates), stringsAsFactors = FALSE)
+
+# fix species and plot column
+half_cover_dates_df[["plot"]] <- sapply(X = strsplit(x = half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 1L)
+half_cover_dates_df[["species"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 2L)
+half_cover_dates_df[["site"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 3L)
+half_cover_dates_df[["year"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 4L)
+half_cover_dates_df$plot.species.site.year <- NULL
+
+# determine first date of emergence for correlation with 'green-up' index
+min_date <- aggregate(plant_comp_merge$julian,by=plant_comp_merge[,c("plot","species")],FUN=min)
+colnames(min_date) <- c("plot", "species", "min_emerg_date")
+
+# merge min date dateframe with "green-up index" df
+combined <- merge(half_cover_dates_df, min_date, by=c("plot", "species"))
+
+# calculate correlation
+cor.test(combined$min_emerg_date, combined$half_cover_date)
+
+# change taxon column name for merging
+colnames(taxon)[which(names(taxon) == "code")] <- "species"
+
+# re-merge data with meta data info
+final <- left_join(meta, combined, by = "plot")
+final <- left_join(taxon, final, by = "species")
+
+# remove uneeded columns
+final$date <- NULL
+final$species.y <- NULL
+final$cover <- NULL
+final$julian <- NULL
+final$X <- NULL
+final$site.x <- NULL
+final$year.y <- NULL
+final$scientific_name <- NULL
+final$USDA_code <- NULL
+final$LTER_code <- NULL
+final$old_code <- NULL
+final$old_name <- NULL
+final$resolution <- NULL
+final$group <- NULL
+final$family <- NULL
+final$common_name <- NULL
+
+# fix column names
+colnames(final)[which(names(final) == "species.x")] <- "species"
+colnames(final)[which(names(final) == "site.y")] <- "site"
+colnames(final)[which(names(final) == "year.x")] <- "year"
+
+# upload greenup csv to google drive
+write.csv(final, file="L1/greenup/final_greenup_L1.csv")
