@@ -92,6 +92,7 @@ change_date <- function(df){
         df$Date[df$Date == "6/1/1017"] <- "6/1/2017"
         df$Date[df$Date == "7/11/1017"] <- "7/11/2017"
         df$Date[df$Date == "7/14/2011"] <- "7/14/2017"
+        df$Date[df$Date == "7/14/20117"] <- "7/14/2017"
         df$Date[df$Date == "6/23/3017"] <- "6/23/2017"
         df$Date[df$Date == "6/30/3017"] <- "6/30/2017"
         df$Date[df$Date == "7/23/3017"] <- "7/23/2017"
