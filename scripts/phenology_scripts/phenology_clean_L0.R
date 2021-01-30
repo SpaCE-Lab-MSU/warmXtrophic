@@ -102,8 +102,6 @@ phen_merge$julian <- format(phen_merge$date, "%j")
 phen_merge2 <- merge(phen_merge, plot_info, by = "plot")
 phen_merge3 <- merge(phen_merge2, taxa, by = "species")
 
-phen_data <- phen_merge3 %>% 
-        select(-old_name, -old_species, -site.y, -resolution)
 colnames(phen_data) <- sub("site.x", "site", colnames(phen_data))
 
 # Change column names to lowercase (again)

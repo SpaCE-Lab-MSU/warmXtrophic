@@ -49,10 +49,16 @@ sum_FirstFlwr_state <- FirstFlower_all %>%
                   se = std.error(julian, na.rm = TRUE)) 
 
 # This creates a data frame that gives the average duration of flowering time 
-sum_flwr_duration <- phen_flwr %>% 
-        group_by(site, plot, species, action, julian, state) %>% 
-        summarise(aggregate(duration ~ action + julian, FUN = mean))
+flwr_duration <- phen_flwr %>% 
+        group_by(site, plot, species, year, state, action, origin) %>%
+        summarise(flwr_duration = max(julian) - min(julian)) 
+        #summarise(result = diff(range(julian)))
+View(flwr_duration)
 
+sum_flwr_duration <- flwr_duration %>% 
+        group_by(site, plot, species, state, action, origin) %>% 
+        summarise(mean_duration = mean(flwr_duration))
+View(sum_flwr_duration)      
 
 # This creates function so that you can look at a specific species at either kbs or umbs and it's mean julian day of first flower for every year
 # of data collection
@@ -159,4 +165,12 @@ sum_FirstSeed_plot <- function(loc) {
 
 sum_FirstSeed_plot("kbs")
 sum_FirstSeed_plot("umbs")
+
+
+phen_flwr1 <- phen_flwr %>% 
+        select(-treatment_key, -scientific_name, -insecticide, -common_name, -usda_species,
+               -lter_species, -origin, -group, -family, -duration, -growth_habit)
+dput(phen_flwr1[525:575,])
+
+
 
