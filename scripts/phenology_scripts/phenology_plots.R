@@ -33,7 +33,7 @@ phen_sd <- subset(phen_data, action == "seed")
 # This creates a data frame that returns the first date of flower for every species and plot
 # Filter data to contain the date of first occurrence for each species
 FirstFlower_all <- phen_flwr %>%
-        group_by(plot, year, species, state, site, action) %>%
+        group_by(plot, year, species, state, site, action, origin) %>%
         summarize(julian = min(julian, na.rm=T))
 
 # This creates a data frame that returns the mean julian date of first flower by site, state, species and year         
@@ -100,11 +100,11 @@ sum_FirstFlwr_plot("kbs")
 sum_FirstFlwr_plot("umbs")
 
 # We want to see the graphs for kbs and umbs side by side, so using "cowplot" to do this
-kbs <- sum_FirstFlwr_plot("kbs")
-umbs <- sum_FirstFlwr_plot("umbs")
+#kbs <- sum_FirstFlwr_plot("kbs")
+#umbs <- sum_FirstFlwr_plot("umbs")
 
-plot_grid(kbs, umbs,
-         ncol = 2, nrow = 1)
+#plot_grid(kbs, umbs,
+#         ncol = 2, nrow = 1)
 
 # calculate the average duration of flowering time?
 
@@ -167,10 +167,57 @@ sum_FirstSeed_plot("kbs")
 sum_FirstSeed_plot("umbs")
 
 
-phen_flwr1 <- phen_flwr %>% 
-        select(-treatment_key, -scientific_name, -insecticide, -common_name, -usda_species,
-               -lter_species, -origin, -group, -family, -duration, -growth_habit)
-dput(phen_flwr1[525:575,])
+# This creates a data frame that gives the average duration of flowering time 
+flwr_duration <- phen_flwr %>% 
+        group_by(site, plot, species, year, state, action, origin) %>%
+        summarise(flwr_duration = max(julian) - min(julian)) 
+#summarise(result = diff(range(julian)))
+View(flwr_duration)
 
+sum_flwrduration_state <- flwr_duration %>% 
+        group_by(site, plot, state, action, year) %>% 
+        summarise(mean_duration = mean(flwr_duration))
+View(sum_flwrduration_state)    
+
+sum_FlwrDuration_plot <- function(loc) { 
+        flwr_Duration1 <- subset(sum_flwrduration_state, site == loc)
+        return(ggplot(flwr_Duration1, aes(x = state, y = mean_duration, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_bar(position = "identity", stat = "identity") +
+                       #geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
+                                     #position = "identity") +
+                       labs(x = "State", y = "Average Julian Days of Flowering", title = loc) +
+                       #coord_cartesian(ylim = c(150, 200)) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+                       theme_grey())
+}
+
+sum_FlwrDuration_plot("kbs")
+sum_FlwrDuration_plot("umbs")
+
+# by plant origin (native/exotic)
+sum_flwr_org <- FirstFlower_all %>%
+        group_by(site, origin, state, year) %>%
+        summarize(avg_julian = mean(julian, na.rm = TRUE),
+                  se = std.error(julian, na.rm = TRUE))
+sum_flwr_org <- subset(sum_flwr_org, origin == "Exotic" | origin == "Native")
+View(sum_flwr_org)
+
+flwr_plot_org <- function(loc) { 
+        flwr_spp <- subset(sum_flwr_org, site == loc)
+        return(ggplot(flwr_spp, aes(x = origin, y = avg_julian, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_bar(position = "dodge", stat = "identity", color = "black") +
+                       geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                                     position = position_dodge(0.9)) +
+                       labs(x = "State", y = "Julian Day of First Flower", title = loc) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+                       #coord_cartesian(ylim = c(100, 200)) +
+                       theme_grey())
+}
+flwr_plot_org("kbs")
+flwr_plot_org("umbs")
 
 
