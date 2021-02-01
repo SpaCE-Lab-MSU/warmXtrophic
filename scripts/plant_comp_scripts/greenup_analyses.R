@@ -25,68 +25,18 @@ library(olsrr)
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in plant comp data
-plant_comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
-meta <- read.csv("L0/plot.csv")
-str(plant_comp) # for some reason, date column converted back to character
-
-# Fix date column
-plant_comp$date <- as.Date(plant_comp$date,format="%Y-%m-%d")
+greenup <- read.csv("L1/greenup/final_greenup_L1.csv")
 str(plant_comp)
 
-# split the plant_comp dataframe
-dataus <- split(x = plant_comp, f = plant_comp[, c("plot", "species","site", "year")])
-
-# Determine dates for each plot-species combination where the value of `cover` is at least half the max value
-half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
-  x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
-}))
-
-# make into a dataframe
-half_cover_dates_df <- data.frame("plot.species.site.year" = names(half_cover_dates),
-                                  "half_cover_date" = unname(half_cover_dates), stringsAsFactors = FALSE)
-
-# fix species and plot column
-half_cover_dates_df[["plot"]] <- sapply(X = strsplit(x = half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 1L)
-half_cover_dates_df[["species"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 2L)
-half_cover_dates_df[["site"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 3L)
-half_cover_dates_df[["year"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 4L)
-half_cover_dates_df$plot.species.site.year <- NULL
-
-# determine first date of emergence for correlation with 'green-up' index
-min_date <- aggregate(plant_comp$julian,by=plant_comp[,c("plot","species")],FUN=min)
-colnames(min_date) <- c("plot", "species", "min_emerg_date")
-
-# merge min date dateframe with "green-up index" df
-combined <- merge(half_cover_dates_df, min_date, by=c("plot", "species"))
-
-# calculate correlation
-cor.test(combined$min_emerg_date, combined$half_cover_date)
-
-# re-merge data with meta data info
-final <- left_join(meta, combined, by = "plot")
-
-# remove uneeded columns
-final$date <- NULL
-final$species.y <- NULL
-final$cover <- NULL
-final$julian <- NULL
-final$X <- NULL
-final$site.y <- NULL
-final$year.y <- NULL
-
-# fix column names
-colnames(final)[which(names(final) == "species.x")] <- "species"
-colnames(final)[which(names(final) == "site.x")] <- "site"
-colnames(final)[which(names(final) == "year.x")] <- "year"
-
 # create dataframes for kbs and umbs
-final_kbs <- subset(final, site == "kbs")
-final_umbs <- subset(final, site == "umbs")
+final_kbs <- subset(greenup, site == "kbs")
+final_umbs <- subset(greenup, site == "umbs")
+
 
 
 ###### statistical analysis #########
 # first, checking that residuals are normal
-fit <- lm(half_cover_date~state*insecticide, data = final_kbs)
+fit <- lm(abs(final_kbs$half_cover_date - mean(final_kbs$half_cover_date))~state*year + insecticide, data = final_kbs)
 residual <- fit$residuals
 predicted <- fit$fitted.values
 shapiro.test(residual)
@@ -95,16 +45,36 @@ ols_plot_resid_qq(fit)
 ols_test_normality(fit)
 ols_plot_resid_fit(fit)
 plot(predicted, residual, main = "Residuals vs. predicted values", las = 1, xlab = "Predicted values", ylab = "Residuals")
-hist(residual) # i think they are? looks pretty good to me
+hist(residual)
+anova(fit)
+emmeans(fit, specs = pairwise ~ state*year, type = "response", adjust = "tukey")
 
+idk <- cbind(final_kbs, Residual = resid(fit))
+ggplot(idk, aes(x = Residual))+
+  geom_histogram(bins = 10) + labs(title = "Residuals")
+plot_grid(p1, p2, ncol = 2, align = 'hv', axis = 'lrtb')
+
+transformed <- abs(final_kbs$half_cover_date - mean(final_kbs$half_cover_date))
+shapiro.test(transformed)
+hist(transformed)
+
+library(ggpubr)
+ggqqplot(final_kbs$half_cover_date)
+shapiro.test(final_kbs$half_cover_date)
+
+library(moments)
+skewness(final_kbs$half_cover_date, na.rm = TRUE)
+ggdensity(final_kbs, x = "half_cover_date", fill = "lightgray", title = "CONT") +
+  stat_overlay_normal_density(color = "red", linetype = "dashed")
 
 ## partially taken from kileighs old models ##
 # do we need plot as a random effect?
-moda <- lmer(half_cover_date ~ state + insecticide + (1|species) + (1|plot), final_kbs)
+moda <- lmer(half_cover_date ~ state*year + (1|species) + (1|plot), final_kbs)
 modb <- lmer(half_cover_date ~ state + insecticide + (1|species), final_kbs)
 anova(modb, moda) #yes
-summary(modb)
-anova(modb)
+summary(moda)
+anova(moda)
+emmeans(moda, specs = pairwise ~ state + year, type = "response", adjust = "tukey")
 
 #year?
 modb2 <- lmer(half_cover_date ~ treatment_key + (1|species) + (1|year), final_kbs)
