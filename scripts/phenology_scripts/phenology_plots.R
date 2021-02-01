@@ -133,7 +133,7 @@ flwr_duration <- phen_flwr %>%
 sum_flwrduration_org <- flwr_duration %>% 
         group_by(site, state, action, origin) %>% 
         summarise(mean_duration = mean(flwr_duration))
-View(sum_flwr_duration) 
+View(sum_flwrduration_org) 
 
 # Filter flwr_duration data set by state and year and calculate mean duration of flowering
 sum_flwrduration_state <- flwr_duration %>% 
