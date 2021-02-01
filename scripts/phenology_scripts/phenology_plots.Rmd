@@ -41,7 +41,7 @@ FirstFlower_all <- phen_flwr %>%
         group_by(plot, year, species, state, site, action) %>%
         summarize(julian = min(julian, na.rm=T))
 
-# This creates a data frame that returns the mean julian date of first flower by site, state, species and year         
+# This creates a data frame that returns the mean julian date of first flower by site, state, species and year      
 sum_FirstFlower <- FirstFlower_all %>%
         group_by(site, state, species, year) %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
@@ -59,7 +59,7 @@ FirstSeed_all <- phen_sd %>%
         group_by(plot, year, species, state, site, action) %>%
         summarize(julian = min(julian, na.rm=T))
 
-# This creates a data frame that returns the mean julian date of first seed by site, state, species and year         
+# This creates a data frame that returns the mean julian date of first seed by site, state, species and year        
 sum_FirstSeed <- FirstSeed_all %>%
         group_by(site, state, species, year) %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
@@ -73,7 +73,7 @@ sum_FirstSeed_state <- FirstSeed_all %>%
 ```
 ## Flowering
 ## This creates a plot for a given species and site and for every year
-```{r}
+```{r. echo = FALSE}
 FirstFlower_plot <- function(spp, loc) { 
         FirstFlower_spp <- subset(sum_FirstFlower, species == spp & site == loc)
         return(ggplot(FirstFlower_spp, aes(x = state, y = avg_julian, fill = state)) +
@@ -89,12 +89,10 @@ FirstFlower_plot <- function(spp, loc) {
 }
 FirstFlower_plot("Popr", "umbs")
 FirstFlower_plot("Popr", "kbs")
-FirstFlower_plot("Eugr", "kbs")
-FirstFlower_plot("Soca", "kbs")
 ```
 
-## This creates a function that returns plots for a given site and year for average first date of flower comparing ambient vs warmed plots
-```{r}
+## Plots for a given site and year for average first date of flower comparing ambient vs warmed plots
+```{r, echo = FALSE}
 sum_FirstFlwr_plot <- function(loc) { 
         FirstFlwr_sub <- subset(sum_FirstFlwr_state, site == loc)
         return(ggplot(FirstFlwr_sub, aes(x = state, y = avg_julian, fill = state)) +
@@ -108,16 +106,43 @@ sum_FirstFlwr_plot <- function(loc) {
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
 }
-```
-
-## KBS
-```{r, echo=FALSE}
 sum_FirstFlwr_plot("kbs")
+sum_FirstFlwr_plot("umbs")
 ```
 
-## UMBS
+## Flowering Duration
 ```{r, echo=FALSE}
-sum_FirstFlwr_plot("umbs")
+flwr_duration <- phen_flwr %>% 
+        group_by(site, plot, species, year, state, action, origin) %>%
+        summarise(flwr_duration = max(julian) - min(julian)) 
+
+# Filter flwr_duration data frame to calculate the mean duration by native vs exotic 
+sum_flwrduration_org <- flwr_duration %>% 
+        group_by(site, state, action, origin) %>% 
+        summarise(mean_duration = mean(flwr_duration))
+View(sum_flwrduration_org) 
+
+# Filter flwr_duration data set by state and year and calculate mean duration of flowering
+sum_flwrduration_state <- flwr_duration %>% 
+        group_by(site, plot, state, action, year) %>% 
+        summarise(mean_duration = mean(flwr_duration))
+
+sum_FlwrDurState_plot <- function(loc) { 
+        flwr_Duration1 <- subset(sum_flwrduration_state, site == loc)
+        return(ggplot(flwr_Duration1, aes(x = state, y = mean_duration, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_bar(position = "identity", stat = "identity") +
+                       #geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
+                                     #position = "identity") +
+                       labs(x = "State", y = "Average Julian Days of Flowering", title = loc) +
+                       #coord_cartesian(ylim = c(150, 200)) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+                       theme_grey())
+}
+
+sum_FlwrDurState_plot("kbs")
+sum_FlwrDurState_plot("umbs")
 ```
 
 ## Seeding
@@ -138,8 +163,6 @@ FirstSeed_plot <- function(spp, loc) {
 }
 FirstSeed_plot("Popr", "umbs")
 FirstSeed_plot("Popr", "kbs")
-FirstSeed_plot("Eugr", "kbs")
-FirstSeed_plot("Soca", "kbs")
 ```
 
 ## This creates a function that returns plots for a given site and year for average first date of seed comparing ambient vs warmed plots
@@ -157,15 +180,7 @@ sum_FirstSeed_plot <- function(loc) {
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
 }
-```
-
-## KBS
-```{r, echo=FALSE}
 sum_FirstSeed_plot("kbs")
-```
-
-## UMBS
-```{r, echo=FALSE}
 sum_FirstSeed_plot("umbs")
 ```
 

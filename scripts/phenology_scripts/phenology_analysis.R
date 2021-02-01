@@ -14,6 +14,7 @@ library(tidyverse)
 library(lme4)
 library(lmerTest)
 library(emmeans)
+library(vegan)
 
 # Set working directory to Google Drive
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
