@@ -97,4 +97,29 @@ greenup_plot_org <- function(loc) {
            theme_classic())
 }
 greenup_plot_org("umbs")
-greenup_plot_org("kbs")                       
+greenup_plot_org("kbs")
+
+
+
+# by plant growth type (forb, graminoid, shrub)
+sum_green_habit <- greenup %>%
+  group_by(site, growth_habit, state) %>%
+  summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
+            se = std.error(half_cover_date, na.rm = TRUE))
+sum_green_habit <- subset(sum_green_habit, growth_habit == "Forb" | growth_habit == "Graminoid" | growth_habit == "Shrub")
+
+greenup_plot_habit <- function(loc) { 
+  greenup_spp <- subset(sum_green_habit, site == loc)
+  return(ggplot(greenup_spp, aes(x = growth_habit, y = avg_julian, fill = state)) +
+           #facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           coord_cartesian(ylim = c(100, 200)) +
+           theme_classic())
+}
+greenup_plot_habit("umbs")
+greenup_plot_habit("kbs")  
