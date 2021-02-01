@@ -62,8 +62,8 @@ sum_green_habit <- greenup %>%
 sum_green_habit <- subset(sum_green_habit, growth_habit == "Forb" | growth_habit == "Graminoid" | growth_habit == "Shrub")
 ```
 
-### Makes a plot for a given site
-```{r}
+## Plot for 50% max cover (greenup) for KBS and UMBS
+```{r, echo = F}
 greenup_plot_all <- function(loc) { 
   greenup_spp <- subset(sum_green_site, site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
@@ -81,8 +81,8 @@ greenup_plot_all("kbs")
 greenup_plot_all("umbs")
 ```
 
-# Plot for warmed vs ambient between native and exotic
-```{r}
+## Plot for warmed vs ambient greenup between native and exotic
+```{r, echo = F}
 greenup_plot_org <- function(loc) { 
   greenup_spp <- subset(sum_green_org, site == loc)
   return(ggplot(greenup_spp, aes(x = origin, y = avg_julian, fill = state)) +
@@ -100,8 +100,8 @@ greenup_plot_org("kbs")
 greenup_plot_org("umbs")     
 ```
 
-### Plot for warmed vs ambient between growth types (forb, graminoid, shrub)
-```{r}
+## Plot for warmed vs ambient greenup between growth types (forb, graminoid, shrub)
+```{r, echo = F}
 greenup_plot_habit <- function(loc) { 
   greenup_spp <- subset(sum_green_habit, site == loc)
   return(ggplot(greenup_spp, aes(x = growth_habit, y = avg_julian, fill = state)) +
@@ -118,9 +118,10 @@ greenup_plot_habit <- function(loc) {
 greenup_plot_habit("kbs")
 greenup_plot_habit("umbs")  
 ```
-### Makes a plot for a given species & site
+
+## Greenup plot for a given site and species
 ### Ex: Soca at KBS, Cest at UMBS
-```{r}
+```{r, echo = F}
 greenup_plot <- function(spp, loc) { 
   greenup_spp <- subset(sum_green_spp, species == spp & site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
