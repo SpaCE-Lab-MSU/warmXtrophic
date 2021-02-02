@@ -13,6 +13,8 @@ rm(list=ls())
 library(tidyverse)
 library(lme4)
 library(nlme)
+library(lmerTest)
+library(olsrr)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -21,19 +23,39 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 # Read in plant comp data & metadata
 herb <- read.csv("L1/herbivory/final_herbivory_L1.csv")
 
+# create dataframes for kbs and umbs only for plots with no insecticide
+final_kbs <- subset(herb, site == "kbs" & insecticide == "insects")
+final_umbs <- subset(herb, site == "umbs" & insecticide == "insects")
+
+
+
+###### statistical analysis #########
+# first, checking that residuals are normal
+fit <- lm(p_eaten~state*year, data = final_kbs)
+residual <- fit$residuals
+shapiro.test(residual)
+ols_plot_resid_hist(fit)
+ols_plot_resid_qq(fit)
+hist(residual)
+# not normal - square root and cubed root don't fix it, and can't take the log or inverse due to 0's in data
+
+fit2 <- lm(p_eaten~state*year, data = final_umbs)
+residual2 <- fit2$residuals
+shapiro.test(residual2)
+ols_plot_resid_hist(fit2)
+ols_plot_resid_qq(fit2)
+hist(residual2)
+# also not normal
+
 
 ##### attempting different models #######
 ### comparing linear vs mixed effects ###
 # linear model
-lm1 <- lm(p_eaten~state*insecticide, data = herb)
+lm1 <- lm(p_eaten~state*year, data = final_kbs)
 summary(lm1)
 
-# mixed effects model (plot random)
-lme1 <- lme(p_eaten~state*insecticide, random=~1|plot, data = herb)
+# mixed effects model (species random)
+lme1 <- lme(p_eaten~state*year, random=~1|species, data = final_kbs)
 summary(lme1)
 coef(lme1)
 
-# mixed effects model (plot and species random)
-lme2 <- lme(p_eaten~state*insecticide, random=~1|plot/species, data = herb)
-summary(lme2)
-coef(lme2)

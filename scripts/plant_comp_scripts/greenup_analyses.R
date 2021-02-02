@@ -44,6 +44,14 @@ ols_plot_resid_qq(fit)
 hist(residual)
 # not normal - square root, cubed root, log and inverse don't seem to work
 
+fit2 <- lm(half_cover_date~state*year + insecticide, data = final_umbs)
+residual2 <- fit2$residuals
+shapiro.test(residual2)
+ols_plot_resid_hist(fit2)
+ols_plot_resid_qq(fit2)
+hist(residual2)
+# also not normal
+
 
 ## partially taken from kileighs old models ##
 # do we need plot as a random effect?
