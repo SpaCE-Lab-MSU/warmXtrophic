@@ -124,17 +124,18 @@ View(sum_flwrduration_org)
 
 # Filter flwr_duration data set by state and year and calculate mean duration of flowering
 sum_flwrduration_state <- flwr_duration %>% 
-        group_by(site, plot, state, action, year) %>% 
-        summarise(mean_duration = mean(flwr_duration))
+        group_by(site, state, action, year) %>% 
+        summarise(mean_duration = mean(flwr_duration),
+                  se = std.error(flwr_duration, na.rm = TRUE))
 
 sum_FlwrDurState_plot <- function(loc) { 
         flwr_Duration1 <- subset(sum_flwrduration_state, site == loc)
         return(ggplot(flwr_Duration1, aes(x = state, y = mean_duration, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
-                       #geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
-                                     #position = "identity") +
-                       labs(x = "State", y = "Average Julian Days of Flowering", title = loc) +
+                       geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
+                                     position = "identity") +
+                      labs(x = "State", y = "Average Julian Days of Flowering", title = "Average Julian Days of Flower Duration", subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 200)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +

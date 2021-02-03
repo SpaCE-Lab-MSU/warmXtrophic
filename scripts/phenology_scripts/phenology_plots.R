@@ -80,8 +80,8 @@ sum_FirstFlwr_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Flower", title = loc) +
-                       coord_cartesian(ylim = c(150, 200)) +
+                       labs(x = "State", y = "Julian Day", title = "Average Julian Day of First Flower", subtitle = loc) +
+                       #coord_cartesian(ylim = c(150, 180)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
@@ -123,7 +123,7 @@ flwr_org_plot("umbs")
 
 ##### Flowering Duration #####
 
-# Filter data to calculate the average duration of flowering time for each species at every plot and year
+# Filter data to calculate the duration of flowering time for each species at every plot and year
 flwr_duration <- phen_flwr %>% 
         group_by(site, plot, species, year, state, action, origin) %>%
         summarise(flwr_duration = max(julian) - min(julian)) 
@@ -137,17 +137,19 @@ View(sum_flwrduration_org)
 
 # Filter flwr_duration data set by state and year and calculate mean duration of flowering
 sum_flwrduration_state <- flwr_duration %>% 
-        group_by(site, plot, state, action, year) %>% 
-        summarise(mean_duration = mean(flwr_duration))
+        group_by(site, state, action, year) %>% 
+        summarise(mean_duration = mean(flwr_duration),
+                  se = std.error(flwr_duration, na.rm = TRUE))
 
 sum_FlwrDurState_plot <- function(loc) { 
         flwr_Duration1 <- subset(sum_flwrduration_state, site == loc)
         return(ggplot(flwr_Duration1, aes(x = state, y = mean_duration, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
-                       #geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
-                                     #position = "identity") +
-                       labs(x = "State", y = "Average Julian Days of Flowering", title = loc) +
+                       geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
+                                     position = "identity") +
+                       labs(x = "State", y = "Julian Day", title = "Average Duration of Flowering", 
+                            subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 200)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
