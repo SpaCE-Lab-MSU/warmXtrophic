@@ -41,6 +41,7 @@ change_spp <- function(df){
   df$Species[df$Species == "Bown"] <- "Brown"
   df$Species[df$Species == "Brown "] <- "Brown"
   df$Species[df$Species == "popr"] <- "Popr"
+  df$Species[df$Species == "Lepidium campestre"] <- "Leca"
   df$Species[df$Species == "Ramu"] <- "Romu"
   df$Species[df$Species == "Anspp"] <- "Ansp"
   df$Species[df$Species == "Smooth_oat"] <- "Arel"
