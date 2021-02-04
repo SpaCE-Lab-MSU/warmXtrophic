@@ -7,9 +7,12 @@
 # DATE:           Jan 2021
 
 
+##### Main questions ######
+# Is date of greenup different between ambient and warmed treatments? Hypothesis: greenup is earlier for warmed treatments
+  # include year as a treatment (is this difference seen each year)? insecticide? 
+  # species + plot as random effects?
 
 
-######### very much in progress - looks bad rn ############
 # Clear all existing data
 rm(list=ls())
 
@@ -17,8 +20,8 @@ rm(list=ls())
 library(tidyverse)
 library(lme4)
 library(nlme)
-library(lmerTest)
 library(olsrr)
+library(predictmeans)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -26,7 +29,7 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in plant comp data
 greenup <- read.csv("L1/greenup/final_greenup_L1.csv")
-str(plant_comp)
+str(greenup)
 
 # create dataframes for kbs and umbs
 final_kbs <- subset(greenup, site == "kbs")
@@ -39,7 +42,6 @@ final_umbs <- subset(greenup, site == "umbs")
 fit <- lm(half_cover_date~state*year + insecticide, data = final_kbs)
 residual <- fit$residuals
 shapiro.test(residual)
-ols_plot_resid_hist(fit)
 ols_plot_resid_qq(fit)
 hist(residual)
 # not normal - square root, cubed root, log and inverse don't seem to work
@@ -57,13 +59,17 @@ hist(residual2)
 # do we need plot as a random effect?
 moda <- lmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot), final_kbs)
 modb <- lmer(half_cover_date ~ state*year + insecticide + (1|species), final_kbs)
-anova(modb, moda) #no? because lower AIC?
+anova(modb, moda) #no? because lower BIC?
 summary(modb)
 anova(modb)
 emmeans(modb, specs = pairwise ~ state + year, type = "response", adjust = "tukey")
 
 confint(modb, method="boot", nsim=999)
 difflsmeans(modb, test.effs=NULL, ddf="Satterthwaite")
+
+# these both fail - cluster setup failed
+permanova.lmer(modb)
+permanova.lmer(modb, drop=FALSE)
 
 
 
