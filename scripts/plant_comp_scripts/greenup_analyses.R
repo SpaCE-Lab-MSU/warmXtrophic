@@ -11,6 +11,7 @@
 # Is date of greenup different between ambient and warmed treatments? Hypothesis: greenup is earlier for warmed treatments
   # include year as a treatment (is this difference seen each year)? insecticide? 
   # species + plot as random effects?
+# Is date of greenup different between warmed/ambient for native vs exotic? same for growth habit
 
 
 # Clear all existing data
@@ -62,8 +63,9 @@ modb <- lmer(half_cover_date ~ state*year + insecticide + (1|species), final_kbs
 anova(modb, moda) #no? because lower BIC?
 summary(modb)
 anova(modb)
-emmeans(modb, specs = pairwise ~ state + year, type = "response", adjust = "tukey")
+emmeans(modb, specs = pairwise ~ state + year, type = "response", adjust = "tukey") # only shows 2017
 
+# from kileigh's code
 confint(modb, method="boot", nsim=999)
 difflsmeans(modb, test.effs=NULL, ddf="Satterthwaite")
 
