@@ -79,11 +79,34 @@ comp_merge$julian <- format(comp_merge$date, "%j")
 # Make julian column numeric
 comp_merge$julian <- as.numeric(comp_merge$julian)
 
+# change taxon column name for merging
+colnames(taxon)[which(names(taxon) == "code")] <- "species"
+
 # Merge meta-data with plant comp data
 plant_comp_merge <- left_join(meta, comp_merge, by = "plot")
+plant_comp_merge2 <- left_join(taxon, plant_comp_merge, by = "species")
+
+# remove uneeded columns
+plant_comp_merge2$date <- NULL
+plant_comp_merge2$species.y <- NULL
+plant_comp_merge2$X <- NULL
+plant_comp_merge2$site.x <- NULL
+plant_comp_merge2$year.y <- NULL
+plant_comp_merge2$scientific_name <- NULL
+plant_comp_merge2$USDA_code <- NULL
+plant_comp_merge2$LTER_code <- NULL
+plant_comp_merge2$old_code <- NULL
+plant_comp_merge2$old_name <- NULL
+plant_comp_merge2$resolution <- NULL
+plant_comp_merge2$group <- NULL
+plant_comp_merge2$family <- NULL
+plant_comp_merge2$common_name <- NULL
+
+# fix column name
+colnames(plant_comp_merge2)[which(names(plant_comp_merge2) == "site.y")] <- "site"
 
 # Upload clean data csv to google drive
-write.csv(plant_comp_merge, file="L1/plant_composition/final_plantcomp_L1.csv")
+write.csv(plant_comp_merge2, file="L1/plant_composition/final_plantcomp_L1.csv")
 
 
 
@@ -117,35 +140,38 @@ combined <- merge(half_cover_dates_df, min_date, by=c("plot", "species"))
 # calculate correlation
 cor.test(combined$min_emerg_date, combined$half_cover_date)
 
+
+# the sections commented below may no longer be needed after merging meta-data earlier in the script
+
 # change taxon column name for merging
-colnames(taxon)[which(names(taxon) == "code")] <- "species"
+#colnames(taxon)[which(names(taxon) == "code")] <- "species"
 
 # re-merge data with meta data info
-final <- left_join(meta, combined, by = "plot")
-final <- left_join(taxon, final, by = "species")
+#final <- left_join(meta, combined, by = "plot")
+#final <- left_join(taxon, final, by = "species")
 
-# remove uneeded columns
-final$date <- NULL
-final$species.y <- NULL
-final$cover <- NULL
-final$julian <- NULL
-final$X <- NULL
-final$site.x <- NULL
-final$year.y <- NULL
-final$scientific_name <- NULL
-final$USDA_code <- NULL
-final$LTER_code <- NULL
-final$old_code <- NULL
-final$old_name <- NULL
-final$resolution <- NULL
-final$group <- NULL
-final$family <- NULL
-final$common_name <- NULL
+## remove uneeded columns
+#final$date <- NULL
+#final$species.y <- NULL
+#final$cover <- NULL
+#final$julian <- NULL
+#final$X <- NULL
+#final$site.x <- NULL
+#final$year.y <- NULL
+#final$scientific_name <- NULL
+#final$USDA_code <- NULL
+#final$LTER_code <- NULL
+#final$old_code <- NULL
+#final$old_name <- NULL
+#final$resolution <- NULL
+#final$group <- NULL
+#final$family <- NULL
+#final$common_name <- NULL
 
 # fix column names
-colnames(final)[which(names(final) == "species.x")] <- "species"
-colnames(final)[which(names(final) == "site.y")] <- "site"
-colnames(final)[which(names(final) == "year.x")] <- "year"
+#colnames(final)[which(names(final) == "species.x")] <- "species"
+#colnames(final)[which(names(final) == "site.y")] <- "site"
+#colnames(final)[which(names(final) == "year.x")] <- "year"
 
 # upload greenup csv to google drive
 write.csv(final, file="L1/greenup/final_greenup_L1.csv")
