@@ -1,5 +1,5 @@
 ---
-title: "Greenup Plots"
+title: "Plant Comp Plots"
 author: "Kara Dobson"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
