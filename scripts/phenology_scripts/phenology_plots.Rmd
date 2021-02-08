@@ -38,7 +38,7 @@ phen_sd <- subset(phen_data, action == "seed")
 # This creates a data frame that returns the first date of flower for every species and plot
 # Filter data to contain the date of first occurrence for each species
 FirstFlower_all <- phen_flwr %>%
-        group_by(plot, year, species, state, site, action) %>%
+        group_by(plot, year, species, state, site, action, origin) %>%
         summarize(julian = min(julian, na.rm=T))
 
 # This creates a data frame that returns the mean julian date of first flower by site, state, species and year      
@@ -52,6 +52,23 @@ sum_FirstFlwr_state <- FirstFlower_all %>%
         group_by(site, state, year) %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
                   se = std.error(julian, na.rm = TRUE)) 
+
+# Native vs Exotic
+sum_flwr_org <- FirstFlower_all %>%
+        group_by(site, origin, state, year) %>%
+        summarize(avg_julian = mean(julian, na.rm = TRUE),
+                  se = std.error(julian, na.rm = TRUE))
+sum_flwr_org <- subset(sum_flwr_org, origin == "Exotic" | origin == "Native")
+
+# Flower duration
+flwr_duration <- phen_flwr %>% 
+        group_by(site, plot, species, year, state, action, origin) %>%
+        summarise(flwr_duration = max(julian) - min(julian)) 
+
+sum_flwrduration_state <- flwr_duration %>% 
+        group_by(site, state, action, year) %>% 
+        summarise(mean_duration = mean(flwr_duration),
+                  se = std.error(flwr_duration, na.rm = TRUE))
 
 # This creates a data frame that returns the first date of seed for every species and plot
 # Filter data to contain the date of first occurrence for each species
@@ -71,7 +88,8 @@ sum_FirstSeed_state <- FirstSeed_all %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
                   se = std.error(julian, na.rm = TRUE)) 
 ```
-## Flowering
+
+# Plots to Visualize Flowering
 ## This creates a plot for a given species and site and for every year
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 FirstFlower_plot <- function(spp, loc) { 
@@ -81,7 +99,7 @@ FirstFlower_plot <- function(spp, loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Flower", title = spp, subtitle = loc) +
+                       labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        coord_cartesian(ylim = c(100, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
@@ -100,8 +118,9 @@ sum_FirstFlwr_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Flower", title = loc) +
-                       coord_cartesian(ylim = c(150, 200)) +
+                       labs(x = "State", y = "Julian DaTE", title = "Average Julian Date of First Flower", 
+                            subtitle = loc) +
+                       #coord_cartesian(ylim = c(150, 180)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_grey())
@@ -112,30 +131,15 @@ sum_FirstFlwr_plot("umbs")
 
 ## Flowering Duration
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-flwr_duration <- phen_flwr %>% 
-        group_by(site, plot, species, year, state, action, origin) %>%
-        summarise(flwr_duration = max(julian) - min(julian)) 
-
-# Filter flwr_duration data frame to calculate the mean duration by native vs exotic 
-sum_flwrduration_org <- flwr_duration %>% 
-        group_by(site, state, action, origin) %>% 
-        summarise(mean_duration = mean(flwr_duration))
-View(sum_flwrduration_org) 
-
-# Filter flwr_duration data set by state and year and calculate mean duration of flowering
-sum_flwrduration_state <- flwr_duration %>% 
-        group_by(site, state, action, year) %>% 
-        summarise(mean_duration = mean(flwr_duration),
-                  se = std.error(flwr_duration, na.rm = TRUE))
-
 sum_FlwrDurState_plot <- function(loc) { 
-        flwr_Duration1 <- subset(sum_flwrduration_state, site == loc)
-        return(ggplot(flwr_Duration1, aes(x = state, y = mean_duration, fill = state)) +
+        flwr_Duration <- subset(sum_flwrduration_state, site == loc)
+        return(ggplot(flwr_Duration, aes(x = state, y = mean_duration, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
                                      position = "identity") +
-                      labs(x = "State", y = "Average Julian Days of Flowering", title = "Average Julian Days of Flower Duration", subtitle = loc) +
+                       labs(x = "State", y = "Julian Date", title = "Average Duration of Flowering", 
+                            subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 200)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
@@ -145,8 +149,26 @@ sum_FlwrDurState_plot <- function(loc) {
 sum_FlwrDurState_plot("kbs")
 sum_FlwrDurState_plot("umbs")
 ```
+```{r, echo=FALSE}
+flwr_org_plot <- function(loc) { 
+        flwr_spp <- subset(sum_flwr_org, site == loc)
+        return(ggplot(flwr_spp, aes(x = origin, y = avg_julian, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_bar(position = "dodge", stat = "identity", color = "black") +
+                       geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                                     position = position_dodge(0.9)) +
+                       labs(x = "State", y = "Julian Date", 
+                            title = "Native vs Exotic Avg Julian Date of First Flower", subtitle = loc) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
+                       #coord_cartesian(ylim = c(100, 200)) +
+                       theme_grey())
+}
+flwr_org_plot("kbs")
+flwr_org_plot("umbs")
+```
 
-## Seeding
+# Plots to Visualize Seed Set
 # Plots for a given species and site and it's mean julian day of first seed for every year of data collection
 ```{r, echo=FALSE}
 FirstSeed_plot <- function(spp, loc) { 
@@ -156,7 +178,7 @@ FirstSeed_plot <- function(spp, loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Seed", title = spp, subtitle = loc) +
+                       labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 300)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
@@ -175,7 +197,8 @@ sum_FirstSeed_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Seed", title = loc) +
+                       labs(x = "State", y = "Julian Date", title = "Average Julian Date of First Seed", 
+                            subtitle = loc) +
                        coord_cartesian(ylim = c(150, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
@@ -183,5 +206,6 @@ sum_FirstSeed_plot <- function(loc) {
 }
 sum_FirstSeed_plot("kbs")
 sum_FirstSeed_plot("umbs")
+
 ```
 

@@ -53,7 +53,7 @@ FirstFlower_plot <- function(spp, loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Flower", title = spp, subtitle = loc) +
+                       labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        coord_cartesian(ylim = c(100, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
@@ -62,8 +62,6 @@ FirstFlower_plot <- function(spp, loc) {
 
 FirstFlower_plot("Popr", "umbs")
 FirstFlower_plot("Popr", "kbs")
-FirstFlower_plot("Eugr", "kbs")
-FirstFlower_plot("Soca", "kbs")
 
 # This filters the FirstFlower_all data set to calculate the average julian day of first flower combining all species for each site 
 # and year for warmed and ambient
@@ -80,7 +78,7 @@ sum_FirstFlwr_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day", title = "Average Julian Day of First Flower", subtitle = loc) +
+                       labs(x = "State", y = "Julian DaTE", title = "Average Julian Date of First Flower", subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 180)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
@@ -112,9 +110,9 @@ flwr_org_plot <- function(loc) {
                        geom_bar(position = "dodge", stat = "identity", color = "black") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = position_dodge(0.9)) +
-                       labs(x = "State", y = "Julian Day of First Flower", title = loc) +
+                       labs(x = "State", y = "Julian Date", title = "Native vs Exotic Avg Julian Date of First Flower", subtitle = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+                       scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
                        #coord_cartesian(ylim = c(100, 200)) +
                        theme_grey())
 }
@@ -142,13 +140,13 @@ sum_flwrduration_state <- flwr_duration %>%
                   se = std.error(flwr_duration, na.rm = TRUE))
 
 sum_FlwrDurState_plot <- function(loc) { 
-        flwr_Duration1 <- subset(sum_flwrduration_state, site == loc)
-        return(ggplot(flwr_Duration1, aes(x = state, y = mean_duration, fill = state)) +
+        flwr_Duration <- subset(sum_flwrduration_state, site == loc)
+        return(ggplot(flwr_Duration, aes(x = state, y = mean_duration, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day", title = "Average Duration of Flowering", 
+                       labs(x = "State", y = "Julian Date", title = "Average Duration of Flowering", 
                             subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 200)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
@@ -189,7 +187,7 @@ FirstSeed_plot <- function(spp, loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Seed", title = spp, subtitle = loc) +
+                       labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 300)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
@@ -198,8 +196,6 @@ FirstSeed_plot <- function(spp, loc) {
 
 FirstSeed_plot("Popr", "umbs")
 FirstSeed_plot("Popr", "kbs")
-FirstSeed_plot("Eugr", "kbs")
-FirstSeed_plot("Soca", "kbs")
 
 # This creates a function that returns plots for a given site and all years for mean julien day of first seed 
 # comparing ambient vs warmed plots
@@ -210,7 +206,7 @@ sum_FirstSeed_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Day of First Seed", title = loc) +
+                       labs(x = "State", y = "Julian Date", title = "Average Julian Date of First Seed" ,subtitle = loc) +
                        coord_cartesian(ylim = c(150, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
