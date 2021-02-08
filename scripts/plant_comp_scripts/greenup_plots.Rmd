@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young  
-DATA INPUT: Clean & plot plant comp csv from the shared Google drive  
+DATA INPUT: Clean & plot greenup csv from the shared Google drive  
 DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
 PROJECT: warmXtrophic  
 
