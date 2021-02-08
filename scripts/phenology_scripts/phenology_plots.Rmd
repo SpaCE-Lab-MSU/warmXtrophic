@@ -12,7 +12,7 @@ DATA OUTPUT: Code and Rmd are in the scripts folder in Github
 PROJECT: warmXtrophic  
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, tidy.opts = list(width.cutoff=80), tidy=TRUE)
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
