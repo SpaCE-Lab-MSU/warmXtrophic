@@ -44,17 +44,13 @@ umbs_flwr <- subset(phen_flwr, site == "umbs")
 umbs_firstflwr <- umbs_flwr %>%
         group_by(plot, year, species, state, site, action, origin) %>%
         summarize(julian = min(julian, na.rm=T))
+View(umbs_firstflwr)
+summary(umbs_firstflwr)
 
-t.test(data = umbs_firstflwr, julian ~ state)
+model1 <- lmer(julian ~ 1 + (1|state), umbs_firstflwr, REML=TRUE)
 
-lm(julian ~ state, data = umbs_firstflwr)
-summary(lm(julian ~ state, data = umbs_firstflwr))
-plot(lm(julian ~ state, data = umbs_firstflwr))
+model2 <- lmer(julian ~ 1 + origin + (1|state), umbs_firstflwr, REML=TRUE)
 
-kbs_firstflwr <- kbs_flwr %>%
-        group_by(plot, year, species, state, site, action, origin) %>%
-        summarize(julian = min(julian, na.rm=T))
-
-t.test(data = kbs_firstflwr, julian ~ state)
-
+model2 <- lmer(julian ~ state + origin, data = umbs_firstflwr)
+#moda <- lmer(flowerdate ~ warmed*origin + mammals + insects + (1|species) + (1|plot), datak, REML=FALSE)
 
