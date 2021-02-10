@@ -154,7 +154,6 @@ shapiro.test(final_umbs$date_cubed)
 
 
 ## partially taken from kileighs old models ##
-# do we need plot as a random effect?
 moda <- lmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot), final_kbs)
 modb <- lmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot), final_kbs)
 modc <- lmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot), final_kbs)
