@@ -9,6 +9,7 @@
 
 ##### Main questions ######
 # Is date of greenup different between ambient and warmed treatments? Hypothesis: greenup is earlier for warmed treatments
+# state  = fixed, date = response
   # include year as a treatment (is this difference seen each year)? insecticide? 
   # species + plot as random effects?
 # Is date of greenup different between warmed/ambient for native vs exotic? same for growth habit
@@ -20,9 +21,9 @@ rm(list=ls())
 #Load packages
 library(tidyverse)
 library(lme4)
-library(nlme)
 library(olsrr)
 library(predictmeans)
+library(car)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -32,6 +33,14 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 greenup <- read.csv("L1/greenup/final_greenup_L1.csv")
 str(greenup)
 
+# changing scale of years
+greenup$year[greenup$year == 2015] <- 1
+greenup$year[greenup$year == 2016] <- 2
+greenup$year[greenup$year == 2017] <- 3
+greenup$year[greenup$year == 2018] <- 4
+greenup$year[greenup$year == 2019] <- 5
+greenup$year[greenup$year == 2020] <- 6
+
 # create dataframes for kbs and umbs
 final_kbs <- subset(greenup, site == "kbs")
 final_umbs <- subset(greenup, site == "umbs")
@@ -40,30 +49,119 @@ final_umbs <- subset(greenup, site == "umbs")
 
 ###### statistical analysis #########
 # first, checking that residuals are normal
-fit <- lm(half_cover_date~state*year + insecticide, data = final_kbs)
-residual <- fit$residuals
-shapiro.test(residual)
-ols_plot_resid_qq(fit)
-hist(residual)
-# not normal - square root, cubed root, log and inverse don't seem to work
+# kbs
+hist(final_kbs$half_cover_date)
+qqnorm(final_kbs$half_cover_date)
+shapiro.test(final_kbs$half_cover_date)
+fit <- lm(half_cover_date~state, data = final_kbs)
+qqPlot(fit)
+hist(final_kbs$half_cover_date[final_kbs$state == "ambient"])
+hist(final_kbs$half_cover_date[final_kbs$state == "warmed"])
+# data isn't normal - below I try to transform the data
 
-fit2 <- lm(half_cover_date~state*year + insecticide, data = final_umbs)
-residual2 <- fit2$residuals
-shapiro.test(residual2)
-ols_plot_resid_hist(fit2)
-ols_plot_resid_qq(fit2)
-hist(residual2)
-# also not normal
+# mean centering half_cover_date
+final_kbs$date_scaled <- scale(final_kbs$half_cover_date, scale = F)
+hist(final_kbs$date_scaled)
+hist(final_kbs$date_scaled[final_kbs$state == "ambient"])
+hist(final_kbs$date_scaled[final_kbs$state == "warmed"])
+qqnorm(final_kbs$date_scaled)
+shapiro.test(final_kbs$date_scaled)
+# still not normal
+
+# log transform 
+final_kbs$date_log <- log(final_kbs$half_cover_date)
+hist(final_kbs$date_log)
+qqnorm(final_kbs$date_log)
+shapiro.test(final_kbs$date_log)
+
+# inverse transform 
+final_kbs$date_inv <- 1/(final_kbs$half_cover_date)
+hist(final_kbs$date_inv)
+qqnorm(final_kbs$date_inv)
+shapiro.test(final_kbs$date_inv)
+
+# square root transform 
+final_kbs$date_sqrt <- sqrt(final_kbs$half_cover_date)
+hist(final_kbs$date_sqrt)
+qqnorm(final_kbs$date_sqrt)
+shapiro.test(final_kbs$date_sqrt)
+
+# cubed root transform 
+final_kbs$date_cubed <- (final_kbs$half_cover_date)^(1/3)
+hist(final_kbs$date_cubed)
+qqnorm(final_kbs$date_cubed)
+shapiro.test(final_kbs$date_cubed)
+
+# my previous attempts at normality tests on the residuals
+#residual <- fit$residuals
+#shapiro.test(residual)
+#ols_plot_resid_qq(fit)
+#hist(residual)
+
+
+# umbs
+hist(final_umbs$half_cover_date)
+qqnorm(final_umbs$half_cover_date)
+shapiro.test(final_umbs$half_cover_date)
+fit2 <- lm(half_cover_date~state, data = final_umbs)
+qqPlot(fit2)
+hist(final_umbs$half_cover_date[final_kbs$state == "ambient"])
+hist(final_umbs$half_cover_date[final_kbs$state == "warmed"])
+# when separated by state the histograms are just a bit right skewed
+
+# mean centering half_cover_date
+final_umbs$date_scaled <- scale(final_umbs$half_cover_date, scale = F)
+hist(final_umbs$date_scaled)
+hist(final_umbs$date_scaled[final_kbs$state == "ambient"])
+hist(final_umbs$date_scaled[final_kbs$state == "warmed"])
+qqnorm(final_umbs$date_scaled)
+shapiro.test(final_umbs$date_scaled)
+# still not normal
+
+# log transform 
+final_umbs$date_log <- log(final_umbs$half_cover_date)
+hist(final_umbs$date_log)
+qqnorm(final_umbs$date_log)
+shapiro.test(final_umbs$date_log)
+# this looks pretty good but shapiro test still is below 0.05
+
+# inverse transform 
+final_umbs$date_inv <- 1/(final_umbs$half_cover_date)
+hist(final_umbs$date_inv)
+qqnorm(final_umbs$date_inv)
+shapiro.test(final_umbs$date_inv)
+# also looks better, still below 0.5 for shapiro wilk
+
+# square root transform 
+final_umbs$date_sqrt <- sqrt(final_umbs$half_cover_date)
+hist(final_umbs$date_sqrt)
+qqnorm(final_umbs$date_sqrt)
+shapiro.test(final_umbs$date_sqrt)
+
+# cubed root transform 
+final_umbs$date_cubed <- (final_umbs$half_cover_date)^(1/3)
+hist(final_umbs$date_cubed)
+qqnorm(final_umbs$date_cubed)
+shapiro.test(final_umbs$date_cubed)
+
+# previous attempts at normality tests on residuals
+#residual2 <- fit2$residuals
+#shapiro.test(residual2)
+#ols_plot_resid_hist(fit2)
+#ols_plot_resid_qq(fit2)
+#hist(residual2)
+
 
 
 ## partially taken from kileighs old models ##
 # do we need plot as a random effect?
 moda <- lmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot), final_kbs)
-modb <- lmer(half_cover_date ~ state*year + insecticide + (1|species), final_kbs)
-anova(modb, moda) #no? because lower BIC?
-summary(modb)
-anova(modb)
-emmeans(modb, specs = pairwise ~ state + year, type = "response", adjust = "tukey") # only shows 2017
+modb <- lmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot), final_kbs)
+modc <- lmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot), final_kbs)
+anova(moda, modb, modc)
+summary(moda)
+anova(moda)
+emmeans(modb, specs = pairwise ~ state, type = "response", adjust = "tukey") # only shows 2017
 
 # from kileigh's code
 confint(modb, method="boot", nsim=999)
