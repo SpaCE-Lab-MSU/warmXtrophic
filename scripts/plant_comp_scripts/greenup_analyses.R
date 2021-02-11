@@ -24,6 +24,7 @@ library(lme4)
 library(olsrr)
 library(predictmeans)
 library(car)
+library(fitdistrplus)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -47,9 +48,9 @@ final_umbs <- subset(greenup, site == "umbs")
 
 
 
-###### statistical analysis #########
-# first, checking that residuals are normal
-# kbs
+######### determining distribution ############
+### kbs ###
+# first, checking for normality
 hist(final_kbs$half_cover_date)
 qqnorm(final_kbs$half_cover_date)
 shapiro.test(final_kbs$half_cover_date)
@@ -92,14 +93,24 @@ hist(final_kbs$date_cubed)
 qqnorm(final_kbs$date_cubed)
 shapiro.test(final_kbs$date_cubed)
 
-# my previous attempts at normality tests on the residuals
-#residual <- fit$residuals
-#shapiro.test(residual)
-#ols_plot_resid_qq(fit)
-#hist(residual)
+
+##### trying different distributions #######
+# found this method through stackoverflow
+descdist(final_kbs$half_cover_date, discrete = FALSE) # looks closest to uniform
+fit.unif <- fitdist(final_kbs$half_cover_date, "unif")
+plot(fit.unif)
+
+# using glm
+# general question - can you apply transformations to data to conform to non-normality?
+residual <- fit$residuals
+hist(residual)
+uniform <- glm(half_cover_date~state, data = final_kbs, family = "unif")
+hist(gamma$residuals)
 
 
-# umbs
+
+### umbs ###
+# first, checking normality
 hist(final_umbs$half_cover_date)
 qqnorm(final_umbs$half_cover_date)
 shapiro.test(final_umbs$half_cover_date)
@@ -123,14 +134,14 @@ final_umbs$date_log <- log(final_umbs$half_cover_date)
 hist(final_umbs$date_log)
 qqnorm(final_umbs$date_log)
 shapiro.test(final_umbs$date_log)
-# this looks pretty good but shapiro test still is below 0.05
+# this looks pretty good but shapiro wilk test still is below 0.05 (how important is this?)
 
 # inverse transform 
 final_umbs$date_inv <- 1/(final_umbs$half_cover_date)
 hist(final_umbs$date_inv)
 qqnorm(final_umbs$date_inv)
 shapiro.test(final_umbs$date_inv)
-# also looks better, still below 0.5 for shapiro wilk
+# also looks better, still below 0.05 for shapiro wilk
 
 # square root transform 
 final_umbs$date_sqrt <- sqrt(final_umbs$half_cover_date)
@@ -144,15 +155,21 @@ hist(final_umbs$date_cubed)
 qqnorm(final_umbs$date_cubed)
 shapiro.test(final_umbs$date_cubed)
 
-# previous attempts at normality tests on residuals
-#residual2 <- fit2$residuals
-#shapiro.test(residual2)
-#ols_plot_resid_hist(fit2)
-#ols_plot_resid_qq(fit2)
-#hist(residual2)
+
+##### trying different distributions #####
+descdist(final_umbs$half_cover_date, discrete = FALSE) # maybe gamma?
+fit.gamma <- fitdist(final_kbs$half_cover_date, "gamma")
+plot(fit.gamma)
+
+# using glm
+residual2 <- fit2$residuals
+hist(residual2)
+gamma <- glm(half_cover_date~state, data = final_umbs, family = "Gamma")
+hist(gamma$residuals)
 
 
 
+############## running analyses ####################
 ## partially taken from kileighs old models ##
 moda <- lmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot), final_kbs)
 modb <- lmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot), final_kbs)
@@ -160,15 +177,15 @@ modc <- lmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1
 anova(moda, modb, modc)
 summary(moda)
 anova(moda)
-emmeans(modb, specs = pairwise ~ state, type = "response", adjust = "tukey") # only shows 2017
+#emmeans(modb, specs = pairwise ~ state, type = "response", adjust = "tukey") # only shows 2017
 
 # from kileigh's code
 confint(modb, method="boot", nsim=999)
 difflsmeans(modb, test.effs=NULL, ddf="Satterthwaite")
 
 # these both fail - cluster setup failed
-permanova.lmer(modb)
-permanova.lmer(modb, drop=FALSE)
+#permanova.lmer(modb)
+#permanova.lmer(modb, drop=FALSE)
 
 
 
@@ -181,8 +198,7 @@ summary(lm1)
 lm2 <- lm(half_cover_date~state*year+insecticide, data = final_umbs)
 summary(lm2)
 
-# mixed effects model -> after running lme with plot as random effect, may not be needed (plot doesn't affect intercepts in coef)
-# below does not give p values from lme4, so I switched to nlme instead
+# mixed effects model
 lme2 <- lme(half_cover_date~state*year+insecticide, random=~1|species, data = final_kbs)
 summary(lme2)
 coef(lme2)
