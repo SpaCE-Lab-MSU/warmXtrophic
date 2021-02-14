@@ -99,13 +99,7 @@ shapiro.test(final_kbs$date_cubed)
 descdist(final_kbs$half_cover_date, discrete = FALSE) # looks closest to uniform
 fit.unif <- fitdist(final_kbs$half_cover_date, "unif")
 plot(fit.unif)
-
-# using glm
-# general question - can you apply transformations to data to conform to non-normality?
-residual <- fit$residuals
-hist(residual)
-uniform <- glm(half_cover_date~state, data = final_kbs, family = "unif")
-hist(gamma$residuals)
+# uniform is closest, but isn't included in glmer so I'll go with poisson
 
 
 
@@ -171,9 +165,12 @@ hist(gamma$residuals)
 
 ############## running analyses ####################
 ## partially taken from kileighs old models ##
-moda <- lmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot), final_kbs)
-modb <- lmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot), final_kbs)
-modc <- lmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot), final_kbs)
+moda <- glmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
+modb <- glmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
+modc <- glmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
 anova(moda, modb, modc)
 summary(moda)
 anova(moda)

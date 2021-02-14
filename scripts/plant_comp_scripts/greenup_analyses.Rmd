@@ -1,0 +1,97 @@
+---
+title: "Greenup Analyses"
+author: "Kara Dobson"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+COLLABORATORS:  Phoebe Zarnetske, Moriah Young, Mark Hammond, Pat Bills  
+DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder  
+PROJECT:        warmXtrophic
+
+```{r, echo = F, message = F}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(lme4)
+library(olsrr)
+library(predictmeans)
+library(car)
+library(fitdistrplus)
+
+# Set working directory to Google Drive
+# **** Update with the path to your Google drive on your computer
+setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+
+# Read in plant comp data
+greenup <- read.csv("L1/greenup/final_greenup_L1.csv")
+#str(greenup)
+
+# changing scale of years
+greenup$year[greenup$year == 2015] <- 1
+greenup$year[greenup$year == 2016] <- 2
+greenup$year[greenup$year == 2017] <- 3
+greenup$year[greenup$year == 2018] <- 4
+greenup$year[greenup$year == 2019] <- 5
+greenup$year[greenup$year == 2020] <- 6
+
+# create dataframes for kbs and umbs
+final_kbs <- subset(greenup, site == "kbs")
+final_umbs <- subset(greenup, site == "umbs")
+```
+
+# First, checking for normality
+```{r}
+hist(final_kbs$half_cover_date)
+qqnorm(final_kbs$half_cover_date)
+shapiro.test(final_kbs$half_cover_date)
+hist(final_kbs$half_cover_date[final_kbs$state == "ambient"])
+hist(final_kbs$half_cover_date[final_kbs$state == "warmed"])
+```
+
+\pagebreak
+
+# Not normal, and previously attempted transformations don't help  
+
+# Seeing what other distribution could fit
+```{r, echo = F}
+descdist(final_kbs$half_cover_date, discrete = FALSE)
+```
+# Uniform looks the closest but isn't included in glmer(?) - will try Poisson
+
+# Below I try a few different generalized linear models with poisson distribution:
+
+\pagebreak
+
+## An interaction between state and year, plus insecticide as a fixed effect and species and plot as random effects
+```{r}
+moda <- glmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
+summary(moda)
+```
+
+\pagebreak
+
+## No interaction between state and year, but with state and insecticide as fixed effects and species and plot as random effects
+```{r}
+modb <- glmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
+summary(modb)
+```
+
+\pagebreak
+
+## State and insecticide as fixed effects & year, species and plot as random effects
+```{r}
+modc <- glmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
+summary(modc)
+```
