@@ -25,6 +25,8 @@ library(olsrr)
 library(predictmeans)
 library(car)
 library(fitdistrplus)
+library(ggpubr)
+library(rstatix)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -48,8 +50,8 @@ final_umbs <- subset(greenup, site == "umbs")
 
 
 
-######### determining distribution ############
-### kbs ###
+######### kbs ############
+#### determining distribution ####
 # first, checking for normality
 hist(final_kbs$half_cover_date)
 qqnorm(final_kbs$half_cover_date)
@@ -99,11 +101,47 @@ shapiro.test(final_kbs$date_cubed)
 descdist(final_kbs$half_cover_date, discrete = FALSE) # looks closest to uniform
 fit.unif <- fitdist(final_kbs$half_cover_date, "unif")
 plot(fit.unif)
-# uniform is closest, but isn't included in glmer so I'll go with poisson
+# uniform is closest, but isn't included in glmer so I'll go with poisson (which still makes sense)
+fit <- lm(half_cover_date~state, data = final_kbs)
+residual <- fit$residuals
+hist(residual)
+pois <- glm(half_cover_date~state, data = final_kbs, family="poisson")
+hist(pois$residuals)
+# still doesn't look very good
+# including parametric & non-parametric models below
+
+
+###### running analyses ########
+## partially taken from kileighs old models - parametric tests ##
+# generalized linear models for poisson distribution with:
+# state, year and insecticide as fixed (w interaction btwn state and year) & species and plot as random effects
+moda <- glmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
+# state, year and insecticide as separate fixed effects & species and plot as random effects
+modb <- glmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
+# state and insecticide as fixed effects & year, species and plot as random effects
+modc <- glmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
+              data=final_kbs, family = poisson)
+anova(moda, modb, modc)
+summary(moda)
+anova(moda)
+
+## non-parametric ##
+friedman_kbs <- final_kbs %>% 
+  friedman_test(half_cover_date ~ state | plot)
+
+
+# from kileigh's code
+confint(modb, method="boot", nsim=999)
+difflsmeans(modb, test.effs=NULL, ddf="Satterthwaite")
 
 
 
-### umbs ###
+
+
+########### umbs ##############
+#### determining distribution ####
 # first, checking normality
 hist(final_umbs$half_cover_date)
 qqnorm(final_umbs$half_cover_date)
@@ -150,7 +188,7 @@ qqnorm(final_umbs$date_cubed)
 shapiro.test(final_umbs$date_cubed)
 
 
-##### trying different distributions #####
+##### trying different distributions ######
 descdist(final_umbs$half_cover_date, discrete = FALSE) # maybe gamma?
 fit.gamma <- fitdist(final_kbs$half_cover_date, "gamma")
 plot(fit.gamma)
@@ -162,27 +200,26 @@ gamma <- glm(half_cover_date~state, data = final_umbs, family = "Gamma")
 hist(gamma$residuals)
 
 
-
-############## running analyses ####################
+###### running analyses ########
 ## partially taken from kileighs old models ##
-moda <- glmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
-              data=final_kbs, family = poisson)
-modb <- glmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
-              data=final_kbs, family = poisson)
-modc <- glmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
-              data=final_kbs, family = poisson)
-anova(moda, modb, modc)
-summary(moda)
-anova(moda)
+modd <- glmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
+              data=final_umbs, family = poisson)
+mode <- glmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
+              data=final_umbs, family = poisson)
+modf <- glmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
+              data=final_umbs, family = poisson)
+anova(modd, mode, modf)
+summary(modd)
+anova(modd)
 #emmeans(modb, specs = pairwise ~ state, type = "response", adjust = "tukey") # only shows 2017
 
 # from kileigh's code
-confint(modb, method="boot", nsim=999)
-difflsmeans(modb, test.effs=NULL, ddf="Satterthwaite")
+confint(modd, method="boot", nsim=999)
+difflsmeans(modd, test.effs=NULL, ddf="Satterthwaite")
 
 # these both fail - cluster setup failed
-#permanova.lmer(modb)
-#permanova.lmer(modb, drop=FALSE)
+#permanova.lmer(modd)
+#permanova.lmer(modd, drop=FALSE)
 
 
 
