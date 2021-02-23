@@ -112,12 +112,13 @@ write.csv(plant_comp_merge2, file="L1/plant_composition/final_plantcomp_L1.csv")
 
 ### making a csv for greenup (date at which 50% of max cover was reached) ###
 # split the plant_comp dataframe
-dataus <- split(x = plant_comp_merge, f = plant_comp_merge[, c("plot", "species","site", "year")])
+dataus <- split(x = plant_comp_merge2, f = plant_comp_merge2[, c("plot", "species","site", "year")])
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
   x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
 }))
+
 
 # make into a dataframe
 half_cover_dates_df <- data.frame("plot.species.site.year" = names(half_cover_dates),
@@ -140,38 +141,30 @@ combined <- merge(half_cover_dates_df, min_date, by=c("plot", "species"))
 # calculate correlation
 cor.test(combined$min_emerg_date, combined$half_cover_date)
 
-
-# the sections commented below may no longer be needed after merging meta-data earlier in the script
-
 # change taxon column name for merging
-#colnames(taxon)[which(names(taxon) == "code")] <- "species"
+colnames(taxon)[which(names(taxon) == "code")] <- "species"
 
 # re-merge data with meta data info
-#final <- left_join(meta, combined, by = "plot")
-#final <- left_join(taxon, final, by = "species")
+final <- left_join(meta, combined, by = "plot")
+final <- left_join(taxon, final, by = "species")
 
-## remove uneeded columns
-#final$date <- NULL
-#final$species.y <- NULL
-#final$cover <- NULL
-#final$julian <- NULL
-#final$X <- NULL
-#final$site.x <- NULL
-#final$year.y <- NULL
-#final$scientific_name <- NULL
-#final$USDA_code <- NULL
-#final$LTER_code <- NULL
-#final$old_code <- NULL
-#final$old_name <- NULL
-#final$resolution <- NULL
-#final$group <- NULL
-#final$family <- NULL
-#final$common_name <- NULL
+# remove uneeded columns
+final$cover <- NULL
+final$julian <- NULL
+final$X <- NULL
+final$site.x <- NULL
+final$scientific_name <- NULL
+final$USDA_code <- NULL
+final$LTER_code <- NULL
+final$old_code <- NULL
+final$old_name <- NULL
+final$resolution <- NULL
+final$group <- NULL
+final$family <- NULL
+final$common_name <- NULL
 
 # fix column names
-#colnames(final)[which(names(final) == "species.x")] <- "species"
-#colnames(final)[which(names(final) == "site.y")] <- "site"
-#colnames(final)[which(names(final) == "year.x")] <- "year"
+colnames(final)[which(names(final) == "site.y")] <- "site"
 
 # upload greenup csv to google drive
 write.csv(final, file="L1/greenup/final_greenup_L1.csv")
