@@ -13,9 +13,13 @@ opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
 
 COLLABORATORS:  Phoebe Zarnetske, Moriah Young, Mark Hammond, Pat Bills  
 DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder  
-PROJECT:        warmXtrophic
+PROJECT:        warmXtrophic  
 
-```{r, echo = F, message = F}
+### The final_kbs and final_umbs dataframes contain data for greenup at each site.  
+### "half_cover_date" is the date at which 50% of a species max cover was reached (per plot, per year)  
+### "state" describes each treatment - warmed or ambient  
+
+```{r, message = F}
 # Clear all existing data
 rm(list=ls())
 
@@ -66,11 +70,11 @@ hist(final_kbs$half_cover_date[final_kbs$state == "warmed"])
 # Not normal, and previously attempted transformations don't help  
 
 # Seeing what other distribution could fit
-```{r, echo = F}
+```{r}
 descdist(final_kbs$half_cover_date, discrete = FALSE)
 ```
 # While uniform looks the closest, I'll try poisson
-```{r, echo=F,fig.align='center'}
+```{r, fig.align='center'}
 fit <- lm(half_cover_date~state, data = final_kbs)
 residual <- fit$residuals
 hist(residual, main="Raw residuals")  
