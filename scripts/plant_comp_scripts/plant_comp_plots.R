@@ -19,13 +19,54 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in plant comp data
 comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
+meta <- read.csv("L0/plot.csv")
+taxon <- read.csv("L0/taxon.csv")
 str(comp)
 
 # remove uneeded X column
 comp$X <- NULL
 
+# from kileigh's old scripts:
+# average sub-quadrats for plots
+quad.mn <- aggregate(cover ~ plot*species*year*site, data=comp, FUN=mean, na.rm=T)
+names(quad.mn)[names(quad.mn)=="cover"]<-"quad.mn"
+head(quad.mn)
+
+# convert cover to relative abundance 
+# first get summed cover for all plants per plot
+cov.sum = aggregate(quad.mn ~ plot*year*site, data=quad.mn, FUN=sum, na.rm=T)
+names(cov.sum)[names(cov.sum)=="quad.mn"]<-"cov.sum"
+head(cov.sum)
+comp2 <- merge(quad.mn,cov.sum, by=c("plot","year","site"))
+
+#calculate relative percent cover per species in each quadrat (="relative abundance")
+comp2$relab <- comp2$quad.mn/comp2$cov.sum
+summary(comp2)
+
+# change taxon column name for merging
+colnames(taxon)[which(names(taxon) == "code")] <- "species"
+
+# Merge meta-data with plant comp data
+comp3 <- left_join(meta, comp2, by = "plot")
+rel_comp <- left_join(taxon, comp3, by = "species")
+
+# remove uneeded columns
+rel_comp$site.x <- NULL
+rel_comp$scientific_name <- NULL
+rel_comp$USDA_code <- NULL
+rel_comp$LTER_code <- NULL
+rel_comp$old_code <- NULL
+rel_comp$old_name <- NULL
+rel_comp$resolution <- NULL
+rel_comp$group <- NULL
+rel_comp$family <- NULL
+rel_comp$common_name <- NULL
+# fix column name
+colnames(rel_comp)[which(names(rel_comp) == "site.y")] <- "site"
 
 
+
+#### plots for percent cover #####
 # filter data to contain the averages and std error for each site
 sum_comp_site <- comp %>%
   group_by(site, state, year) %>%
@@ -117,3 +158,28 @@ comp_plot_habit <- function(loc) {
 }
 comp_plot_habit("kbs")
 comp_plot_habit("umbs")  
+
+
+
+##### plots for relative percent cover #####
+# filter data to contain the averages and std error for each site
+sum_relcomp_site <- rel_comp %>%
+  group_by(site, state, year) %>%
+  summarize(avg_cover = mean(relab, na.rm = TRUE),
+            se = std.error(relab, na.rm = TRUE))
+
+# Plot for all species between warmed and ambient
+relcomp_plot_all <- function(loc) { 
+  comp_spp <- subset(sum_relcomp_site, site == loc)
+  return(ggplot(comp_spp, aes(x = state, y = avg_cover, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_cover - se, ymax = avg_cover + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "State", y = "Percent Cover", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+relcomp_plot_all("umbs")
+relcomp_plot_all("kbs")
