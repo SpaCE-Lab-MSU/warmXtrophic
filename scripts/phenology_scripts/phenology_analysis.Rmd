@@ -31,6 +31,8 @@ library(scales)
 library(fitdistrplus)
 library(moments)# for calculating skewness of data
 library(ggpubr)
+library(jtools) # summ() function
+library(predictmeans)
 
 # Set working directory to Google Drive
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
@@ -131,16 +133,33 @@ umbsFF_norm <- lmer(sqrt_julian ~ state*year_factor + insecticide + (1|species) 
 summary(umbsFF_norm)
         
 #### More models! This needs more work, I need to write out what each model is doing 
+# Models using median flowering julian date
 
-model1 <- lmer(julian ~ state + (1|species), data = umbs_flwr_med, REML=FALSE)
+# Null model?
+model0 <- lmer(sqrt_julian ~ 1 # This means median flower date (julian) is predicted by the intercept
+               + (1|plot), data = umbs_flwr_med, REML=FALSE) # each plot gets its own intercept
+summary(model0) 
+
+# The effects of warming/ambient (state) on median date of flowering (julian) with species (species) as a random effect.
+model1 <- lmer(sqrt_julian ~ state + (1|species), data = umbs_flwr_med, REML=FALSE)
 summary(model1)
 
-model2 <- lmer(julian ~ state*origin + (1|species) + (1|year_factor), data = umbs_flwr_med, REML=FALSE)
+# The effects of warming/ambient on median date of flowering (julian - response variable) with an interaction between warming and native vs exotic species (origin) with species and year as a random effect.
+model2 <- lmer(sqrt_julian ~ state*origin + (1|species) + (1|year_factor), data = umbs_flwr_med, REML=FALSE)
 summary(model2)
 
-model3 <- lmer(julian ~ state + origin + (1|species), data = umbs_flwr_med, REML=FALSE)
+# The effects of warming/ambient on median date of flowering with origin and insecticide as fixed effects and species and year_factor as random effects
+model3 <- lmer(sqrt_julian ~ state + origin + insecticide + (1|species) + (1|year_factor), data = umbs_flwr_med, REML=FALSE)
 summary(model3)
+summ(model3)
+```
 
+Permanova
+```{r}
+#perma1 <- adonis2(julian ~ state + (1|species), data = umbs_flwr_med, permutations = 999, by = "terms")
+#summary(perma1)
+
+permanova.lmer(model1)
 ```
 
 Updated from Kileigh's script
@@ -164,4 +183,45 @@ confint(mod3, method="boot", nsim=999)
 difflsmeans(mod3, test.effs=NULL, ddf="Satterthwaite")
 ```
 
+## KBS Data
+
+```{r}
+kbs_firstflwr <- subset(FirstFlower_all, site == "kbs") # pull out kbs only data
+
+kbs_flwr_med <- subset(MedianFlwr_all, site == "kbs") # pull out kbs only data
+
+hist(kbs_flwr_med$julian)
+qqnorm(kbs_flwr_med$julian)
+fit2 <- lm(julian ~ state, data = umbs_flwr_med)
+qqPlot(fit2)
+shapiro.test(kbs_flwr_med$julian) #not normal
+
+descdist(kbs_flwr_med$julian, discrete = FALSE) # beta?
+
+skewness(kbs_flwr_med$julian, na.rm = TRUE)  # slight positive skew
+
+ggdensity(kbs_flwr_med, x = "julian", fill = "lightgray", title = "CONT") +
+        stat_overlay_normal_density(color = "red", linetype = "dashed") 
+
+# Because of positive skew I'm transforming the data by taking the square root
+kbs_flwr_med$sqrt_julian <- sqrt(kbs_flwr_med$julian) 
+hist(kbs_flwr_med$sqrt_julian)
+skewness(kbs_flwr_med$sqrt_julian, na.rm = TRUE)
+
+# Now try the log of julian dates
+kbs_flwr_med$log_julian <- log10(kbs_flwr_med$julian)
+hist(kbs_flwr_med$log_julian)
+skewness(kbs_flwr_med$log_julian, na.rm = TRUE)
+
+# Ok now try the inverse
+kbs_flwr_med$inv_julian <- 1/(kbs_flwr_med$julian)
+hist(kbs_flwr_med$inv_julian)
+skewness(kbs_flwr_med$inv_julian, na.rm = TRUE) 
+#taking the inverse of the julian dates made the data the least skewed
+qqnorm(kbs_flwr_med$inv_julian)
+shapiro.test(kbs_flwr_med$inv_julian) #still not normal
+
+#pois <- glm(julian ~ state, data = kbs_flwr_med, family="poisson")
+#hist(pois$residuals)
+```
 
