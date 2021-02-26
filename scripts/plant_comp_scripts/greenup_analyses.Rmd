@@ -20,7 +20,7 @@ The final_kbs and final_umbs dataframes contain data for greenup at each site.
 "half_cover_date" is the date at which 50% of a species max cover was reached (per plot, per year)  
 "state" describes each treatment - warmed or ambient  
 
-```{r echo=FALSE, message=FALSE}
+```{r, message = F}
 # Clear all existing data
 rm(list=ls())
 
@@ -162,8 +162,7 @@ summary(modc)
 ## Error in friedman.test.default(c(141L, 202L, 122L, 101L, 127L, 120L, 197L,  :  not an unreplicated complete block design
 
 # Permanova?
-```{r}
-knitr::opts_chunk$set(cache = TRUE)
+```{r, cache = T}
 per1 <- adonis2(final_kbs$half_cover_date ~ state*year + insecticide, data = final_kbs)
 per1
 ```
