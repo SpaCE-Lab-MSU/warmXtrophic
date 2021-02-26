@@ -1,15 +1,16 @@
 ---
-title: "Phenology Analysis"
+title: "warmXtrophic: Phenology Analysis"
 author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
-output:
-  pdf_document: default
+output: pdf_document
 ---
 
-COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Kara Dobson  
-DATA INPUT: Cleaned phenology data csv from the shared Google drive  
-DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
-PROJECT: warmXtrophic  
+COLLABORATORS:  Kara Dobson, Phoebe Zarnetske, Mark Hammond, Pat Bills  
+DATA INPUT:     Data imported as csv files from shared Google drive "SpaCE_Lab_warmXtrophic" plant comp folder  
+DATA OUTPUT:    a brief description of the data output from through the script, including what format it’s in
+OVERVIEW:       This script ... 
+REQUIRES:       any scripts or code sources that are required
+NOTES: 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, tidy.opts = list(width.cutoff=80), tidy=TRUE)
@@ -101,6 +102,44 @@ Median Flower
 umbs_flwr_med <- subset(MedianFlwr_all, site == "umbs") # pull out umbs only data
 
 hist(umbs_flwr_med$julian)
+#explore what's going on around julian date 190
+
+umbs_flwr_explore <- subset(umbs_flwr_med, julian > 190)
+View(umbs_flwr_explore) 
+# I'm not really seeing anything glaring here when I look at the data. Cest is the most dominate species it
+# appears. I'm going to pull out all the Cest data and look at it separately. 
+
+umbs_flwr_cest <- subset(umbs_flwr_med, species == "Cest") #just Cest median flower date
+View(umbs_flwr_cest)
+hist(umbs_flwr_cest$julian) # this looks pretty normal to me - slight left skew in the data
+
+# Looking into making early and late flowering categories for species (make new column)
+umbs_median_species <- umbs_flwr %>% #median date of flower for each species across EVERYTHING at umbs
+        group_by(species) %>%
+        summarize(julian = median(julian, na.rm=T))
+View(umbs_median_species)
+summary(umbs_median_species) # Mean = 183.2 
+
+# Not sure if this is the best way to do this, but I calculated the median date of flower for each species 
+# across all years and plots then took the summary of those median dates, took the mean (183.2) and made a
+# new column for a flower group broken into "early" (species with a median date less than 183) and "late" 
+# (species with a median date greater than 183) median flower date. 
+umbs_median_species$flwr_group <- with(umbs_median_species, 
+                                       ifelse(julian >= 183, "late", "early"))
+View(umbs_median_species)
+# "early" species: Acru, Ansp, Cape, Dasp, Frve, Hiau, Hica, Hipi, Hisp, Poco, Popr, Ruac, Rual, Spsp, Trdu, Unknown, Vaan, Vear
+# "late" species: Anma, Apan, Assy, Asun, Cest, Elre, Gnul, Hype, Sogi, Sone, Sohi, Syla
+
+umbs_flwr_med$flwr_group <- with(umbs_flwr_med, 
+                                       ifelse(species == c("Acru", "Ansp", "Cape", "Dasp", "Frve", "Hiau", "Hica", "Hipi", "Hisp", "Poco", "Popr", "Ruac", "Rual", "Spsp", "Trdu", "Unknown", "Vaan", "Vear"), "early", "late"))
+
+# histograms for both "early" and "late" flower group separately 
+hist(umbs_flwr_med$julian[umbs_flwr_med$flwr_group == "early"])
+hist(umbs_flwr_med$julian[umbs_flwr_med$flwr_group == "late"])
+# I don't think this did what I wanted it too..... I need a break.
+
+
+
 qqnorm(umbs_flwr_med$julian)
 fit2 <- lm(julian ~ state, data = umbs_flwr_med)
 qqPlot(fit2)
@@ -123,21 +162,11 @@ ggdensity(umbs_flwr_med, x = "sqrt_julian", fill = "lightgray", title = "CONT") 
 Models!
 What is the effect of warming (state) on the median date of flower?
 ```{r}
-# state, year and insecticide are fixed effects with interaction btw state and year - species and plot are random effects
-
-# normal dist
-umbsMED_norm <- lmer(sqrt_julian ~ state*year_factor + insecticide + (1|species) + (1|plot), data = umbs_flwr_med, REML=FALSE)
-summary(umbsMED_norm)
-
-umbsFF_norm <- lmer(sqrt_julian ~ state*year_factor + insecticide + (1|species) + (1|plot), data = umbs_firstflwr, REML=FALSE)
-summary(umbsFF_norm)
-        
-#### More models! This needs more work, I need to write out what each model is doing 
 # Models using median flowering julian date
 
 # Null model?
 model0 <- lmer(sqrt_julian ~ 1 # This means median flower date (julian) is predicted by the intercept
-               + (1|plot), data = umbs_flwr_med, REML=FALSE) # each plot gets its own intercept
+               + (1|plot), data = umbs_flwr_med, REML=FALSE) # each plot gets its own intercept?
 summary(model0) 
 
 # The effects of warming/ambient (state) on median date of flowering (julian) with species (species) as a random effect.
