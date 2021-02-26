@@ -33,6 +33,7 @@ library(car)
 library(fitdistrplus)
 library(ggpubr)
 library(rstatix)
+library(vegan)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -122,7 +123,7 @@ summary(modc)
 #friedman_kbs <- final_kbs %>% 
 #  friedman_test(half_cover_date ~ state)
 ```
-## I get this - Error: Must extract column with a single valid subscript. x Subscript `var` can't be `NA`
+## Error: Must extract column with a single valid subscript. x Subscript `var` can't be `NA`
 ## Can't figure out what this means  
 
 ## If I include the blocks portion of the formula (from the documentation) I get this error
@@ -130,7 +131,14 @@ summary(modc)
 #friedman_kbs <- final_kbs %>% 
 #  friedman_test(half_cover_date ~ state | plot)
 ```
-# Error in friedman.test.default(c(141L, 202L, 122L, 101L, 127L, 120L, 197L,  :  not an unreplicated complete block design
+## Error in friedman.test.default(c(141L, 202L, 122L, 101L, 127L, 120L, 197L,  :  not an unreplicated complete block design
+
+# Permanova?
+```{r}
+knitr::opts_chunk$set(cache = TRUE)
+per1 <- adonis2(final_kbs$half_cover_date ~ state*year + insecticide, data = final_kbs)
+per1
+```
 
 \pagebreak
 
