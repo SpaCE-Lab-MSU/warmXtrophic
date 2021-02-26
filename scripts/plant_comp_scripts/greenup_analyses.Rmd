@@ -1,6 +1,6 @@
 ---
-title: "Greenup Analyses"
-author: "Kara Dobson"
+title: "warmXtrophic Project: Greenup Analyses"
+authors: "Kara Dobson, Phoebe Zarnetske"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
@@ -10,16 +10,17 @@ knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
 ```
+COLLABORATORS:  Moriah Young, Mark Hammond, Pat Bills  
+DATA INPUT:     Data imported as csv files from shared Google drive "SpaCE_Lab_warmXtrophic" plant comp folder  
+DATA OUTPUT:    a brief description of the data output from through the script, including what format it’s in
+OVERVIEW:       This script ... 
+REQUIRES:       any scripts or code sources that are required
+NOTES: 
+The final_kbs and final_umbs dataframes contain data for greenup at each site.  
+"half_cover_date" is the date at which 50% of a species max cover was reached (per plot, per year)  
+"state" describes each treatment - warmed or ambient  
 
-COLLABORATORS:  Phoebe Zarnetske, Moriah Young, Mark Hammond, Pat Bills  
-DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder  
-PROJECT:        warmXtrophic  
-
-### The final_kbs and final_umbs dataframes contain data for greenup at each site.  
-### "half_cover_date" is the date at which 50% of a species max cover was reached (per plot, per year)  
-### "state" describes each treatment - warmed or ambient  
-
-```{r, message = F}
+```{r echo=FALSE, message=FALSE}
 # Clear all existing data
 rm(list=ls())
 
@@ -39,9 +40,11 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in plant comp data
 greenup <- read.csv("L1/greenup/final_greenup_L1.csv")
-#str(greenup)
+# check variable types
+str(greenup)
 
-# changing scale of years
+# adding sequential year variable starting at 1
+greenup$year1<-greenup$year
 greenup$year[greenup$year == 2015] <- 1
 greenup$year[greenup$year == 2016] <- 2
 greenup$year[greenup$year == 2017] <- 3
@@ -54,9 +57,10 @@ final_kbs <- subset(greenup, site == "kbs")
 final_umbs <- subset(greenup, site == "umbs")
 ```
 
+# Data Exploration: are there differences between warmed vs. ambient plots?
 # *Starting with KBS*
 
-# First, checking for normality
+# First, checking for normality in raw data
 ```{r}
 hist(final_kbs$half_cover_date)
 qqnorm(final_kbs$half_cover_date)
