@@ -42,11 +42,12 @@ mean_monthly_gatherk1 <- mean_monthlyk1 %>%
 # Plot the data
 ggplot(mean_monthly_gatherk1, aes(x = as.numeric(month), y = temp)) +
   geom_point(aes(col = treatment, shape = year), size = 1) +
-  geom_smooth(method = "loess", aes(linetype = treatment, col = treatment), size = 1.2,
+  geom_smooth(method = "loess", aes(col = treatment), size = 1.2,
               fill = "grey90") +
-  labs(x = "Month",y = "Temperature °C") +
-  theme_minimal() + 
-  theme(legend.position = "bottom") +
+  labs(x = "Month",y = "Air Temperature °C") +
+  scale_color_manual(values = c("cornflowerblue", "#fb6a4a")) +
+  theme_classic() + 
+  theme(legend.position = "none") +
   scale_x_discrete(limits=c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
 
 ggplot(mean_monthly_gatherk1, aes(x = year, y = temp)) +

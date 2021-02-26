@@ -53,7 +53,7 @@ greenup_plot("Soca", "kbs")
 
 # filter data to contain the averages and std error for each site
 sum_green_site <- greenup %>%
-  group_by(site, state, year) %>%
+  group_by(site, state) %>%
   summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
             se = std.error(half_cover_date, na.rm = TRUE))
 
@@ -61,19 +61,41 @@ sum_green_site <- greenup %>%
 greenup_plot_all <- function(loc) { 
   greenup_spp <- subset(sum_green_site, site == loc)
   return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
-           facet_grid(.~year) +
+           #facet_grid(.~year) +
            geom_bar(position = "identity", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                          position = "identity") +
-           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           labs(x = NULL, y = NULL, title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           coord_cartesian(ylim = c(100, 200)) +
+           coord_cartesian(ylim = c(100, 185)) +
+           theme(legend.position = "none") +
            theme_classic())
 }
-greenup_plot_all("umbs")
-greenup_plot_all("kbs")
+all_u <- greenup_plot_all("umbs")
+all_k <- greenup_plot_all("kbs")
 
+final_all <- ggarrange(all_k, all_u, nrow = 2, legend = "none")
+annotate_figure(final_all,
+                left = text_grob("Julian Day of Greenup", color = "black", rot = 90),
+                bottom = text_grob("State", color = "black"))
+
+# boxplot
+greenup_plot_box <- function(loc) { 
+  greenup_spp <- subset(greenup, site == loc)
+  return(ggplot(greenup_spp, aes(x = state, y = half_cover_date, fill = state)) +
+           #facet_grid(.~year) +
+           geom_boxplot(color = "black") +
+           labs(x = NULL, y = NULL, title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           coord_cartesian(ylim = c(0, 300)) +
+           theme(legend.position = "none") +
+           geom_jitter(shape=16, position=position_jitter(0.2)) +
+           theme_classic())
+}
+all_u <- greenup_plot_box("umbs")
+all_k <- greenup_plot_box("kbs")
 
 
 # by plant origin (native/exotic)
@@ -90,15 +112,40 @@ greenup_plot_org <- function(loc) {
            geom_bar(position = "dodge", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                          position = position_dodge(0.9)) +
-           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           labs(x = NULL, y = NULL, title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            coord_cartesian(ylim = c(100, 200)) +
            theme_classic())
 }
-greenup_plot_org("umbs")
-greenup_plot_org("kbs")
+org_u <- greenup_plot_org("umbs")
+org_k <- greenup_plot_org("kbs")
 
+final_org <- ggarrange(org_k, org_u, ncol = 2, legend = "none")
+annotate_figure(final_org,
+                left = text_grob("Julian Day of Greenup", color = "black", rot = 90),
+                bottom = text_grob("Origin", color = "black"))
+
+# boxplot
+greenup_origin <- subset(greenup, origin == "Exotic" | origin == "Native")
+greenup_plot_orgbox <- function(loc) { 
+  greenup_spp <- subset(greenup_origin, site == loc)
+  return(ggplot(greenup_spp, aes(x = origin, y = half_cover_date, fill = state)) +
+           #facet_grid(.~year) +
+           geom_boxplot(color = "black") +
+           #geom_jitter(shape=16, alpha = 0.2, position=position_jitter(0.4)) +
+           labs(x = NULL, y = NULL, title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+org_box_u <- greenup_plot_orgbox("umbs")
+org_box_k <- greenup_plot_orgbox("kbs")
+
+final_org_box <- ggarrange(org_box_k, org_box_u, ncol = 2, legend = "none")
+annotate_figure(final_org_box,
+                left = text_grob("Julian Day of Greenup", color = "black", rot = 90),
+                bottom = text_grob("Origin", color = "black"))
 
 
 # by plant growth type (forb, graminoid, shrub)

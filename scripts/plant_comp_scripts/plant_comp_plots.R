@@ -23,13 +23,19 @@ meta <- read.csv("L0/plot.csv")
 taxon <- read.csv("L0/taxon.csv")
 str(comp)
 
-# remove uneeded X column
+# remove uneeded X column and species
 comp$X <- NULL
+comp$species[comp$species == "Bare_Ground"] <- NA
+comp$species[comp$species == "Litter"] <- NA
+comp$species[comp$species == "Brown"] <- NA
+comp$species[comp$species == "Vert_Litter"] <- NA
+comp <- na.omit(comp)
 
 # from kileigh's old scripts:
 # average sub-quadrats for plots
 quad.mn <- aggregate(cover ~ plot*species*year*site, data=comp, FUN=mean, na.rm=T)
 names(quad.mn)[names(quad.mn)=="cover"]<-"quad.mn"
+
 head(quad.mn)
 
 # convert cover to relative abundance 
@@ -81,14 +87,18 @@ comp_plot_all <- function(loc) {
            geom_bar(position = "identity", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_cover - se, ymax = avg_cover + se), width = 0.2,
                          position = "identity") +
-           labs(x = "State", y = "Percent Cover", title = loc) +
+           labs(x = NULL, y = NULL, title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-comp_plot_all("umbs")
-comp_plot_all("kbs")
+comp_u <- comp_plot_all("umbs")
+comp_k <- comp_plot_all("kbs")
 
+final_comp <- ggarrange(comp_k, comp_u, nrow = 2, legend = "none")
+annotate_figure(final_comp,
+                left = text_grob("Percent Cover", color = "black", rot = 90),
+                bottom = text_grob("State", color = "black"))
 
 
 # by plant origin (native/exotic) - no grouping by year
@@ -176,10 +186,15 @@ relcomp_plot_all <- function(loc) {
            geom_bar(position = "identity", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_cover - se, ymax = avg_cover + se), width = 0.2,
                          position = "identity") +
-           labs(x = "State", y = "Percent Cover", title = loc) +
+           labs(x = NULL, y = NULL, title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-relcomp_plot_all("umbs")
-relcomp_plot_all("kbs")
+relcomp_u <- relcomp_plot_all("umbs")
+relcomp_k <- relcomp_plot_all("kbs")
+
+final_relcomp <- ggarrange(relcomp_k, relcomp_u, nrow = 2, legend = "none")
+annotate_figure(final_relcomp,
+                left = text_grob("Relative Percent Cover", color = "black", rot = 90),
+                bottom = text_grob("State", color = "black"))

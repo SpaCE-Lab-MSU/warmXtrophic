@@ -112,7 +112,7 @@ altk <- ggplot(KBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
   geom_bar(stat = "identity", position = position_dodge(), color='black') +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
                 position = position_dodge(0.9)) +
-  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#d8ecf2'))+
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#fb6a4a'))+
   theme_classic() +
   labs(title = "KBS", x=NULL, y = NULL, fill = "Treatment") +
   theme(legend.position = "bottom")
@@ -367,7 +367,7 @@ ggplot(KBS_avg_moist, aes(x = year, y = average_temp, fill = treatment)) +
   geom_bar(position = "identity", stat = "identity", color = 'black', alpha = 1) +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
                 position = "identity") +
-  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#d8ecf2'))+
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#fb6a4a'))+
   theme_classic() +
   labs(title = "KBS", x="Year", y = "Soil Moisture", fill = "Treatment")
 
@@ -486,7 +486,7 @@ altu <- ggplot(UMBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
   geom_bar(stat = "identity", position = position_dodge(), color='black') +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
                 position = position_dodge(0.9)) +
-  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#d8ecf2'))+
+  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#fb6a4a'))+
   theme_classic() +
   labs(title = "UMBS", x="Year", y = NULL, fill = "Treatment") +
   theme(legend.position = "bottom")
