@@ -66,13 +66,41 @@ final_umbs <- subset(greenup, site == "umbs")
 hist(final_kbs$half_cover_date)
 qqnorm(final_kbs$half_cover_date)
 shapiro.test(final_kbs$half_cover_date)
+
+# histograms for each treatment separately - look almost identical
 hist(final_kbs$half_cover_date[final_kbs$state == "ambient"])
 hist(final_kbs$half_cover_date[final_kbs$state == "warmed"])
+
+# histograms for each year
+hist(final_kbs$half_cover_date[final_kbs$year == 1])
+hist(final_kbs$half_cover_date[final_kbs$year == 2])
+hist(final_kbs$half_cover_date[final_kbs$year == 3])
+hist(final_kbs$half_cover_date[final_kbs$year == 4])
+hist(final_kbs$half_cover_date[final_kbs$year == 5])
+hist(final_kbs$half_cover_date[final_kbs$year == 6])
+# looks like the 225 spike is from 2018 and 2020 
+kbs_2018 <- subset(final_kbs, year == 4) # many records on 235
+kbs_2020 <- subset(final_kbs, year == 6) # records from 227 & 228
 ```
 
 \pagebreak
 
-# Not normal, and previously attempted transformations don't help  
+# Leverage plots?
+```{r}
+# checking fit for date as a function of state
+fit <- lm(half_cover_date~state, data = final_kbs)
+hist(fit$residuals)
+leveragePlots(fit)
+
+# checking fit for date as a function of state and year
+fit2 <- lm(half_cover_date~state+year, data = final_kbs)
+hist(fit2$residuals)
+leveragePlots(fit2)
+```
+
+\pagebreak
+
+# Not normal, and previously attempted transformations don't help (in R script)
 
 # Seeing what other distribution could fit
 ```{r}
