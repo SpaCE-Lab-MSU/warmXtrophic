@@ -12,6 +12,7 @@ rm(list=ls())
 # Load packages
 library(tidyverse)
 library(plotrix)
+library(ggpubr)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -41,17 +42,21 @@ herb_plot_in <- function(loc) {
   herb_spp <- subset(sum_herb_in, site == loc)
   return(ggplot(herb_spp, aes(x = state, y = avg_eaten, fill = state)) +
            facet_grid(.~year) +
-           geom_bar(position = "identity", stat = "identity") +
+           geom_bar(position = "identity", stat = "identity", col = "black") +
            geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
                          position = "identity") +
-           labs(x = "Treatment", y = "Average Percent of Leaf Eaten", title = loc) +
+           labs(x = NULL, y = NULL, title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-herb_plot_in("umbs")
-herb_plot_in("kbs")
+herb_u <- herb_plot_in("umbs")
+herb_k <- herb_plot_in("kbs")
 
+final_herb <- ggarrange(herb_k, herb_u, nrow = 2, legend = "none")
+annotate_figure(final_herb,
+                left = text_grob("Average Percent of Leaf Eaten", color = "black", rot = 90),
+                bottom = text_grob("State", color = "black"))
 
 
 #### Total damage by site and species with insecticide treatment####
@@ -65,7 +70,7 @@ dam_plot_in <- function(loc) {
   dam_spp <- subset(sum_dam_in, site == loc)
   return(ggplot(dam_spp, aes(x = state, y = avg_dam, fill = state)) +
            facet_grid(.~year) +
-           geom_bar(position = "identity", stat = "identity") +
+           geom_bar(position = "identity", stat = "identity", col = "black") +
            geom_errorbar(aes(ymin = avg_dam - se, ymax = avg_dam + se), width = 0.2,
                          position = "identity") +
            labs(x = "Treatment", y = "Average Percent of Leaf Damage", title = loc) +
