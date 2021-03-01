@@ -27,6 +27,7 @@ library(car)
 library(fitdistrplus)
 library(ggpubr)
 library(rstatix)
+library(vegan)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -45,67 +46,89 @@ greenup$year[greenup$year == 2019] <- 5
 greenup$year[greenup$year == 2020] <- 6
 
 # create dataframes for kbs and umbs
-final_kbs <- subset(greenup, site == "kbs")
-final_umbs <- subset(greenup, site == "umbs")
+green_kbs <- subset(greenup, site == "kbs")
+green_umbs <- subset(greenup, site == "umbs")
 
 
 
 ######### kbs ############
-#### determining distribution ####
+#### data exploration & determining distribution ####
 # first, checking for normality
-hist(final_kbs$half_cover_date)
-qqnorm(final_kbs$half_cover_date)
-shapiro.test(final_kbs$half_cover_date)
-fit <- lm(half_cover_date~state, data = final_kbs)
-qqPlot(fit)
-hist(final_kbs$half_cover_date[final_kbs$state == "ambient"])
-hist(final_kbs$half_cover_date[final_kbs$state == "warmed"])
-# data isn't normal - below I try to transform the data
+hist(green_kbs$half_cover_date)
+qqnorm(green_kbs$half_cover_date)
+shapiro.test(green_kbs$half_cover_date)
 
+# checking fit for date as a function of state
+fit <- lm(half_cover_date~state, data = green_kbs)
+hist(fit$residuals)
+leveragePlots(fit)
+
+# checking fit for date as a function of state and year
+fit2 <- lm(half_cover_date~state+year, data = green_kbs)
+hist(fit2$residuals)
+leveragePlots(fit2)
+
+# histograms for each treatment separately - look almost identical
+hist(green_kbs$half_cover_date[green_kbs$state == "ambient"])
+hist(green_kbs$half_cover_date[green_kbs$state == "warmed"])
+
+# histograms for each year
+hist(green_kbs$half_cover_date[green_kbs$year == 1])
+hist(green_kbs$half_cover_date[green_kbs$year == 2])
+hist(green_kbs$half_cover_date[green_kbs$year == 3])
+hist(green_kbs$half_cover_date[green_kbs$year == 4])
+hist(green_kbs$half_cover_date[green_kbs$year == 5])
+hist(green_kbs$half_cover_date[green_kbs$year == 6])
+# looks like the 225 spike is from 2018 and 2020 
+kbs_2018 <- subset(green_kbs, year == 4) # many records on 235
+kbs_2020 <- subset(green_kbs, year == 6) # records from 227 & 228
+
+
+# trying data transformations
 # mean centering half_cover_date
-final_kbs$date_scaled <- scale(final_kbs$half_cover_date, scale = F)
-hist(final_kbs$date_scaled)
-hist(final_kbs$date_scaled[final_kbs$state == "ambient"])
-hist(final_kbs$date_scaled[final_kbs$state == "warmed"])
-qqnorm(final_kbs$date_scaled)
-shapiro.test(final_kbs$date_scaled)
+green_kbs$date_scaled <- scale(green_kbs$half_cover_date, scale = F)
+hist(green_kbs$date_scaled)
+hist(green_kbs$date_scaled[green_kbs$state == "ambient"])
+hist(green_kbs$date_scaled[green_kbs$state == "warmed"])
+qqnorm(green_kbs$date_scaled)
+shapiro.test(green_kbs$date_scaled)
 # still not normal
 
 # log transform 
-final_kbs$date_log <- log(final_kbs$half_cover_date)
-hist(final_kbs$date_log)
-qqnorm(final_kbs$date_log)
-shapiro.test(final_kbs$date_log)
+green_kbs$date_log <- log(green_kbs$half_cover_date)
+hist(green_kbs$date_log)
+qqnorm(green_kbs$date_log)
+shapiro.test(green_kbs$date_log)
 
 # inverse transform 
-final_kbs$date_inv <- 1/(final_kbs$half_cover_date)
-hist(final_kbs$date_inv)
-qqnorm(final_kbs$date_inv)
-shapiro.test(final_kbs$date_inv)
+green_kbs$date_inv <- 1/(green_kbs$half_cover_date)
+hist(green_kbs$date_inv)
+qqnorm(green_kbs$date_inv)
+shapiro.test(green_kbs$date_inv)
 
 # square root transform 
-final_kbs$date_sqrt <- sqrt(final_kbs$half_cover_date)
-hist(final_kbs$date_sqrt)
-qqnorm(final_kbs$date_sqrt)
-shapiro.test(final_kbs$date_sqrt)
+green_kbs$date_sqrt <- sqrt(green_kbs$half_cover_date)
+hist(green_kbs$date_sqrt)
+qqnorm(green_kbs$date_sqrt)
+shapiro.test(green_kbs$date_sqrt)
 
 # cubed root transform 
-final_kbs$date_cubed <- (final_kbs$half_cover_date)^(1/3)
-hist(final_kbs$date_cubed)
-qqnorm(final_kbs$date_cubed)
-shapiro.test(final_kbs$date_cubed)
+green_kbs$date_cubed <- (green_kbs$half_cover_date)^(1/3)
+hist(green_kbs$date_cubed)
+qqnorm(green_kbs$date_cubed)
+shapiro.test(green_kbs$date_cubed)
 
 
 ##### trying different distributions #######
 # found this method through stackoverflow
-descdist(final_kbs$half_cover_date, discrete = FALSE) # looks closest to uniform
-fit.unif <- fitdist(final_kbs$half_cover_date, "unif")
+descdist(green_kbs$half_cover_date, discrete = FALSE) # looks closest to uniform
+fit.unif <- fitdist(green_kbs$half_cover_date, "unif")
 plot(fit.unif)
 # uniform is closest, but isn't included in glmer so I'll go with poisson (which still makes sense)
-fit <- lm(half_cover_date~state, data = final_kbs)
+fit <- lm(half_cover_date~state, data = green_kbs)
 residual <- fit$residuals
 hist(residual)
-pois <- glm(half_cover_date~state, data = final_kbs, family="poisson")
+pois <- glm(half_cover_date~state, data = green_kbs, family="poisson")
 hist(pois$residuals)
 # still doesn't look very good
 # including parametric & non-parametric models below
@@ -116,21 +139,26 @@ hist(pois$residuals)
 # generalized linear models for poisson distribution with:
 # state, year and insecticide as fixed (w interaction btwn state and year) & species and plot as random effects
 moda <- glmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
-              data=final_kbs, family = poisson)
+              data=green_kbs, family = poisson)
 # state, year and insecticide as separate fixed effects & species and plot as random effects
 modb <- glmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
-              data=final_kbs, family = poisson)
+              data=green_kbs, family = poisson)
 # state and insecticide as fixed effects & year, species and plot as random effects
 modc <- glmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
-              data=final_kbs, family = poisson)
+              data=green_kbs, family = poisson)
 anova(moda, modb, modc)
 summary(moda)
 anova(moda)
 
 ## non-parametric ##
-friedman_kbs <- final_kbs %>% 
-  friedman_test(half_cover_date ~ state | plot)
+friedman_kbs <- green_kbs %>% 
+  friedman_test(half_cover_date ~ state)
 
+## permanova 
+per1 <- adonis2(green_kbs$half_cover_date ~ state*year + insecticide, data = green_kbs)
+per1
+per2 <- adonis(formula = green_kbs$half_cover_date ~ state*year + insecticide, strata = green_kbs$plot, data = green_kbs)
+per2
 
 # from kileigh's code
 confint(modb, method="boot", nsim=999)
@@ -143,71 +171,71 @@ difflsmeans(modb, test.effs=NULL, ddf="Satterthwaite")
 ########### umbs ##############
 #### determining distribution ####
 # first, checking normality
-hist(final_umbs$half_cover_date)
-qqnorm(final_umbs$half_cover_date)
-shapiro.test(final_umbs$half_cover_date)
-fit2 <- lm(half_cover_date~state, data = final_umbs)
+hist(green_umbs$half_cover_date)
+qqnorm(green_umbs$half_cover_date)
+shapiro.test(green_umbs$half_cover_date)
+fit2 <- lm(half_cover_date~state, data = green_umbs)
 qqPlot(fit2)
-hist(final_umbs$half_cover_date[final_kbs$state == "ambient"])
-hist(final_umbs$half_cover_date[final_kbs$state == "warmed"])
+hist(green_umbs$half_cover_date[green_kbs$state == "ambient"])
+hist(green_umbs$half_cover_date[green_kbs$state == "warmed"])
 # when separated by state the histograms are just a bit right skewed
 
 # mean centering half_cover_date
-final_umbs$date_scaled <- scale(final_umbs$half_cover_date, scale = F)
-hist(final_umbs$date_scaled)
-hist(final_umbs$date_scaled[final_kbs$state == "ambient"])
-hist(final_umbs$date_scaled[final_kbs$state == "warmed"])
-qqnorm(final_umbs$date_scaled)
-shapiro.test(final_umbs$date_scaled)
+green_umbs$date_scaled <- scale(green_umbs$half_cover_date, scale = F)
+hist(green_umbs$date_scaled)
+hist(green_umbs$date_scaled[green_kbs$state == "ambient"])
+hist(green_umbs$date_scaled[green_kbs$state == "warmed"])
+qqnorm(green_umbs$date_scaled)
+shapiro.test(green_umbs$date_scaled)
 # still not normal
 
 # log transform 
-final_umbs$date_log <- log(final_umbs$half_cover_date)
-hist(final_umbs$date_log)
-qqnorm(final_umbs$date_log)
-shapiro.test(final_umbs$date_log)
+green_umbs$date_log <- log(green_umbs$half_cover_date)
+hist(green_umbs$date_log)
+qqnorm(green_umbs$date_log)
+shapiro.test(green_umbs$date_log)
 # this looks pretty good but shapiro wilk test still is below 0.05 (how important is this?)
 
 # inverse transform 
-final_umbs$date_inv <- 1/(final_umbs$half_cover_date)
-hist(final_umbs$date_inv)
-qqnorm(final_umbs$date_inv)
-shapiro.test(final_umbs$date_inv)
+green_umbs$date_inv <- 1/(green_umbs$half_cover_date)
+hist(green_umbs$date_inv)
+qqnorm(green_umbs$date_inv)
+shapiro.test(green_umbs$date_inv)
 # also looks better, still below 0.05 for shapiro wilk
 
 # square root transform 
-final_umbs$date_sqrt <- sqrt(final_umbs$half_cover_date)
-hist(final_umbs$date_sqrt)
-qqnorm(final_umbs$date_sqrt)
-shapiro.test(final_umbs$date_sqrt)
+green_umbs$date_sqrt <- sqrt(green_umbs$half_cover_date)
+hist(green_umbs$date_sqrt)
+qqnorm(green_umbs$date_sqrt)
+shapiro.test(green_umbs$date_sqrt)
 
 # cubed root transform 
-final_umbs$date_cubed <- (final_umbs$half_cover_date)^(1/3)
-hist(final_umbs$date_cubed)
-qqnorm(final_umbs$date_cubed)
-shapiro.test(final_umbs$date_cubed)
+green_umbs$date_cubed <- (green_umbs$half_cover_date)^(1/3)
+hist(green_umbs$date_cubed)
+qqnorm(green_umbs$date_cubed)
+shapiro.test(green_umbs$date_cubed)
 
 
 ##### trying different distributions ######
-descdist(final_umbs$half_cover_date, discrete = FALSE) # maybe gamma?
-fit.gamma <- fitdist(final_kbs$half_cover_date, "gamma")
+descdist(green_umbs$half_cover_date, discrete = FALSE) # maybe gamma?
+fit.gamma <- fitdist(green_kbs$half_cover_date, "gamma")
 plot(fit.gamma)
 
 # using glm
 residual2 <- fit2$residuals
 hist(residual2)
-gamma <- glm(half_cover_date~state, data = final_umbs, family = "Gamma")
+gamma <- glm(half_cover_date~state, data = green_umbs, family = "Gamma")
 hist(gamma$residuals)
 
 
 ###### running analyses ########
 ## partially taken from kileighs old models ##
 modd <- glmer(half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
-              data=final_umbs, family = poisson)
+              data=green_umbs, family = poisson)
 mode <- glmer(half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
-              data=final_umbs, family = poisson)
+              data=green_umbs, family = poisson)
 modf <- glmer(half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
-              data=final_umbs, family = poisson)
+              data=green_umbs, family = poisson)
 anova(modd, mode, modf)
 summary(modd)
 anova(modd)
@@ -226,18 +254,18 @@ difflsmeans(modd, test.effs=NULL, ddf="Satterthwaite")
 ##### my attempt before finding Kileigh's script #######
 ### comparing linear vs mixed effects ###
 # linear model
-lm1 <- lm(half_cover_date~state*year+insecticide, data = final_kbs)
+lm1 <- lm(half_cover_date~state*year+insecticide, data = green_kbs)
 summary(lm1)
 
-lm2 <- lm(half_cover_date~state*year+insecticide, data = final_umbs)
+lm2 <- lm(half_cover_date~state*year+insecticide, data = green_umbs)
 summary(lm2)
 
 # mixed effects model
-lme2 <- lme(half_cover_date~state*year+insecticide, random=~1|species, data = final_kbs)
+lme2 <- lme(half_cover_date~state*year+insecticide, random=~1|species, data = green_kbs)
 summary(lme2)
 coef(lme2)
 
-lme3 <- lme(half_cover_date~state*year+insecticide, random=~1|species, data = final_umbs)
+lme3 <- lme(half_cover_date~state*year+insecticide, random=~1|species, data = green_umbs)
 summary(lme3)
 coef(lme3)
 
