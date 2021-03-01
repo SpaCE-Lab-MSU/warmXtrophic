@@ -38,16 +38,16 @@ MedFlwr_all <- phen_flwr %>%
 
 sum_MedFlwr <- MedFlwr_all %>%
         group_by(site, state, year) %>%
-        summarize(med_julian = median(julian, na.rm=TRUE))
-
-
+        summarize(med_julian = median(julian, na.rm=TRUE),
+                  se = std.error(julian, na.rm = TRUE))
+                  
 sum_MedFlwr_plot <- function(loc) { 
         MedFlwr_sub <- subset(sum_MedFlwr, site == loc)
         return(ggplot(MedFlwr_sub, aes(x = state, y = med_julian, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity", color = "black") +
-                       #geom_errorbar(aes(ymin = med_julian - se, ymax = med_julian + se), width = 0.2,
-                       #              position = "identity") +
+                       geom_errorbar(aes(ymin = med_julian - se, ymax = med_julian + se), width = 0.2,
+                                     position = "identity") +
                        labs(x = NULL, y = NULL, title = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
@@ -276,7 +276,7 @@ sum_FirstSeed_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity", color = "black") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Date", title = "Average Julian Date of First Seed" ,subtitle = loc) +
+                       labs(x = "State", y = "Julian Date", title = loc) +
                        coord_cartesian(ylim = c(150, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
