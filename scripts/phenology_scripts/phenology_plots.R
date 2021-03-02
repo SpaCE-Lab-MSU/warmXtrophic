@@ -34,7 +34,7 @@ phen_sd <- subset(phen_data, action == "seed")
 #### Median Flower ####
 MedFlwr_all <- phen_flwr %>%
         group_by(plot, year, species, state, site, action, origin) %>%
-        summarize(med_julian = median(julian, na.rm=T))
+        summarize(julian = median(julian, na.rm=T))
 
 sum_MedFlwr <- MedFlwr_all %>%
         group_by(site, state, year) %>%
@@ -89,14 +89,14 @@ FirstFlower_plot <- function(spp, loc) {
         FirstFlower_spp <- subset(sum_FirstFlower, species == spp & site == loc)
         return(ggplot(FirstFlower_spp, aes(x = state, y = avg_julian, fill = state)) +
                        facet_grid(.~year) +
-                       geom_bar(position = "identity", stat = "identity") +
+                       geom_bar(position = "identity", stat = "identity", color = "black") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
                        labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        coord_cartesian(ylim = c(100, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_grey())
+                       theme_classic())
 }
 
 FirstFlower_plot("Popr", "umbs")
@@ -139,8 +139,8 @@ annotate_figure(final_all,
 
 # boxplot (again, taking from Kara)
 firstflwr_plot_box <- function(loc) { 
-        greenup_spp <- subset(greenup, site == loc)
-        return(ggplot(greenup_spp, aes(x = state, y = half_cover_date, fill = state)) +
+        phen_spp <- subset(FirstFlower_all, site == loc)
+        return(ggplot(phen_spp, aes(x = state, y = julian, fill = state)) +
                        #facet_grid(.~year) +
                        geom_boxplot(color = "black") +
                        labs(x = NULL, y = NULL, title = loc) +
@@ -151,8 +151,11 @@ firstflwr_plot_box <- function(loc) {
                        geom_jitter(shape=16, position=position_jitter(0.2)) +
                        theme_classic())
 }
-all_u <- greenup_plot_box("umbs")
-all_k <- greenup_plot_box("kbs")
+all_u <- firstflwr_plot_box("umbs")
+all_k <- firstflwr_plot_box("kbs")
+
+all_u #idk this looks weird
+all_k
 
 # We want to see the graphs for kbs and umbs side by side, so using "cowplot" to do this
 #kbs <- sum_FirstFlwr_plot("kbs")
@@ -163,7 +166,7 @@ all_k <- greenup_plot_box("kbs")
 
 # Filter FirstFlower_all by plant origin (native/exotic)
 sum_flwr_org <- FirstFlower_all %>%
-        group_by(site, origin, state, year) %>%
+        group_by(site, origin, state) %>%
         summarize(avg_julian = mean(julian, na.rm = TRUE),
                   se = std.error(julian, na.rm = TRUE))
 sum_flwr_org <- subset(sum_flwr_org, origin == "Exotic" | origin == "Native")
@@ -172,18 +175,24 @@ View(sum_flwr_org)
 flwr_org_plot <- function(loc) { 
         flwr_spp <- subset(sum_flwr_org, site == loc)
         return(ggplot(flwr_spp, aes(x = origin, y = avg_julian, fill = state)) +
-                       facet_grid(.~year) +
+                       #facet_grid(.~year) +
                        geom_bar(position = "dodge", stat = "identity", color = "black") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = position_dodge(0.9)) +
-                       labs(x = "State", y = "Julian Date", title = "Native vs Exotic Avg Julian Date of First Flower", subtitle = loc) +
+                       labs(x = NULL, y = NULL, title = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
-                       #coord_cartesian(ylim = c(100, 200)) +
+                       coord_cartesian(ylim = c(100, 225)) +
                        theme_grey())
 }
-flwr_org_plot("kbs")
-flwr_org_plot("umbs")
+
+orgin_u <- flwr_org_plot("umbs")
+orgin_k <- flwr_org_plot("kbs")
+
+final_orgin <- ggarrange(orgin_k, orgin_u, ncol = 2, legend = "none")
+annotate_figure(final_orgin,
+                left = text_grob("Julian Day of First Flower", color = "black", rot = 90),
+                bottom = text_grob("Origin", color = "black"))
 
 ##### Flowering Duration #####
 
@@ -276,7 +285,7 @@ sum_FirstSeed_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity", color = "black") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian Date", title = loc) +
+                       labs(x = NULL, y = NULL, title = loc) +
                        coord_cartesian(ylim = c(150, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
