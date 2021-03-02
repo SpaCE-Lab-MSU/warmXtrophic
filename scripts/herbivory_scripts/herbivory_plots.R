@@ -59,6 +59,36 @@ annotate_figure(final_herb,
                 bottom = text_grob("State", color = "black"))
 
 
+
+### Total herb by origin (native/exotic)
+sum_herb_org <- herb %>%
+  group_by(site, state, origin, insecticide) %>%
+  summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+            se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_org <- subset(sum_herb_org, insecticide == "insects")
+sum_herb_org <- subset(sum_herb_org, origin == "Exotic" | origin == "Native")
+
+sum_plot_org <- function(loc) { 
+  org_spp <- subset(sum_herb_org, site == loc)
+  return(ggplot(org_spp, aes(x = origin, y = avg_eaten, fill = state)) +
+           #facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", col = "black") +
+           geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = NULL, y = NULL, title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+herb_org_u <- sum_plot_org("umbs")
+herb_org_k <- sum_plot_org("kbs")
+final_herb_org <- ggarrange(herb_org_k, herb_org_u, nrow = 2, legend = "none")
+annotate_figure(final_herb_org,
+                left = text_grob("Average Percent of Leaf Eaten", color = "black", rot = 90),
+                bottom = text_grob("Origin", color = "black"))
+
+
+
 #### Total damage by site and species with insecticide treatment####
 sum_dam_in <- herb %>%
   group_by(site, state, insecticide, year) %>%
@@ -73,13 +103,63 @@ dam_plot_in <- function(loc) {
            geom_bar(position = "identity", stat = "identity", col = "black") +
            geom_errorbar(aes(ymin = avg_dam - se, ymax = avg_dam + se), width = 0.2,
                          position = "identity") +
-           labs(x = "Treatment", y = "Average Percent of Leaf Damage", title = loc) +
+           labs(x = NULL, y = NULL, title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-dam_plot_in("umbs")
-dam_plot_in("kbs")
+dam_u <- dam_plot_in("umbs")
+dam_k <- dam_plot_in("kbs")
+final_dam <- ggarrange(dam_k, dam_u, nrow = 2, legend = "none")
+annotate_figure(final_dam,
+                left = text_grob("Average Percent of Leaf Damage", color = "black", rot = 90),
+                bottom = text_grob("State", color = "black"))
+
+
+### Total damage by origin (native/exotic)
+sum_dam_org <- herb %>%
+  group_by(site, state, origin, insecticide) %>%
+  summarize(avg_dam = mean(p_damage, na.rm = TRUE),
+            se = std.error(p_damage, na.rm = TRUE))
+sum_dam_org <- subset(sum_dam_org, insecticide == "insects")
+sum_dam_org <- subset(sum_dam_org, origin == "Exotic" | origin == "Native")
+
+dam_plot_org <- function(loc) { 
+  org_dam_spp <- subset(sum_dam_org, site == loc)
+  return(ggplot(org_dam_spp, aes(x = origin, y = avg_dam, fill = state)) +
+           #facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", col = "black") +
+           geom_errorbar(aes(ymin = avg_dam - se, ymax = avg_dam + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = NULL, y = NULL, title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+dam_org_u <- dam_plot_org("umbs")
+dam_org_k <- dam_plot_org("kbs")
+final_dam_org <- ggarrange(dam_org_k, dam_org_u, nrow = 2, legend = "none")
+annotate_figure(final_dam_org,
+                left = text_grob("Average Percent of Leaf Damage", color = "black", rot = 90),
+                bottom = text_grob("Origin", color = "black"))
+
+# boxplot for the same data
+dam_origin <- subset(herb, origin == "Exotic" | origin == "Native")
+#dam_origin <- subset(dam_origin, p_damage <= 20)
+dam_plot_box <- function(loc) { 
+  dam_spp <- subset(dam_origin, site == loc)
+  return(ggplot(dam_spp, aes(x = origin, y = p_damage, fill = state)) +
+           #facet_grid(.~year) +
+           geom_boxplot(color = "black") +
+           labs(x = NULL, y = NULL, title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme(legend.position = "none") +
+           #geom_jitter(shape=16, position=position_jitter(0.2)) +
+           theme_classic())
+}
+dam_box_u <- dam_plot_box("umbs")
+dam_box_k <- dam_plot_box("kbs")
 
 
 

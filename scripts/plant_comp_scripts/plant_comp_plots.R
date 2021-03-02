@@ -18,33 +18,31 @@ library(ggpubr)
 # **** Update with the path to your Google drive on your computer
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
-# Read in plant comp data
+# Read in plant comp data and meta-data
 comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
 meta <- read.csv("L0/plot.csv")
-taxon <- read.csv("L0/taxon.csv")
 str(comp)
 
 # remove uneeded X column and species
 comp$X <- NULL
 comp$species[comp$species == "Bare_Ground"] <- NA
-comp$species[comp$species == "Litter"] <- NA
 comp$species[comp$species == "Brown"] <- NA
-comp$species[comp$species == "Vert_Litter"] <- NA
 comp <- na.omit(comp)
 
-# from kileigh's old scripts:
+# getting relative % cover for comparisions between native & exotic #
 # average sub-quadrats for plots
-quad.mn <- aggregate(cover ~ plot*species*year*site, data=comp, FUN=mean, na.rm=T)
+comp_org <- subset(comp, origin == "Exotic" | origin == "Native")
+quad.mn <- aggregate(cover ~ plot*origin*species*year*site, data=comp_org, FUN=mean, na.rm=T)
 names(quad.mn)[names(quad.mn)=="cover"]<-"quad.mn"
 
 head(quad.mn)
 
 # convert cover to relative abundance 
 # first get summed cover for all plants per plot
-cov.sum = aggregate(quad.mn ~ plot*year*site, data=quad.mn, FUN=sum, na.rm=T)
+cov.sum = aggregate(quad.mn ~ plot*origin*year*site, data=quad.mn, FUN=sum, na.rm=T)
 names(cov.sum)[names(cov.sum)=="quad.mn"]<-"cov.sum"
 head(cov.sum)
-comp2 <- merge(quad.mn,cov.sum, by=c("plot","year","site"))
+comp2 <- merge(quad.mn,cov.sum, by=c("plot","origin","year","site"))
 
 #calculate relative percent cover per species in each quadrat (="relative abundance")
 comp2$relab <- comp2$quad.mn/comp2$cov.sum
@@ -54,28 +52,24 @@ summary(comp2)
 colnames(taxon)[which(names(taxon) == "code")] <- "species"
 
 # Merge meta-data with plant comp data
-comp3 <- left_join(meta, comp2, by = "plot")
-rel_comp <- left_join(taxon, comp3, by = "species")
+comp_rel <- left_join(meta, comp2, by = "plot")
 
-# remove uneeded columns
-rel_comp$site.x <- NULL
-rel_comp$scientific_name <- NULL
-rel_comp$USDA_code <- NULL
-rel_comp$LTER_code <- NULL
-rel_comp$old_code <- NULL
-rel_comp$old_name <- NULL
-rel_comp$resolution <- NULL
-rel_comp$group <- NULL
-rel_comp$family <- NULL
-rel_comp$common_name <- NULL
-# fix column name
-colnames(rel_comp)[which(names(rel_comp) == "site.y")] <- "site"
 
 
 
 #### plots for percent cover #####
+# subset out a date in August (one in late July) for each site to look at biomass w/o repeating measurements
+comp_peak <- subset(comp, date == "2015-08-25" | date == "2015-07-28" | # first date is kbs, second is umbs
+                      date == "2016-08-19" | date == "2016-08-13" |
+                      date == "2017-08-02" | date == "2017-08-10" |
+                      date == "2018-08-23" | date == "2018-08-09" |
+                      date == "2019-08-12" | date == "2019-08-14" |
+                      date == "2020-08-15" | date == "2020-08-04")
+
 # filter data to contain the averages and std error for each site
-sum_comp_site <- comp %>%
+comp_peak$species[comp_peak$species == "Litter"] <- NA
+comp_peak$species[comp_peak$species == "Vert_Litter"] <- NA
+sum_comp_site <- comp_peak %>%
   group_by(site, state, year) %>%
   summarize(avg_cover = mean(cover, na.rm = TRUE),
             se = std.error(cover, na.rm = TRUE))
@@ -103,10 +97,10 @@ annotate_figure(final_comp,
 
 
 # by plant origin (native/exotic) - no grouping by year
-sum_comp_org <- comp %>%
+sum_comp_org <- comp_rel %>%
   group_by(site, state, origin) %>%
-  summarize(avg_comp = mean(cover, na.rm = TRUE),
-            se = std.error(cover, na.rm = TRUE))
+  summarize(avg_comp = mean(relab, na.rm = TRUE),
+            se = std.error(relab, na.rm = TRUE))
 sum_comp_org <- subset(sum_comp_org, origin == "Exotic" | origin == "Native")
 
 comp_plot_org <- function(loc) { 
@@ -116,21 +110,25 @@ comp_plot_org <- function(loc) {
            geom_bar(position = "dodge", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_comp - se, ymax = avg_comp + se), width = 0.2,
                          position = position_dodge(0.9)) +
-           labs(x = "State", y = "Percent Cover", title = loc) +
+           labs(x = NULL, y = NULL, title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-comp_plot_org("umbs")
-comp_plot_org("kbs")
+org_u <- comp_plot_org("umbs")
+org_k <- comp_plot_org("kbs")
 
+final_org <- ggarrange(org_k, org_u, ncol = 2, legend = "none")
+annotate_figure(final_org,
+                left = text_grob("Relative Percent Cover", color = "black", rot = 90),
+                bottom = text_grob("Origin", color = "black"))
 
 
 # by plant origin (native/exotic) - grouped by year
-sum_compyear_org <- comp %>%
+sum_compyear_org <- comp_rel %>%
   group_by(site, state, origin, year) %>%
-  summarize(avg_comp = mean(cover, na.rm = TRUE),
-            se = std.error(cover, na.rm = TRUE))
+  summarize(avg_comp = mean(relab, na.rm = TRUE),
+            se = std.error(relab, na.rm = TRUE))
 sum_compyear_org <- subset(sum_compyear_org, origin == "Exotic" | origin == "Native")
 
 compyear_plot_org <- function(loc) { 

@@ -72,8 +72,9 @@ str(comp_merge)
 # Change column names to lowercase so they can be merged with metadata
 names(comp_merge) <- tolower(names(comp_merge))
 
-# Make year and julian date columns
+# Make year, month, and julian date columns
 comp_merge$year <- format(comp_merge$date,format="%Y")
+comp_merge$month <- format(comp_merge$date,format="%m")
 comp_merge$julian <- format(comp_merge$date, "%j")
 
 # Make julian column numeric
@@ -87,7 +88,6 @@ plant_comp_merge <- left_join(meta, comp_merge, by = "plot")
 plant_comp_merge2 <- left_join(taxon, plant_comp_merge, by = "species")
 
 # remove uneeded columns
-plant_comp_merge2$date <- NULL
 plant_comp_merge2$species.y <- NULL
 plant_comp_merge2$X <- NULL
 plant_comp_merge2$site.x <- NULL

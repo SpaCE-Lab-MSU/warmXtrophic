@@ -20,7 +20,8 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 source("~/warmXtrophic/scripts/herbivory_scripts/herbivory_functions.R")
 
 # Read in data
-meta <- read.csv("L2/plot.csv")
+meta <- read.csv("L0/plot.csv")
+taxon <- read.csv("L0/taxon.csv")
 kbs_2015 <- read.csv("L0/KBS/2015/kbs_leaf_herbivory_2015.csv")
 kbs_2016 <- read.csv("L0/KBS/2016/kbs_leaf_herbivory_2016.csv")
 kbs_2017 <- read.csv("L0/KBS/2017/kbs_leaf_herbivory_2017.csv")
@@ -85,9 +86,27 @@ str(herb_merge)
 # Add year column
 herb_merge$year <- format(herb_merge$date,format="%Y")
 
+# change taxon column name for merging
+colnames(taxon)[which(names(taxon) == "code")] <- "species"
+
 # Merge metadata with data
 herb <- left_join(meta, herb_merge, by = "plot")
-str(herb)
+herb2 <- left_join(taxon, herb, by = "species")
+
+# remove uneeded columns
+herb2$site.x <- NULL
+herb2$scientific_name <- NULL
+herb2$USDA_code <- NULL
+herb2$LTER_code <- NULL
+herb2$old_code <- NULL
+herb2$old_name <- NULL
+herb2$resolution <- NULL
+herb2$group <- NULL
+herb2$family <- NULL
+herb2$common_name <- NULL
+
+# fix column name
+colnames(herb2)[which(names(herb2) == "site.y")] <- "site"
 
 # Upload clean csv to google drive
-write.csv(herb, file="L1/herbivory/final_herbivory_L1.csv")
+write.csv(herb2, file="L1/herbivory/final_herbivory_L1.csv")
