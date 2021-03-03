@@ -1,6 +1,6 @@
 ---
 title: "warmXtrophic Project: Greenup Analyses"
-authors: "Kara Dobson, Phoebe Zarnetske"
+author: "Kara Dobson, Phoebe Zarnetske"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
@@ -14,7 +14,7 @@ COLLABORATORS:  Moriah Young, Mark Hammond, Pat Bills
 DATA INPUT:     Data imported as csv files from shared Google drive "SpaCE_Lab_warmXtrophic" plant comp folder  
 DATA OUTPUT:    a brief description of the data output from through the script, including what format it’s in
 OVERVIEW:       This script explores and analyses the greenup data from the KBS and UMBS stations. Greenup was recorded as percent cover of each species in each plot every 3 days in the beginning of the field season. Percent cover continued to be measured until the end of the field season. For calculating greenup dates, we use the date at which 50% of a species maximum percent cover was reached for each plot, to account for variation in litter depth affecting the early season's first greenup date.
-REQUIRES:       any scripts or code sources that are required
+REQUIRES:       Kara: elaborate on this to include any scripts or code sources that are required:                    Prior to running this script, run plant_comp_clean_L0.R, which creates greenup.csv ...
 NOTES: 
 The green_kbs and green_umbs dataframes contain data for greenup at each site.  
 "half_cover_date" is the date at which 50% of a species max cover was reached (per plot, per year)  
@@ -39,10 +39,13 @@ library(vegan)
 # **** Update with the path to your Google drive on your computer
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
-# Read in plant comp data
+# Read in plant comp data - edit this in "plant_comp_clean_L0.R" so it's not an issue here with extra column
 greenup <- read.csv("L1/greenup/final_greenup_L1.csv")
 # check variable types
 str(greenup)
+# KARA: omit this once fixed in plant_comp_clean_L0.R
+# remove first column 
+greenup$X<-NULL
 
 # adding sequential year variable starting at 1
 greenup$year1<-greenup$year
@@ -58,10 +61,10 @@ green_kbs <- subset(greenup, site == "kbs")
 green_umbs <- subset(greenup, site == "umbs")
 ```
 
-# Data Exploration: are there differences between warmed vs. ambient plots?
+# Data Exploration: are there differences between warmed vs. ambient plots ?
 # *Starting with KBS*
 
-# First, checking for normality in raw data
+# First, checking for normality in raw data. 
 ```{r}
 hist(green_kbs$half_cover_date)
 qqnorm(green_kbs$half_cover_date)
