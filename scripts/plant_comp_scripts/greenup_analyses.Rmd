@@ -38,6 +38,7 @@ library(fitdistrplus)
 library(ggpubr)
 library(rstatix)
 library(vegan)
+library(interactions)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -68,7 +69,8 @@ green_umbs <- subset(greenup, site == "umbs")
 # Data Exploration: are there differences between warmed vs. ambient plots when we account for species?
 # *Starting with KBS*
 
-# First, checking for normality in raw data. This is a little weird to do because each row in the dataframe is a species-plot combo, so you're missing the influence of species below. Instead, re-run this on plot-level half cover date (re-compute this in plant_comp_clean_L0.R to get that variable first)
+# First, checking for normality in raw data. This is a little weird to do because each row in the dataframe is a species-plot combo, so you're missing the influence of species below. Instead, re-run this on plot-level half cover date (re-compute this in plant_comp_clean_L0.R to get that variable first).
+# *Note that since this change, some of the code below breaks because the variable name changed. Also, there seem to be some errors popping up with qqPlot, suggesting that something else changed when this new variable was created. Check* 
 ```{r}
 # note to self - re-organize greennup csv to remove species influence for this part (merge by plot)
 hist(green_kbs$plot_half_cover_date)
@@ -98,15 +100,25 @@ kbs_2020 <- subset(green_kbs, year == 6) # records from 227 & 228
 ```{r}
 # checking fit for date as a function of state and species - bringing in species here makes it obvious that that is explaining some of the variation compared with the state-only model you had previously.
 
+<<<<<<< HEAD
 # State-only model (not really correct bc species differ)
 fit<- lm(spp_half_cover_date~state, data = green_kbs)
 outlierTest(fit)
+=======
+# State-only model - not really correct bc species are not included
+fit<- lm(spp_half_cover_date~state, data = green_kbs)
+outlierTest(fit) # looks like record # 5273 is an outlier (p-value <0.05)
+>>>>>>> 3d42e6cccaa5d04a3d2c36c57637c7fe83a80a26
 qqPlot(fit, main="QQ Plot") 
 hist(fit$residuals)
 leveragePlots(fit)
 
 # State and species model 
 fit1 <- lm(spp_half_cover_date~state + species, data = green_kbs)
+<<<<<<< HEAD
+=======
+outlierTest(fit1) # looks like record # 5273 is still an outlier (p-value <<0.05)
+>>>>>>> 3d42e6cccaa5d04a3d2c36c57637c7fe83a80a26
 hist(fit1$residuals)
 qqPlot(fit1, main="QQ Plot") 
 leveragePlots(fit1)
@@ -120,22 +132,51 @@ leveragePlots(fit2)
 
 \pagebreak
 
-# Normal distribution after accounting for species - we will be using species as a random effect to account for their variation.
+# Normal distribution after accounting for species - we will be using species as a random effect to account for their variation. Set up some linear mixed effects models to evaluate.
 
 ```{r}
+<<<<<<< HEAD
 # Do we need to include plot as a random effect with the KBS models? Plot accounts for the multiple observations in a plot, so it's probably not necessary because year should account for that. If we care about understanding the year - to - year variation 
 mod1 <- lmer(spp_half_cover_date ~ state + insecticide + year + (1|species) + (1|plot), green_kbs, REML=FALSE)
 mod2 <- lmer(spp_half_cover_date ~ state + insecticide + year + (1|species), green_kbs, REML=FALSE)
+=======
+# Start by replicating (almost) what we did in the Oecologia 2018 paper. The only difference here is that we have multiple years, so we are also including year as a fixed effect. Later we'll add it as fixed and random (see below).
+
+# Do we need to include plot as a random effect with the KBS models? Plot accounts for the multiple observations in a plot, so it's probably not necessary because year should account for that. 
+
+mod1 <- lmer(half_cover_date ~ state + insecticide + year + (1|species) + (1|plot), green_kbs, REML=FALSE)
+mod2 <- lmer(half_cover_date ~ state + insecticide + year + (1|species), green_kbs, REML=FALSE)
+
+# Run an anova on 2 models to see if models differ.
+# For interpretation of this test, see: https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
+>>>>>>> 3d42e6cccaa5d04a3d2c36c57637c7fe83a80a26
 anova(mod2, mod1) # They aren't different so select more parsimonious (mod2)
 summary(mod1) 
 summary(mod2)
 
+<<<<<<< HEAD
 #Do we need to include insecticide? See: for interpretation of this test: https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
 mod3 <- lmer(spp_half_cover_date ~ state + year + (1|species), green_kbs, REML=FALSE)
+=======
+#Do we need to include insecticide? 
+mod3 <- lmer(half_cover_date ~ state + year + (1|species), green_kbs, REML=FALSE)
+>>>>>>> 3d42e6cccaa5d04a3d2c36c57637c7fe83a80a26
 anova(mod2, mod3)
-
 # Looks like yes, insecticide improves model fit so we will continue to include it. 
+```
+Let's think about how the model should be set up given that species are measured in every year (they are repeated measures). Instead of adding year as a fixed effect only, we should acknowledge that species are measured within every year. So a better way to set the model up is below, accounting for species nested within year. 
 
+We should also think about how we're treating year. The formulation below also has a state * year interaction as a fixed effect, which means that the warming or ambient treatment could affect the half_cover_date differently in each year (there would be a different slope for each state in the relationship between half_cover_date (y) and year (x). If we just had state + year, the states would have the same slope, indicating that they have no interaction in their effect on half_cover_date.
+
+```{r}
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html
+fit3 <- lm(plot_half_cover_date ~ state + year, data = green_kbs)
+interact_plot(fit3, pred = year, modx = state)
+fit4 <- lm(plot_half_cover_date ~ state * year, data = green_kbs)
+interact_plot(fit4, pred = year, modx = state)
+
+
+mod4 <- lmer(half_cover_date ~ state * year + (1+Day|Subject), mydata)
 ```
 
 # *ORIGINAL CODE BELOW; not edited by Phoebe* ##
