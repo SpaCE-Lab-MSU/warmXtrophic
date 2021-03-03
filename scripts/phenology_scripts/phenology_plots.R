@@ -51,7 +51,7 @@ sum_MedFlwr_plot <- function(loc) {
                        labs(x = NULL, y = NULL, title = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       coord_cartesian(ylim = c(150, 210)) +
+                       coord_cartesian(ylim = c(150, NA)) +
                        theme(legend.position = "none") +
                        theme_classic())
 }
@@ -93,7 +93,7 @@ FirstFlower_plot <- function(spp, loc) {
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
                        labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
-                       coord_cartesian(ylim = c(100, 250)) +
+                       coord_cartesian(ylim = c(120, NA)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_classic())
@@ -120,7 +120,7 @@ sum_FirstFlwr_plot <- function(loc) {
                        labs(x = NULL, y = NULL, title = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       coord_cartesian(ylim = c(100, 210)) +
+                       coord_cartesian(ylim = c(150, NA)) +
                        theme(legend.position = "none") +
                        theme_classic())
 }
@@ -182,7 +182,7 @@ flwr_org_plot <- function(loc) {
                        labs(x = NULL, y = NULL, title = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
-                       coord_cartesian(ylim = c(100, 225)) +
+                       coord_cartesian(ylim = c(100, NA)) +
                        theme_grey())
 }
 
@@ -222,7 +222,7 @@ sum_FlwrDurState_plot <- function(loc) {
                        geom_errorbar(aes(ymin = mean_duration - se, ymax = mean_duration + se), width = 0.2,
                                      position = "identity") +
                        labs(x = NULL, y = NULL, title = loc) +
-                       #coord_cartesian(ylim = c(150, 200)) +
+                       coord_cartesian(ylim = c(0, NA)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_classic())
@@ -286,7 +286,7 @@ sum_FirstSeed_plot <- function(loc) {
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
                        labs(x = NULL, y = NULL, title = loc) +
-                       coord_cartesian(ylim = c(150, 250)) +
+                       coord_cartesian(ylim = c(170, NA)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        theme_classic())
