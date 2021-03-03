@@ -143,17 +143,23 @@ anova(mod2, mod3)
 ```
 Let's think about how the model should be set up given that species are measured in every year (they are repeated measures). Instead of adding year as a fixed effect only, we should acknowledge that species are measured within every year. So a better way to set the model up is below, accounting for species nested within year. 
 
-We should also think about how we're treating year. The formulation below also has a state * year interaction as a fixed effect, which means that the warming or ambient treatment could affect the half_cover_date differently in each year (there would be a different slope for each state in the relationship between half_cover_date (y) and year (x). If we just had state + year, the states would have the same slope, indicating that they have no interaction in their effect on half_cover_date.
+We should also think about how we're treating year. The formulation below also has a state * year interaction as a fixed effect, which means that the warming or ambient treatment could affect the half_cover_date differently over time (there would be a different slope for each state in the relationship between half_cover_date (y) and year (x)). If we just had state + year, the states would have the same slope, indicating that they have no interaction in their effect on half_cover_date.
 
 ```{r}
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
 fit3 <- lm(plot_half_cover_date ~ state + year, data = green_kbs)
 interact_plot(fit3, pred = year, modx = state)
 fit4 <- lm(plot_half_cover_date ~ state * year, data = green_kbs)
 interact_plot(fit4, pred = year, modx = state)
 
+# New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
+mod4 <- lmer(spp_half_cover_date ~ state * year + (1+year|species), green_kbs)
 
-mod4 <- lmer(half_cover_date ~ state * year + (1+Day|Subject), mydata)
+# So another version of this model would include the interaction but not include the nesting (and thus would assume that species aren't observed ea yr)
+mod5 <- lmer(spp_half_cover_date ~ state * year + (1|species), green_kbs)
+summary(mod5) 
+
 ```
 
 # *ORIGINAL CODE BELOW; not edited by Phoebe* ##
