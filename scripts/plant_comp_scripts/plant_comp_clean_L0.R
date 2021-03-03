@@ -129,10 +129,10 @@ half_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
 
 # make each into a dataframe
 half_cover_dates_df <- data.frame("plot.species.site.year" = names(half_cover_dates),
-                                  "half_cover_date" = unname(half_cover_dates), stringsAsFactors = FALSE)
+                                  "spp_half_cover_date" = unname(half_cover_dates), stringsAsFactors = FALSE)
 
 half_cover_datep_df <- data.frame("plot.site.year" = names(half_cover_datep),
-                                  "half_cover_date" = unname(half_cover_datep), stringsAsFactors = FALSE)
+                                  "plot_half_cover_date" = unname(half_cover_datep), stringsAsFactors = FALSE)
 
 # fix species and plot columns
 half_cover_dates_df[["plot"]] <- sapply(X = strsplit(x = half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 1L)
@@ -141,38 +141,40 @@ half_cover_dates_df[["site"]] <- sapply(X = strsplit(x =half_cover_dates_df[["pl
 half_cover_dates_df[["year"]] <- sapply(X = strsplit(x =half_cover_dates_df[["plot.species.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 4L)
 half_cover_dates_df$plot.species.site.year <- NULL
 
-# fix plot column - CHECK THIS
+# fix plot column
 half_cover_datep_df[["plot"]] <- sapply(X = strsplit(x = half_cover_datep_df[["plot.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 1L)
-half_cover_datep_df[["site"]] <- sapply(X = strsplit(x =half_cover_datep_df[["plot.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 3L)
-half_cover_datep_df[["year"]] <- sapply(X = strsplit(x =half_cover_datep_df[["plot.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 4L)
+half_cover_datep_df[["site"]] <- sapply(X = strsplit(x =half_cover_datep_df[["plot.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 2L)
+half_cover_datep_df[["year"]] <- sapply(X = strsplit(x =half_cover_datep_df[["plot.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 3L)
 half_cover_datep_df$plot.site.year <- NULL
 
+
+# is this value correlated with first date of greenup?
 # determine first date of emergence for correlation with 'green-up' index
 min_date <- aggregate(plant_comp_merge$julian,by=plant_comp_merge[,c("plot","species")],FUN=min)
 colnames(min_date) <- c("plot", "species", "min_emerg_date")
 
 # merge min date dateframe with "green-up index" df
-combineds <- merge(half_cover_dates_df, min_date, by=c("plot", "species"))
+combined <- merge(half_cover_dates_df, min_date, by=c("plot", "species"))
 
-# merge min date dateframe with "green-up index" df
-combinedp <- merge(half_cover_datep_df, min_date, by=c("plot"))
-
-## KARA: check below to add/ adjust to incorporate the plot-level half_cover_date
 # calculate correlation
-cor.test(combined$min_emerg_date, combined$half_cover_date)
+cor.test(combined$min_emerg_date, combined$half_cover_date) # yes
 
 # change taxon column name for merging
 colnames(taxon)[which(names(taxon) == "code")] <- "species"
 
+
 # re-merge data with meta data info
-final <- left_join(meta, combined, by = "plot")
+final <- left_join(meta, half_cover_dates_df, by = "plot")
 final <- left_join(taxon, final, by = "species")
+final <- left_join(half_cover_datep_df, final, by = c("plot", "year"))
 
 # remove uneeded columns
 final$cover <- NULL
 final$julian <- NULL
 final$X <- NULL
 final$site.x <- NULL
+final$year.x <- NULL
+final$site <-  NULL
 final$scientific_name <- NULL
 final$USDA_code <- NULL
 final$LTER_code <- NULL
@@ -185,6 +187,7 @@ final$common_name <- NULL
 
 # fix column names
 colnames(final)[which(names(final) == "site.y")] <- "site"
+colnames(final)[which(names(final) == "year.y")] <- "year"
 
 # upload greenup csv to google drive
 write.csv(final, file="L1/greenup/final_greenup_L1.csv")
