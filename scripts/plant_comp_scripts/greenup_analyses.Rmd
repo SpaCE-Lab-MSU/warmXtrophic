@@ -66,7 +66,8 @@ green_umbs <- subset(greenup, site == "umbs")
 # Data Exploration: are there differences between warmed vs. ambient plots when we account for species?
 # *Starting with KBS*
 
-# First, checking for normality in raw data. This is a little weird to do because each row in the dataframe is a species-plot combo, so you're missing the influence of species below. Instead, re-run this on plot-level half cover date (re-compute this in plant_comp_clean_L0.R to get that variable first)
+# First, checking for normality in raw data. This is a little weird to do because each row in the dataframe is a species-plot combo, so you're missing the influence of species below. Instead, re-run this on plot-level half cover date (re-compute this in plant_comp_clean_L0.R to get that variable first).
+# *Note that since this change, some of the code below breaks because the variable name changed. Also, there seem to be some errors popping up with qqPlot, suggesting that something else changed when this new variable was created. Check* 
 ```{r}
 hist(green_kbs$half_cover_date)
 qqnorm(green_kbs$half_cover_date)
@@ -95,21 +96,22 @@ kbs_2020 <- subset(green_kbs, year == 6) # records from 227 & 228
 ```{r}
 # checking fit for date as a function of state and species - bringing in species here makes it obvious that that is explaining some of the variation compared with the state-only model you had previously.
 
-# State-only model (not really correct bc species differ)
-fit<- lm(half_cover_date~state, data = green_kbs)
-outlierTest(fit)
+# State-only model - not really correct bc species are not included
+fit<- lm(spp_half_cover_date~state, data = green_kbs)
+outlierTest(fit) # looks like record # 5273 is an outlier (p-value <0.05)
 qqPlot(fit, main="QQ Plot") 
 hist(fit$residuals)
 leveragePlots(fit)
 
 # State and species model 
-fit1 <- lm(half_cover_date~state + species, data = green_kbs)
+fit1 <- lm(spp_half_cover_date~state + species, data = green_kbs)
+outlierTest(fit1) # looks like record # 5273 is still an outlier (p-value <<0.05)
 hist(fit1$residuals)
 qqPlot(fit1, main="QQ Plot") 
 leveragePlots(fit1)
 
 # checking fit for date as a function of state and year
-fit2 <- lm(half_cover_date~state+species+year, data = green_kbs)
+fit2 <- lm(spp_half_cover_date~state+species+year, data = green_kbs)
 hist(fit2$residuals)
 qqPlot(fit2, main="QQ Plot") 
 leveragePlots(fit2)
@@ -117,22 +119,36 @@ leveragePlots(fit2)
 
 \pagebreak
 
-# Normal distribution after accounting for species - we will be using species as a random effect to account for their variation.
+# Normal distribution after accounting for species - we will be using species as a random effect to account for their variation. Set up some linear mixed effects models to evaluate.
 
 ```{r}
-# Do we need to include plot as a random effect with the KBS models? Plot accounts for the multiple observations in a plot, so it's probably not necessary because year should account for that. If we care about understanding the year - to - year variation 
+# Start by replicating (almost) what we did in the Oecologia 2018 paper. The only difference here is that we have multiple years, so we are also including year as a fixed effect. Later we'll add it as fixed and random (see below).
+
+# Do we need to include plot as a random effect with the KBS models? Plot accounts for the multiple observations in a plot, so it's probably not necessary because year should account for that. 
+
 mod1 <- lmer(half_cover_date ~ state + insecticide + year + (1|species) + (1|plot), green_kbs, REML=FALSE)
 mod2 <- lmer(half_cover_date ~ state + insecticide + year + (1|species), green_kbs, REML=FALSE)
+# Run an anova on 2 models to see if models differ.
+# For interpretation of this test, see: https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
 anova(mod2, mod1) # They aren't different so select more parsimonious (mod2)
 summary(mod1) 
 summary(mod2)
 
-#Do we need to include insecticide? See: for interpretation of this test: https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
+#Do we need to include insecticide? 
 mod3 <- lmer(half_cover_date ~ state + year + (1|species), green_kbs, REML=FALSE)
 anova(mod2, mod3)
-
 # Looks like yes, insecticide improves model fit so we will continue to include it. 
+```
+Let's think about how the model should be set up given that species are measured in every year (they are repeated measures). Instead of adding year as a fixed effect only, we should acknowledge that species are measured within every year. So a better way to set the model up is below, accounting for species nested within year. 
 
+We should also think about how we're treating year. The formulation below also has a state * year interaction as a fixed effect, which means that the warming or ambient treatment could affect the half_cover_date differently in each year (there would be a different slope each year in the relationship between half_cover_date (y) and year (x), depending on state. If we just had state + year, the treatment and year would independently impact the half_cover_date.
+
+```{r}
+# Interaction plot (ignore for now the repeated measures with species):
+fit1 <- lm(half_cover_date ~ state * year, data = green_kbs)
+interact_plot(fitiris, pred = Petal.Width, modx = Species)
+
+mod4 <- lmer(half_cover_date ~ state * year + (1+Day|Subject), mydata)
 ```
 
 # *ORIGINAL CODE BELOW; not edited by Phoebe* ##
