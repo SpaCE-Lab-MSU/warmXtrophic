@@ -8,21 +8,42 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
+library(kableExtra)
 opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
 ```
-COLLABORATORS:  Moriah Young, Mark Hammond, Pat Bills  
-DATA INPUT:     Data imported as csv files from shared Google drive "SpaCE_Lab_warmXtrophic" plant comp folder  
-DATA OUTPUT:    a brief description of the data output from through the script, including what format it’s in
-OVERVIEW:       This script explores and analyses the greenup data from the KBS and UMBS stations. Greenup was recorded as percent cover of each species in each plot every 3 days in the beginning of the field season. Percent cover continued to be measured until the end of the field season. For calculating greenup dates, we use the date at which 50% of a species maximum percent cover was reached for each plot, to account for variation in litter depth affecting the early season's first greenup date.
-REQUIRES:       Prior to running this script, make sure plant_comp_clean_L0.R is run and up to date. That script creates the final_greenup_L1.csv in the L1 folder in the Google drive, which contains the clean greenup data
-NOTES:
-"spp_half_cover_date" is the date at which 50% of a species max cover was reached (per species, per plot, per year)
-"plot_half_cover_date" is the date at which 50% of a species max cover was reached (per plot, per year)
-"state" describes each treatment - warmed or ambient  
-Each row in "greenup" is the date at which spp_half_cover_date was recorded, per species 
-The green_kbs and green_umbs dataframes contain data for greenup at each site. 
-  
-"state" describes each treatment - warmed or ambient  
+
+# Script Details:
+```{r, message = F}
+script_tbl <- data.frame(
+  Item = c("OVERVIEW", "COLLABORATORS", "REQUIRES", "DATA INPUT", "DATA OUTPUT", "NOTES"),
+  Details = c("This script explores and analyses the greenup data from the KBS and UMBS stations. Greenup was recorded as percent cover of each species in each plot every 3 days in the beginning of the field season. Percent cover continued to be measured until the end of the field season. For calculating greenup dates, we use the date at which 50% of a species maximum percent cover was reached for each plot, to account for variation in litter depth affecting the early season's first greenup date.",
+              "Moriah Young, Mark Hammond, Pat Bills",
+              "Prior to running this script, make sure plant_comp_clean_L0.R is run and up to date. That script creates the final_greenup_L1.csv in the L1 folder in the Google drive, which contains the clean greenup data",
+              "Data imported as csv files from shared Google drive 'SpaCE_Lab_warmXtrophic' plant comp folder",
+              "... a brief description of the data output from through the script, including what format it’s in",
+              "Each row in 'greenup' is the date at which spp_half_cover_date was recorded, per species. The 'green_kbs' and 'green_umbs' dataframes contain data for greenup at each site."
+  )
+)
+
+kbl(script_tbl) %>%
+  kable_paper(full_width = F) %>%
+  column_spec(1, bold = T, border_right = T) %>%
+  column_spec(2, width = "30em", background = "lightblue")
+
+metadata_tbl <- data.frame(
+  Variable = c("spp_half_cover_date", "plot_half_cover_date", "state"),
+  Definition = c("date at which 50% of a species max cover was reached (per species, per plot, per year)", 
+    "the date at which 50% of a plot's max cover was reached (per plot, per year)",
+    "describes each treatment: warmed or ambient"
+  )
+)
+
+kbl(metadata_tbl) %>%
+  kable_paper(full_width = F) %>%
+  column_spec(1, bold = T, border_right = T) %>%
+  column_spec(2, width = "30em", background = "lightyellow")
+
+```
 
 ```{r, message = F}
 # Clear all existing data
@@ -154,7 +175,6 @@ mod3 <- lmer(spp_half_cover_date ~ state + year + (1|species), green_kbs, REML=F
 
 #Do we need to include insecticide? 
 mod3 <- lmer(half_cover_date ~ state + year + (1|species), green_kbs, REML=FALSE)
-
 anova(mod2, mod3)
 # Looks like yes, insecticide improves model fit so we will continue to include it. 
 ```
