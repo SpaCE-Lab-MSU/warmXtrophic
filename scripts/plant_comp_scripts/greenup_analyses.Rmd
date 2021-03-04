@@ -215,14 +215,16 @@ anova(mod5, mod6)
 
 # Next, plot the model. There are multiple variables but here's one way to do it based on this post:
 # https://stats.stackexchange.com/questions/98958/plots-to-illustrate-results-of-linear-mixed-effect-model
-newdat <- expand.grid(Sex=unique(green_kbs$state),
-                  age=c(min(green_kbs$year),
+# Not quite working yet:
+newdat <- expand.grid(state=unique(green_kbs$state),
+                  year=c(min(green_kbs$year),
                             max(green_kbs$year)))
 p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state)) +
   geom_point(size=3) +
   geom_line(aes(y=predict(mod5), group=species, size="species")) +
-  geom_line(data=newdat, aes(y=predict(fm2, level=0, newdata=newdat), size="Population")) +
-  scale_size_manual(name="Predictions", values=c("Subjects"=0.5, "Population"=3)) +
+  geom_line(data=newdat, aes(y=predict(mod5, level=0, newdata=newdat), size="Population")) +
+  scale_size_manual(name="Predictions", values=c("species"=0.5, "Population"=3)) +
+  facet_wrap(~insecticide) +
   theme_bw(base_size=22) 
 print(p)
 
