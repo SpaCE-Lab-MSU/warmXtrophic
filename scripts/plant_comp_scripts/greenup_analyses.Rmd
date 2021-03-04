@@ -189,6 +189,11 @@ fit3 <- lm(plot_half_cover_date ~ state + year, data = green_kbs)
 interact_plot(fit3, pred = year, modx = state)
 fit4 <- lm(plot_half_cover_date ~ state * year, data = green_kbs)
 interact_plot(fit4, pred = year, modx = state)
+
+fit5 <- lm(plot_half_cover_date ~ state + year + species, data = green_kbs)
+interact_plot(fit5, pred = year, modx = state)
+fit6 <- lm(plot_half_cover_date ~ state * year + species, data = green_kbs)
+interact_plot(fit6, pred = year, modx = state, mod2 = species)
 ```
 
 Mixed Effects Models:
@@ -198,9 +203,10 @@ Mixed Effects Models:
 # Do we need to include plot as a random effect with the KBS models?   
 mod1 <- lmer(spp_half_cover_date ~ state*year + insecticide*year + (1|species) + (1|plot), green_kbs, REML=FALSE)
 mod2 <- lmer(spp_half_cover_date ~ state*year + insecticide*year + (1|species), green_kbs, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1)
 
-# Run an anova on 2 models to see if models differ.
-# For interpretation of this test, see: https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
+# Run an ANOVA to test if 2 models to test whether the more complex model is significantly better at capturing the data than the simpler model. If the resulting p-value is sufficiently low (usually less than 0.05), we conclude that the more complex model is significantly better than the simpler model, and thus favor the more complex model. If the p-value is not sufficiently low (usually greater than 0.05), we should favor the simpler model. https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
 anova(mod2, mod1) # They are different so plot as a random effect should stay in the model (we go with mod1)
 summary(mod1) 
 summary(mod2)
@@ -232,6 +238,7 @@ mod5 <- lmer(spp_half_cover_date ~ state + year + insecticide*year + (1|species)
 anova(mod1, mod5)
 # No, P>0.05 so state*year doesn't improve model fit so we will drop it and go with mod5
 summary(mod5)
+anova(mod5)
 
 # these are the fixed effects estimates from summary(mod5)
 plot_model(mod5, sort.est = TRUE)
@@ -245,6 +252,7 @@ mod6 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1
 anova(mod5, mod6)
 # Yes, insecticide*year still improves model fit so we will continue to include it and stick with mod5
 summary(mod7)
+anova(mod7)
 
 # If we wanted to include plots nested within year it would look like this:
 mod7 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1+year|plot), green_kbs, REML=FALSE)
