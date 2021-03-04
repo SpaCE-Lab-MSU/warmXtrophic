@@ -61,6 +61,9 @@ library(ggpubr)
 library(rstatix)
 library(vegan)
 library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -76,7 +79,16 @@ str(greenup)
 # remove first column 
 greenup$X<-NULL
 
-# adding sequential year variable starting at 1
+# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor.
+greenup$state = with(greenup, reorder(class, hwy, median))
+
+
+greenup$state<-as.factor(greenup$state)
+levels(greenup$state)
+greenup$state <- factor(greenup$state, levels(greenup$state)[c(2,1)])
+levels(greenup$state)
+
+# adding sequential year variable starting at 1: this is because 2015... are large numbers compare with other values in the dataset. We can always label axes with these real years.
 greenup$year1<-greenup$year
 greenup$year[greenup$year == 2015] <- 1
 greenup$year[greenup$year == 2016] <- 2
@@ -193,6 +205,18 @@ anova(mod2, mod1) # They are different so plot as a random effect should stay in
 summary(mod1) 
 summary(mod2)
 
+# Next, plot the model. There are multiple variables but here's one way to do it based on this package sjPlot:
+# https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html
+# Annoyingly, this package somehow overwrites the factor order in its plotting so we will have to modify the code to get warmed = red. I haven't figured this out yet. It does seem to work on some of the plots. hmm.
+?plot_model
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod1, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod1, type = "pred", terms = c("year", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod1, type = "re", terms = c("species", "plot"))
+
 # Do we need to include insecticide? 
 mod3 <- lmer(spp_half_cover_date ~ state*year + (1|species), green_kbs, REML=FALSE)
 anova(mod1, mod3)
@@ -207,24 +231,57 @@ anova(mod1, mod4)
 mod5 <- lmer(spp_half_cover_date ~ state + year + insecticide*year + (1|species) + (1|plot), green_kbs, REML=FALSE)
 anova(mod1, mod5)
 # No, P>0.05 so state*year doesn't improve model fit so we will drop it and go with mod5
+summary(mod5)
+
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod5, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod5, type = "pred", terms = c("year", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod5, type = "re", terms = c("species", "plot"))
 
 # Let's try dropping insecticide*year
 mod6 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1|plot), green_kbs, REML=FALSE)
 anova(mod5, mod6)
 # Yes, insecticide*year still improves model fit so we will continue to include it and stick with mod5
+summary(mod7)
 
-# Next, plot the model. There are multiple variables but here's one way to do it based on this post:
+# If we wanted to include plots nested within year it would look like this:
+mod7 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1+year|plot), green_kbs, REML=FALSE)
+anova(mod5, mod7)
+# Yup, seems to matter but it is making this more complex, though not overly so because it's on the random effects structure only.
+plot_model(mod7, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod7, type = "pred", terms = c("year", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod7, type = "re", terms = c("species", "plot"))
+
+# mod5 (and mod7) are pretty complex. We could consider an alternative model that's simpler and also one that provides more insight about the species, even if it's not quite as good a fit to the data. That would be something like this:
+mod8 <- lmer(spp_half_cover_date ~ state + year + species + (1|plot), green_kbs, REML=FALSE)
+anova(mod5, mod8)
+summary(mod8)
+plot_model(mod8, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod8, type = "pred", terms = c("year", "state", "species"))
+# these are the random effects estimates
+plot_model(mod8, type = "re", terms = c("species"))
+
+# Here are some other options for plotting these plots above: 
+# https://stackoverflow.com/questions/31075407/plot-mixed-effects-model-in-ggplot
+
+# Here's another approach:
 # https://stats.stackexchange.com/questions/98958/plots-to-illustrate-results-of-linear-mixed-effect-model
 # Not quite working yet:
 newdat <- expand.grid(state=unique(green_kbs$state),
                   year=c(min(green_kbs$year),
-                            max(green_kbs$year)))
-p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state)) +
+                            max(green_kbs$year)),
+                  insecticide=unique(green_kbs$insecticide))
+p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state, shape=insecticide)) +
   geom_point(size=3) +
   geom_line(aes(y=predict(mod5), group=species, size="species")) +
   geom_line(data=newdat, aes(y=predict(mod5, level=0, newdata=newdat), size="Population")) +
   scale_size_manual(name="Predictions", values=c("species"=0.5, "Population"=3)) +
-  facet_wrap(~insecticide) +
+  #facet_wrap(~insecticide) +
   theme_bw(base_size=22) 
 print(p)
 
