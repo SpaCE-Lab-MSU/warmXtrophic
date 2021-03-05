@@ -45,7 +45,8 @@ kbl(metadata_tbl) %>%
 
 ```
 
-```{r, message = F}
+
+```{r, message = FALSE, warning = FALSE}
 # Clear all existing data
 rm(list=ls())
 
@@ -64,6 +65,7 @@ library(interactions)
 library(sjPlot)
 library(effects)
 library(glmmTMB)
+#install.packages('TMB',type='source')
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -80,9 +82,6 @@ str(greenup)
 greenup$X<-NULL
 
 # Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor.
-greenup$state = with(greenup, reorder(class, hwy, median))
-
-
 greenup$state<-as.factor(greenup$state)
 levels(greenup$state)
 greenup$state <- factor(greenup$state, levels(greenup$state)[c(2,1)])
@@ -251,12 +250,13 @@ plot_model(mod5, type = "re", terms = c("species", "plot"))
 mod6 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1|plot), green_kbs, REML=FALSE)
 anova(mod5, mod6)
 # Yes, insecticide*year still improves model fit so we will continue to include it and stick with mod5
-summary(mod7)
-anova(mod7)
+summary(mod6)
+anova(mod6)
 
 # If we wanted to include plots nested within year it would look like this:
 mod7 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1+year|plot), green_kbs, REML=FALSE)
 anova(mod5, mod7)
+anova(mod7)
 # Yup, seems to matter but it is making this more complex, though not overly so because it's on the random effects structure only.
 plot_model(mod7, sort.est = TRUE)
 # these are the fixed predicted values:
@@ -264,15 +264,25 @@ plot_model(mod7, type = "pred", terms = c("year", "state", "insecticide"))
 # these are the random effects estimates
 plot_model(mod7, type = "re", terms = c("species", "plot"))
 
-# mod5 (and mod7) are pretty complex. We could consider an alternative model that's simpler and also one that provides more insight about the species, even if it's not quite as good a fit to the data. That would be something like this:
-mod8 <- lmer(spp_half_cover_date ~ state + year + species + (1|plot), green_kbs, REML=FALSE)
-anova(mod5, mod8)
+# mod5 (and mod7) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+# We're going to use lmerTest for this example so you can see how to run through post-hoc tests.
+library(lmerTest)
+mod8 <- lmer(spp_half_cover_date ~ state + species + (1+year|plot), green_kbs, REML=FALSE)
+anova(mod7, mod8) # model 8 is a better fit to data
 summary(mod8)
+anova(mod8) # investigates whether at least one of the levels within each factor is significantly different. 
+# Yes, at least one of the species is different (they do not all have the same half cover dates). 
+
+# Take a look at the estimates for each fixed effect. These are the estimates from summary(mod8). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
 plot_model(mod8, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod8, type = "pred", terms = c("year", "state", "species"))
+# if you want to standardize the estimates:
+plot_model(mod8, sort.est = TRUE, type="std") 
+# these are the fixed predicted values: - note this is a new plot
+plot_model(mod8, type = "pred", terms = c("species", "state"))
 # these are the random effects estimates
-plot_model(mod8, type = "re", terms = c("species"))
+plot_model(mod8, type = "re")
+
+# You could now run some post hoc tests on these (see: https://stats.stackexchange.com/questions/169543/output-of-fixed-effects-summary-in-lmertest-in-r-and-post-hoc-tests)
 
 # Here are some other options for plotting these plots above: 
 # https://stackoverflow.com/questions/31075407/plot-mixed-effects-model-in-ggplot
