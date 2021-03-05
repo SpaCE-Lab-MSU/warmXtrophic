@@ -27,6 +27,8 @@ str(comp)
 comp$X <- NULL
 comp$species[comp$species == "Bare_Ground"] <- NA
 comp$species[comp$species == "Brown"] <- NA
+comp$species[comp$species == "Litter"] <- NA
+comp$species[comp$species == "Vert_Litter"] <- NA
 comp <- na.omit(comp)
 
 # getting relative % cover for comparisions between native & exotic #
@@ -138,13 +140,18 @@ compyear_plot_org <- function(loc) {
            geom_bar(position = "dodge", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_comp - se, ymax = avg_comp + se), width = 0.2,
                          position = position_dodge(0.9)) +
-           labs(x = "State", y = "Percent Cover", title = loc) +
+           labs(x = NULL, y = NULL, title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
            theme_classic())
 }
-compyear_plot_org("umbs")
-compyear_plot_org("kbs")
+comp_u <- compyear_plot_org("umbs")
+comp_k <- compyear_plot_org("kbs")
+
+final_org_comp <- ggarrange(comp_k, comp_u, nrow = 2, common.legend = T, legend = "right")
+annotate_figure(final_org_comp,
+                left = text_grob("Relative % Cover", color = "black", rot = 90),
+                bottom = text_grob("Origin", color = "black"))
 
 
 # by plant growth habit (forb, graminoid, shrub)

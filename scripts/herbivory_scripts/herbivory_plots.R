@@ -62,7 +62,7 @@ annotate_figure(final_herb,
 
 ### Total herb by origin (native/exotic)
 sum_herb_org <- herb %>%
-  group_by(site, state, origin, insecticide) %>%
+  group_by(site, state, origin, insecticide, year) %>%
   summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
             se = std.error(p_eaten, na.rm = TRUE))
 sum_herb_org <- subset(sum_herb_org, insecticide == "insects")
@@ -71,7 +71,7 @@ sum_herb_org <- subset(sum_herb_org, origin == "Exotic" | origin == "Native")
 sum_plot_org <- function(loc) { 
   org_spp <- subset(sum_herb_org, site == loc)
   return(ggplot(org_spp, aes(x = origin, y = avg_eaten, fill = state)) +
-           #facet_grid(.~year) +
+           facet_grid(.~year) +
            geom_bar(position = "dodge", stat = "identity", col = "black") +
            geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
                          position = position_dodge(0.9)) +
@@ -118,7 +118,7 @@ annotate_figure(final_dam,
 
 ### Total damage by origin (native/exotic)
 sum_dam_org <- herb %>%
-  group_by(site, state, origin, insecticide) %>%
+  group_by(site, state, origin, insecticide, year) %>%
   summarize(avg_dam = mean(p_damage, na.rm = TRUE),
             se = std.error(p_damage, na.rm = TRUE))
 sum_dam_org <- subset(sum_dam_org, insecticide == "insects")
@@ -127,7 +127,7 @@ sum_dam_org <- subset(sum_dam_org, origin == "Exotic" | origin == "Native")
 dam_plot_org <- function(loc) { 
   org_dam_spp <- subset(sum_dam_org, site == loc)
   return(ggplot(org_dam_spp, aes(x = origin, y = avg_dam, fill = state)) +
-           #facet_grid(.~year) +
+           facet_grid(.~year) +
            geom_bar(position = "dodge", stat = "identity", col = "black") +
            geom_errorbar(aes(ymin = avg_dam - se, ymax = avg_dam + se), width = 0.2,
                          position = position_dodge(0.9)) +
