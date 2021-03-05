@@ -1,19 +1,49 @@
 ---
-title: "warmXtrophic: Phenology Analysis"
+title: "warmXtrophic project: Phenology Analysis"
 author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
 
-COLLABORATORS:  Kara Dobson, Phoebe Zarnetske, Mark Hammond, Pat Bills  
-DATA INPUT:     Data imported as csv files from shared Google drive "SpaCE_Lab_warmXtrophic" plant comp folder  
-DATA OUTPUT:    a brief description of the data output from through the script, including what format it’s in
-OVERVIEW:       This script ... 
-REQUIRES:       any scripts or code sources that are required
-NOTES: 
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, tidy.opts = list(width.cutoff=80), tidy=TRUE)
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(kableExtra)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Script Details:
+```{r, message = F}
+script_tbl <- data.frame(
+  Item = c("OVERVIEW", "COLLABORATORS", "REQUIRES", "DATA INPUT", "DATA OUTPUT", "NOTES"),
+  Details = c("This script explores and analyses the flower and seed phenolgy data from the KBS and UMBS stations. Flowering and seeding was recorded as species present with at least one individual flowering every 3 days in the beginning of the field season and continued to be measured until the end of the field season. For calculating phenology dates, we calculated the date of first flower, median flower date, and average duration of flowering. For seeding with calculated the date of first seed",
+              "Phoebe, Zarnetske, Kara Dobson, Mark Hammond, Pat Bills",
+              "Prior to running this script, make sure phenology_clean_L0.R is run and up to date. That script creates the final_phenology_L1.csv in the L1 folder in the Google drive, which contains the clean phenology data",
+              "Data imported as csv files from shared Google drive 'SpaCE_Lab_warmXtrophic' phenology folder",
+              "... a brief description of the data output from through the script, including what format it’s in",
+              "Each row in 'phen_data' is a date at which flowering or seeding was recorded, per species. The 'phen_kbs' and 'phen_umbs' dataframes contain data for phenolgy at each site."
+  )
+)
+
+kbl(script_tbl) %>%
+  kable_paper(full_width = F) %>%
+  column_spec(1, bold = T, border_right = T) %>%
+  column_spec(2, width = "30em", background = "lightblue")
+
+# will update this to reflect phenology data frames
+metadata_tbl <- data.frame(
+  Variable = c("spp_half_cover_date", "plot_half_cover_date", "state"),
+  Definition = c("date at which 50% of a species max cover was reached (per species, per plot, per year)", 
+    "the date at which 50% of a plot's max cover was reached (per plot, per year)",
+    "describes each treatment: warmed or ambient"
+  )
+)
+
+kbl(metadata_tbl) %>%
+  kable_paper(full_width = F) %>%
+  column_spec(1, bold = T, border_right = T) %>%
+  column_spec(2, width = "30em", background = "lightyellow")
+
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -22,6 +52,7 @@ rm(list=ls())
 
 #Load packages
 library(tidyverse)
+library(ggplot2)
 library(lme4)
 library(lmerTest)
 library(emmeans)
@@ -34,6 +65,14 @@ library(moments)# for calculating skewness of data
 library(ggpubr)
 library(jtools) # summ() function
 library(predictmeans)
+library(olsrr)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
 
 # Set working directory to Google Drive
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
@@ -43,6 +82,14 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 phen_data <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flw_sd_L1.csv", stringsAsFactors=FALSE)
 phen_data$X <- NULL # get rid of "X" column that shows up
 View(phen_data) # take a look at the data to see if looks good
+
+# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor.
+# greenup$state = with(greenup, reorder(class, hwy, median))
+
+phen_data$state<-as.factor(phen_data$state)
+levels(phen_data$state)
+phen_data$state <- factor(phen_data$state, levels(phen_data$state)[c(2,1)])
+levels(phen_data$state)
 
 # make a column that breaks down years as 1, 2, 3, 4, 5, 6 and into factors
 phen_data$year_factor <- 
@@ -65,51 +112,67 @@ umbs_flwr <- subset(phen_flwr, site == "umbs")
 kbs_sd <- subset(phen_sd, site == "kbs")
 umbs_sd <- subset(phen_sd, site == "umbs")
 
-# Filter data to contain the date of first flower for each species at each plot
-FirstFlower_all <- phen_flwr %>%
+# First Flower by species level - filter data to contain the date of first flower for each species at each plot
+FirstFlwr_spp <- phen_flwr %>%
         group_by(plot, year, species, state, site, action, origin, insecticide, year_factor) %>%
         summarize(julian = min(julian, na.rm=T))
 
-MedianFlwr_all <- phen_flwr %>%
+# First Flower Date by plot level
+FirstFlwr_plot <- phen_flwr %>%
+        group_by(plot, year, state, site, insecticide, year_factor) %>%
+        summarize(julian = min(julian, na.rm=T))
+
+# Median Flower Date by species level - filter data to contain the median date of flower for each species at each plot
+MedianFlwr_spp <- phen_flwr %>%
         group_by(plot, year, species, state, site, action, origin, insecticide, year_factor, treatment_key) %>%
         summarize(julian = median(julian, na.rm=T))
+
+# Median Flower Date by plot level
+MedianFlwr_plot <- phen_flwr %>%
+        group_by(plot, year, state, site, insecticide, year_factor) %>%
+        summarize(julian = min(julian, na.rm=T))
 ```
 
-## UMBS Data
+# Data Exploration: are there differences between warmed vs. ambient plots when we account for species?
+# *Starting with UMBS*
 
 First Flower
 ```{r}
-umbs_firstflwr <- subset(FirstFlower_all, site == "umbs") # pull out umbs only data
+umbs_firstflwr_spp <- subset(FirstFlwr_spp, site == "umbs") # pull out umbs only data
+
+umbs_firstflwr_plot <- subset(FirstFlwr_plot, site == "umbs") # pull out umbs only data
 
 # first flower
-hist(umbs_firstflwr$julian) # poisson?
-qqnorm(umbs_firstflwr$julian)
-fit1 <- lm(julian ~ state, data = umbs_firstflwr)
+hist(umbs_firstflwr_spp$julian) # poisson?
+qqnorm(umbs_firstflwr_spp$julian)
+fit1 <- lm(julian ~ state, data = umbs_firstflwr_spp)
 qqPlot(fit1)
-shapiro.test(umbs_firstflwr$julian) 
+shapiro.test(umbs_firstflwr_spp$julian) 
 
-descdist(umbs_firstflwr$julian, discrete = FALSE) # uniform? normal?
+descdist(umbs_firstflwr_spp$julian, discrete = FALSE) # uniform? normal?
 
-skewness(umbs_firstflwr$julian)
+skewness(umbs_firstflwr_spp$julian)
 
-umbs_firstflwr$sqrt_julian <- sqrt(umbs_firstflwr$julian)
-hist(umbs_firstflwr$sqrt_julian)
-skewness(umbs_firstflwr$sqrt_julian, na.rm = TRUE)
+umbs_firstflwr_spp$sqrt_julian <- sqrt(umbs_firstflwr_spp$julian)
+hist(umbs_firstflwr_spp$sqrt_julian)
+skewness(umbs_firstflwr_spp$sqrt_julian, na.rm = TRUE)
 ```
 
 Median Flower 
 ```{r}
-umbs_flwr_med <- subset(MedianFlwr_all, site == "umbs") # pull out umbs only data
+umbs_medflwr_spp <- subset(MedianFlwr_spp, site == "umbs") # pull out umbs only data
 
-hist(umbs_flwr_med$julian)
+umbs_medflwr_plot <- subset(MedianFlwr_spp, site == "umbs") # pull out umbs only data
+
+hist(umbs_medflwr_spp$julian)
 #explore what's going on around julian date 190
 
-umbs_flwr_explore <- subset(umbs_flwr_med, julian > 190)
+umbs_flwr_explore <- subset(umbs_medflwr_spp, julian > 190)
 View(umbs_flwr_explore) 
 # I'm not really seeing anything glaring here when I look at the data. Cest is the most dominate species it
 # appears. I'm going to pull out all the Cest data and look at it separately. 
 
-umbs_flwr_cest <- subset(umbs_flwr_med, species == "Cest") #just Cest median flower date
+umbs_flwr_cest <- subset(umbs_medflwr_spp, species == "Cest") #just Cest median flower date
 View(umbs_flwr_cest)
 hist(umbs_flwr_cest$julian) # this looks pretty normal to me - slight left skew in the data
 
@@ -140,21 +203,21 @@ hist(umbs_flwr_med$julian[umbs_flwr_med$flwr_group == "late"])
 
 
 
-qqnorm(umbs_flwr_med$julian)
+qqnorm(umbs_medflwr_spp$julian)
 fit2 <- lm(julian ~ state, data = umbs_flwr_med)
 qqPlot(fit2)
-shapiro.test(umbs_flwr_med$julian)
+shapiro.test(umbs_medflwr_spp$julian)
 
-descdist(umbs_flwr_med$julian, discrete = FALSE) # uniform?
+descdist(umbs_medflwr_spp$julian, discrete = FALSE) # uniform?
 
-skewness(umbs_flwr_med$julian, na.rm = TRUE)  # slight positive skew
+skewness(umbs_medflwr_spp$julian, na.rm = TRUE)  # slight positive skew
 
 # Because of slight positive skew I'm transforming the data by taking the square root.
-umbs_flwr_med$sqrt_julian <- sqrt(umbs_flwr_med$julian) 
-hist(umbs_flwr_med$sqrt_julian)
-skewness(umbs_flwr_med$sqrt_julian, na.rm = TRUE)
+umbs_medflwr_spp$sqrt_julian <- sqrt(umbs_medflwr_spp$julian) 
+hist(umbs_medflwr_spp$sqrt_julian)
+skewness(umbs_medflwr_spp$sqrt_julian, na.rm = TRUE)
 
-ggdensity(umbs_flwr_med, x = "sqrt_julian", fill = "lightgray", title = "CONT") +
+ggdensity(umbs_medflwr_spp, x = "sqrt_julian", fill = "lightgray", title = "CONT") +
         stat_overlay_normal_density(color = "red", linetype = "dashed") 
 # there's that weird dip around 14 on the x-axis
 ```
