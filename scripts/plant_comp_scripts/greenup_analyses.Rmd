@@ -263,7 +263,8 @@ anova(mod5, mod7)
 # Yup, seems to matter but it is making this more complex, though not overly so because it's on the random effects structure only.
 plot_model(mod7, sort.est = TRUE)
 # these are the fixed predicted values:
-plot_model(mod7, type = "pred", terms = c("year", "state", "insecticide"))
+mod7_plot <- plot_model(mod7, type = "pred", terms = c("year", "state", "insecticide"))
+mod7_plot + labs(x = "Year", y = "Julian day of greenup", title = "Predicted values of half cover date")
 # these are the random effects estimates
 plot_model(mod7, type = "re", terms = c("species", "plot"))
 
@@ -272,8 +273,9 @@ mod8 <- lmer(spp_half_cover_date ~ state + year + species + (1|plot), green_kbs,
 anova(mod5, mod8)
 summary(mod8)
 plot_model(mod8, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod8, type = "pred", terms = c("year", "state", "species"))
+# these are the fixed predicted values: - removed species from this (for now) to see the overall picture
+mod8_plot <- plot_model(mod8, type = "pred", terms = c("year", "state"))
+mod8_plot + labs(x = "Year", y = "Julian day of greenup", title = "Predicted values of half cover date")
 # these are the random effects estimates
 plot_model(mod8, type = "re", terms = c("species"))
 
