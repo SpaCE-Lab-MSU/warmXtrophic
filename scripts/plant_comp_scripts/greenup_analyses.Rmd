@@ -138,7 +138,7 @@ kbs_2020 <- subset(green_kbs, year == 6) # records from 227 & 228
 # checking fit for date as a function of state and species - bringing in species here makes it obvious that that is explaining some of the variation compared with the state-only model you had previously.
 
 # State-only model (not really correct bc species differ)
-fit<- lm(half_cover_date~state, data = green_kbs)
+fit<- lm(spp_half_cover_date~state, data = green_kbs)
 outlierTest(fit)
 # record 2739 is the largest outlier
 
