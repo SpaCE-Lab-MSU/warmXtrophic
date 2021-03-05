@@ -64,6 +64,7 @@ library(interactions)
 library(sjPlot)
 library(effects)
 library(glmmTMB)
+library(lmerTest)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -80,7 +81,7 @@ str(greenup)
 greenup$X<-NULL
 
 # Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor.
-greenup$state = with(greenup, reorder(class, hwy, median))
+#greenup$state = with(greenup, reorder(class, hwy, median))
 
 
 greenup$state<-as.factor(greenup$state)
@@ -107,7 +108,8 @@ green_umbs <- subset(greenup, site == "umbs")
 
 # First, checking for normality in raw data. This is a little weird to do because each row in the dataframe is a species-plot combo, so you're missing the influence of species below. Instead, re-run this on plot-level half cover date (re-compute this in plant_comp_clean_L0.R to get that variable first). It's also not going to tell you about normality once you fit a model to these data - that's when you really need to investigate the residuals.
 # *Note that since this change, some of the code below breaks because the variable name changed. Also, there seem to be some errors popping up with qqPlot, suggesting that something else changed when this new variable was created. Check* 
-```{r}
+```{r, eval = F}
+# not evaluated because it crashes when knitting - working on a fix
 # note to self - re-organize greennup csv to remove species influence for this part (merge by plot)
 # for now, remove duplicates in plot-level dataframe by referencing unique combinations of first 3 columns (plot_half_cover_date,plot,year):
 green_kbsp<-green_kbs[!duplicated(green_kbs[1:3]),]
@@ -146,7 +148,8 @@ kbs_2020 <- subset(green_kbs, year == 6) # records from 227 & 228
 
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
 # These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
-```{r}
+```{r, eval = F}
+# also not evaluating because this chunk crashes when knitting as well - working on it
 # checking fit for date as a function of state and species - bringing in species here makes it obvious that that is explaining some of the variation compared with the state-only model you had previously.
 
 # State-only model (not really correct bc species differ)
@@ -251,8 +254,8 @@ plot_model(mod5, type = "re", terms = c("species", "plot"))
 mod6 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1|plot), green_kbs, REML=FALSE)
 anova(mod5, mod6)
 # Yes, insecticide*year still improves model fit so we will continue to include it and stick with mod5
-summary(mod7)
-anova(mod7)
+summary(mod6)
+anova(mod6)
 
 # If we wanted to include plots nested within year it would look like this:
 mod7 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1+year|plot), green_kbs, REML=FALSE)
@@ -279,19 +282,19 @@ plot_model(mod8, type = "re", terms = c("species"))
 
 # Here's another approach:
 # https://stats.stackexchange.com/questions/98958/plots-to-illustrate-results-of-linear-mixed-effect-model
-# Not quite working yet:
-newdat <- expand.grid(state=unique(green_kbs$state),
-                  year=c(min(green_kbs$year),
-                            max(green_kbs$year)),
-                  insecticide=unique(green_kbs$insecticide))
-p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state, shape=insecticide)) +
-  geom_point(size=3) +
-  geom_line(aes(y=predict(mod5), group=species, size="species")) +
-  geom_line(data=newdat, aes(y=predict(mod5, level=0, newdata=newdat), size="Population")) +
-  scale_size_manual(name="Predictions", values=c("species"=0.5, "Population"=3)) +
-  #facet_wrap(~insecticide) +
-  theme_bw(base_size=22) 
-print(p)
+# Not quite working yet: commented out for now so the Rmd can knit
+#newdat <- expand.grid(state=unique(green_kbs$state),
+#                  year=c(min(green_kbs$year),
+#                            max(green_kbs$year)),
+#                  insecticide=unique(green_kbs$insecticide))
+#p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state, shape=insecticide)) +
+#  geom_point(size=3) +
+#  geom_line(aes(y=predict(mod5), group=species, size="species")) +
+#  geom_line(data=newdat, aes(y=predict(mod5, level=0, newdata=newdat), size="Population")) +
+#  scale_size_manual(name="Predictions", values=c("species"=0.5, "Population"=3)) +
+#  #facet_wrap(~insecticide) +
+#  theme_bw(base_size=22) 
+#print(p)
 
 ```
 
@@ -367,7 +370,7 @@ summary(modc)
 ## Error in friedman.test.default(c(141L, 202L, 122L, 101L, 127L, 120L, 197L,  :  not an unreplicated complete block design
 
 # Permanova?
-```{r, cache = T}
+```{r, eval = F}
 per1 <- adonis2(green_kbs$spp_half_cover_date ~ state*year + insecticide, data = green_kbs)
 per1
 per2 <- adonis(formula = green_kbs$spp_half_cover_date ~ state*year + insecticide, strata = green_kbs$plot, data = green_kbs)
