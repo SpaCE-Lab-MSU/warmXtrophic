@@ -28,16 +28,43 @@ library(fitdistrplus)
 library(ggpubr)
 library(rstatix)
 library(vegan)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(lmerTest)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
-# Read in plant comp data
+# Set ggplot2 plots to bw: see here for more options: http://www.sthda.com/english/wiki/ggplot2-themes-and-background-colors-the-3-elements
+theme_set(theme_bw(base_size = 14))
+# Read in plant comp data - edit this in "plant_comp_clean_L0.R" so it's not an issue here with extra column.
 greenup <- read.csv("L1/greenup/final_greenup_L1.csv")
+# check variable types
 str(greenup)
+# KARA: omit this once fixed in plant_comp_clean_L0.R
+# remove first column 
+greenup$X<-NULL
+greenup$species[greenup$species == "Bare_Ground"] <- NA
+greenup$species[greenup$species == "Brown"] <- NA
+greenup$species[greenup$species == "Litter"] <- NA
+greenup$species[greenup$species == "Vert_Litter"] <- NA
+greenup$species[greenup$species == "Animal_Disturbance"] <- NA
+greenup <- na.omit(greenup)
 
-# changing scale of years
+# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor.
+greenup$state = with(greenup, reorder(class, hwy, median))
+
+
+greenup$state<-as.factor(greenup$state)
+levels(greenup$state)
+greenup$state <- factor(greenup$state, levels(greenup$state)[c(2,1)])
+levels(greenup$state)
+
+# adding sequential year variable starting at 1: this is because 2015... are large numbers compare with other values in the dataset. We can always label axes with these real years.
+greenup$year1<-greenup$year
 greenup$year[greenup$year == 2015] <- 1
 greenup$year[greenup$year == 2016] <- 2
 greenup$year[greenup$year == 2017] <- 3
@@ -45,12 +72,42 @@ greenup$year[greenup$year == 2018] <- 4
 greenup$year[greenup$year == 2019] <- 5
 greenup$year[greenup$year == 2020] <- 6
 
-# create dataframes for kbs and umbs
+# create dataframes for kbs and umbs - remember that these contain species within plots
 green_kbs <- subset(greenup, site == "kbs")
 green_umbs <- subset(greenup, site == "umbs")
 
 
 
+# copied from the Rmd so I can extract the plots
+mod7 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1+year|plot), green_kbs, REML=FALSE)
+anova(mod5, mod7)
+summary(mod7)
+# Yup, seems to matter but it is making this more complex, though not overly so because it's on the random effects structure only.
+plot_model(mod7, sort.est = TRUE)
+# these are the fixed predicted values:
+mod7_plot <- plot_model(mod7, type = "pred", terms = c("year", "state", "insecticide"))
+mod7_plot + labs(x = "Year", y = "Julian day of greenup", title = "Predicted values of half cover date")
+# these are the random effects estimates
+plot_model(mod7, type = "re", terms = c("species", "plot"))
+
+mod8 <- lmer(spp_half_cover_date ~ state + species + year + (1|plot), green_kbs, REML=FALSE)
+anova(mod5, mod8)
+summary(mod8)
+plot_model(mod8, sort.est = TRUE, colors = "gs")
+# these are the fixed predicted values:
+mod8_plot <- plot_model(mod8, type = "pred", terms = c("year", "state"))
+mod8_plot + labs(x = "Year", y = "Julian day of greenup", title = "Predicted values of half cover date")
+# these are the random effects estimates
+plot_model(mod8, type = "re", terms = c("species"))
+
+
+
+
+
+
+
+
+# my old code #
 ######### kbs ############
 #### data exploration & determining distribution ####
 # first, checking for normality
@@ -268,4 +325,27 @@ coef(lme2)
 lme3 <- lme(half_cover_date~state*year+insecticide, random=~1|species, data = green_umbs)
 summary(lme3)
 coef(lme3)
+
+
+
+
+# copied from the Rmd so I can extract the plots
+mod7 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1+year|plot), green_kbs, REML=FALSE)
+anova(mod5, mod7)
+summary(mod7)
+# Yup, seems to matter but it is making this more complex, though not overly so because it's on the random effects structure only.
+plot_model(mod7, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod7, type = "pred", terms = c("year", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod7, type = "re", terms = c("species", "plot"))
+
+mod8 <- lmer(spp_half_cover_date ~ state + year + species + (1|plot), green_kbs, REML=FALSE)
+anova(mod5, mod8)
+summary(mod8)
+plot_model(mod8, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod8, type = "pred", terms = c("year", "state", "species"))
+# these are the random effects estimates
+plot_model(mod8, type = "re", terms = c("species"))
 
