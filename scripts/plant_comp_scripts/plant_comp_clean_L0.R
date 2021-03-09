@@ -1,6 +1,6 @@
 # TITLE:          Plant composition cleanup
-# AUTHORS:        Kara Dobson
-# COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Moriah Young
+# AUTHORS:        Kara Dobson, Phoebe Zarnetske
+# COLLABORATORS:  Mark Hammond, Moriah Young
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    A csv file containing plant comp data for all sites & years is uploaded
 #                 to the L1 plant comp folder
@@ -14,12 +14,13 @@ rm(list=ls())
 #Load packages
 library(tidyverse)
 
+# Source in needed functions from the github repo
+source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
+#source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
+
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
-
-# Source in needed functions
-source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
 
 # Read in data (only need columns 1-7 for the umbs files)
 meta <- read.csv("L0/plot.csv")
@@ -38,6 +39,7 @@ umbs_2019 <- read.csv("L0/UMBS/2019/umbs_plantcomp_2019.csv")[,1:7]
 umbs_2020 <- read.csv("L0/UMBS/2020/umbs_plantcomp_2020.csv")[,1:7]
 
 # remove all empty rows for umbs_2019
+umbs_2019[c(5046:6024),]
 umbs_2019 <- umbs_2019[-c(5047:6024), ]
 
 # add site column for kbs & umbs 2016
@@ -76,39 +78,33 @@ names(comp_merge) <- tolower(names(comp_merge))
 comp_merge$year <- format(comp_merge$date,format="%Y")
 comp_merge$month <- format(comp_merge$date,format="%m")
 comp_merge$julian <- format(comp_merge$date, "%j")
+head(comp_merge)
 
 # Make julian column numeric
+unique(comp_merge$julian)
 comp_merge$julian <- as.numeric(comp_merge$julian)
+unique(comp_merge$julian)
 
 # change taxon column name for merging
 colnames(taxon)[which(names(taxon) == "code")] <- "species"
 
-# Merge meta-data with plant comp data
+# Merge meta-data with plant comp data 
+# Make sure the plot IDs are the same in each, and there aren't any missing
+sort(unique(comp_merge$plot))
+sort(unique(comp_merge$plot))
 plant_comp_merge <- left_join(meta, comp_merge, by = "plot")
+
+# taxon contains "site" which is the site where the species is found on our meta-data table, but those data exist in our plant_comp_merge dataset already. Delete "site" from taxon so it doesn't accidentally get merged in.
+taxon$site<-NULL
 plant_comp_merge2 <- left_join(taxon, plant_comp_merge, by = "species")
 
-# remove uneeded columns
-plant_comp_merge2$species.y <- NULL
-plant_comp_merge2$X <- NULL
-plant_comp_merge2$site.x <- NULL
-plant_comp_merge2$year.y <- NULL
-plant_comp_merge2$scientific_name <- NULL
-plant_comp_merge2$USDA_code <- NULL
-plant_comp_merge2$LTER_code <- NULL
+# remove unnecessary columns
 plant_comp_merge2$old_code <- NULL
 plant_comp_merge2$old_name <- NULL
 plant_comp_merge2$resolution <- NULL
-plant_comp_merge2$group <- NULL
-plant_comp_merge2$family <- NULL
-plant_comp_merge2$common_name <- NULL
 
-# fix column name
-colnames(plant_comp_merge2)[which(names(plant_comp_merge2) == "site.y")] <- "site"
-
-# Upload clean data csv to google drive
-write.csv(plant_comp_merge2, file="L1/plant_composition/final_plantcomp_L1.csv")
-
-
+# Upload clean data csv to google drive without the index column
+write.csv(plant_comp_merge2, file="L1/plant_composition/final_plantcomp_L1.csv", row.names=FALSE)
 
 ### making a csv for greenup at the species-by-plot level (date at which 50% of max cover was reached per species, per plot) ###
 # split the plant_comp dataframe
