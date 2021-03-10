@@ -181,5 +181,5 @@ finalgreens$old_name <- NULL
 finalgreens$resolution <- NULL
 
 # upload greenup species-plot level csv to google drive
-write.csv(finalgreens, file="L1/greenup/final_greenup_species_L1.csv")
-write.csv(finalgreenp, file="L1/greenup/final_greenup_plot_L1.csv")
+write.csv(finalgreens, file="L1/greenup/final_greenup_species_L1.csv", row.names=FALSE)
+write.csv(finalgreenp, file="L1/greenup/final_greenup_plot_L1.csv", row.names=FALSE)
