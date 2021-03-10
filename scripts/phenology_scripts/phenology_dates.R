@@ -76,12 +76,24 @@ greenup2 <- greenup1 %>%
   summarise(firstjulian = min(julian, na.rm = T))
 greenup2   
 
-# Take a look at these data 
-p <- ggplot(greenup2, aes(year, firstjulian, colour = species)) + geom_point() + 
+greenup2kbs <- greenup2 %>%
+  filter(site == "kbs")
+greenup2umbs <- greenup2 %>%
+  filter(site == "umbs")
+
+# Take a look at these data for each site separately
+k <- ggplot(greenup2kbs, aes(year, firstjulian, colour = species)) + geom_point() + 
   labs(title = "KBS first julian day of % cover by species") + 
   guides(fill=guide_legend(nrow=3, byrow=TRUE))
-p + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), legend.position="bottom") 
+k + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), legend.position="bottom") 
 ggsave(file="./L1/greenup/KBS_firstjulianday_by_species.png", width = 8.5, height = 11)
+
+u <- ggplot(greenup2umbs, aes(year, firstjulian, colour = species)) + geom_point() + 
+  labs(title = "UMBS first julian day of % cover by species") + 
+  guides(fill=guide_legend(nrow=3, byrow=TRUE))
+u + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), legend.position="bottom") 
+ggsave(file="./L1/greenup/UMBS_firstjulianday_by_species.png", width = 8.5, height = 11)
+
 # What are the outliers in terms of firstjulian? 
 # There are several singletons (species that are only observed once or twice), some that may be mis-IDed, and some that are only first noticed in July or August, which is hard to believe. For now they should be removed but the cleaning on this should take place in plant_comp_clean_L0.R.
 # Need to make some decisions about which of these species to include or re-assign to a different species. All of that needs to be done in plant_comp_clean_L0.R
