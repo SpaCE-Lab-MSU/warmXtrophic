@@ -48,12 +48,12 @@ greenup<-greenup[!(greenup$species=="Bare_Ground" |
                      greenup$species=="Vert_Litter" | 
                      greenup$species=="Animal_Disturbance"), ]
 
-# For Approach (1): First % Cover Date 
+# For Approach (1): Greenup Window: % Cover Dates 
 # KBS Greenup % cover ~ every 3 days. Duration: greenup observations ended on Julian Day:
 # 2016: 104
 # 2017: 121
 # 2018: 130
-# 2019: 
+# 2019: 143?
 # 2020: 
 # 
 # UMBS Greenup % cover ~ every 3 days. Duration: greenup observations ended on Julian Day:
@@ -62,17 +62,38 @@ greenup<-greenup[!(greenup$species=="Bare_Ground" |
 # Find the first Julian day of % cover per species, per plot:
 greenup1 <- greenup %>% select(site,plot,species,year,julian,cover)
 
-greenup2 <- greenup1 %>%
+# Re-arrange the data to simplify
+greenup1a <- greenup1 %>%
   group_by(site,plot,species,year) %>%
   mutate(
-    firstgreen = min(julian, na.rm = T)
+    firstjulian = min(julian, na.rm = T)
   ) %>%
   arrange(site,plot,year,species)
 
+# A quicker way to summarize: For each site, plot, species, year, extract just the firstjulian
 greenup2 <- greenup1 %>%
   group_by(site,plot,species,year) %>%
   summarise(firstjulian = min(julian, na.rm = T))
 greenup2   
+
+# Take a look at these data 
+p <- ggplot(greenup2, aes(year, firstjulian, colour = species)) + geom_point() + 
+  labs(title = "KBS first julian day of % cover by species") + 
+  guides(fill=guide_legend(nrow=3, byrow=TRUE))
+p + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), legend.position="bottom") 
+ggsave(file="./L1/greenup/KBS_firstjulianday_by_species.png", width = 8.5, height = 11)
+# What are the outliers in terms of firstjulian? 
+# There are several singletons (species that are only observed once or twice), some that may be mis-IDed, and some that are only first noticed in July or August, which is hard to believe. For now they should be removed but the cleaning on this should take place in plant_comp_clean_L0.R.
+# Need to make some decisions about which of these species to include or re-assign to a different species. All of that needs to be done in plant_comp_clean_L0.R
+
+## PLZ Stopped updating here 10:20am March 10, 2021
+
+# By species, find the max of the firstjulian at the site level to determine the last day of the greenup window per site and year
+greenup3 <- greenup2 %>%
+  group_by(site,year) %>%
+  summarise(firstjulian = max(firstjulian, na.rm = T))
+greenup3   
+
 
 greenup2p <- greenup1 %>%
   group_by(site,plot,year) %>%
@@ -200,6 +221,33 @@ finalgreens$resolution <- NULL
 # remove NA values for species in the taxon table that do not exist in these data
 finalgreens<-finalgreens[complete.cases(finalgreens), ]
 finalgreenp<-finalgreenp[complete.cases(finalgreenp), ]
+
+# Create some plots to visualize these data
+# histograms for each year - look at them together:
+p1 <- ggplot(data = finalgreenp, aes(x = plot_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p1 + facet_wrap(~year1) + labs(title="Plot-level half cover date")
+
+p1 <- ggplot(data = finalgreens, aes(x = spp_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p1 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+
+# this will just show sampling date artifact
+p2 <- ggplot(data = finalgreenp, aes(x = min_green_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p2 + facet_wrap(~year1)
+
+p2 <- ggplot(data = finalgreens, aes(x = min_green_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p2 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+
+# Density plot
+p3 <- ggplot(data = finalgreenp, aes(x = plot_half_cover_date, fill=state)) + geom_density(alpha=0.5)
+p3 + facet_wrap(~year1) + labs(title="Plot-level half cover date")
+
+p3 <- ggplot(data = finalgreens, aes(x = spp_half_cover_date, fill=state)) + geom_density(alpha=0.5)
+p3 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+
+# this will just show sampling date artifact
+p4 <- ggplot(data = finalgreenp, aes(x = min_green_date, fill=state)) + geom_density(alpha=0.5)
+p4 + facet_wrap(~year1)
+
 
 # upload greenup species-plot level csv to google drive
 write.csv(finalgreens, file="L1/greenup/final_greenup_species_L1.csv", row.names=FALSE)

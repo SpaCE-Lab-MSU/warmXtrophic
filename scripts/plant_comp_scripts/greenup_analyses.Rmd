@@ -121,24 +121,38 @@ green_umbsp <- subset(greenupp, site == "umbs")
 # *Note that since this change, some of the code below breaks because the variable name changed. Also, there seem to be some errors popping up with qqPlot, suggesting that something else changed when this new variable was created. Check* 
 ```{r}
 # remove species, origin, duration,growth habit,spp_half_cover_date - again, this should be done in other script preceding this one
-green_kbsp<-subset(green_kbsp,select=c("plot_half_cover_date","plot","year","state","insecticide","site","year1"))
+green_kbsp<-subset(green_kbsp,select=c("plot_half_cover_date","min_green_date","plot","year","state","insecticide","site","year1"))
 head(green_kbsp)
 
 hist(green_kbsp$plot_half_cover_date)
 qqnorm(green_kbsp$plot_half_cover_date)
 shapiro.test(green_kbsp$plot_half_cover_date)
 
-# histograms for each treatment separately - look almost identical
+# histograms for each treatment separately 
 hist(green_kbsp$plot_half_cover_date[green_kbsp$state == "ambient"])
 hist(green_kbsp$plot_half_cover_date[green_kbsp$state == "warmed"])
 
 # histograms for each year - look at them together:
-p <- ggplot(data = green_kbsp, aes(x = plot_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p + facet_wrap(~year1)
+p1 <- ggplot(data = green_kbsp, aes(x = plot_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p1 + facet_wrap(~year1) + labs(title="Plot-level half cover date")
+
+p1 <- ggplot(data = green_kbs, aes(x = spp_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p1 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+
+# this will just show sampling date artifact
+p2 <- ggplot(data = green_kbsp, aes(x = min_green_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p2 + facet_wrap(~year1)
 
 # Density plot
-p <- ggplot(data = green_kbsp, aes(x = plot_half_cover_date, fill=state)) + geom_density(alpha=0.5)
-p + facet_wrap(~year1)
+p3 <- ggplot(data = green_kbsp, aes(x = plot_half_cover_date, fill=state)) + geom_density(alpha=0.5)
+p3 + facet_wrap(~year1) + labs(title="Plot-level half cover date")
+
+p3 <- ggplot(data = green_kbs, aes(x = spp_half_cover_date, fill=state)) + geom_density(alpha=0.5)
+p3 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+
+# this will just show sampling date artifact
+p4 <- ggplot(data = green_kbsp, aes(x = min_green_date, fill=state)) + geom_density(alpha=0.5)
+p4 + facet_wrap(~year1)
 
 # Or try with tidyverse format
 green_kbsp.t<-as_tibble(green_kbsp)
@@ -177,6 +191,12 @@ hist(fit1$residuals)
 qqPlot(fit1, main="QQ Plot") 
 leveragePlots(fit1)
 
+fit1a <- lm(min_green_date~state + species, data = green_kbs)
+outlierTest(fit1a) # no outliers
+hist(fit1a$residuals)
+qqPlot(fit1a, main="QQ Plot") 
+leveragePlots(fit1a)
+
 # checking fit for date as a function of state and year
 fit2 <- lm(spp_half_cover_date~state+species+year, data = green_kbs)
 hist(fit2$residuals)
@@ -203,6 +223,11 @@ fit5 <- lm(spp_half_cover_date ~ state + year + species, data = green_kbs)
 interact_plot(fit5, pred = year, modx = state)
 fit6 <- lm(spp_half_cover_date ~ state * year + species, data = green_kbs)
 interact_plot(fit6, pred = year, modx = state, mod2 = species)
+
+fit7 <- lm(min_green_date ~ state + year + species, data = green_kbs)
+interact_plot(fit7, pred = year, modx = state)
+fit8 <- lm(min_green_date ~ state * year + species, data = green_kbs)
+interact_plot(fit8, pred = year, modx = state, mod2 = species)
 ```
 
 Mixed Effects Models:
