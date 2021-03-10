@@ -74,6 +74,11 @@ greenup2 <- greenup1 %>%
   summarise(firstjulian = min(julian, na.rm = T))
 greenup2   
 
+greenup2p <- greenup1 %>%
+  group_by(site,plot,year) %>%
+  summarise(firstjulian = min(julian, na.rm = T))
+greenup2p   
+
 # Max cover by species-plot
 greenup3 <- greenup1 %>%
   group_by(site,plot,species,year,julian) %>%
@@ -83,6 +88,7 @@ greenup3
 # save these as dataframes
 # species-plot level 
 greendate1st_mn_s<-as.data.frame(greenup2)
+greendate1st_mn_p<-as.data.frame(greenup2p)
 # stopping here for now with Approach (1)...
 
 # Greenup Approach (2) Half Cover Date
@@ -149,20 +155,31 @@ max_cover_datep_df$plot.site.year <- NULL
 
 # is this value correlated with first date of greenup per site, plot, year?
 # determine first date of emergence for correlation with 'green-up' index
-min_date <- aggregate(greenup$julian,by=greenup[,c("site","plot","species","year")],FUN=min)
-head(min_date)
-colnames(min_date) <- c("site","plot","species","year","min_green_date")
+min_dates <- aggregate(greenup$julian,by=greenup[,c("site","plot","species","year")],FUN=min)
+head(min_dates)
+colnames(min_dates) <- c("site","plot","species","year","min_green_date")
 # note that this is the same as "greenup2" above, which was created with tidy
-head(min_date)
+head(min_dates)
 greenup2
 
+# plot-level (drop species)
+min_datep <- aggregate(greenup$julian,by=greenup[,c("site","plot","year")],FUN=min)
+head(min_datep)
+colnames(min_datep) <- c("site","plot","year","min_green_date")
+
 # merge min date dateframe with "half cover date" df
-green_half_mins <- merge(half_cover_dates_df, min_date, by=c("site","plot","species","year"))
+green_half_mins <- merge(half_cover_dates_df, min_dates, by=c("site","plot","species","year"))
+green_half_minp <- merge(half_cover_datep_df, min_datep, by=c("site","plot","year"))
 
 # calculate correlation
 cor.test(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date) 
 # yes cor = 0.6944626; t = 47.607, df = 2433, p-value < 2.2e-16
 plot(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date)
+
+# calculate correlation
+cor.test(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date) 
+# no cor = -0.08616082; t = -1.3342, df = 238, p-value = 0.1834
+plot(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
 
 # change taxon column name for merging
 colnames(taxon)[which(names(taxon) == "code")] <- "species"
@@ -170,10 +187,10 @@ colnames(taxon)[which(names(taxon) == "code")] <- "species"
 taxon$site<-NULL
 
 # re-merge data with meta data info for species-level 
-finalgreens <- left_join(meta, half_cover_dates_df, by = "plot","site")
+finalgreens <- left_join(meta, green_half_mins, by = "plot","site")
 finalgreens <- left_join(taxon, finalgreens, by = "species")
 # re-merge data with meta data info for plot-level 
-finalgreenp <- left_join(meta, half_cover_datep_df, by = c("plot"))
+finalgreenp <- left_join(meta, green_half_minp, by = c("plot"))
 
 # remove unnecessary columns
 finalgreens$old_code <- NULL
