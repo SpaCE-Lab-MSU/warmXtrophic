@@ -99,6 +99,7 @@ mod8_plot <- plot_model(mod8, type = "pred", terms = c("year", "state"))
 mod8_plot + labs(x = "Year", y = "Julian day of greenup", title = "Predicted values of half cover date")
 # these are the random effects estimates
 plot_model(mod8, type = "re", terms = c("species"))
+plot_model(mod8, type = "pred", terms = c("species", "state"))
 
 
 
