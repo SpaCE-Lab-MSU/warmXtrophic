@@ -180,6 +180,10 @@ finalgreens$old_code <- NULL
 finalgreens$old_name <- NULL
 finalgreens$resolution <- NULL
 
+# remove NA values for species in the taxon table that do not exist in these data
+finalgreens<-finalgreens[complete.cases(finalgreens), ]
+finalgreenp<-finalgreenp[complete.cases(finalgreenp), ]
+
 # upload greenup species-plot level csv to google drive
 write.csv(finalgreens, file="L1/greenup/final_greenup_species_L1.csv", row.names=FALSE)
 write.csv(finalgreenp, file="L1/greenup/final_greenup_plot_L1.csv", row.names=FALSE)
