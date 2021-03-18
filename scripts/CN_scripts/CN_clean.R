@@ -13,7 +13,7 @@ rm(list=ls())
 library(tidyverse)
 
 # Set working directory to Google Drive
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/")
+setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in csv files with CN content
 CN1 <- read.csv("data/L0/Zarnetske_CN_2019_P01.csv")
