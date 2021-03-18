@@ -88,4 +88,4 @@ CN_final <- clean_names(CN_final) # get rid of space and parenthesis in "weight 
 View(CN_final)
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive L1 folder
-write.csv(CN_final, file="data/L1/final_CN_L1.csv")
+write.csv(CN_final, file="L1/final_CN_L1.csv", row.names=FALSE)
