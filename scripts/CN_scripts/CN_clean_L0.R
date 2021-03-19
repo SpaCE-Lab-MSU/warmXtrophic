@@ -24,6 +24,7 @@ CN4 <- read.csv("L0/CN_data/Zarnetske_CN_2019_P04.csv")
 # read in meta files for CN data
 umbs_CN <- read.csv("L0/UMBS/2019/umbs_CN_2019.csv")
 kbs_CN <- read.csv("L0/KBS/2019/kbs_CN_2019.csv")
+meta <- read.csv("L0/plot.csv")
 
 # Clean CN data
 View(CN1)
@@ -80,12 +81,16 @@ colnames(meta_CN) <- sub("Unique_number", "Sample", colnames(meta_CN))# merge tw
 View(meta_CN)
 
 # merge new CN data frame with 
-
 CN_final <- merge(meta_CN, CN_all, by = "Sample")
 names(CN_final) <- tolower(names(CN_final)) # column names to lower case
-CN_final <- clean_names(CN_final) # get rid of space and parenthesis in "weight (mg)" column
+#CN_final <- clean_names(CN_final) # get rid of space and parenthesis in "weight (mg)" column
+# ^ don't have the function for this
+
+# change column name for merging
+colnames(meta)[which(names(meta) == "treatment_key")] <- "treatment"
+CN_final2 <- merge(CN_final, meta, by = c("plot", "treatment"))
 
 View(CN_final)
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive L1 folder
-write.csv(CN_final, file="L1/final_CN_L1.csv", row.names=FALSE)
+write.csv(CN_final2, file="L1/final_CN_L1.csv", row.names=FALSE)
