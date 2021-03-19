@@ -1,11 +1,16 @@
-# TITLE:          Carbon and Nitrogen Data Visualization
-# AUTHORS:        Kara Dobson, Moriah Young
-# COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Pat Bills
-# DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
-# DATA OUTPUT:    A csv file containing CN data is uploaded to the L1 plant comp folder
-# PROJECT:        warmXtrophic
-# DATE:           March, 2021
+---
+title: 'warmXtrophic Project: CN Plots'
+author: "Kara Dobson"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load in data
+```{r, message = F}
 # Clear all existing data
 rm(list=ls())
 
@@ -18,9 +23,11 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in data
 cn <- read.csv("L1/final_CN_L1.csv")
-str(cn)
+```
 
-### carbon ###
+# Carbon data
+## Cest and Popr = UMBS, Soca = KBS (working on faceting this)
+```{r}
 ggplot(cn, aes(x = species, y = carbon, fill = state)) +
         #facet_grid(.~site) +
         geom_boxplot(color = "black", outlier.shape = NA) +
@@ -31,8 +38,10 @@ ggplot(cn, aes(x = species, y = carbon, fill = state)) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         coord_cartesian(ylim = c(42, 53)) +
         theme_classic()
+```
 
-### nitrogen ###
+# Nitrogen data
+```{r}
 ggplot(cn, aes(x = species, y = nitrogen, fill = state)) +
         #facet_grid(.~site) +
         geom_boxplot(color = "black", outlier.shape = NA) +
@@ -42,3 +51,4 @@ ggplot(cn, aes(x = species, y = nitrogen, fill = state)) +
         geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         theme_classic()
+```
