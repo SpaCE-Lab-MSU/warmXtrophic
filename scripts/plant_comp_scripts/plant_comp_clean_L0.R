@@ -93,7 +93,8 @@ sort(unique(comp_merge$plot))
 sort(unique(comp_merge$plot))
 plant_comp_merge <- left_join(meta, comp_merge, by = "plot")
 
-# taxon contains "site" which is the site where the species is found on our meta-data table, but those data exist in our plant_comp_merge dataset already. Delete "site" from taxon so it doesn't accidentally get merged in.
+# taxon contains "site" which is the site where the species is found on our meta-data table, but those data exist in our plant_comp_merge dataset already.
+# Delete "site" from taxon so it doesn't accidentally get merged in.
 taxon$site<-NULL
 plant_comp_merge2 <- left_join(taxon, plant_comp_merge, by = "species")
 
