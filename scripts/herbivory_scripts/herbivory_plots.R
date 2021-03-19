@@ -53,7 +53,7 @@ herb_plot_in <- function(loc) {
 herb_u <- herb_plot_in("umbs")
 herb_k <- herb_plot_in("kbs")
 
-final_herb <- ggarrange(herb_k, herb_u, nrow = 2, legend = "none")
+final_herb <- ggarrange(herb_k, herb_u, nrow = 2, common.legend = T, legend = "right")
 annotate_figure(final_herb,
                 left = text_grob("Average Percent of Leaf Eaten", color = "black", rot = 90),
                 bottom = text_grob("State", color = "black"))
