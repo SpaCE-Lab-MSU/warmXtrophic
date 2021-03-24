@@ -16,10 +16,10 @@ library(tidyverse)
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in csv files with CN content
-CN1 <- read.csv("L0/CN_data/Zarnetske_CN_2019_P01.csv")
-CN2 <- read.csv("L0/CN_data/Zarnetske_CN_2019_P02.csv")
-CN3 <- read.csv("L0/CN_data/Zarnetske_CN_2019_P03.csv")
-CN4 <- read.csv("L0/CN_data/Zarnetske_CN_2019_P04.csv")
+CN1 <- read.csv("L0/CN_data/CN_WeighSheet_1_2019.csv")
+CN2 <- read.csv("L0/CN_data/CN_WeighSheet_2_2019.csv")
+CN3 <- read.csv("L0/CN_data/CN_WeighSheet_3_2019.csv")
+CN4 <- read.csv("L0/CN_data/CN_WeighSheet_4_2019.csv")
 
 # read in meta files for CN data
 umbs_CN <- read.csv("L0/UMBS/2019/umbs_CN_2019.csv")
