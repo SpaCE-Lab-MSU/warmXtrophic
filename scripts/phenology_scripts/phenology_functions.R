@@ -68,12 +68,63 @@ change_spp <- function(df){
         df$Species[df$Species == "Des"] <- "Desp"
         df$Species[df$Species == "rual"] <- "Rual"
         df$Species[df$Species == "HIsp"] <- "Hisp"
-        df$Species[df$Species == "Hipr"] <- "Hica"
+        df$Species[df$Species == "Hipr"] <- "Hisp"
         df$Species[df$Species == "Dach"] <- "Daca"
         df$Species[df$Species == "Drin"] <- "Brin"
         df$Species[df$Species == "Dafl"] <- "Dagl"
         df$Species[df$Species == "Agre"] <- "Elre"
         df$Species[df$Species == "unknown"] <- "Unknown"
+        return(df)
+}
+
+# remove species
+remove_spp <- function(df){
+        df <- df[!grepl("Alpe",df$Species),]
+        df <- df[!grepl("Apca",df$Species),]
+        df <- df[!grepl("Brin",df$Species),]
+        df <- df[!grepl("Desp",df$Species),]
+        df <- df[!grepl("Juni",df$Species),]
+        df <- df[!grepl("Plla",df$Species),]
+        df <- df[!grepl("Romu",df$Species),]
+        df <- df[!grepl("Stme",df$Species),]
+        df <- df[!grepl("Umsp",df$Species),]
+        df <- df[!grepl("Ulsp",df$Species),]
+        df <- df[!grepl("Spsp",df$Species),]
+        df <- df[!grepl("Acru",df$Species),]
+        df <- df[!grepl("Oebi",df$Species),]
+        df <- df[!grepl("Besp",df$Species),]
+        df <- df[!grepl("Prse",df$Species),]
+        df <- df[!grepl("Quru",df$Species),]
+        #df <- df[!grepl("Prpe",df$Species),]
+        df <- df[!grepl("Veth",df$Species),]
+        df <- df[!grepl("Anma",df$Species),]
+        df <- df[!grepl("Vaan",df$Species),]
+        df <- df[!grepl("Gnul",df$Species),]
+        df <- df[!grepl("Trdu",df$Species),]
+        df <- df[!grepl("Unknown",df$Species),]
+        #df <- df[!grepl("Alpe",df$Species),]
+        #df <- df[!grepl("Sypi",df$Species),]
+        #df <- df[!grepl("Hipi",df$Species),]
+        #df <- df[!grepl("Popsp",df$Species),]
+        return(df)
+}
+
+# change species names
+change_spp_2 <- function(df){
+        df$Species[df$Species == "Rufl"] <- "Rusp"
+        df$Species[df$Species == "Popsp"] <- "Posp"
+        df$Species[df$Species == "Trre"] <- "Trsp"
+        df$Species[df$Species == "Trpr"] <- "Trsp"
+        df$Species[df$Species == "Poco"] <- "Posp"
+        df$Species[df$Species == "Popr"] <- "Posp"
+        df$Species[df$Species == "Hipi"] <- "Hisp"
+        df$Species[df$Species == "Hica"] <- "Hisp"
+        df$Species[df$Species == "Hiau"] <- "Hisp"
+        df$Species[df$Species == "Sogi"] <- "Sosp"
+        df$Species[df$Species == "Sone"] <- "Sosp"
+        df$Species[df$Species == "Sohi"] <- "Sosp"
+        df$Species[df$Species == "Assy"] <- "Assp"
+        df$Species[df$Species == "Rual"] <- "Rusp"
         return(df)
 }
 

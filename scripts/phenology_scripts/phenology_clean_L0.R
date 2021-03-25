@@ -52,6 +52,42 @@ umbs_2016$Site <- "umbs"
 colnames(kbs_2015) <- sub("event", "Action", colnames(kbs_2015))
 colnames(umbs_2015) <- sub("event", "Action", colnames(umbs_2015))
 
+# remove species from UMBS (and not KBS)
+umbs_2015 <- umbs_2015[!grepl("Vear",umbs_2015$Species),]
+umbs_2016 <- umbs_2016[!grepl("Vear",umbs_2016$Species),]
+umbs_2017 <- umbs_2017[!grepl("Vear",umbs_2017$Species),]
+umbs_2018 <- umbs_2018[!grepl("Vear",umbs_2018$Species),]
+umbs_2019 <- umbs_2019[!grepl("Vear",umbs_2019$Species),]
+umbs_2020 <- umbs_2020[!grepl("Vear",umbs_2020$Species),]
+
+umbs_2015 <- umbs_2015[!grepl("Elre",umbs_2015$Species),]
+umbs_2016 <- umbs_2016[!grepl("Elre",umbs_2016$Species),]
+umbs_2017 <- umbs_2017[!grepl("Elre",umbs_2017$Species),]
+umbs_2018 <- umbs_2018[!grepl("Elre",umbs_2018$Species),]
+umbs_2019 <- umbs_2019[!grepl("Elre",umbs_2019$Species),]
+umbs_2020 <- umbs_2020[!grepl("Elre",umbs_2020$Species),]
+
+umbs_2015 <- umbs_2015[!grepl("Rusp",umbs_2015$Species),]
+umbs_2016 <- umbs_2016[!grepl("Rusp",umbs_2016$Species),]
+umbs_2017 <- umbs_2017[!grepl("Rusp",umbs_2017$Species),]
+umbs_2018 <- umbs_2018[!grepl("Rusp",umbs_2018$Species),]
+umbs_2019 <- umbs_2019[!grepl("Rusp",umbs_2019$Species),]
+umbs_2020 <- umbs_2020[!grepl("Rusp",umbs_2020$Species),]
+
+umbs_2015 <- umbs_2015[!grepl("Ruag",umbs_2015$Species),]
+umbs_2016 <- umbs_2016[!grepl("Ruag",umbs_2016$Species),]
+umbs_2017 <- umbs_2017[!grepl("Ruag",umbs_2017$Species),]
+umbs_2018 <- umbs_2018[!grepl("Ruag",umbs_2018$Species),]
+umbs_2019 <- umbs_2019[!grepl("Ruag",umbs_2019$Species),]
+umbs_2020 <- umbs_2020[!grepl("Ruag",umbs_2020$Species),]
+
+umbs_2015 <- umbs_2015[!grepl("Rual",umbs_2015$Species),]
+umbs_2016 <- umbs_2016[!grepl("Rual",umbs_2016$Species),]
+umbs_2017 <- umbs_2017[!grepl("Rual",umbs_2017$Species),]
+umbs_2018 <- umbs_2018[!grepl("Rual",umbs_2018$Species),]
+umbs_2019 <- umbs_2019[!grepl("Rual",umbs_2019$Species),]
+umbs_2020 <- umbs_2020[!grepl("Rual",umbs_2020$Species),]
+
 # Add dataframes into a list so that needed functions can be applied 
 phen_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
                   umbs_2015=umbs_2015, umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, umbs_2019=umbs_2019, umbs_2020=umbs_2020)
@@ -76,6 +112,14 @@ lapply(phen_list, spp_name) # looks good
 #unique(dat$Species)
 #setdiff(unique(dat$Species), unique(taxa$code))
 
+# Removing species
+phen_list <- lapply(phen_list, remove_spp)
+lapply(phen_list, spp_name) 
+
+# Combining some species codes
+phen_list <- lapply(phen_list, change_spp_2)
+lapply(phen_list, spp_name)
+
 # Fixing site names
 phen_list <- lapply(phen_list, change_site)
 lapply(phen_list, site_name) # looks good
@@ -88,31 +132,40 @@ lapply(phen_list, date_check) # looks good
 phen_merge <- rbind(phen_list$kbs_2015, phen_list$kbs_2016, phen_list$kbs_2017, phen_list$kbs_2018, phen_list$kbs_2019, phen_list$kbs_2020,
                     phen_list$umbs_2016, phen_list$umbs_2017, phen_list$umbs_2018, phen_list$umbs_2019, phen_list$umbs_2020)
 str(phen_merge)
+sort(unique(phen_merge$Species))
 
 # Change column names to lowercase
 names(phen_merge) <- tolower(names(phen_merge))
 
-# Fix date column & add column for the year and julian day
+# Fix date column & add column for the year, month, and julian day
 phen_merge$date <- as.Date(phen_merge$date, format="%m/%d/%Y")
-str(phen_merge)
 phen_merge$year <- format(phen_merge$date,format="%Y")
+phen_merge$month <- format(phen_merge$date,format="%m")
 phen_merge$julian <- format(phen_merge$date, "%j")
+head(phen_merge)
+str(phen_merge)
 
-# merge cleaned data with the plot and species level information
+# Make julian column numeric
+phen_merge$julian <- as.numeric(phen_merge$julian)
+
+# Merge meta data with phenology data - merge cleaned data with the plot and species level information
 phen_merge2 <- merge(phen_merge, plot_info, by = "plot")
-phen_merge3 <- merge(phen_merge2, taxa, by = "species")
+phen_data <- merge(phen_merge2, taxa, by = "species")
 
+# rename site.x to be just site
 colnames(phen_data) <- sub("site.x", "site", colnames(phen_data))
+
+# remove unnecessary columns
+phen_data$site.y <- NULL
+phen_data$old_code <- NULL
+phen_data$old_name <- NULL
+phen_data$resolution <- NULL
 
 # Change column names to lowercase (again)
 names(phen_data) <- tolower(names(phen_data))
 str(phen_data)
 
-# Make julian column numeric
-phen_data$julian <- as.numeric(phen_data$julian)
-str(phen_data)
-
-phen_data <- phen_data[, c("site", "plot", "species", "action", "date", "julian", "year", "treatment_key", "state",
+phen_data <- phen_data[, c("site", "plot", "species", "action", "date", "julian", "year", "month", "treatment_key", "state",
                           "insecticide", "scientific_name", "common_name", "usda_species", "lter_species",
                           "origin", "group", "family", "duration", "growth_habit")]
 
