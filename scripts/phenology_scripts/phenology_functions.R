@@ -37,6 +37,12 @@ date_check <- function(df){
         return(date)
 }
 
+# check that there are no double plot IDs
+plot_check <- function(df){
+        ID <- unique(sort(df[["Plot"]]))
+        return(ID)
+}
+
 #function to change column names
 change_colnames <- function(df){
         names(df)[names(df) == "site"] <- "Site"
@@ -101,6 +107,8 @@ remove_spp <- function(df){
         df <- df[!grepl("Vaan",df$Species),]
         df <- df[!grepl("Gnul",df$Species),]
         df <- df[!grepl("Trdu",df$Species),]
+        df <- df[!grepl("Asun",df$Species),]
+        df <- df[!grepl("Coca",df$Species),]
         df <- df[!grepl("Unknown",df$Species),]
         #df <- df[!grepl("Alpe",df$Species),]
         #df <- df[!grepl("Sypi",df$Species),]
@@ -125,6 +133,14 @@ change_spp_2 <- function(df){
         df$Species[df$Species == "Sohi"] <- "Sosp"
         df$Species[df$Species == "Assy"] <- "Assp"
         df$Species[df$Species == "Rual"] <- "Rusp"
+        return(df)
+}
+
+# change plot ID names
+change_plotID <- function(df){
+        df$Plot[df$Plot == "A4 "] <- "A4"
+        df$Plot[df$Plot == "B5 "] <- "B5"
+        df$Plot[df$Plot == "D5 "] <- "D5"
         return(df)
 }
 

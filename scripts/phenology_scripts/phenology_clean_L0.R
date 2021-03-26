@@ -53,35 +53,36 @@ colnames(kbs_2015) <- sub("event", "Action", colnames(kbs_2015))
 colnames(umbs_2015) <- sub("event", "Action", colnames(umbs_2015))
 
 # remove species from UMBS (and not KBS)
-umbs_2015 <- umbs_2015[!grepl("Vear",umbs_2015$Species),]
+#remove_spp <- function(df, site, species){
+#        vec <- 
+#        df = df[!grepl("species",df$Species),]
+#        return(df)
+#}
+
 umbs_2016 <- umbs_2016[!grepl("Vear",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Vear",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Vear",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Vear",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Vear",umbs_2020$Species),]
 
-umbs_2015 <- umbs_2015[!grepl("Elre",umbs_2015$Species),]
 umbs_2016 <- umbs_2016[!grepl("Elre",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Elre",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Elre",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Elre",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Elre",umbs_2020$Species),]
 
-umbs_2015 <- umbs_2015[!grepl("Rusp",umbs_2015$Species),]
 umbs_2016 <- umbs_2016[!grepl("Rusp",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Rusp",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Rusp",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Rusp",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Rusp",umbs_2020$Species),]
 
-umbs_2015 <- umbs_2015[!grepl("Ruag",umbs_2015$Species),]
 umbs_2016 <- umbs_2016[!grepl("Ruag",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Ruag",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Ruag",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Ruag",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Ruag",umbs_2020$Species),]
 
-umbs_2015 <- umbs_2015[!grepl("Rual",umbs_2015$Species),]
 umbs_2016 <- umbs_2016[!grepl("Rual",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Rual",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Rual",umbs_2018$Species),]
@@ -91,13 +92,18 @@ umbs_2020 <- umbs_2020[!grepl("Rual",umbs_2020$Species),]
 # Add dataframes into a list so that needed functions can be applied 
 phen_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
                   umbs_2015=umbs_2015, umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, umbs_2019=umbs_2019, umbs_2020=umbs_2020)
+
+# Apply functions
 phen_list <- lapply(phen_list, change_colnames) 
 phen_list <- lapply(phen_list, remove_col, name=c("Julian", "Notes", "collector", "julian", "notes"))
-#phen_list <- lapply(phen_list, colnames_ordered)
 phen_list <- lapply(phen_list, change_date)
+phen_list <- lapply(phen_list, change_plotID)
+
+# Look over the contents of species, site, and dates after applying functions
 lapply(phen_list, spp_name) # look over species code to see what needs to be fixed
 lapply(phen_list, site_name) # need to make these all the same for each site
 lapply(phen_list, date_check) # see if any dates were entered incorrectly, like the year
+lapply(phen_list, plot_check) # see if there are any repeat plot IDs
 
 # Fixing species names
 phen_list <- lapply(phen_list, change_spp)
@@ -147,19 +153,28 @@ str(phen_merge)
 
 # Make julian column numeric
 phen_merge$julian <- as.numeric(phen_merge$julian)
+str(phen_merge)
 
 # Merge meta data with phenology data - merge cleaned data with the plot and species level information
 phen_merge2 <- merge(phen_merge, plot_info, by = "plot")
-phen_data <- merge(phen_merge2, taxa, by = "species")
 
-# rename site.x to be just site
-colnames(phen_data) <- sub("site.x", "site", colnames(phen_data))
+sort(unique(phen_merge$plot))
+phen_merge2 <- left_join(plot_info, phen_merge, by = "plot")
+sort(unique(phen_merge2$species))
+
+# taxon contains "site" which is the site where the species is found on our meta-data table, but those data exist in our plant_comp_merge dataset already.
+# Delete "site" from taxon so it doesn't accidentally get merged in.
+taxa$site<-NULL
+#phen_data <- merge(phen_merge2, taxa, by = "species")
+
+phen_data <- left_join(phen_merge2, taxa, by = "species")
+sort(unique(phen_data$species))
 
 # remove unnecessary columns
-phen_data$site.y <- NULL
 phen_data$old_code <- NULL
 phen_data$old_name <- NULL
 phen_data$resolution <- NULL
+phen_data$old_species <- NULL
 
 # Change column names to lowercase (again)
 names(phen_data) <- tolower(names(phen_data))
