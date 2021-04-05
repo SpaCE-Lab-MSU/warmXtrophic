@@ -165,8 +165,8 @@ sort(unique(phen_merge2$species))
 # taxon contains "site" which is the site where the species is found on our meta-data table, but those data exist in our plant_comp_merge dataset already.
 # Delete "site" from taxon so it doesn't accidentally get merged in.
 taxa$site<-NULL
-#phen_data <- merge(phen_merge2, taxa, by = "species")
 
+# merge taxon meta data with the phenology data
 phen_data <- left_join(phen_merge2, taxa, by = "species")
 sort(unique(phen_data$species))
 
