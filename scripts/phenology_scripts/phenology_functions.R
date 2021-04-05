@@ -101,7 +101,6 @@ remove_spp <- function(df){
         df <- df[!grepl("Besp",df$Species),]
         df <- df[!grepl("Prse",df$Species),]
         df <- df[!grepl("Quru",df$Species),]
-        #df <- df[!grepl("Prpe",df$Species),]
         df <- df[!grepl("Veth",df$Species),]
         df <- df[!grepl("Anma",df$Species),]
         df <- df[!grepl("Vaan",df$Species),]
@@ -123,8 +122,8 @@ change_spp_2 <- function(df){
         df$Species[df$Species == "Popsp"] <- "Posp"
         df$Species[df$Species == "Trre"] <- "Trsp"
         df$Species[df$Species == "Trpr"] <- "Trsp"
-        df$Species[df$Species == "Poco"] <- "Posp"
-        df$Species[df$Species == "Popr"] <- "Posp"
+        #df$Species[df$Species == "Poco"] <- "Posp"
+        #df$Species[df$Species == "Popr"] <- "Posp"
         df$Species[df$Species == "Hipi"] <- "Hisp"
         df$Species[df$Species == "Hica"] <- "Hisp"
         df$Species[df$Species == "Hiau"] <- "Hisp"
