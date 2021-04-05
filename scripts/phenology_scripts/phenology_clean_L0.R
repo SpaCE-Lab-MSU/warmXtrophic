@@ -186,8 +186,14 @@ phen_data <- phen_data[, c("site", "plot", "species", "action", "date", "julian"
 
 str(phen_data)
 
-# write a new csv with the cleaned and merge data and upload to the shared google drive
-write.csv(phen_data, file="L1/phenology/final_flwr_sd_L1.csv")
+# make a column that breaks down years as 1, 2, 3, 4, 5, 6 and into factors
+phen_data$year_factor <- 
+        ifelse(phen_data$year == 2015, "1",
+               ifelse(phen_data$year == 2016, "2",
+                      ifelse(phen_data$year == 2017, "3",
+                             ifelse(phen_data$year == 2018, "4",
+                                    ifelse(phen_data$year == 2019, "5",
+                                           ifelse(phen_data$year == 2020, "6", NA))))))
 
 # Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor
 phen_data$state <- as.factor(phen_data$state)
@@ -197,14 +203,8 @@ phen_data$state <- factor(phen_data$state, levels(phen_data$state)[c(2,1)])
 levels(phen_data$state)
 # [1] "warmed"  "ambient"
 
-# make a column that breaks down years as 1, 2, 3, 4, 5, 6 and into factors
-phen_data$year_factor <- 
-        ifelse(phen_data$year == 2015, "1",
-               ifelse(phen_data$year == 2016, "2",
-                      ifelse(phen_data$year == 2017, "3",
-                             ifelse(phen_data$year == 2018, "4",
-                                    ifelse(phen_data$year == 2019, "5",
-                                           ifelse(phen_data$year == 2020, "6", NA))))))
+# write a new csv with the cleaned and merge data and upload to the shared google drive
+write.csv(phen_data, file="L1/phenology/final_flwr_sd_L1.csv")
 
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(phen_data, action == "flower")

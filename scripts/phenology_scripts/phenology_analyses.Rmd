@@ -73,32 +73,40 @@ library(interactions)
 library(sjPlot)
 library(effects)
 library(glmmTMB)
+library(GGally) # ggpairs() function
 
 # Set working directory to Google Drive
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in data
 # cleaned phenology data from L1
-phen_data <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flw_sd_L1.csv", stringsAsFactors=FALSE)
+phen_data <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flwr_sd_L1.csv", stringsAsFactors=FALSE)
 phen_data$X <- NULL # get rid of "X" column that shows up
 View(phen_data) # take a look at the data to see if looks good
 
-# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor.
-# greenup$state = with(greenup, reorder(class, hwy, median))
+# flowering data
+# species level data for flowering
+flwr_spp <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flwr_species_L1.csv")
+flwr_spp$X <- NULL
+# plot level data for flowering
+flwr_plot <- read_csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flwr_plot_L1.csv")
+flwr_plot$X1 <- NULL
 
-phen_data$state<-as.factor(phen_data$state)
+# seed set data
+# species level data for seed set
+seed_spp <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_sd_species_L1.csv")
+seed_spp$X <- NULL
+# plot level data for seed set
+seed_plot <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_sd_plot_L1.csv")
+seed_plot$X <- NULL
+
+# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor
+phen_data$state <- as.factor(phen_data$state)
 levels(phen_data$state)
+# [1] "ambient" "warmed" 
 phen_data$state <- factor(phen_data$state, levels(phen_data$state)[c(2,1)])
 levels(phen_data$state)
-
-# make a column that breaks down years as 1, 2, 3, 4, 5, 6 and into factors
-phen_data$year_factor <- 
-        ifelse(phen_data$year == 2015, "1",
-               ifelse(phen_data$year == 2016, "2",
-                      ifelse(phen_data$year == 2017, "3",
-                             ifelse(phen_data$year == 2018, "4",
-                                    ifelse(phen_data$year == 2019, "5",
-                                           ifelse(phen_data$year == 2020, "6", NA))))))
+# [1] "warmed"  "ambient"
 
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(phen_data, action == "flower")
@@ -111,26 +119,6 @@ umbs_flwr <- subset(phen_flwr, site == "umbs")
 # Separate data frame by site for seed set
 kbs_sd <- subset(phen_sd, site == "kbs")
 umbs_sd <- subset(phen_sd, site == "umbs")
-
-# First Flower by species level - filter data to contain the date of first flower for each species at each plot
-FirstFlwr_spp <- phen_flwr %>%
-        group_by(plot, year, species, state, site, action, origin, insecticide, year_factor) %>%
-        summarize(julian = min(julian, na.rm=T))
-
-# First Flower Date by plot level
-FirstFlwr_plot <- phen_flwr %>%
-        group_by(plot, year, state, site, insecticide, year_factor) %>%
-        summarize(julian = min(julian, na.rm=T))
-
-# Median Flower Date by species level - filter data to contain the median date of flower for each species at each plot
-MedianFlwr_spp <- phen_flwr %>%
-        group_by(plot, year, species, state, site, action, origin, insecticide, year_factor, treatment_key) %>%
-        summarize(julian = median(julian, na.rm=T))
-
-# Median Flower Date by plot level
-MedianFlwr_plot <- phen_flwr %>%
-        group_by(plot, year, state, site, insecticide, year_factor) %>%
-        summarize(julian = min(julian, na.rm=T))
 ```
 
 # Data Exploration: are there differences between warmed vs. ambient plots when we account for species?
@@ -147,15 +135,19 @@ hist(umbs_firstflwr_spp$julian) # poisson?
 qqnorm(umbs_firstflwr_spp$julian)
 fit1 <- lm(julian ~ state, data = umbs_firstflwr_spp)
 qqPlot(fit1)
-shapiro.test(umbs_firstflwr_spp$julian) 
+shapiro.test(umbs_firstflwr_spp$julian) #not normal
 
-descdist(umbs_firstflwr_spp$julian, discrete = FALSE) # uniform? normal?
+descdist(umbs_firstflwr_spp$julian, discrete = FALSE) # log normal?
 
 skewness(umbs_firstflwr_spp$julian)
 
 umbs_firstflwr_spp$sqrt_julian <- sqrt(umbs_firstflwr_spp$julian)
 hist(umbs_firstflwr_spp$sqrt_julian)
 skewness(umbs_firstflwr_spp$sqrt_julian, na.rm = TRUE)
+
+umbs_firstflwr_spp$log_julian <- log(umbs_firstflwr_spp$julian)
+hist(umbs_firstflwr_spp$log_julian)
+skewness(umbs_firstflwr_spp$log_julian, na.rm = TRUE)
 ```
 
 Median Flower 
@@ -181,32 +173,30 @@ umbs_median_species <- umbs_flwr %>% #median date of flower for each species acr
         group_by(species) %>%
         summarize(julian = median(julian, na.rm=T))
 View(umbs_median_species)
-summary(umbs_median_species) # Mean = 183.2 
+summary(umbs_median_species) # Mean = 182.1 
 
 # Not sure if this is the best way to do this, but I calculated the median date of flower for each species 
 # across all years and plots then took the summary of those median dates, took the mean (183.2) and made a
 # new column for a flower group broken into "early" (species with a median date less than 183) and "late" 
 # (species with a median date greater than 183) median flower date. 
 umbs_median_species$flwr_group <- with(umbs_median_species, 
-                                       ifelse(julian >= 183, "late", "early"))
+                                       ifelse(julian >= 182, "late", "early"))
 View(umbs_median_species)
-# "early" species: Acru, Ansp, Cape, Dasp, Frve, Hiau, Hica, Hipi, Hisp, Poco, Popr, Ruac, Rual, Spsp, Trdu, Unknown, Vaan, Vear
-# "late" species: Anma, Apan, Assy, Asun, Cest, Elre, Gnul, Hype, Sogi, Sone, Sohi, Syla
+# "early" species: Ansp, Cape, Dasp, Frve, Hisp, Poco, Popr, Ruac
+# "late" species: Apan, Assp, Cest, Hype, Sosp, Syla
 
-umbs_flwr_med$flwr_group <- with(umbs_flwr_med, 
-                                       ifelse(species == c("Acru", "Ansp", "Cape", "Dasp", "Frve", "Hiau", "Hica", "Hipi", "Hisp", "Poco", "Popr", "Ruac", "Rual", "Spsp", "Trdu", "Unknown", "Vaan", "Vear"), "early", "late"))
+umbs_medflwr_spp$flwr_group <- with(umbs_medflwr_spp, 
+                                       ifelse(species == c("Ansp", "Cape", "Dasp", "Frve", "Hisp", "Poco", "Popr", "Ruac"), "early", "late"))
 
 # histograms for both "early" and "late" flower group separately 
-hist(umbs_flwr_med$julian[umbs_flwr_med$flwr_group == "early"])
-hist(umbs_flwr_med$julian[umbs_flwr_med$flwr_group == "late"])
-# I don't think this did what I wanted it too..... I need a break.
-
-
+hist(umbs_medflwr_spp$julian[umbs_medflwr_spp$flwr_group == "early"])
+hist(umbs_medflwr_spp$julian[umbs_medflwr_spp$flwr_group == "late"])
+# I don't think this did what I wanted it too...
 
 qqnorm(umbs_medflwr_spp$julian)
-fit2 <- lm(julian ~ state, data = umbs_flwr_med)
+fit2 <- lm(julian ~ state, data = umbs_medflwr_spp)
 qqPlot(fit2)
-shapiro.test(umbs_medflwr_spp$julian)
+shapiro.test(umbs_medflwr_spp$julian) # not normal
 
 descdist(umbs_medflwr_spp$julian, discrete = FALSE) # uniform?
 
@@ -221,6 +211,16 @@ ggdensity(umbs_medflwr_spp, x = "sqrt_julian", fill = "lightgray", title = "CONT
         stat_overlay_normal_density(color = "red", linetype = "dashed") 
 # there's that weird dip around 14 on the x-axis
 ```
+
+```{r}
+green_kbsp <- subset(green_kbsp,select =
+                       c("plot_half_cover_date","min_green_date","plot","year","state","insecticide","site","year_factor"))
+head(green_kbsp)
+
+umbs_medflwr_plot <- subset(umbs_medflwr_plot =
+                              c("plot","year","state","insecticide","site","year_factor", ))
+```
+
 
 Models!
 What is the effect of warming (state) on the median date of flower?
