@@ -186,5 +186,82 @@ phen_data <- phen_data[, c("site", "plot", "species", "action", "date", "julian"
 
 str(phen_data)
 
-# write a new cvs with the cleaned and merge data and upload to the shared google drive
-write.csv(phen_data, file="L1/phenology/final_flw_sd_L1.csv")
+# write a new csv with the cleaned and merge data and upload to the shared google drive
+write.csv(phen_data, file="L1/phenology/final_flwr_sd_L1.csv")
+
+# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor
+phen_data$state <- as.factor(phen_data$state)
+levels(phen_data$state)
+# [1] "ambient" "warmed" 
+phen_data$state <- factor(phen_data$state, levels(phen_data$state)[c(2,1)])
+levels(phen_data$state)
+# [1] "warmed"  "ambient"
+
+# make a column that breaks down years as 1, 2, 3, 4, 5, 6 and into factors
+phen_data$year_factor <- 
+        ifelse(phen_data$year == 2015, "1",
+               ifelse(phen_data$year == 2016, "2",
+                      ifelse(phen_data$year == 2017, "3",
+                             ifelse(phen_data$year == 2018, "4",
+                                    ifelse(phen_data$year == 2019, "5",
+                                           ifelse(phen_data$year == 2020, "6", NA))))))
+
+# Create separate data frames for flowering and seeding
+phen_flwr <- subset(phen_data, action == "flower")
+phen_sd <- subset(phen_data, action == "seed")
+
+#### FLOWERING ####
+### Create a data frame at the SPECIES LEVEL that includes median date of flower and first flower date
+# First Flower by SPECIES LEVEL - filter data to contain the date of first flower for each species at each plot
+FirstFlwr_spp <- phen_flwr %>%
+        group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor) %>%
+        summarize(julian_min = min(julian, na.rm=T))
+
+# Median Flower Date by sPECIES LEVEL - filter data to contain the median date of flower for each species at each plot
+MedianFlwr_spp <- phen_flwr %>%
+        group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor) %>%
+        summarize(julian_median = median(julian, na.rm=T))
+
+# Merge the two data frames above so that you have one data frame that includes median date of flower and first date
+# of flower at SPECIES LEVEL
+phen_flwr_spp <- merge(FirstFlwr_spp, MedianFlwr_spp)
+
+# write a new csv with flowering data at the SPECIES LEVEL and upload to the shared google drive
+write.csv(phen_flwr_spp, file="L1/phenology/final_flwr_species_L1.csv")
+
+### Create a data frame at the PLOT LEVEL that includes median date of flower and first flower
+# First Flower Date by PLOT LEVEL
+FirstFlwr_plot <- phen_flwr %>%
+        group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+        summarize(julian_min = min(julian, na.rm=T))
+
+# Median Flower Date by PLOT LEVEL
+MedianFlwr_plot <- phen_flwr %>%
+        group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+        summarize(julian_median = median(julian, na.rm=T))
+
+# Merge the two data frames above so that you have one data frame that includes median date of flower and first date
+# of flower at PLOT LEVEL
+phen_flwr_plot <- merge(FirstFlwr_plot, MedianFlwr_plot)
+
+# write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
+write.csv(phen_flwr_plot, file="L1/phenology/final_flwr_plot_L1.csv")
+
+#### SEED SET ####
+### Create a data frame at the SPECIES LEVEL that includes first date of seed
+# First Seed by SPECIES LEVEL - filter data to contain the date of first seed for each species at each plot
+FirstSd_spp <- phen_sd %>%
+        group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor) %>%
+        summarize(julian_min = min(julian, na.rm=T))
+
+# write a new csv with first seed date at the SPECIES LEVEL and upload to the shared google drive
+write.csv(FirstSd_spp, file="L1/phenology/final_sd_species_L1.csv")
+
+### Create a data frame at the PLOT LEVEL that includes first date of seed
+# First Flower Date by PLOT LEVEL
+FirstSd_plot <- phen_sd %>%
+        group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+        summarize(julian_min = min(julian, na.rm=T))
+
+# write a new csv with first seed date at the PLOT LEVEL and upload to the shared google drive
+write.csv(FirstSd_plot, file="L1/phenology/final_sd_plot_L1.csv")
