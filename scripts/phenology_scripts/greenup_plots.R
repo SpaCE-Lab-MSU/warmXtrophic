@@ -202,3 +202,24 @@ greenup_plot_habit <- function(loc) {
 }
 greenup_plot_habit("umbs")
 greenup_plot_habit("kbs")  
+
+
+# Trying something different - can I compare yearly avg temp to date of greenup?
+KBS_temp <- read.csv("L1/HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv")
+KBS_temp$Date_Time <- as.Date(KBS_temp$Date_Time)
+KBS_temp$month <- format(KBS_temp$Date_Time,format="%m")
+KBS_temp$year <- format(KBS_temp$Date_Time,format="%Y")
+KBS_temp <- KBS_temp %>%
+        filter(month > "03") %>%
+        filter(month < "09") %>%
+        group_by(year) %>%
+        summarize(avg_temp = mean(Temp_F_XP_air_1m, na.rm=T))
+        
+
+
+ggplot(greenup_spp, aes(x = year, y = avg_julian, col = state)) +
+        geom_line() +
+        geom_point() +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_classic()
+
