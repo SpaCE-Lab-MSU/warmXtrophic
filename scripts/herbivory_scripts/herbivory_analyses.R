@@ -4,7 +4,7 @@
 # DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder
 # DATA OUTPUT:    
 # PROJECT:        warmXtrophic
-# DATE:           Jan 2021
+# DATE:           Jan 2021 ; updated April 2021
 
 
 ##### Main questions ######
@@ -20,13 +20,14 @@ rm(list=ls())
 
 #Load packages
 library(tidyverse)
-library(lme4)
+library(lmerTest)
 library(olsrr)
 library(predictmeans)
 library(car)
 library(fitdistrplus)
 library(MASS)
 library(pscl)
+library(lmtest)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -44,9 +45,17 @@ herb$year[herb$year == 2018] <- 4
 herb$year[herb$year == 2019] <- 5
 herb$year[herb$year == 2020] <- 6
 
+# Remove NAs
+!complete.cases(herb)
+herb <- herb[complete.cases(herb),]
+
 # create dataframes for kbs and umbs only for plots with no insecticide
 herb_kbs <- subset(herb, site == "kbs" & insecticide == "insects")
 herb_umbs <- subset(herb, site == "umbs" & insecticide == "insects")
+
+# How much of the data is zeros?
+100*sum(herb$p_eaten == 0)/nrow(herb) #69% - thats a lot! probably have to use a zero-inflated model,
+# but I'll still check for normality & try some transformations below
 
 
 
@@ -62,76 +71,57 @@ hist(herb_kbs$p_eaten[herb_kbs$state == "ambient"])
 hist(herb_kbs$p_eaten[herb_kbs$state == "warmed"])
 # not normal, attempting to transform data below
 
+# log transform
+herb_kbs$p_log <- log(herb_kbs$p_eaten+1)
+hist(herb_kbs$p_log)
+qqnorm(herb_kbs$p_log)
+shapiro.test(herb_kbs$p_log) # NAs - data contains 0s
 # mean centering p_eaten
-herb_kbs$p_scaled <- scale(herb_kbs$p_eaten, scale = F)
+herb_kbs$p_scaled <- herb_kbs$p_log - mean(herb_kbs$p_log)
 hist(herb_kbs$p_scaled)
 hist(herb_kbs$p_scaled[herb_kbs$state == "ambient"])
 hist(herb_kbs$p_scaled[herb_kbs$state == "warmed"])
 qqnorm(herb_kbs$p_scaled)
 shapiro.test(herb_kbs$p_scaled)
-
-# log transform 
-herb_kbs$p_log <- log(herb_kbs$p_eaten)
-hist(herb_kbs$p_log)
-qqnorm(herb_kbs$p_log)
-shapiro.test(herb_kbs$p_log) # NAs - data contains 0s
-
-# inverse transform 
-herb_kbs$p_inv <- 1/(herb_kbs$p_eaten)
-hist(herb_kbs$p_inv)
-qqnorm(herb_kbs$p_inv)
-shapiro.test(herb_kbs$p_inv) # NA- data contains 0s
-
-# square root transform 
+# square root?
 herb_kbs$p_sqrt <- sqrt(herb_kbs$p_eaten)
 hist(herb_kbs$p_sqrt)
-qqnorm(herb_kbs$p_sqrt)
-shapiro.test(herb_kbs$p_sqrt)
-
-# cubed root transform 
-herb_kbs$p_cubed <- (herb_kbs$p_eaten)^(1/3)
-hist(herb_kbs$p_cubed)
-qqnorm(herb_kbs$p_cubed)
-shapiro.test(herb_kbs$p_cubed)
 
 
-##### trying different distributions #######
-descdist(herb_kbs$p_eaten, discrete = FALSE)
-# doesn't really look close to any
-# variance is also > mean, so can't be poisson
-# I'll try negative binomial due to an excess of zeros
-
+# transformations are a no-go
 # mean and var of non-zero counts
 herb_kbs %>%
   dplyr::filter(p_eaten != "0") %>%
   dplyr::summarize(mean_eaten = mean(p_eaten, na.rm=T), var_eaten = var(p_eaten, na.rm=T))
+# variance is also > mean, so can't be poisson
+# I'll try zero-inflated negative binomial due to an excess of zeros
 
-# using glm
-fit <- lm(p_eaten~state, data = herb_kbs)
-residual <- fit$residuals
-hist(residual)
-neg.binom <- glm.nb(p_eaten~state, data = herb_kbs)
-hist(neg.binom$residuals)
+# zero-inflated negative binomial
+# is state the variable that predicts the excess zeros?
+m.neg1 <- zeroinfl(p_eaten ~ state | state,
+               dist = 'negbin',
+               data = herb_kbs)
+summary(m.neg1)
 
-# need to work on zero-inflated model more
-# zero-inflatex negative binomial
-mod1 <- zeroinfl(p_eaten ~ state, data = herb_kbs, dist = "negbin")
-mod1
+# is species the variable that predicts excess zeros?
+m.neg2 <- zeroinfl(p_eaten ~ state | species,
+                   dist = 'negbin',
+                   data = herb_kbs)
+summary(m.neg2)
 
+# check dispersion
+E <- resid(m.neg1, type = "pearson")
+N  <- nrow(herb_kbs)
+p  <- length(coef(m.neg1)) + 1 # '+1' is due to theta
+sum(E^2) / (N - p) # pretty close to one, not bad
 
-###### running analyses ########
-## partially taken from kileigh's old code ##
-moda <- lmer(p_eaten ~ state*year + (1|species) + (1|plot), herb_kbs)
-modb <- lmer(p_eaten ~ state + year + (1|species) + (1|plot), herb_kbs)
-modc <- lmer(p_eaten ~ state + (1|year) + (1|species) + (1|plot), herb_kbs)
-anova(moda,modb,modc)
-summary(moda)
-anova(moda)
-emmeans(moda, list(pairwise ~ state*year), adjust = "tukey") # only shows 2017?
+E2 <- resid(m.neg2, type = "pearson")
+N2 <- nrow(herb_kbs)
+p2  <- length(coef(m.neg2)) + 1 
+sum(E2^2) / (N2 - p2) # not as good as the first one
 
-# these fail
-permanova.lmer(moda)
-permanova.lmer(moda, drop=FALSE)
+# comparing the two models with a likelihood ratio test
+lrtest(m.neg1, m.neg2)
 
 
 
@@ -153,37 +143,56 @@ hist(herb_umbs$p_log)
 qqnorm(herb_umbs$p_log)
 shapiro.test(herb_umbs$p_log) # NAs - data contains 0s
 
-# inverse transform 
-herb_umbs$p_inv <- 1/(herb_umbs$p_eaten)
-hist(herb_umbs$p_inv)
-qqnorm(herb_umbs$p_inv)
-shapiro.test(herb_umbs$p_inv) # NA- data contains 0s
+# transformations are a no-go
+# mean and var of non-zero counts
+herb_umbs %>%
+        dplyr::filter(p_eaten != "0") %>%
+        dplyr::summarize(mean_eaten = mean(p_eaten, na.rm=T), var_eaten = var(p_eaten, na.rm=T))
+# variance is also > mean, so can't be poisson
+# I'll try zero-inflated negative binomial due to an excess of zeros
 
-# square root transform 
-herb_umbs$p_sqrt <- sqrt(herb_umbs$p_eaten)
-hist(herb_umbs$p_sqrt)
-qqnorm(herb_umbs$p_sqrt)
-shapiro.test(herb_umbs$p_sqrt)
+# zero-inflated negative binomial
+# is state the variable that predicts the excess zeros?
+m.neg3 <- zeroinfl(p_eaten ~ state | state,
+                   dist = 'negbin',
+                   data = herb_umbs)
+summary(m.neg3)
 
-# cubed root transform 
-herb_umbs$p_cubed <- (herb_umbs$p_eaten)^(1/3)
-hist(herb_umbs$p_cubed)
-qqnorm(herb_umbs$p_cubed)
-shapiro.test(herb_umbs$p_cubed)
+# is species the variable that predicts excess zeros?
+m.neg4 <- zeroinfl(p_eaten ~ state | species,
+                   dist = 'negbin',
+                   data = herb_umbs)
+summary(m.neg4)
+
+# check dispersion
+E3 <- resid(m.neg3, type = "pearson")
+N3  <- nrow(herb_umbs)
+p3  <- length(coef(m.neg3)) + 1 # '+1' is due to theta
+sum(E3^2) / (N3 - p3) # a little low
+
+E4 <- resid(m.neg4, type = "pearson")
+N4 <- nrow(herb_umbs)
+p4  <- length(coef(m.neg4)) + 1 
+sum(E4^2) / (N4 - p4) # pretty close to one
+
+# comparing the two models with a likelihood ratio test
+lrtest(m.neg3, m.neg4)
 
 
 
 
 
+###### running analyses ########
+## partially taken from kileigh's old code ##
+moda <- lmer(p_eaten ~ state*year + (1|species) + (1|plot), herb_kbs)
+modb <- lmer(p_eaten ~ state + year + (1|species) + (1|plot), herb_kbs)
+modc <- lmer(p_eaten ~ state + (1|year) + (1|species) + (1|plot), herb_kbs)
+anova(moda,modb,modc)
+summary(moda)
+anova(moda)
+emmeans(moda, list(pairwise ~ state*year), adjust = "tukey") # only shows 2017?
 
-##### my attempt before finding Kileigh's script #######
-### comparing linear vs mixed effects ###
-# linear model
-lm1 <- lm(p_eaten~state*year, data = herb_kbs)
-summary(lm1)
-
-# mixed effects model (species random)
-lme1 <- lme(p_eaten~state*year, random=~1|species, data = herb_kbs)
-summary(lme1)
-coef(lme1)
+# these fail
+permanova.lmer(moda)
+permanova.lmer(moda, drop=FALSE)
 
