@@ -98,6 +98,7 @@ herb_kbs %>%
 
 # zero-inflated negative binomial
 # is state the variable that predicts the excess zeros?
+# this is probably the right one since the 0's in the data are real counts
 m.neg1 <- zeroinfl(p_eaten ~ state | state,
                dist = 'negbin',
                data = herb_kbs)
@@ -121,7 +122,7 @@ p2  <- length(coef(m.neg2)) + 1
 sum(E2^2) / (N2 - p2) # not as good as the first one
 
 # comparing the two models with a likelihood ratio test
-lrtest(m.neg1, m.neg2)
+lrtest(m.neg1, m.neg2) #m.neg2 is better, but m.neg1 makes more sense for the data
 
 
 
@@ -153,6 +154,7 @@ herb_umbs %>%
 
 # zero-inflated negative binomial
 # is state the variable that predicts the excess zeros?
+# this is probably the right one since the 0's in the data are real counts
 m.neg3 <- zeroinfl(p_eaten ~ state | state,
                    dist = 'negbin',
                    data = herb_umbs)
@@ -176,7 +178,7 @@ p4  <- length(coef(m.neg4)) + 1
 sum(E4^2) / (N4 - p4) # pretty close to one
 
 # comparing the two models with a likelihood ratio test
-lrtest(m.neg3, m.neg4)
+lrtest(m.neg3, m.neg4) #m.neg4 is better, but m.neg3 makes more sense for the data
 
 
 
