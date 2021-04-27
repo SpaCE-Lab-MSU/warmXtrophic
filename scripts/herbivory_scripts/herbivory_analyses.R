@@ -54,8 +54,9 @@ herb_kbs <- subset(herb, site == "kbs" & insecticide == "insects")
 herb_umbs <- subset(herb, site == "umbs" & insecticide == "insects")
 
 # How much of the data is zeros?
-100*sum(herb$p_eaten == 0)/nrow(herb) #69% - thats a lot! probably have to use a zero-inflated model,
+100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #68% - thats a lot! probably have to use a zero-inflated model,
 # but I'll still check for normality & try some transformations below
+100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #59%
 
 
 
@@ -137,12 +138,12 @@ qqPlot(fit)
 hist(herb_umbs$p_eaten[herb_umbs$state == "ambient"])
 hist(herb_umbs$p_eaten[herb_umbs$state == "warmed"])
 # not normal- attempting to transform data below
-
 # log transform 
 herb_umbs$p_log <- log(herb_umbs$p_eaten)
 hist(herb_umbs$p_log)
 qqnorm(herb_umbs$p_log)
 shapiro.test(herb_umbs$p_log) # NAs - data contains 0s
+
 
 # transformations are a no-go
 # mean and var of non-zero counts
