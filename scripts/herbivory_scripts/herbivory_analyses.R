@@ -27,6 +27,7 @@ library(fitdistrplus)
 library(MASS)
 library(pscl)
 library(lmtest)
+library(emmeans)
 
 # Set working directory to Google Drive
 # **** Update with the path to your Google drive on your computer
@@ -52,7 +53,6 @@ herb_kbs <- subset(herb, site == "kbs" & insecticide == "insects")
 herb_umbs <- subset(herb, site == "umbs" & insecticide == "insects")
 
 # only keep species that were recorded in both warmed and ambient plots
-# models below won't run if species are only recorded in either warmed or ambient plots
 herb_kbs <- herb_kbs %>%
         group_by(species) %>% 
         filter(all(c('warmed', 'ambient') %in% state))
@@ -60,14 +60,22 @@ herb_umbs <- herb_umbs %>%
         group_by(species) %>% 
         filter(all(c('warmed', 'ambient') %in% state))
 
+# checking to see if any species/state combos are all zeros
+with(herb_kbs,table(species,state,p_eaten==0)) 
+with(herb_umbs,table(species,state,p_eaten==0)) # looks good now, species were removed in herbivory_clean
+
+# number of observation per species/state combo (to find rare species)
+herb_kbs %>% count(state, species)
+herb_umbs %>% count(state, species)
+
+# removing rare species from KBS
+herb_kbs <- herb_kbs[!grepl("Hype",herb_kbs$species),]
+herb_kbs %>% count(state, species)
+
 # How much of the data is zeros?
 100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #68% - thats a lot! probably have to use a zero-inflated model,
 # but I'll still check for normality & try some transformations below
-100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #60%
-
-# checking to see if any species/state combos are all zeros
-with(herb_kbs,table(species,state,p_eaten==0)) 
-with(herb_umbs,table(species,state,p_eaten==0)) # yes for both
+100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #61%
 
 
 ####### kbs #########
@@ -107,8 +115,7 @@ herb_kbs %>%
 # I'll try zero-inflated negative binomial due to an excess of zeros
 
 # zero-inflated negative binomial
-# is state the variable that predicts the excess zeros?
-# this is probably the right one since the 0's in the data are real counts
+# state as a fixed effect
 m1 <- zeroinfl(p_eaten ~ state,
                dist = 'negbin',
                data = herb_kbs)
@@ -118,33 +125,49 @@ summary(m1)
 m2 <- zeroinfl(p_eaten ~ state * species,
                    dist = 'negbin',
                    data = herb_kbs)
-summary(m2) # NaNs produced due to complete separation
+summary(m2)
 
 # state and species as separate fixed effects
 m3 <- zeroinfl(p_eaten ~ state + species,
                      dist = 'negbin',
                      data = herb_kbs)
-summary(m3) # NaNs produced due to complete separation
+summary(m3)
 
-# is species the variable that predicts excess zeros?
-m4 <- zeroinfl(p_eaten ~ state | species,
-                   dist = 'negbin',
-                   data = herb_kbs)
+# state, species and year as fixed effects
+m4 <- zeroinfl(p_eaten ~ state + as.factor(year) + species,
+               dist = 'negbin',
+               data = herb_kbs)
 summary(m4)
 
+# interaction between state and year, + species
+m5 <- zeroinfl(p_eaten ~ state * as.factor(year) + species,
+               dist = 'negbin',
+               data = herb_kbs)
+summary(m5) # all NAs
+
+# interaction between all 3
+m6 <- zeroinfl(p_eaten ~ state * as.factor(year) * species,
+               dist = 'negbin',
+               data = herb_kbs)
+summary(m6) # doesn't run
+
+# is species the variable that predicts excess zeros?
+m7 <- zeroinfl(p_eaten ~ state | species,
+                   dist = 'negbin',
+                   data = herb_kbs)
+summary(m7)
+
 # likelihood ratio test
-lrtest(m1, m2, m3, m4) # m2 has the highest loglik, but m3 may be better
+lrtest(m1, m2, m3, m4, m7) # model four
 
 # check dispersion
-E <- resid(m2, type = "pearson")
+E <- resid(m4, type = "pearson")
 N  <- nrow(herb_kbs)
-p  <- length(coef(m2)) + 1 # '+1' is due to theta
-sum(E^2) / (N - p) # pretty close to one, not bad
+p  <- length(coef(m4)) + 1 # '+1' is due to theta
+sum(E^2) / (N - p) # pretty close to one
 
-E2 <- resid(m3, type = "pearson")
-N2 <- nrow(herb_kbs)
-p2  <- length(coef(m3)) + 1 
-sum(E2^2) / (N2 - p2) # almost the same as the prior model, a little worse
+# pairwise comparisons
+emmeans(m4, ~ state + year + species)
 
 
 
@@ -178,43 +201,62 @@ herb_umbs %>%
 # zero-inflated negative binomial
 # is state the variable that predicts the excess zeros?
 # this is probably the right one since the 0's in the data are real counts
-m5 <- zeroinfl(p_eaten ~ state | state,
-                   dist = 'negbin',
-                   data = herb_umbs)
-summary(m5)
-
-# interaction between state and species
-m6 <- zeroinfl(p_eaten ~ state * species,
-               dist = 'negbin',
-               data = herb_umbs)
-summary(m6) # NaNs produced due to complete separation
-
-# state and species as separate fixed effects
-m7 <- zeroinfl(p_eaten ~ state + species,
-               dist = 'negbin',
-               data = herb_umbs)
-summary(m7) # NaNs produced due to complete separation
-
-# is species the variable that predicts excess zeros?
-m8 <- zeroinfl(p_eaten ~ state | species,
+m8 <- zeroinfl(p_eaten ~ state | state,
                    dist = 'negbin',
                    data = herb_umbs)
 summary(m8)
 
+# interaction between state and species
+m9 <- zeroinfl(p_eaten ~ state * species,
+               dist = 'negbin',
+               data = herb_umbs)
+summary(m9) # NaNs produced due to complete separation
+
+# state and species as separate fixed effects
+m10 <- zeroinfl(p_eaten ~ state + species,
+               dist = 'negbin',
+               data = herb_umbs)
+summary(m10) # NaNs produced due to complete separation
+
+# state, species and year as fixed effects
+m11 <- zeroinfl(p_eaten ~ state + as.factor(year) + species,
+               dist = 'negbin',
+               data = herb_umbs)
+summary(m11)
+
+# interaction between state and year, + species
+m12 <- zeroinfl(p_eaten ~ state * as.factor(year) + species,
+               dist = 'negbin',
+               data = herb_umbs)
+summary(m12)
+
+# interaction between all 3
+m13 <- zeroinfl(p_eaten ~ state * as.factor(year) * species,
+               dist = 'negbin',
+               data = herb_umbs)
+summary(m13) # doesn't run
+
+# is species the variable that predicts excess zeros?
+m14 <- zeroinfl(p_eaten ~ state | species,
+                   dist = 'negbin',
+                   data = herb_umbs)
+summary(m14)
+
 # likelihood ratio test
-lrtest(m5, m6, m7, m8) # m6 has the highest loglik, but m7 may be better
+lrtest(m8, m9, m10, m11, m12, m14) # model 11 or 12
 
 # check dispersion
-E3 <- resid(m6, type = "pearson")
-N3  <- nrow(herb_umbs)
-p3  <- length(coef(m6)) + 1 # '+1' is due to theta
-sum(E3^2) / (N3 - p3) # pretty close to one
+E2 <- resid(m11, type = "pearson")
+N2  <- nrow(herb_umbs)
+p2  <- length(coef(m11)) + 1 # '+1' is due to theta
+sum(E2^2) / (N2 - p2) # pretty close to one
 
-E4 <- resid(m7, type = "pearson")
-N4 <- nrow(herb_umbs)
-p4  <- length(coef(m7)) + 1 
-sum(E4^2) / (N4 - p4) # closer than the prior model
+E3 <- resid(m12, type = "pearson")
+p3  <- length(coef(m12)) + 1 
+sum(E3^2) / (N2 - p3) # pretty close to one
 
+#pairwise comparisons
+emmeans(m11, ~ state + year + species)
 
 
 
