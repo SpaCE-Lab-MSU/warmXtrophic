@@ -46,6 +46,17 @@ site_name <- function(df){
   return(spp)
 }
 
+# removing species
+remove_spp <- function(df){
+        df <- df[!grepl("Assp",df$species),]
+        df <- df[!grepl("Romu",df$species),]
+        df <- df[!grepl("Daca",df$species),]
+        df <- df[!grepl("Assy",df$species),]
+        df <- df[!grepl("Besp",df$species),]
+        df <- df[!grepl("Frve",df$species),]
+        return(df)
+}
+
 # change site names
 change_spp <- function(df){
   df$species[df$species == "Sora"] <- "Soca"

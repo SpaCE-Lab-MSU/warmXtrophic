@@ -78,6 +78,10 @@ lapply(herb_list, site_name)
 herb_list <- lapply(herb_list, change_site)
 herb_list <- lapply(herb_list, change_spp)
 
+# remove species
+herb_list <- lapply(herb_list, remove_spp)
+lapply(herb_list, spp_name)
+
 # Merge final data
 herb_merge <- rbind(herb_list$kbs_2015, herb_list$kbs_2016, herb_list$kbs_2017, herb_list$kbs_2018, herb_list$kbs_2019, herb_list$kbs_2020, 
                     herb_list$umbs_2015, herb_list$umbs_2016, herb_list$umbs_2017, herb_list$umbs_2018, herb_list$umbs_2019, herb_list$umbs_2020)
