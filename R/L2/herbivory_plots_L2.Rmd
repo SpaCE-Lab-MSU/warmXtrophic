@@ -1,0 +1,116 @@
+---
+title: "Herbivory Plots"
+author: "Kara Dobson"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young  
+DATA INPUT: Clean & plot herb csv from the shared Google drive  
+DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
+PROJECT: warmXtrophic  
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Clear all existing data
+rm(list=ls())
+
+# Load packages
+library(tidyverse)
+library(plotrix)
+
+# Get data
+Sys.getenv("L1DIR")
+L1_dir<-Sys.getenv("L1DIR")
+list.files(L1_dir)
+herb <- read.csv(file.path(L1_dir, "herbivory/final_herbivory_L1.csv"))
+#str(herb) # for some reason, date column converted back to character
+
+# Fix date column & add column for the year and julian day
+herb$date <- as.Date(herb$date,format="%Y-%m-%d")
+#str(herb)
+
+# Remove weird X column
+herb <- subset(herb, select = -X)
+
+
+
+#### Total herb by site and species with insecticide treatment####
+sum_herb_in <- herb %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+            se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_in <- subset(sum_herb_in, insecticide == "insects")
+
+#### Total damage by site and species with insecticide treatment####
+sum_dam_in <- herb %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_dam = mean(p_damage, na.rm = TRUE),
+            se = std.error(p_damage, na.rm = TRUE))
+sum_dam_in <- subset(sum_dam_in, insecticide == "insects")
+
+##### Total herb by site and species #####
+sum_herb_spp <- herb %>%
+  group_by(site, state, insecticide, species, year) %>%
+  summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+            se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_spp <- subset(sum_herb_spp, insecticide == "insects")
+```
+
+## Plot for average percent leaf eaten between warmed and ambient (only plots with no insecticide)
+```{r, echo = F}
+herb_plot_in <- function(loc) { 
+  herb_spp <- subset(sum_herb_in, site == loc)
+  return(ggplot(herb_spp, aes(x = state, y = avg_eaten, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity") +
+           geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "Treatment", y = "Average Percent of Leaf Eaten", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+herb_plot_in("umbs")
+herb_plot_in("kbs")
+```
+
+### Plot for average percent leaf damage between warmed and ambient (only plots with no insecticide)
+```{r, echo=F}
+dam_plot_in <- function(loc) { 
+  dam_spp <- subset(sum_dam_in, site == loc)
+  return(ggplot(dam_spp, aes(x = state, y = avg_dam, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity") +
+           geom_errorbar(aes(ymin = avg_dam - se, ymax = avg_dam + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "Treatment", y = "Average Percent of Leaf Damage", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+dam_plot_in("umbs")
+dam_plot_in("kbs")
+```
+
+### Plot for percent leaf eaten for specific species (plots with no insecticide)
+### Ex: Eugr at kbs, Scoa at kbs
+```{r, echo=F}
+herb_plot_spp <- function(spp, loc) { 
+  herb_spp <- subset(sum_herb_spp, species == spp & site == loc)
+  return(ggplot(herb_spp, aes(x = state, y = avg_eaten, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity") +
+           geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "State", y = "Average Percent of Leaf Eaten", title = spp) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+herb_plot_spp("Eugr", "kbs")
+herb_plot_spp("Soca", "kbs")
+```

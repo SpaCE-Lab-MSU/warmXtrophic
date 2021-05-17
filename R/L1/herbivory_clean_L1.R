@@ -13,9 +13,8 @@ rm(list=ls())
 library(tidyverse)
 
 # Source in needed functions
-source("~/warmXtrophic/R/L0/herbivory_functions_L1.R")
+source("~/warmXtrophic/R/L1/herbivory_functions_L1.R")
 
-# Read in data
 # Get data
 Sys.getenv("L0DIR")
 L0_dir<-Sys.getenv("L0DIR")
