@@ -16,10 +16,18 @@ library(tidyverse)
 
 # Set working directory to Google Drive
 # Pat said he doesn't setwd --> figure out .renviron
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
-# Source in needed functions from phenology_functions.R
-source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/scripts/phenology_scripts/phenology_functions.R")
+# Source in needed functions
+source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/phenology_functions_L1.R")
+
+# Read in data
+Sys.getenv("L0DIR")
+L0_dir <- Sys.getenv("L0DIR")
+list.files(L0_dir)
+meta <- read.csv(file.path(L0_dir, "plot.csv"))
+taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
+
 
 ### Read in meta data files
 # Read in species list

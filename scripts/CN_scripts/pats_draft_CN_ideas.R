@@ -1,5 +1,5 @@
 # TITLE:          Carbon and Nitrogen Data Cleanup
-# AUTHORS:        Moriah Young
+# AUTHORS:        Moriah Young, Pat Bills
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Pat Bills, Kara Dobson
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    A csv file containing CN data is uploaded to the L1 plant comp folder
@@ -15,15 +15,13 @@ library(tidyverse)
 CN_L1_save <- function(){
         LO_dir <- Sys.getenv("LODIR")
         CN_final2 <- CN_L0(L0_DIR)
-        # test that CN_file2 has charactistics we expect
+        # test that CN_file2 has characteristics we expect
         
         L1_dir <- Sys.getenv("L1DIR")
         write.csv(CN_final2, file=file.path(L1DIR, "final_CN_L1.csv"), row.names=FALSE)
         return()
 }
         
-
-
 # Set working directory to Google Drive
 # setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 # CN_LO_CHECK<- function(L0_dir){
@@ -34,8 +32,7 @@ CN_L1_save <- function(){
 #         
 # }
 
-
-#' clean up CN CSV files before merging
+# clean up CN CSV files before merging
 cn_csvdata_initial_prep<- function(cn_data){
         cn_data <- cn_data[-(1:2),] #get rid of the first 2 rows because....
         names(cn_data) <- cn_data[1,] #make the first row the column names
@@ -49,10 +46,9 @@ cn_csvdata_initial_prep<- function(cn_data){
 
 CN_L1 <- function(L0_dir){
         CN1 <- read.csv(file.path(LO_dir,"CN_data/CN_WeighSheet_1_2019.csv"))
-        
-        CN2 <- read.csv("L0/CN_data/CN_WeighSheet_2_2019.csv")
-        CN3 <- read.csv("L0/CN_data/CN_WeighSheet_3_2019.csv")
-        CN4 <- read.csv("L0/CN_data/CN_WeighSheet_4_2019.csv")
+        CN2 <- read.csv(file.path(LO_dir,"CN_data/CN_WeighSheet_2_2019.csv"))
+        CN3 <- read.csv(file.path(LO_dir,"CN_data/CN_WeighSheet_3_2019.csv"))
+        CN4 <- read.csv(file.path(LO_dir,"CN_data/CN_WeighSheet_4_2019.csv"))
 
 # read in meta files for CN data
         umbs_CN <- read.csv("L0/UMBS/2019/umbs_CN_2019.csv")
