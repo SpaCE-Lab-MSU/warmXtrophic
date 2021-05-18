@@ -1,0 +1,412 @@
+---
+title: "warmXtrophic project: Phenology Analysis"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(kableExtra)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Script Details:
+```{r, message = F}
+script_tbl <- data.frame(
+  Item = c("OVERVIEW", "COLLABORATORS", "REQUIRES", "DATA INPUT", "DATA OUTPUT", "NOTES"),
+  Details = c("This script explores and analyses the flower and seed phenolgy data from the KBS and UMBS stations. Flowering and seeding was recorded as species present with at least one individual flowering every 3 days in the beginning of the field season and continued to be measured until the end of the field season. For calculating phenology dates, we calculated the date of first flower, median flower date, and average duration of flowering. For seeding with calculated the date of first seed",
+              "Phoebe, Zarnetske, Kara Dobson, Mark Hammond, Pat Bills",
+              "Prior to running this script, make sure phenology_clean_L0.R is run and up to date. That script creates the final_phenology_L1.csv in the L1 folder in the Google drive, which contains the clean phenology data",
+              "Data imported as csv files from shared Google drive 'SpaCE_Lab_warmXtrophic' phenology folder",
+              "... a brief description of the data output from through the script, including what format it’s in",
+              "Each row in 'phen_data' is a date at which flowering or seeding was recorded, per species. The 'phen_kbs' and 'phen_umbs' dataframes contain data for phenolgy at each site."
+  )
+)
+
+kbl(script_tbl) %>%
+  kable_paper(full_width = F) %>%
+  column_spec(1, bold = T, border_right = T) %>%
+  column_spec(2, width = "30em", background = "lightblue")
+
+# will update this to reflect phenology data frames
+metadata_tbl <- data.frame(
+  Variable = c("spp_half_cover_date", "plot_half_cover_date", "state"),
+  Definition = c("date at which 50% of a species max cover was reached (per species, per plot, per year)", 
+    "the date at which 50% of a plot's max cover was reached (per plot, per year)",
+    "describes each treatment: warmed or ambient"
+  )
+)
+
+kbl(metadata_tbl) %>%
+  kable_paper(full_width = F) %>%
+  column_spec(1, bold = T, border_right = T) %>%
+  column_spec(2, width = "30em", background = "lightyellow")
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Clear existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(vegan)
+library(car)
+library(rstatix)
+library(scales)
+library(fitdistrplus)
+library(moments)# for calculating skewness of data
+library(ggpubr)
+library(jtools) # summ() function
+library(predictmeans)
+library(olsrr)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(GGally) # ggpairs() function
+
+# Set working directory to Google Drive
+setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+
+# Read in data
+# cleaned phenology data from L1
+phen_data <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flwr_sd_L1.csv", stringsAsFactors=FALSE)
+phen_data$X <- NULL # get rid of "X" column that shows up
+View(phen_data) # take a look at the data to see if looks good
+
+# flowering data
+# species level data for flowering
+flwr_spp <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flwr_species_L1.csv")
+flwr_spp$X <- NULL
+# plot level data for flowering
+flwr_plot <- read_csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flwr_plot_L1.csv")
+flwr_plot$X1 <- NULL
+
+# seed set data
+# species level data for seed set
+seed_spp <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_sd_species_L1.csv")
+seed_spp$X <- NULL
+# plot level data for seed set
+seed_plot <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_sd_plot_L1.csv")
+seed_plot$X <- NULL
+
+# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor
+phen_data$state <- as.factor(phen_data$state)
+levels(phen_data$state)
+# [1] "ambient" "warmed" 
+phen_data$state <- factor(phen_data$state, levels(phen_data$state)[c(2,1)])
+levels(phen_data$state)
+# [1] "warmed"  "ambient"
+
+# Create separate data frames for flowering and seeding
+phen_flwr <- subset(phen_data, action == "flower")
+phen_sd <- subset(phen_data, action == "seed")
+
+# Separate data frame by site for flower
+kbs_flwr <- subset(phen_flwr, site == "kbs")
+umbs_flwr <- subset(phen_flwr, site == "umbs")
+
+# Separate data frame by site for seed set
+kbs_sd <- subset(phen_sd, site == "kbs")
+umbs_sd <- subset(phen_sd, site == "umbs")
+```
+
+# Data Exploration: are there differences between warmed vs. ambient plots when we account for species?
+# *Starting with UMBS*
+
+First Flower
+```{r}
+umbs_firstflwr_spp <- subset(FirstFlwr_spp, site == "umbs") # pull out umbs only data
+
+umbs_firstflwr_plot <- subset(FirstFlwr_plot, site == "umbs") # pull out umbs only data
+
+# first flower
+hist(umbs_firstflwr_spp$julian) # poisson?
+qqnorm(umbs_firstflwr_spp$julian)
+fit1 <- lm(julian ~ state, data = umbs_firstflwr_spp)
+qqPlot(fit1)
+shapiro.test(umbs_firstflwr_spp$julian) #not normal
+
+descdist(umbs_firstflwr_spp$julian, discrete = FALSE) # log normal?
+
+skewness(umbs_firstflwr_spp$julian)
+
+umbs_firstflwr_spp$sqrt_julian <- sqrt(umbs_firstflwr_spp$julian)
+hist(umbs_firstflwr_spp$sqrt_julian)
+skewness(umbs_firstflwr_spp$sqrt_julian, na.rm = TRUE)
+
+umbs_firstflwr_spp$log_julian <- log(umbs_firstflwr_spp$julian)
+hist(umbs_firstflwr_spp$log_julian)
+skewness(umbs_firstflwr_spp$log_julian, na.rm = TRUE)
+```
+
+Median Flower 
+```{r}
+umbs_medflwr_spp <- subset(MedianFlwr_spp, site == "umbs") # pull out umbs only data
+
+umbs_medflwr_plot <- subset(MedianFlwr_spp, site == "umbs") # pull out umbs only data
+
+hist(umbs_medflwr_spp$julian)
+#explore what's going on around julian date 190
+
+umbs_flwr_explore <- subset(umbs_medflwr_spp, julian > 190)
+View(umbs_flwr_explore) 
+# I'm not really seeing anything glaring here when I look at the data. Cest is the most dominate species it
+# appears. I'm going to pull out all the Cest data and look at it separately. 
+
+umbs_flwr_cest <- subset(umbs_medflwr_spp, species == "Cest") #just Cest median flower date
+View(umbs_flwr_cest)
+hist(umbs_flwr_cest$julian) # this looks pretty normal to me - slight left skew in the data
+
+# Looking into making early and late flowering categories for species (make new column)
+umbs_median_species <- umbs_flwr %>% #median date of flower for each species across EVERYTHING at umbs
+        group_by(species) %>%
+        summarize(julian = median(julian, na.rm=T))
+View(umbs_median_species)
+summary(umbs_median_species) # Mean = 182.1 
+
+# Not sure if this is the best way to do this, but I calculated the median date of flower for each species 
+# across all years and plots then took the summary of those median dates, took the mean (183.2) and made a
+# new column for a flower group broken into "early" (species with a median date less than 183) and "late" 
+# (species with a median date greater than 183) median flower date. 
+umbs_median_species$flwr_group <- with(umbs_median_species, 
+                                       ifelse(julian >= 182, "late", "early"))
+View(umbs_median_species)
+# "early" species: Ansp, Cape, Dasp, Frve, Hisp, Poco, Popr, Ruac
+# "late" species: Apan, Assp, Cest, Hype, Sosp, Syla
+
+umbs_medflwr_spp$flwr_group <- with(umbs_medflwr_spp, 
+                                       ifelse(species == c("Ansp", "Cape", "Dasp", "Frve", "Hisp", "Poco", "Popr", "Ruac"), "early", "late"))
+
+# histograms for both "early" and "late" flower group separately 
+hist(umbs_medflwr_spp$julian[umbs_medflwr_spp$flwr_group == "early"])
+hist(umbs_medflwr_spp$julian[umbs_medflwr_spp$flwr_group == "late"])
+# I don't think this did what I wanted it too...
+
+qqnorm(umbs_medflwr_spp$julian)
+fit2 <- lm(julian ~ state, data = umbs_medflwr_spp)
+qqPlot(fit2)
+shapiro.test(umbs_medflwr_spp$julian) # not normal
+
+descdist(umbs_medflwr_spp$julian, discrete = FALSE) # uniform?
+
+skewness(umbs_medflwr_spp$julian, na.rm = TRUE)  # slight positive skew
+
+# Because of slight positive skew I'm transforming the data by taking the square root.
+umbs_medflwr_spp$sqrt_julian <- sqrt(umbs_medflwr_spp$julian) 
+hist(umbs_medflwr_spp$sqrt_julian)
+skewness(umbs_medflwr_spp$sqrt_julian, na.rm = TRUE)
+
+ggdensity(umbs_medflwr_spp, x = "sqrt_julian", fill = "lightgray", title = "CONT") +
+        stat_overlay_normal_density(color = "red", linetype = "dashed") 
+# there's that weird dip around 14 on the x-axis
+```
+
+```{r}
+green_kbsp <- subset(green_kbsp,select =
+                       c("plot_half_cover_date","min_green_date","plot","year","state","insecticide","site","year_factor"))
+head(green_kbsp)
+
+umbs_medflwr_plot <- subset(umbs_medflwr_plot =
+                              c("plot","year","state","insecticide","site","year_factor", ))
+```
+
+
+Models!
+What is the effect of warming (state) on the median date of flower?
+```{r}
+# Models using median flowering julian date
+
+# Null model?
+model0 <- lmer(sqrt_julian ~ 1 # This means median flower date (julian) is predicted by the intercept
+               + (1|plot), data = umbs_flwr_med, REML=FALSE) # each plot gets its own intercept?
+summary(model0) 
+
+# The effects of warming/ambient (state) on median date of flowering (julian) with species (species) as a random effect.
+model1 <- lmer(sqrt_julian ~ state + (1|species), data = umbs_flwr_med, REML=FALSE)
+summary(model1)
+
+# The effects of warming/ambient on median date of flowering (julian - response variable) with an interaction between warming and native vs exotic species (origin) with species and year as a random effect.
+model2 <- lmer(sqrt_julian ~ state*origin + (1|species) + (1|year_factor), data = umbs_flwr_med, REML=FALSE)
+summary(model2)
+
+# The effects of warming/ambient on median date of flowering with origin and insecticide as fixed effects and species and year_factor as random effects
+model3 <- lmer(sqrt_julian ~ state + origin + insecticide + (1|species) + (1|year_factor), data = umbs_flwr_med, REML=FALSE)
+summary(model3)
+summ(model3)
+```
+
+Permanova
+```{r}
+#perma1 <- adonis2(julian ~ state + (1|species), data = umbs_flwr_med, permutations = 999, by = "terms")
+#summary(perma1)
+
+permanova.lmer(model1)
+```
+
+Updated from Kileigh's script
+```{r, warning=FALSE}
+#should plot be a random effect?
+moda <- lmer(sqrt_julian ~ state*origin + insecticide + (1|species) + (1|plot), umbs_flwr_med, REML=FALSE)
+mod1 <- lmer(sqrt_julian ~ state*origin + insecticide + (1|species), umbs_flwr_med, REML=FALSE)
+anova(mod1,moda)
+AIC(mod1, moda)
+
+#Do we need insects?
+mod2 <- lmer(sqrt_julian ~ state*origin + (1|species), umbs_flwr_med, REML=FALSE)
+anova(mod2,mod1)
+
+#Do we need interaction term?
+mod3 <- lmer(sqrt_julian ~ state + origin + (1|species), umbs_flwr_med, REML=FALSE)
+anova(mod3, mod2)
+anova(mod3)
+summary(mod3)
+confint(mod3, method="boot", nsim=999)
+difflsmeans(mod3, test.effs=NULL, ddf="Satterthwaite")
+```
+
+From green up script - adapting for flowering
+```{r}
+# Do we need to include plot as a random effect with the KBS models?   
+mod1 <- lmer(julian ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), umbs_firstflwr_spp, REML=FALSE)
+mod2 <- lmer(julian ~ state*year_factor + insecticide*year_factor + (1|species), umbs_firstflwr_spp, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1)
+anova(mod2)
+
+# Run an ANOVA to test if 2 models to test whether the more complex model is significantly better at capturing the data than the simpler model. If the resulting p-value is sufficiently low (usually less than 0.05), we conclude that the more complex model is significantly better than the simpler model, and thus favor the more complex model. If the p-value is not sufficiently low (usually greater than 0.05), we should favor the simpler model. https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
+anova(mod2, mod1) # They are different so plot as a random effect should stay in the model (we go with mod1)
+summary(mod1) 
+summary(mod2)
+
+# Next, plot the model. There are multiple variables but here's one way to do it based on this package sjPlot:
+# https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html
+# Annoyingly, this package somehow overwrites the factor order in its plotting so we will have to modify the code to get warmed = red. I haven't figured this out yet. It does seem to work on some of the plots. hmm.
+?plot_model
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod1, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod1, type = "pred", terms = c("year_factor", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod1, type = "re", terms = c("species", "plot"))
+
+# Do we need to include insecticide? 
+mod3 <- lmer(julian ~ state*year_factor + (1|species), umbs_firstflwr_spp, REML=FALSE)
+anova(mod1, mod3)
+# Looks like yes P<0.05, insecticide improves model fit so we will continue to include it and stick with mod1
+
+# Does year need to be interactive with insecticide?
+mod4 <- lmer(julian ~ state*year_factor + insecticide + (1|species) + (1|plot), umbs_firstflwr_spp, REML=FALSE)
+anova(mod1, mod4)
+# No, P>0.05 so insecticide*year doesn't strongly improve model fit so we will shift to mod4
+anova(mod3, mod4)
+# Yes, P<0.05 so insecticide still improves model fit so we will stay with mod4
+
+# Does year need to be interactive with state?
+mod5 <- lmer(julian ~ state + year_factor + insecticide + (1|species) + (1|plot), umbs_firstflwr_spp, REML=FALSE)
+anova(mod4, mod5)
+# No, P>0.05 so state*year doesn't improve model fit so we could drop it and go with mod5, but note that the AIC values are super close. mod4 makes sense, with increased divergence between warmed and ambient.
+summary(mod4)
+anova(mod4)
+
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod4, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod4, type = "pred", terms = c("year_factor", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod4, type = "re", terms = c("species", "plot"))
+
+# If we wanted to include plots nested within year it would look like this:
+mod7 <- lmer(julian ~ state*year_factor + insecticide + (1|species) + (1+year|plot), umbs_firstflwr_spp, REML=FALSE)
+anova(mod4, mod7)
+anova(mod7)
+# Yup, seems to matter but it is making this more complex, though not overly so because it's on the random effects structure only.
+plot_model(mod7, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod7, type = "pred", terms = c("year_factor", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod7, type = "re", terms = c("species", "plot"))
+
+# mod4 (and mod7) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+# We're going to use lmerTest for this example so you can see how to run through post-hoc tests.
+library(lmerTest)
+mod8 <- lmer(julian ~ state + species + (1+year_factor|plot), umbs_firstflwr_spp, REML=FALSE)
+anova(mod7, mod8) # model 8 is a better fit to data
+summary(mod8)
+anova(mod8) # investigates whether at least one of the levels within each factor is significantly different. 
+# Yes, at least one of the species is different (they do not all have the same half cover dates). 
+
+# Take a look at the estimates for each fixed effect. These are the estimates from summary(mod8). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
+plot_model(mod8, sort.est = TRUE)
+# if you want to standardize the estimates:
+plot_model(mod8, sort.est = TRUE, type="std") 
+# these are the fixed predicted values: - note this is a new plot
+plot_model(mod8, type = "pred", terms = c("species", "state"))
+# these are the random effects estimates
+plot_model(mod8, type = "re")
+
+mod8 <- lmer(julian ~ state + species + (1+year_factor|plot), umbs_firstflwr_spp, REML=FALSE)
+anova(mod5, mod8)
+summary(mod8)
+plot_model(mod8, sort.est = TRUE, colors = "gs")
+# these are the fixed predicted values:
+mod8_plot <- plot_model(mod8, type = "pred", terms = c("year_factor", "state"))
+mod8_plot + labs(x = "Year", y = "Julian day of First Flower", title = "Predicted values of first flower date")
+# these are the random effects estimates
+plot_model(mod8, type = "re", terms = c("species"))
+```
+
+
+## KBS Data
+
+```{r}
+kbs_firstflwr <- subset(FirstFlower_all, site == "kbs") # pull out kbs only data
+
+kbs_flwr_med <- subset(MedianFlwr_all, site == "kbs") # pull out kbs only data
+
+hist(kbs_flwr_med$julian)
+qqnorm(kbs_flwr_med$julian)
+fit2 <- lm(julian ~ state, data = umbs_flwr_med)
+qqPlot(fit2)
+shapiro.test(kbs_flwr_med$julian) #not normal
+
+descdist(kbs_flwr_med$julian, discrete = FALSE) # beta?
+
+skewness(kbs_flwr_med$julian, na.rm = TRUE)  # slight positive skew
+
+ggdensity(kbs_flwr_med, x = "julian", fill = "lightgray", title = "CONT") +
+        stat_overlay_normal_density(color = "red", linetype = "dashed") 
+
+# Because of positive skew I'm transforming the data by taking the square root
+kbs_flwr_med$sqrt_julian <- sqrt(kbs_flwr_med$julian) 
+hist(kbs_flwr_med$sqrt_julian)
+skewness(kbs_flwr_med$sqrt_julian, na.rm = TRUE)
+
+# Now try the log of julian dates
+kbs_flwr_med$log_julian <- log10(kbs_flwr_med$julian)
+hist(kbs_flwr_med$log_julian)
+skewness(kbs_flwr_med$log_julian, na.rm = TRUE)
+
+# Ok now try the inverse
+kbs_flwr_med$inv_julian <- 1/(kbs_flwr_med$julian)
+hist(kbs_flwr_med$inv_julian)
+skewness(kbs_flwr_med$inv_julian, na.rm = TRUE) 
+#taking the inverse of the julian dates made the data the least skewed
+qqnorm(kbs_flwr_med$inv_julian)
+shapiro.test(kbs_flwr_med$inv_julian) #still not normal
+
+#pois <- glm(julian ~ state, data = kbs_flwr_med, family="poisson")
+#hist(pois$residuals)
+```
+
