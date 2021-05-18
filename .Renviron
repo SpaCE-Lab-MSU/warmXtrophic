@@ -1,0 +1,6 @@
+
+# Set my own path to L0 data for warmXtrophic
+L0DIR=/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L0/
+
+# Set my own path to L1 data for warmXtrophic
+L1DIR=/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/
