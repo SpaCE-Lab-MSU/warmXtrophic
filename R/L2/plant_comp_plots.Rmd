@@ -1,0 +1,136 @@
+---
+title: "Plant Comp Plots"
+author: "Kara Dobson"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young  
+DATA INPUT: Clean & plot plant comp csv from the shared Google drive  
+DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
+PROJECT: warmXtrophic 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = F, message=FALSE, warning=FALSE}
+# Clear all existing data
+rm(list=ls())
+
+# Load packages
+library(tidyverse)
+library(plotrix)
+
+# Set working directory to Google Drive
+# **** Update with the path to your Google drive on your computer
+setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+
+# Read in plant comp data
+comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
+#str(comp)
+
+# remove uneeded X column
+comp$X <- NULL
+
+
+
+# filter data to contain the averages and std error for each site
+sum_comp_site <- comp %>%
+  group_by(site, state, year) %>%
+  summarize(avg_cover = mean(cover, na.rm = TRUE),
+            se = std.error(cover, na.rm = TRUE))
+
+# by plant origin (native/exotic) - no grouping by year
+sum_comp_org <- comp %>%
+  group_by(site, state, origin) %>%
+  summarize(avg_comp = mean(cover, na.rm = TRUE),
+            se = std.error(cover, na.rm = TRUE))
+sum_comp_org <- subset(sum_comp_org, origin == "Exotic" | origin == "Native")
+
+# by plant origin (native/exotic) - grouped by year
+sum_compyear_org <- comp %>%
+  group_by(site, state, origin, year) %>%
+  summarize(avg_comp = mean(cover, na.rm = TRUE),
+            se = std.error(cover, na.rm = TRUE))
+sum_compyear_org <- subset(sum_compyear_org, origin == "Exotic" | origin == "Native")
+
+# by plant growth habit (forb, graminoid, shrub)
+sum_comp_habit <- comp %>%
+  group_by(site, growth_habit, state) %>%
+  summarize(avg_cover = mean(cover, na.rm = TRUE),
+            se = std.error(cover, na.rm = TRUE))
+sum_comp_habit <- subset(sum_comp_habit, growth_habit == "Forb" | growth_habit == "Graminoid")
+```
+
+## Plot for plant cover between warmed and ambient treatments
+```{r, echo = F}
+# Plot for all species between warmed and ambient
+comp_plot_all <- function(loc) { 
+  comp_spp <- subset(sum_comp_site, site == loc)
+  return(ggplot(comp_spp, aes(x = state, y = avg_cover, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_cover - se, ymax = avg_cover + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "State", y = "Percent Cover", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+comp_plot_all("kbs")
+comp_plot_all("umbs")
+```
+
+## Plot for percent cover between native/exotic for warmed and ambient
+```{r, echo = F}
+comp_plot_org <- function(loc) { 
+  comp_spp <- subset(sum_comp_org, site == loc)
+  return(ggplot(comp_spp, aes(x = origin, y = avg_comp, fill = state)) +
+           #facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_comp - se, ymax = avg_comp + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = "State", y = "Percent Cover", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+comp_plot_org("kbs")
+comp_plot_org("umbs")
+```
+
+## Plot for percent cover between native/exotic for warmed and ambient, separated by year
+```{r, echo = F}
+compyear_plot_org <- function(loc) { 
+  comp_spp <- subset(sum_compyear_org, site == loc)
+  return(ggplot(comp_spp, aes(x = origin, y = avg_comp, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_comp - se, ymax = avg_comp + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = "State", y = "Percent Cover", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
+           theme_classic())
+}
+compyear_plot_org("kbs")
+compyear_plot_org("umbs")
+```
+
+## Plot for percent cover between forb/graminoid for warmed and ambient
+```{r, echo = F}
+comp_plot_habit <- function(loc) { 
+  comp_spp <- subset(sum_comp_habit, site == loc)
+  return(ggplot(comp_spp, aes(x = growth_habit, y = avg_cover, fill = state)) +
+           #facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_cover - se, ymax = avg_cover + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = "State", y = "Percent Cover", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           theme_classic())
+}
+comp_plot_habit("kbs")
+comp_plot_habit("umbs")  
+```
