@@ -1,0 +1,140 @@
+---
+title: "Greenup Plots"
+author: "Kara Dobson"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young  
+DATA INPUT: Clean & plot greenup csv from the shared Google drive  
+DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
+PROJECT: warmXtrophic  
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Clear all existing data
+rm(list=ls())
+
+# Load packages
+library(tidyverse)
+library(plotrix)
+
+# Get data
+Sys.getenv("L1DIR")
+L1_dir<-Sys.getenv("L1DIR")
+list.files(L1_dir)
+greenup <- read.csv(file.path(L1_dir, "greenup/final_greenup_L1.csv"))
+#str(greenup)
+
+# remove uneeded X column
+greenup$X <- NULL
+
+
+# filter data to contain the averages and std error for each site & species
+sum_green_spp <- greenup %>%
+  group_by(site, state, species, year) %>%
+  summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
+            se = std.error(half_cover_date, na.rm = TRUE))
+
+# filter data to contain the averages and std error for each site
+sum_green_site <- greenup %>%
+  group_by(site, state, year) %>%
+  summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
+            se = std.error(half_cover_date, na.rm = TRUE))
+
+# by plant origin (native/exotic)
+sum_green_org <- greenup %>%
+  group_by(site, origin, state) %>%
+  summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
+            se = std.error(half_cover_date, na.rm = TRUE))
+sum_green_org <- subset(sum_green_org, origin == "Exotic" | origin == "Native")
+
+# by plant growth type (forb, graminoid, shrub)
+sum_green_habit <- greenup %>%
+  group_by(site, growth_habit, state) %>%
+  summarize(avg_julian = mean(half_cover_date, na.rm = TRUE),
+            se = std.error(half_cover_date, na.rm = TRUE))
+sum_green_habit <- subset(sum_green_habit, growth_habit == "Forb" | growth_habit == "Graminoid" | growth_habit == "Shrub")
+```
+
+## Plot for 50% max cover (greenup) for KBS and UMBS
+```{r, echo = F}
+greenup_plot_all <- function(loc) { 
+  greenup_spp <- subset(sum_green_site, site == loc)
+  return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           coord_cartesian(ylim = c(100, 200)) +
+           theme_classic())
+}
+greenup_plot_all("kbs")
+greenup_plot_all("umbs")
+```
+
+## Plot for warmed vs ambient greenup between native and exotic
+```{r, echo = F}
+greenup_plot_org <- function(loc) { 
+  greenup_spp <- subset(sum_green_org, site == loc)
+  return(ggplot(greenup_spp, aes(x = origin, y = avg_julian, fill = state)) +
+           #facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           coord_cartesian(ylim = c(100, 200)) +
+           theme_classic())
+}
+greenup_plot_org("kbs")
+greenup_plot_org("umbs")     
+```
+
+## Plot for warmed vs ambient greenup between growth types (forb, graminoid, shrub)
+```{r, echo = F}
+greenup_plot_habit <- function(loc) { 
+  greenup_spp <- subset(sum_green_habit, site == loc)
+  return(ggplot(greenup_spp, aes(x = growth_habit, y = avg_julian, fill = state)) +
+           #facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           coord_cartesian(ylim = c(100, 200)) +
+           theme_classic())
+}
+greenup_plot_habit("kbs")
+greenup_plot_habit("umbs")  
+```
+
+## Greenup plot for a given site and species
+### Ex: Soca at KBS, Cest at UMBS
+```{r, echo = F}
+greenup_plot <- function(spp, loc) { 
+  greenup_spp <- subset(sum_green_spp, species == spp & site == loc)
+  return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
+           facet_grid(.~year) +
+           geom_bar(position = "identity", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                         position = "identity") +
+           labs(x = "State", y = "Julian Day of Greenup", title = spp) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           #coord_cartesian(ylim = c(100, 250)) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+greenup_plot("Soca", "kbs")
+greenup_plot("Cest", "umbs")
+```
+
