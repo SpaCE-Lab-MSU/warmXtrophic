@@ -20,7 +20,7 @@ library(weathermetrics)
 # Source functions
 source("~/warmXtrophic/R/L1/HOBO_functions_L1.R")
 
-# Get data
+# Set working directory
 Sys.getenv("L0DIR")
 L0_dir<-Sys.getenv("L0DIR")
 list.files(L0_dir)
@@ -30,26 +30,26 @@ list.files(L0_dir)
 #######################################################################
 
 ############ KBS Pair 1
-#Read in H
+#Read in data from H pendants
 KBS_1_1516 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2015_2016/KBS_1.csv"))
 KBS_1H_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_1H_09012017.csv"))
 KBS_1H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_1H_07122018.csv"), skip=1)
 KBS_1H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1H_10072019.csv"), skip=1)
 KBS_1H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/04_05_2020/KBS_1H_04052020.csv"), skip=1)
 
-#Read in U
+#Read in data from U pendants
 KBS_1U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_1U_09012017.csv"))
 KBS_1U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_1U_07122018.csv"), skip=1)[ ,1:6]
 KBS_1U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1U_10072019.csv"), skip=1)[ ,1:6]
 KBS_1U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/04_05_2020/KBS_1U_04052020.csv"), skip=1)[ ,1:6]
 
-# Merge H and U data
+# Merge H and U data - 2015/2016 did not have separate U and H files
 KBS_1_2017 <- merge(KBS_1H_2017, KBS_1U_2017, by="Date_Time", all.x=T, all.y=T)
 KBS_1_2018 <- merge(KBS_1H_2018, KBS_1U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_1_2019 <- merge(KBS_1H_2019, KBS_1U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_1_2020 <- merge(KBS_1H_2020, KBS_1U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
-#Apply functions
+# Apply functions
 list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS_1_2018, KBS_1_2019=KBS_1_2019, KBS_1_2020=KBS_1_2020)
 list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
@@ -118,7 +118,7 @@ list_pairk3 <- lapply(list_pairk3, change_pair_names)
 list_pairk3 <- lapply(list_pairk3, change_POSIX)
 list_pairk3 <- lapply(list_pairk3, remove_col, name=c('X', 'X..x', 'X..y'))
 
-#Manually rename columns with different names
+#Manually rename columns with different names - functions won't work on these
 names(list_pairk3$KBS_3_2017)[names(list_pairk3$KBS_3_2017)=="X3U_warmed_soil_temp_5cm"] <- "XU_warmed_soil_temp_5cm"
 names(list_pairk3$KBS_3_2017)[names(list_pairk3$KBS_3_2017)=="X3U_ambient_soil_temp_5cm"] <- "XU_ambient_soil_temp_5cm"
 names(list_pairk3$KBS_3_2017)[names(list_pairk3$KBS_3_2017)=="X3H_ambient_soil_moistire_5cm"] <- "XH_ambient_soil_moisture_5cm"
@@ -135,7 +135,7 @@ names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N.
 list_pairk3[2:4] <- lapply(list_pairk3[2:4], f_to_c)
 list_pairk3 <- lapply(list_pairk3, remove_outliers)
 
-#Create .RData file
+#Create .RData file - this is used in the script that merges all of the clean data
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
 save(list_pairk1, list_pairk2, list_pairk3, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.RData"))
@@ -155,8 +155,8 @@ UMBS_1H_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS
 UMBS_1H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS_1H_09192018.csv"), skip=1)
 UMBS_1H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_1H_09102019.csv"), skip=1)
 UMBS_1H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_1H_200200901.csv"), skip=1)
-#*********** only updated 1H above
-#Read in U
+
+#Read in U - two separate files for 2018 and 2020 because of the sensor reset
 UMBS_1U_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_1U_08152017.csv"))
 UMBS_1U_2018a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/06_25_2018/UMBS_1U_06252018.csv"), skip=1)
 UMBS_1U_2018b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS_1U_09192018.csv"), skip=1)
@@ -164,6 +164,7 @@ UMBS_1U_2018 <- rbind(UMBS_1U_2018a, UMBS_1U_2018b)
 UMBS_1U_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_1U_09102019.csv"), skip=1)[ ,1:6]
 UMBS_1U_2020a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/05_13_2020/UMBS_1U_05132020.csv"), skip=1)[ ,1:6]
 UMBS_1U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/06_12_2020/UMBS_1U_06122020.csv"), skip=1)[ ,1:6]
+# Need to change column names in order to merge both 2020 files
 names(UMBS_1U_2020a)[names(UMBS_1U_2020a)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(UMBS_1U_2020a)[names(UMBS_1U_2020a)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_1U_2020a)[names(UMBS_1U_2020a)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
