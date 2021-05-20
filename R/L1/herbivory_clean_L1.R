@@ -18,6 +18,7 @@ source("~/warmXtrophic/R/L1/herbivory_functions_L1.R")
 # Get data
 Sys.getenv("L0DIR")
 L0_dir<-Sys.getenv("L0DIR")
+L1_dir<-Sys.getenv("L1DIR")
 list.files(L0_dir)
 meta <- read.csv(file.path(L0_dir, "plot.csv"))
 taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
@@ -112,4 +113,4 @@ herb2$common_name <- NULL
 colnames(herb2)[which(names(herb2) == "site.y")] <- "site"
 
 # Upload clean csv to google drive
-write.csv(herb2, file="L1/herbivory/final_herbivory_L1.csv")
+write.csv(herb2, file.path(L1_dir,"herbivory/final_herbivory_L1.csv"))
