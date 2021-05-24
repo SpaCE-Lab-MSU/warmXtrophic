@@ -93,7 +93,7 @@ pend19k$Site<-"KBS"
 pend20k$Site<-"KBS"
 
 #Create RData save file - this is used in the script that merges all of the clean data together
-save(pend17k, pend18k, pend19k, pend20k, file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.RData"))
+save(pend17k, pend18k, pend19k, pend20k, file=file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.RData"))
 
 
 ### ***UMBS*** ###
@@ -172,4 +172,4 @@ pend20u$Site<-"UMBS"
 # Get data
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
-save(pend17u, pend18u, pend19u, pend20u, file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.RData"))
+save(pend17u, pend18u, pend19u, pend20u, file=file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.RData"))

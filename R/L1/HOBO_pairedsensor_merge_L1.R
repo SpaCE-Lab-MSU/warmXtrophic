@@ -53,9 +53,9 @@ KBS_3 <- rbind(list_pairk3$KBS_3_1516, diff1617_3k, diff1718_3k, diff1819_3k, di
 write.csv(KBS_3, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair3_L1.csv"))
 
 # create one file for all KBS
-KBS_1$site <- "KBS1"
-KBS_2$site <- "KBS2"
-KBS_3$site <- "KBS3"
+KBS_1$site <- "KBS"
+KBS_2$site <- "KBS"
+KBS_3$site <- "KBS"
 KBS <- rbind(KBS_1, KBS_2, KBS_3)
 write.csv(KBS, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv"))
 
@@ -89,9 +89,9 @@ UMBS_3 <- rbind(list_pairu3$UMBS_3_1516, diff1617_3u, diff1718_3u, diff1819_3u, 
 write.csv(UMBS_3, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pair3_L1.csv"))
 
 # create one file for all UMBS
-UMBS_1$site <- "UMBS1"
-UMBS_2$site <- "UMBS2"
-UMBS_3$site <- "UMBS3"
+UMBS_1$site <- "UMBS"
+UMBS_2$site <- "UMBS"
+UMBS_3$site <- "UMBS"
 UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
 write.csv(KBS, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv"))
 

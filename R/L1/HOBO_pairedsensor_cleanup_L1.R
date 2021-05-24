@@ -138,7 +138,7 @@ list_pairk3 <- lapply(list_pairk3, remove_outliers)
 #Create .RData file - this is used in the script that merges all of the clean data
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
-save(list_pairk1, list_pairk2, list_pairk3, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.RData"))
+save(list_pairk1, list_pairk2, list_pairk3, file=file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.RData"))
 
 
 
@@ -297,4 +297,4 @@ list_pairu3[2:4] <- lapply(list_pairu3[2:4], f_to_c)
 list_pairu3 <- lapply(list_pairu3, remove_outliers)
 
 #Create .RData file
-save(list_pairu1, list_pairu2, list_pairu3, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.RData"))
+save(list_pairu1, list_pairu2, list_pairu3, file=file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.RData"))
