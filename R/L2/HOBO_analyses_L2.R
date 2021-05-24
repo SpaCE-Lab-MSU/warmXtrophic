@@ -25,12 +25,20 @@ KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pair
 UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv"))
 
 KBS_par <- read.csv(file.path(L1_dir,"PAR_data/KBS_PAR_L1.csv"))
-UMBS_par <- read.csv(file.path(L1_dir,"L1/PAR_data/UMBS_PAR_L1.csv"))
+UMBS_par <- read.csv(file.path(L1_dir,"PAR_data/UMBS_PAR_L1.csv"))
 
 KBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv"))
 UMBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv"))
 
+str(KBS)
+str(UMBS)
 
+# date is a character column - convert to date format
+
+KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d %H:%M")
+UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
+str(KBS)
+str(UMBS)
 
 #########################################
 # KBS #
@@ -63,13 +71,13 @@ outliers <- KBS_avg_year %>%
   identify_outliers(temp)
 view(outliers)
 
-# check for normality - can't get this to run
-KBS_avg_year %>%
-  group_by(treatment, year) %>%
-  shapiro_test(temp)
-# visual check for normality - seems normal?
-ggqqplot(KBS_avg_year, "temp", ggtheme = theme_bw()) +
-  facet_grid(year ~ treatment, labeller = "label_both")
+## check for normality - can't get this to run
+#KBS_avg_year %>%
+#  group_by(treatment, year) %>%
+#  shapiro_test(temp)
+## visual check for normality - seems normal?
+#ggqqplot(KBS_avg_year, "temp", ggtheme = theme_bw()) +
+#  facet_grid(year ~ treatment, labeller = "label_both")
 
 # run anova - significant interaction btw year and treatment
 anova.res.kbs <- aov(temp ~ treatment * year, data = KBS_avg_year)
@@ -84,6 +92,19 @@ pairwise.comp <- KBS_avg_year %>%
   )
 pairwise.comp
 
+# avg temps in the chambers during the daytime
+KBS_avg_temp <- KBS_avg_year %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+# avg temps in the chambers on hot days
+KBS_avg_hot_day <- KBS_season %>%
+        filter(XH_ambient_air_1m > 27) %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
 
 ###### testing for sig diff between microstation air temps for July ######
 

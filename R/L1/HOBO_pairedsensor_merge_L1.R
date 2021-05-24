@@ -93,5 +93,5 @@ UMBS_1$site <- "UMBS"
 UMBS_2$site <- "UMBS"
 UMBS_3$site <- "UMBS"
 UMBS <- rbind(UMBS_1, UMBS_2, UMBS_3)
-write.csv(KBS, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv"))
+write.csv(UMBS, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv"))
 
