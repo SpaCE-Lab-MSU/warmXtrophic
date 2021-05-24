@@ -8,7 +8,7 @@
 # PROJECT:        warmXtrophic
 # DATE:           2016-2017
     ## KS edit May 23, 2018: created merged files for UMBS; August 1, 2018: remove manual preparation step and add 2018 data from KBS and UMBS
-    ## KD edit June 2020: Updated script to insert 2019 and 2020 data & functions
+    ## KD edit June 2020 & May 2021: Updated script to insert 2019 and 2020 data & functions
 
 # Clear all existing data
 rm(list=ls())
@@ -35,13 +35,13 @@ KBS_1_1516 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2015_2016/KBS_1.csv"))
 KBS_1H_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_1H_09012017.csv"))
 KBS_1H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_1H_07122018.csv"), skip=1)
 KBS_1H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1H_10072019.csv"), skip=1)
-KBS_1H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/04_05_2020/KBS_1H_04052020.csv"), skip=1)
+KBS_1H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1H_10142020.csv"), skip=1)
 
 #Read in data from U pendants
 KBS_1U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_1U_09012017.csv"))
 KBS_1U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_1U_07122018.csv"), skip=1)[ ,1:6]
 KBS_1U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1U_10072019.csv"), skip=1)[ ,1:6]
-KBS_1U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/04_05_2020/KBS_1U_04052020.csv"), skip=1)[ ,1:6]
+KBS_1U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1U_10142020.csv"), skip=1)[ ,1:6]
 
 # Merge H and U data - 2015/2016 did not have separate U and H files
 KBS_1_2017 <- merge(KBS_1H_2017, KBS_1U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -63,13 +63,13 @@ KBS_2_1516 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2015_2016/KBS_2.csv"))
 KBS_2H_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_2H_09012017.csv"))
 KBS_2H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_2H_07122018.csv"), skip=1)
 KBS_2H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_2H_10072019.csv"), skip=1)
-KBS_2H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/04_05_2020/KBS_2H_04052020.csv"), skip=1)
+KBS_2H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_2H_10142020.csv"), skip=1)
 
 #Read in U
 KBS_2U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_2U_09012017.csv"))
 KBS_2U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_2U_07122018.csv"), skip=1)[ ,1:6]
 KBS_2U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_2U_10072019.csv"), skip=1)[ ,1:6]
-KBS_2U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/04_05_2020/KBS_2U_04052020.csv"), skip=1)[ ,1:6]
+KBS_2U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_2U_10142020.csv"), skip=1)[ ,1:6]
 
 #Merge H and U
 KBS_2_2017 <- merge(KBS_2H_2017, KBS_2U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -98,13 +98,13 @@ KBS_3_1516 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2015_2016/KBS_3.csv"))
 KBS_3H_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_3H_09012017.csv"))
 KBS_3H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_3H_07122018.csv"), skip=1)
 KBS_3H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_3H_10072019.csv"), skip=1)
-KBS_3H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/04_05_2020/KBS_3H_04052020.csv"), skip=1)
+KBS_3H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_3H_10142020.csv"), skip=1)
 
 #Read in U
 KBS_3U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_3U_09012017.csv"))
 KBS_3U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_3U_07122018.csv"), skip=1)[ ,1:6]
 KBS_3U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_3U_10072019.csv"), skip=1)[ ,1:6]
-KBS_3U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/04_05_2020/KBS_3U_04052020.csv"), skip=1)[ ,1:6]
+KBS_3U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_3U_10142020.csv"), skip=1)[ ,1:6]
 
 #Merge H and U
 KBS_3_2017 <- merge(KBS_3H_2017, KBS_3U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -154,7 +154,7 @@ UMBS_1_1516 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2015_2016/UMBS_1.csv"
 UMBS_1H_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_1H_08152017.csv"))
 UMBS_1H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS_1H_09192018.csv"), skip=1)
 UMBS_1H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_1H_09102019.csv"), skip=1)
-UMBS_1H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_1H_200200901.csv"), skip=1)
+UMBS_1H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_1H_20200901.csv"), skip=1)
 
 #Read in U - two separate files for 2018 and 2020 because of the sensor reset
 UMBS_1U_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_1U_08152017.csv"))
@@ -163,7 +163,7 @@ UMBS_1U_2018b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMB
 UMBS_1U_2018 <- rbind(UMBS_1U_2018a, UMBS_1U_2018b)
 UMBS_1U_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_1U_09102019.csv"), skip=1)[ ,1:6]
 UMBS_1U_2020a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/05_13_2020/UMBS_1U_05132020.csv"), skip=1)[ ,1:6]
-UMBS_1U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/06_12_2020/UMBS_1U_06122020.csv"), skip=1)[ ,1:6]
+UMBS_1U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_1U_20200901.csv"), skip=1)[ ,1:6]
 # Need to change column names in order to merge both 2020 files
 names(UMBS_1U_2020a)[names(UMBS_1U_2020a)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(UMBS_1U_2020a)[names(UMBS_1U_2020a)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
@@ -207,7 +207,7 @@ UMBS_2_1516 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2015_2016/UMBS_2.csv"
 UMBS_2H_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_2H_08152017.csv"))
 UMBS_2H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS_2H_09192018.csv"), skip=1)
 UMBS_2H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_2H_09102019.csv"), skip=1)
-UMBS_2H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/06_12_2020/UMBS_2H_06122020.csv"), skip=1)
+UMBS_2H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_2H_20200901.csv"), skip=1)
 
 #Read in U
 UMBS_2U_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_2U_08152017.csv"))
@@ -216,7 +216,7 @@ UMBS_2U_2018b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMB
 UMBS_2U_2018 <- rbind(UMBS_2U_2018a, UMBS_2U_2018b)
 UMBS_2U_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_2U_09102019.csv"), skip=1)[ ,1:6]
 UMBS_2U_2020a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/05_13_2020/UMBS_2U_05132020.csv"), skip=1)[ ,1:6]
-UMBS_2U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/06_12_2020/UMBS_2U_06122020.csv"), skip=1)[ ,1:6]
+UMBS_2U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_2U_20200901.csv"), skip=1)[ ,1:6]
 names(UMBS_2U_2020a)[names(UMBS_2U_2020a)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(UMBS_2U_2020a)[names(UMBS_2U_2020a)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_2U_2020a)[names(UMBS_2U_2020a)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
@@ -262,7 +262,7 @@ UMBS_3_1516 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2015_2016/UMBS_3.csv"
 UMBS_3H_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_3H_08152017.csv"))
 UMBS_3H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS_3H_09192018.csv"), skip=1)
 UMBS_3H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_3H_09102019.csv"), skip=1)
-UMBS_3H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/06_12_2020/UMBS_3H_06122020.csv"), skip=1)
+UMBS_3H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_3H_20200901.csv"), skip=1)
 
 #Read in U
 UMBS_3U_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_3U_08152017.csv"))
@@ -271,7 +271,7 @@ UMBS_3U_2018b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMB
 UMBS_3U_2018 <- rbind(UMBS_3U_2018a, UMBS_3U_2018b)
 UMBS_3U_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_3U_09102019.csv"), skip=1)[ ,1:6]
 UMBS_3U_2020a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/05_13_2020/UMBS_3U_05132020.csv"), skip=1)[ ,1:6]
-UMBS_3U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/06_12_2020/UMBS_3U_06122020.csv"), skip=1)[ ,1:6]
+UMBS_3U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_3U_20200901.csv"), skip=1)[ ,1:6]
 names(UMBS_3U_2020a)[names(UMBS_3U_2020a)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_ambient_soil_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(UMBS_3U_2020a)[names(UMBS_3U_2020a)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_3U_2020a)[names(UMBS_3U_2020a)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_warmed_air_10cm."] <- "XU_warmed_air_10cm"

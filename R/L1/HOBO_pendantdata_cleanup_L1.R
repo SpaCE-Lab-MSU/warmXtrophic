@@ -20,6 +20,7 @@ source("~/warmXtrophic/R/L1/HOBO_functions_L1.R")
 # Set working directory
 Sys.getenv("L0DIR")
 L0_dir<-Sys.getenv("L0DIR")
+L1_dir<-Sys.getenv("L1DIR")
 list.files(L0_dir)
 
 # Load packages
@@ -92,7 +93,7 @@ pend19k$Site<-"KBS"
 pend20k$Site<-"KBS"
 
 #Create RData save file - this is used in the script that merges all of the clean data together
-save(pend17k, pend18k, pend19k, pend20k, file="L1/HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.RData")
+save(pend17k, pend18k, pend19k, pend20k, file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.RData"))
 
 
 ### ***UMBS*** ###
