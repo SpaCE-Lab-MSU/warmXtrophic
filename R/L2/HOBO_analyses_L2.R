@@ -98,6 +98,12 @@ KBS_avg_temp <- KBS_avg_year %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
 
+# avg temps in the chambers during the daytime for each year
+KBS_avg_temp_year <- KBS_avg_year %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
 # avg temps in the chambers on hot days
 KBS_avg_hot_day <- KBS_season %>%
         filter(XH_ambient_air_1m > 27) %>%
@@ -105,6 +111,23 @@ KBS_avg_hot_day <- KBS_season %>%
         group_by(treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
+
+# avg temps from march-april and july-august (early season vs late season)
+KBS_early <- KBS_season %>%
+        filter(month == "03" | month == "04") %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+KBS_late <- KBS_season %>%
+        filter(month == "07" | month == "08") %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+        
+
+
 
 ###### testing for sig diff between microstation air temps for July ######
 
