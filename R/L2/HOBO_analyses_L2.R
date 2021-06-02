@@ -125,6 +125,37 @@ KBS_late <- KBS_season %>%
         group_by(treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
+
+# winter warming?
+KBS_winter <- KBS
+KBS_winter$month <- format(KBS_winter$Date_Time,format="%m")
+KBS_winter$year <- format(KBS_winter$Date_Time,format="%Y")
+KBS_winter$hour <- format(KBS_winter$Date_Time, format="%H")
+KBS_winter <- KBS_winter %>%
+        filter(month > "10" | month < "03") %>%
+        filter(hour > "06") %>%
+        filter(hour < "20") %>%
+        select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+KBS_avg_winter <- KBS_winter %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+#nighttime warming?
+KBS_night <- KBS
+KBS_night$month <- format(KBS_night$Date_Time,format="%m")
+KBS_night$year <- format(KBS_night$Date_Time,format="%Y")
+KBS_night$hour <- format(KBS_night$Date_Time, format="%H")
+KBS_night <- KBS_night %>%
+        filter(month > "03" | month < "09") %>%
+        filter(hour > "20" | hour < "06") %>%
+        select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+KBS_avg_night <- KBS_night %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
         
 
 
@@ -340,5 +371,71 @@ pairwise.comp <- UMBS_avg_year %>%
     p.adjust.method = "bonferroni"
   )
 pairwise.comp
+
+
+# avg temps in the chambers during the daytime
+UMBS_avg_temp <- UMBS_avg_year %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+# avg temps in the chambers during the daytime for each year
+UMBS_avg_temp_year <- UMBS_avg_year %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+# avg temps in the chambers on hot days
+UMBS_avg_hot_day <- UMBS_season %>%
+        filter(XH_ambient_air_1m > 27) %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+# avg temps from march-april and july-august (early season vs late season)
+UMBS_early <- UMBS_season %>%
+        filter(month == "03" | month == "04") %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+UMBS_late <- UMBS_season %>%
+        filter(month == "07" | month == "08") %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+# winter warming?
+UMBS_winter <- UMBS
+UMBS_winter$month <- format(UMBS_winter$Date_Time,format="%m")
+UMBS_winter$year <- format(UMBS_winter$Date_Time,format="%Y")
+UMBS_winter$hour <- format(UMBS_winter$Date_Time, format="%H")
+UMBS_winter <- UMBS_winter %>%
+        filter(month > "10" | month < "03") %>%
+        filter(hour > "06") %>%
+        filter(hour < "20") %>%
+        select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+UMBS_avg_winter <- UMBS_winter %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+#nighttime warming?
+UMBS_night <- UMBS
+UMBS_night$month <- format(UMBS_night$Date_Time,format="%m")
+UMBS_night$year <- format(UMBS_night$Date_Time,format="%Y")
+UMBS_night$hour <- format(UMBS_night$Date_Time, format="%H")
+UMBS_night <- UMBS_night %>%
+        filter(month > "03" | month < "09") %>%
+        filter(hour > "20" | hour < "06") %>%
+        select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+UMBS_avg_night <- UMBS_night %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
 
 

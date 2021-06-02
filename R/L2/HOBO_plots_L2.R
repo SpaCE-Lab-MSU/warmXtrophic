@@ -1,21 +1,21 @@
 # TITLE: OTC data plots
 # AUTHORS: Kara Dobson
 # COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
-# DATA INPUT: CSV files are located in the HOBO_data folder in the shared Google drive
+# DATA INPUT: CSV files are located in the L1 hobo folder in the shared Google drive
 # DATA OUTPUT: Plots of each graph are in the HOBO_plot.pdf in Github
     ## note: plots are saved for each station and merged into a final figure at the bottom of the script
 # PROJECT: warmXtrophic
-# DATE: July 2020
+# DATE: July 2020, updated May 2021
 
 # clear all existing data
 rm(list=ls())
 
-# load in packages and set working directory
+# load in packages
 library(tidyverse)
 library(plotrix)
 library(ggpubr)
 
-# Set working directory
+# Set working directory from Renviron
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
 list.files(L1_dir)
@@ -29,7 +29,11 @@ UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_p
 UMBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv"))
 UMBS_par <- read.csv(file.path(L1_dir,"PAR_data/UMBS_PAR_L1.csv"))
 
-
+# date is a character column - convert to date format
+KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d %H:%M")
+UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
+KBS_pend$Date_Time <- as.POSIXct(KBS_pend$Date_Time, format = "%Y-%m-%d %H:%M")
+UMBS_pend$Date_Time <- as.POSIXct(UMBS_pend$Date_Time, format = "%Y-%m-%d %H:%M")
 
 
 
@@ -40,42 +44,59 @@ UMBS_par <- read.csv(file.path(L1_dir,"PAR_data/UMBS_PAR_L1.csv"))
 
 
 
-###### microstation air temperatures ######
+###### microstation air/soil temperatures ######
+
 # create new dataframe with only data from april - august from 7 AM - 7 PM (growing season during the day)
+# this is mainly what we'll work with for figures (could always adjust the parameters as needed)
 KBS_season <- KBS
 KBS_season$month <- format(KBS_season$Date_Time,format="%m")
 KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
 KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
 
-KBS_season <- KBS_season %>%
+KBS_season_air <- KBS_season %>%
   filter(month > "03") %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
 
+# another one for both heights of air measurements
+KBS_season_air2 <- KBS_season %>%
+        filter(month > "03") %>%
+        filter(month < "09") %>%
+        filter(hour > "06") %>%
+        filter(hour < "20") %>%
+        select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m,XU_warmed_air_10cm, XU_ambient_air_10cm)
+
 # new dataframe for only july during the day
-KBS_season2 <- KBS_season %>%
+KBS_season_july <- KBS_season %>%
   filter(month == "07") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
 
 # create new dataframes for temperatures averaged by year & averaged by month and year
-KBS_avg_month <- KBS_season %>%  # by month and year
+KBS_avg_month <- KBS_season_air %>%  # by month and year
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(month, year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
 
-KBS_avg_year <- KBS_season %>%  # by year
+KBS_avg_year <- KBS_season_air %>%  # by year
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(year, treatment) %>%
   summarize(count = n(),
             average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
 
-KBS_avg_july <- KBS_season2 %>%  # only for july
+KBS_avg_year_air <- KBS_season_air2 %>%  # by year
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(year, treatment) %>%
+        summarize(count = n(),
+                  average_temp = mean(temp, na.rm = TRUE),
+                  se = std.error(temp, na.rm = TRUE))
+
+KBS_avg_july <- KBS_season_july %>%  # only for july
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(month, year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
@@ -110,15 +131,14 @@ k_july <- ggplot(KBS_avg_july, aes(x = year, y = average_temp, fill = treatment)
   theme_classic() +
   labs(title = "KBS — July", x=NULL, y = NULL, fill = "Treatment")
 
-# alternate k_year graph
-altk <- ggplot(KBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
-  geom_bar(stat = "identity", position = position_dodge(), color='black') +
-  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
-                position = position_dodge(0.9)) +
-  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#fb6a4a'))+
-  theme_classic() +
-  labs(title = "KBS", x=NULL, y = NULL, fill = "Treatment") +
-  theme(legend.position = "bottom")
+# Manuscript Fig 1
+Fig1_kbs <- ggplot(KBS_avg_year_air, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
+  geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
+  scale_fill_manual(labels = c("Ambient air (1m)", "Warmed air (1m)", "Ambient air (10cm)", "Warmed air (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
+  scale_shape_manual(labels = c("Ambient air (1m)", "Warmed air (1m)", "Ambient air (10cm)", "Warmed air (10cm)"), values=c(22, 22, 21, 21))+
+  labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
+  theme(legend.position="bottom") +
+  theme_classic()
 
 
 
@@ -401,7 +421,7 @@ KBS_pend_season <- KBS_pend_season %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, Pendant_ID, Temp_F_XP_air_1m)
 
-# boxplot of each pendant by year - need to update 2020 pendant data
+# boxplot of each pendant by year
 ggplot(KBS_pend_season, aes(x = Pendant_ID, y = Temp_F_XP_air_1m)) +
   facet_grid(.~year) +
   geom_boxplot() +
@@ -422,34 +442,49 @@ UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
 UMBS_season$year <- format(UMBS_season$Date_Time,format="%Y")
 UMBS_season$hour <- format(UMBS_season$Date_Time, format="%H")
 
-UMBS_season <- UMBS_season %>%
+UMBS_season_air <- UMBS_season %>%
   filter(month > "03") %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
 
+# another one for soil
+UMBS_season_air2 <- UMBS_season %>%
+        filter(month > "03") %>%
+        filter(month < "09") %>%
+        filter(hour > "06") %>%
+        filter(hour < "20") %>%
+        select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, XU_warmed_air_10cm, XU_ambient_air_10cm)
+
 # new dataframe for only july
-UMBS_season2 <- UMBS_season %>%
+UMBS_season_july <- UMBS_season %>%
   filter(month == "07") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
 
 # create new dataframes for temperatures averaged by year & averaged by month and year
-UMBS_avg_month <- UMBS_season %>%
+UMBS_avg_month <- UMBS_season_air %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(month, year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
 
-UMBS_avg_year <- UMBS_season %>%
+UMBS_avg_year <- UMBS_season_air %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
 
-UMBS_avg_july <- UMBS_season2 %>%
+UMBS_avg_year_air <- UMBS_season_air2 %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        group_by(year, treatment) %>%
+        summarize(count = n(),
+                  average_temp = mean(temp, na.rm = TRUE),
+                  se = std.error(temp, na.rm = TRUE))
+
+UMBS_avg_july <- UMBS_season_july %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(month, year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
@@ -485,15 +520,13 @@ u_july <- ggplot(UMBS_avg_july, aes(x = year, y = average_temp, fill = treatment
   labs(title = "UMBS — July", x="Year", y = NULL, fill = "Treatment")
 
 # alternate year graph
-altu <- ggplot(UMBS_avg_year, aes(x=year, y=average_temp, fill=treatment)) +
-  geom_bar(stat = "identity", position = position_dodge(), color='black') +
-  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
-                position = position_dodge(0.9)) +
-  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#fb6a4a'))+
-  theme_classic() +
-  labs(title = "UMBS", x="Year", y = NULL, fill = "Treatment") +
-  theme(legend.position = "bottom")
-
+Fig1_umbs <- ggplot(UMBS_avg_year_air, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
+        scale_fill_manual(labels = c("Ambient air (1m)", "Warmed air (1m)", "Ambient air (10cm)", "Warmed air (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
+        scale_shape_manual(labels = c("Ambient air (1m)", "Warmed air (1m)", "Ambient air (10cm)", "Warmed air (10cm)"), values=c(22, 22, 21, 21))+
+        labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
+        theme(legend.position="bottom") +
+        theme_classic()
 
 
 ###### par data ######
@@ -604,6 +637,7 @@ UMBS_pend_season <- UMBS_pend_season %>%
   na.omit(Temp_F_XP_air_1m) %>%
   select(Date_Time, year, month, hour, Pendant_ID, Temp_F_XP_air_1m)
 
+
 # boxplot of pendant air temps - not in Rmarkdown hobo plot file
 ggplot(UMBS_pend_season, aes(x = Pendant_ID, y = Temp_F_XP_air_1m)) +
   facet_grid(.~year) +
@@ -628,7 +662,8 @@ annotate_figure(final_july,
                 left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90),
                 top = text_grob("Year"))
 
-final_alt <- ggarrange(altk, altu, nrow = 2, common.legend = TRUE, legend = "bottom")
-annotate_figure(final_alt,
-                left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90))
+Fig1 <- ggarrange(Fig1_kbs, Fig1_umbs, ncol = 2, common.legend = TRUE, legend = "right")
+annotate_figure(Fig1,
+                left = text_grob("Average Temperature (°C)", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
 
