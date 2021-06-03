@@ -1,5 +1,5 @@
 ---
-title: "OTC Data Plots"
+title: "warmXtrophic: OTC Data Plots"
 author: "Kara Dobson"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
@@ -8,22 +8,12 @@ output: pdf_document
 ```{r setup, include=FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
-
-for (package in c("tidyverse", "plotrix", "ggpubr")) {
-  if (!require(package, character.only=T, quietly=T)) {
-    install.packages("package")
-    library(package, character.only=T)
-  }
-}
 ```
-TITLE: OTC data plots  
-AUTHORS: Kara Dobson  
-COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young  
-DATA INPUT: CSV files are located in the HOBO_data folder in the shared Google drive  
-DATA OUTPUT: Plots of each graph are in the HOBO_plot.pdf in Github  
- note: plots are saved for each station and merged into a final figure at the bottom of the script  
+NOTE: this script is not updated - check the .R script for updated plots
+COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young  
+DATA INPUT: CSV files are located in the L1 hobo folder in the shared Google drive   
 PROJECT: warmXtrophic  
-DATE: July 2020  
+DATE: July 2020, updated June 2021  
 
 
 
@@ -43,6 +33,9 @@ Page 12: 1H sensor average air temperature by month over all years
 Page 13: 2H sensor average air temperature by month over all years  
 Page 14: 3H sensor average air temperature by month over all years  
 ```{r, include = FALSE, message = FALSE}
+library(tidyverse)
+library(plotrix)
+library(ggpubr)
 # Set working directory
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
