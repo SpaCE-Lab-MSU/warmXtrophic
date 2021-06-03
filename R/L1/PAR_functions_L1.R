@@ -7,6 +7,7 @@ column_names <- function(df){
   colnames(df) <- sub("^Above_Biomass", "Overstory", colnames(df))
   colnames(df) <- sub("^Ground_1", "Understory_1", colnames(df))
   colnames(df) <- sub("^Gound_2", "Understory_2", colnames(df))
+  colnames(df) <- sub("^Ground_2", "Understory_2", colnames(df))
   colnames(df) <- sub("^Date", "Date_Time", colnames(df))
   return(df)
 }
