@@ -4,7 +4,7 @@
 # DATA INPUT:     Data imported as csv files from shared Google drive L1 folder
 # DATA OUTPUT:    
 # PROJECT:        warmXtrophic
-# DATE:           February, 2020
+# DATE:           February 2020
 
 # Clear all existing data
 rm(list=ls())

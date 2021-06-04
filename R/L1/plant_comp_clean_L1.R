@@ -17,25 +17,27 @@ library(tidyverse)
 source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
-# Set working directory to Google Drive
-# **** Update with the path to your Google drive on your computer
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+Sys.getenv("L0DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+list.files(L0_dir)
 
 # Read in data (only need columns 1-7 for the umbs files)
-meta <- read.csv("L0/plot.csv")
-taxon <- read.csv("L0/taxon.csv")
-kbs_2015 <- read.csv("L0/KBS/2015/kbs_plant_comp_2015.csv")
-kbs_2016 <- read.csv("L0/KBS/2016/kbs_plant_comp_2016.csv")
-kbs_2017 <- read.csv("L0/KBS/2017/kbs_plant_comp_2017.csv")
-kbs_2018 <- read.csv("L0/KBS/2018/kbs_plant_comp_2018.csv")
-kbs_2019 <- read.csv("L0/KBS/2019/kbs_plant_comp_2019.csv")
-kbs_2020 <- read.csv("L0/KBS/2020/kbs_plant_comp_2020.csv")
-umbs_2015 <- read.csv("L0/UMBS/2015/umbs_plant_comp_2015.csv")
-umbs_2016 <- read.csv("L0/UMBS/2016/umbs_plant_comp_2016.csv")
-umbs_2017 <- read.csv("L0/UMBS/2017/umbs_plant_comp_2017.csv")
-umbs_2018 <- read.csv("L0/UMBS/2018/umbs_plant_comp_2018.csv")
-umbs_2019 <- read.csv("L0/UMBS/2019/umbs_plantcomp_2019.csv")[,1:7]
-umbs_2020 <- read.csv("L0/UMBS/2020/umbs_plantcomp_2020.csv")[,1:7]
+meta <- read.csv(file.path(L0_dir, "plot.csv"))
+taxon <- read.csv(file.path(L0_dir,"taxon.csv"))
+kbs_2015 <- read.csv(file.path(L0_dir,"KBS/2015/kbs_plant_comp_2015.csv"))
+kbs_2016 <- read.csv(file.path(L0_dir,"KBS/2016/kbs_plant_comp_2016.csv"))
+kbs_2017 <- read.csv(file.path(L0_dir,"KBS/2017/kbs_plant_comp_2017.csv"))
+kbs_2018 <- read.csv(file.path(L0_dir,"KBS/2018/kbs_plant_comp_2018.csv"))
+kbs_2019 <- read.csv(file.path(L0_dir,"KBS/2019/kbs_plant_comp_2019.csv"))
+kbs_2020 <- read.csv(file.path(L0_dir,"KBS/2020/kbs_plant_comp_2020.csv"))
+umbs_2015 <- read.csv(file.path(L0_dir,"UMBS/2015/umbs_plant_comp_2015.csv"))
+umbs_2016 <- read.csv(file.path(L0_dir,"UMBS/2016/umbs_plant_comp_2016.csv"))
+umbs_2017 <- read.csv(file.path(L0_dir,"UMBS/2017/umbs_plant_comp_2017.csv"))
+umbs_2018 <- read.csv(file.path(L0_dir,"UMBS/2018/umbs_plant_comp_2018.csv"))
+umbs_2019 <- read.csv(file.path(L0_dir,"UMBS/2019/umbs_plantcomp_2019.csv"))[,1:7]
+umbs_2020 <- read.csv(file.path(L0_dir,"UMBS/2020/umbs_plantcomp_2020.csv"))[,1:7]
 
 # remove all empty rows for umbs_2019
 umbs_2019[c(5046:6024),]

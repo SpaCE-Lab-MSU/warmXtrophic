@@ -13,18 +13,20 @@ rm(list=ls())
 #Load packages
 library(tidyverse)
 
-# Set working directory to Google Drive
-# Pat said he doesn't setwd --> figure out .renviron
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory 
+Sys.getenv("L0DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+list.files(L0_dir)
 
 # Read in csv files
 ## KBS
-kbs_biomass <- read.csv("L0/KBS/2020/kbs_ancillary_biomass_2020.csv")
-kbs_plant_comp <- read.csv("L0/KBS/2020/kbs_ancillary_plantcomp_2020.csv")
+kbs_biomass <- read.csv(file.path(L0_dir, "KBS/2020/kbs_ancillary_biomass_2020.csv"))
+kbs_plant_comp <- read.csv(file.path(L0_dir, "KBS/2020/kbs_ancillary_plantcomp_2020.csv"))
 
 # UMBS
-umbs_biomass <- read.csv("L0/UMBS/2020/umbs_ancillary_ANPP_2020.csv")
-umbs_plant_comp <- read.csv("L0/UMBS/2020/umbs_ancillary_plantcomp_2020.csv")
+umbs_biomass <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_ANPP_2020.csv"))
+umbs_plant_comp <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_plantcomp_2020.csv"))
 
 # Clean data
 ## KBS

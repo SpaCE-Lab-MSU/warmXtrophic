@@ -14,18 +14,16 @@ rm(list=ls())
 #Load packages
 library(tidyverse)
 
-# Set working directory to Google Drive
-# Pat said he doesn't setwd
-# setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
-
 # Source in needed functions
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/phenology_functions_L1.R")
 
-# Read in data
+# Set working directory 
 Sys.getenv("L0DIR")
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
+
+# Read in data
 # read in meta data for plots
 plot_info <- read.csv(file.path(L0_dir, "plot.csv"))
 # read in neta taxon list
