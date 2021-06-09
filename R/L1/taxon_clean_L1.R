@@ -12,11 +12,14 @@ rm(list = ls())
 # Load packages
 library(tidyverse)
 
-# Set working directory to Google Drive
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory 
+Sys.getenv("L0DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+list.files(L0_dir)
 
 # Read in data
-taxa <- read.csv("L2/taxon.csv")
+taxa <- read.csv(file.path(L0_dir, "taxon.csv"))
 # Make sure that you create a new .csv file of the taxon_list.xlsx file IN the Google shared folder
 # before you read in the data to ensure that you have the most up to date species list
 
