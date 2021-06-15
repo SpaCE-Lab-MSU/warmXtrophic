@@ -1,10 +1,10 @@
-# TITLE: OTC data analysis
+# TITLE: warmXtrophic - OTC data analysis
 # AUTHORS: Kara Dobson
 # COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
 # DATA INPUT: CSV files are located in the HOBO_data folder in the shared Google drive
 # DATA OUTPUT: Stats results
 # PROJECT: warmXtrophic
-# DATE: July 2020
+# DATE: July 2020, updated June 2021
 
 # clear all existing data
 rm(list=ls())
@@ -34,7 +34,6 @@ str(KBS)
 str(UMBS)
 
 # date is a character column - convert to date format
-
 KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d %H:%M")
 UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
 str(KBS)
@@ -70,27 +69,6 @@ outliers <- KBS_avg_year %>%
   group_by(treatment, year) %>%
   identify_outliers(temp)
 view(outliers)
-
-## check for normality - can't get this to run
-#KBS_avg_year %>%
-#  group_by(treatment, year) %>%
-#  shapiro_test(temp)
-## visual check for normality - seems normal?
-#ggqqplot(KBS_avg_year, "temp", ggtheme = theme_bw()) +
-#  facet_grid(year ~ treatment, labeller = "label_both")
-
-# run anova - significant interaction btw year and treatment
-anova.res.kbs <- aov(temp ~ treatment * year, data = KBS_avg_year)
-summary(anova.res.kbs)
-
-# post-hoc test
-pairwise.comp <- KBS_avg_year %>%
-  group_by(year) %>%
-  pairwise_t_test(
-    temp ~ treatment, paired = TRUE,
-    p.adjust.method = "bonferroni"
-  )
-pairwise.comp
 
 # avg temps in the chambers during the daytime
 KBS_avg_temp <- KBS_avg_year %>%
@@ -156,12 +134,30 @@ KBS_avg_night <- KBS_night %>%
         group_by(year, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
-        
 
+## check for normality - can't get this to run
+#KBS_avg_year %>%
+#  group_by(treatment, year) %>%
+#  shapiro_test(temp)
+## visual check for normality - seems normal?
+#ggqqplot(KBS_avg_year, "temp", ggtheme = theme_bw()) +
+#  facet_grid(year ~ treatment, labeller = "label_both")
+
+# run anova - significant interaction btw year and treatment
+anova.res.KBS <- aov(temp ~ treatment * year, data = KBS_avg_year)
+summary(anova.res.KBS)
+
+# post-hoc test
+pairwise.comp <- KBS_avg_year %>%
+  group_by(year) %>%
+  pairwise_t_test(
+    temp ~ treatment, paired = TRUE,
+    p.adjust.method = "bonferroni"
+  )
+pairwise.comp
 
 
 ###### testing for sig diff between microstation air temps for July ######
-
 KBS_season_july <- KBS_season %>%
   filter(month == "07") %>%
   filter(hour > "06") %>%
@@ -201,7 +197,6 @@ pairwise.comp
 
 
 ###### testing for sig diff between microstation soil temps ######
-
 # merge the data + filter data for only the daytime during the growing season
 KBS_season_soil <- KBS
 KBS_season_soil$month <- format(KBS_season_soil$Date_Time,format="%m")
@@ -224,6 +219,12 @@ outliers <- KBS_avg_soil %>%
   group_by(treatment, year) %>%
   identify_outliers(temp)
 view(outliers)
+
+# avg soil temps in the chambers during the daytime
+KBS_avg_soil_temp <- KBS_avg_soil %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
 
 # check for normality - can't get this to run
 KBS_avg_soil %>%
@@ -248,7 +249,6 @@ pairwise.comp
 
 
 ###### testing for sig diff between microstation soil moisture ######
-
 # merge the data + filter data for only the daytime during the growing season
 KBS_season_moist <- KBS
 KBS_season_moist$month <- format(KBS_season_moist$Date_Time,format="%m")
@@ -271,6 +271,12 @@ outliers <- KBS_avg_moist %>%
   group_by(treatment, year) %>%
   identify_outliers(temp)
 view(outliers)
+
+# avg soil temps in the chambers during the daytime
+KBS_avg_soil_moist <- KBS_avg_moist %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
 
 # check for normality - can't get this to run
 KBS_avg_moist %>%
@@ -435,6 +441,68 @@ UMBS_night <- UMBS_night %>%
 UMBS_avg_night <- UMBS_night %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
         group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+
+###### testing for sig diff between microstation soil temps ######
+# merge the data + filter data for only the daytime during the growing season
+UMBS_season_soil <- UMBS
+UMBS_season_soil$month <- format(UMBS_season_soil$Date_Time,format="%m")
+UMBS_season_soil$year <- format(UMBS_season_soil$Date_Time,format="%y")
+UMBS_season_soil$hour <- format(UMBS_season_soil$Date_Time, format="%H")
+
+UMBS_season_soil <- UMBS_season_soil %>%
+        filter(month > "03") %>%
+        filter(month < "09") %>%
+        filter(hour > "06") %>%
+        filter(hour < "20") %>%
+        select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
+
+# create new dataframes for temperatures averaged by year & averaged by month and year
+UMBS_avg_soil <- UMBS_season_soil %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+
+# test for outliers - some extreme, but they seem like reasonable values
+outliers <- UMBS_avg_soil %>%
+        group_by(treatment, year) %>%
+        identify_outliers(temp)
+view(outliers)
+
+# avg soil temps in the chambers during the daytime
+UMBS_avg_soil_temp <- UMBS_avg_soil %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+
+
+###### testing for sig diff between microstation soil moisture ######
+# merge the data + filter data for only the daytime during the growing season
+UMBS_season_moist <- UMBS
+UMBS_season_moist$month <- format(UMBS_season_moist$Date_Time,format="%m")
+UMBS_season_moist$year <- format(UMBS_season_moist$Date_Time,format="%y")
+UMBS_season_moist$hour <- format(UMBS_season_moist$Date_Time, format="%H")
+
+UMBS_season_moist <- UMBS_season_moist %>%
+        filter(month > "03") %>%
+        filter(month < "09") %>%
+        filter(hour > "06") %>%
+        filter(hour < "20") %>%
+        select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
+
+# create new dataframes for temperatures averaged by year & averaged by month and year
+UMBS_avg_moist <- UMBS_season_moist %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+
+# test for outliers - some extreme, but they seem like reasonable values
+outliers <- UMBS_avg_moist %>%
+        group_by(treatment, year) %>%
+        identify_outliers(temp)
+view(outliers)
+
+# avg soil temps in the chambers during the daytime
+UMBS_avg_soil_moist <- UMBS_avg_moist %>%
+        group_by(treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
 
