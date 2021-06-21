@@ -29,12 +29,13 @@ library(sjPlot)
 library(effects)
 library(glmmTMB)
 
-# Set working directory to Google Drive
-# **** Update with the path to your Google drive on your computer
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+Sys.getenv("L1DIR")
+L1_dir<-Sys.getenv("L1DIR")
+list.files(L1_dir)
 
 # read in plant comp data
-comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
+comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
   
 # check variable types
 str(comp)
@@ -48,7 +49,13 @@ comp$year[comp$year == 2018] <- 3
 comp$year[comp$year == 2019] <- 4
 comp$year[comp$year == 2020] <- 5
 
+# calculating total composition sums - proxy for most common species
+comp_yearly_totals <- comp %>%
+        group_by(species, site) %>%
+        summarize(comp_sum = sum(cover, na.rm = T))
+
 # getting relative % cover for comparisions between native & exotic #
+# most code from Kileigh's old script
 # average sub-quadrats for plots
 comp_org <- subset(comp, origin == "Exotic" | origin == "Native")
 quad.mn <- aggregate(cover ~ plot*origin*species*year*site*state, data=comp_org, FUN=mean, na.rm=T)
