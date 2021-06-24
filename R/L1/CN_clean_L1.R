@@ -25,7 +25,7 @@ CN2_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_2_2019.csv"))
 CN3_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_3_2019.csv"))
 CN4_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_4_2019.csv"))
 
-# clean up CN csv files before merging
+# create function to clean CN data files
 CN_csvdata_initial_prep <- function(cn_data){
         cn_data <- cn_data[-(1:2),] #get rid of the first 2 rows because it's not data
         names(cn_data) <- cn_data[1,] #make the first row the column names
@@ -63,7 +63,7 @@ meta_CN <- merge(umbs_CN, kbs_CN, all = TRUE)
 colnames(meta_CN) <- sub("Unique_number", "Sample", colnames(meta_CN))# merge two meta data files
 View(meta_CN)
 
-# merge new CN data frame with 
+# merge new CN data frame with the meta data frame
 CN_final <- merge(meta_CN, CN_all, by = "Sample")
 names(CN_final) <- tolower(names(CN_final)) # column names to lower case
 CN_final <- clean_names(CN_final) # get rid of space and parenthesis in "weight (mg)" column **function from janitor package**
