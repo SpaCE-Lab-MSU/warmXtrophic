@@ -54,6 +54,11 @@ remove_spp <- function(df){
         df <- df[!grepl("Assy",df$species),]
         df <- df[!grepl("Besp",df$species),]
         df <- df[!grepl("Frve",df$species),]
+        df <- df[!grepl("Acru",df$species),]
+        df <- df[!grepl("Amla",df$species),]
+        df <- df[!grepl("Hipi",df$species),]
+        df <- df[!grepl("Syla",df$species),]
+        df <- df[!grepl("Vaan",df$species),]
         return(df)
 }
 
