@@ -113,4 +113,4 @@ herb2$common_name <- NULL
 colnames(herb2)[which(names(herb2) == "site.y")] <- "site"
 
 # Upload clean csv to google drive
-write.csv(herb2, file.path(L1_dir,"herbivory/final_herbivory_L1.csv"))
+write.csv(herb2, file.path(L1_dir,"herbivory/final_herbivory_L1.csv"), row.names=F)
