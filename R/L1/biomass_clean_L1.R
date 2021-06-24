@@ -33,18 +33,21 @@ umbs_plant_comp <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_plantcom
 View(kbs_biomass)
 kbs_biomass <- kbs_biomass %>% 
         select(-dry_weight_g, -bag, -notes, -bag_size, -bag_code, -weight, -n_bags, -bag_weight, -date)
+str(kbs_biomass)
 
 View(kbs_plant_comp)
+# get rid of unnecessary columns
 kbs_plant_comp <- kbs_plant_comp %>% 
         select(-Julian, -Notes, Date)
 str(kbs_plant_comp)
 
 # Change column names to lowercase so that we can merge with the biomass file
 names(kbs_plant_comp) <- tolower(names(kbs_plant_comp))
+str(kbs_plant_comp)
 
 #kbs_ANPP <- merge(kbs_biomass, kbs_plant_comp, by = c("plot", "species"))
 kbs_ANPP <- full_join(kbs_biomass, kbs_plant_comp, by = c("plot", "species"))
-str(kbs_ANPP)
+View(kbs_ANPP)
 
 kbs_ANPP <- kbs_ANPP %>% 
         select(-site.y)
@@ -77,6 +80,7 @@ names(umbs_plant_comp) <- tolower(names(umbs_plant_comp))
 umbs_ANPP <- full_join(umbs_biomass, umbs_plant_comp, by = c("plot", "species"))
 View(umbs_ANPP)
 
+# get rid of site.y column bc there are two site columns currently after the join
 umbs_ANPP <- umbs_ANPP %>% 
         select(-site.y)
 colnames(umbs_ANPP) <- sub("site.x", "site", colnames(umbs_ANPP))
@@ -94,7 +98,16 @@ View(umbs_ANPP)
 final_ANPP <- full_join(kbs_ANPP, umbs_ANPP)
 View(final_ANPP)
 
-# Need to calculate total biomass for each plot and put zeros where appropriately 
+# Need to calculate total biomass for each plot and put zeros where appropriate
+
+# Now that the two sites are merged, now the species list needs to be cleaned like the other scripts we have i.e
+# phenology and plant comp
+
+# read in taxon meta data 
+taxon <- read.csv(file.path(L0_dir,"taxon.csv"))
+
+# Source in needed functions
+source("~/warmXtrophic/R/L1/biomass_functions_L1.R")
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
-write.csv(final_ANPP, file="L1/final_ANPP.csv")                     
+write.csv(final_ANPP, file = "L1/final_ANPP.csv")  
