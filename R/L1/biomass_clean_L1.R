@@ -20,6 +20,14 @@ L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
 
 # Read in csv files
+
+# read in taxon meta data 
+taxon <- read.csv(file.path(L0_dir,"taxon.csv"))
+
+# Source in needed functions
+source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/biomass_functions_L1.R") 
+# need to figure out how this works with the .environ?
+
 ## KBS
 kbs_biomass <- read.csv(file.path(L0_dir, "KBS/2020/kbs_ancillary_biomass_2020.csv"))
 kbs_plant_comp <- read.csv(file.path(L0_dir, "KBS/2020/kbs_ancillary_plantcomp_2020.csv"))
@@ -33,12 +41,15 @@ umbs_plant_comp <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_plantcom
 View(kbs_biomass)
 kbs_biomass <- kbs_biomass %>% 
         select(-dry_weight_g, -bag, -notes, -bag_size, -bag_code, -weight, -n_bags, -bag_weight, -date)
+kbs_biomass <- lapply(kbs_biomass, remove_col, name=c("dry_weight_g", "notes", "bag", "bag_size", "bag_code", "weight",
+                                                      "n_bags", "bag_weight", "date"))
 str(kbs_biomass)
 
 View(kbs_plant_comp)
 # get rid of unnecessary columns
 kbs_plant_comp <- kbs_plant_comp %>% 
         select(-Julian, -Notes, Date)
+kbs_plant_comp <- lapply(kbs_plant_comp, remove_col, name=c("Julian", "Notes", "Date"))
 str(kbs_plant_comp)
 
 # Change column names to lowercase so that we can merge with the biomass file
@@ -98,16 +109,15 @@ View(umbs_ANPP)
 final_ANPP <- full_join(kbs_ANPP, umbs_ANPP)
 View(final_ANPP)
 
-# Need to calculate total biomass for each plot and put zeros where appropriate
-
 # Now that the two sites are merged, now the species list needs to be cleaned like the other scripts we have i.e
 # phenology and plant comp
 
-# read in taxon meta data 
-taxon <- read.csv(file.path(L0_dir,"taxon.csv"))
+lapply(final_ANPP, spp_name) # need to fix a few species names
+lapply(final_ANPP, site_name) # need to make these all the same for each site
 
-# Source in needed functions
-source("~/warmXtrophic/R/L1/biomass_functions_L1.R")
+
+
+# Need to calculate total biomass for each plot and put zeros where appropriate
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
 write.csv(final_ANPP, file = "L1/final_ANPP.csv")  
