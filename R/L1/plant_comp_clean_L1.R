@@ -161,5 +161,4 @@ plant_comp_merge3$old_name <- NULL
 plant_comp_merge3$resolution <- NULL
 
 # Upload clean data csv to google drive without the index column
-write.csv(plant_comp_merge3, file="L1/plant_composition/final_plantcomp_L1.csv", row.names=FALSE)
-
+write.csv(plant_comp_merge3, file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv", row.names=FALSE))

@@ -39,7 +39,7 @@ library(GGally) # ggpairs() function
 # Set working directory
 Sys.getenv("L1DIR")
 L1_dir <- Sys.getenv("L1DIR")
-list.files(L1_dir)
+L2_dir <- Sys.getenv("L2DIR")
 
 ##########################################################################################
 # Read in data
@@ -76,16 +76,17 @@ seed_plot$X <- NULL
 
 ##########################################################################################
 # Data Exploration
+## UMBS ##
 umbs_firstflwr_spp <- subset(flwr_spp, site == "umbs") # pull out umbs only data
 hist(umbs_firstflwr_spp$julian_median)
-hist(umbs_firstflwr_spp$julian_min)
+hist(umbs_firstflwr_spp$julian_min) 
 
 umbs_firstflwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data
 hist(umbs_firstflwr_plot$julian_median)
 hist(umbs_firstflwr_plot$julian_min)
 
 # Response variable:
-# julian_median
+# julian day
 
 # Predictor variables:
 # state ("ambient" or "warmed")
@@ -93,25 +94,37 @@ hist(umbs_firstflwr_plot$julian_min)
 # Grouping factor:
 # year
 
-umbs_firstflwr_plot$julianMedian_centered = umbs_firstflwr_plot$julian_median - mean(umbs_firstflwr_plot$julian_median)
-umbs_firstflwr_plot$julianMedian_centered
-
-plot(julianMedian_centered ~ state, data = umbs_firstflwr_plot)
 ##########################################################################################
 # Centering and transforming data
 
+umbs_firstflwr_plot$log_julian_median <- log(umbs_firstflwr_plot$julian_median)
+umbs_firstflwr_plot$log_julianMedian_centered = umbs_firstflwr_plot$log_julian_median - mean(umbs_firstflwr_plot$log_julian_median)
+hist(umbs_firstflwr_plot$log_julianMedian_centered)
 
 ##########################################################################################
 # Plot key relationships
-
+# Convert all columns to factor first
+umbs_firstflwr_plot <- as.data.frame(unclass(umbs_firstflwr_plot),
+                       stringsAsFactors = TRUE)
+plot(log_julian_median ~ state, data = umbs_firstflwr_plot)
 
 ##########################################################################################
 # Fit models
 
+m0 <- lmer(log_julian_median ~ 1, data = umbs_firstflwr_plot)
+m1 <- lmer(log_julian_median ~ state, data = umbs_firstflwr_plot)
+m2 <- lmer(log_julian_median ~ state + insecticide, data = umbs_firstflwr_plot)
+m3 <- lmer(log_julian_median ~ state * insecticide, data = umbs_firstflwr_plot)
+m4 <- lmer(log_julian_median ~ state * insecticide + (1|species), data = umbs_firstflwr_plot)
+m5 <- lmer(log_julian_median ~ state + insecticide + (1|species), data = umbs_firstflwr_plot)
+m6 <- lmer(log_julian_median ~ state * insecticide + (1|species) + (1|year_factor), data = umbs_firstflwr_plot)
+m7 <- lmer(log_julian_median ~ state + insecticide + (1|species) + (1|year_factor), data = umbs_firstflwr_plot)
+m8 <- lmer(log_julian_median ~ state + insecticide + origin + (1|species) + (1|year_factor), data = umbs_firstflwr_plot)
 
 ##########################################################################################
 # Compare models
 
+AICctab(m0,m1,m2,m3,m4,m5, weights=TRUE)
 
 ##########################################################################################
 # Evaluate models using residuals
