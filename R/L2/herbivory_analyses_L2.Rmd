@@ -25,6 +25,7 @@ library(MASS)
 library(pscl)
 library(lmtest)
 library(emmeans)
+library(bbmle)
 
 # Get data
 #Sys.getenv("L1DIR")
@@ -125,84 +126,108 @@ k.m2 <- zeroinfl(p_eaten ~ state + as.factor(year),
                dist = 'negbin',
                data = herb_kbs)
 summary(k.m2)
+lrtest(k.m1, k.m2) # model 2
 
 # state and growth habit as fixed effects
+herb_kbs <- within(herb_kbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 k.m3 <- zeroinfl(p_eaten ~ state + growth_habit,
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m3)
+lrtest(k.m2, k.m3) # model 2
 
 # state, growth habit, and year as fixed effects
 k.m4 <- zeroinfl(p_eaten ~ state + growth_habit + as.factor(year),
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m4)
+lrtest(k.m2, k.m4) # model 4
 
 # interaction between state and growth habit as fixed effects
 k.m5 <- zeroinfl(p_eaten ~ state * growth_habit,
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m5)
+lrtest(k.m4, k.m5) # model 4
 
 # interaction between state and growth habit as fixed effects, plus year
 k.m6 <- zeroinfl(p_eaten ~ state * growth_habit + as.factor(year),
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m6)
+lrtest(k.m4, k.m6) # virtually the same, keeping model 4 because its simpler
 
 # interaction between state, growth habit, and year (year as a factor wouldn't work - non-finite value)
 k.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m7)
+lrtest(k.m4, k.m7) # model 4
 
 # state and origin as fixed effects
+herb_kbs <- within(herb_kbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
 k.m8 <- zeroinfl(p_eaten ~ state + origin,
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m8)
+lrtest(k.m4, k.m8) # model 4
 
 # state, origin, and year as fixed effects
 k.m9 <- zeroinfl(p_eaten ~ state + origin + as.factor(year),
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m9)
+lrtest(k.m4, k.m9) # model 4
 
 # interaction between state and origin as fixed effects
 k.m10 <- zeroinfl(p_eaten ~ state * origin,
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m10)
+lrtest(k.m4, k.m10) # model 4
 
 # interaction between state and origin as fixed effects, plus year
 k.m11 <- zeroinfl(p_eaten ~ state * origin +  as.factor(year),
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m11)
+lrtest(k.m4, k.m11) # model 4
 
 # interaction between state, origin, and year
 k.m12 <- zeroinfl(p_eaten ~ state * origin * year,
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m12)
+lrtest(k.m4,k.m12) # model 4
 
 # state and species as fixed effects
 k.m13 <- zeroinfl(p_eaten ~ state + species,
                      dist = 'negbin',
                      data = herb_kbs)
 summary(k.m13)
+lrtest(k.m4, k.m13) # model 4
 
 # state. species and year as fixed effects
 k.m14 <- zeroinfl(p_eaten ~ state + species + as.factor(year),
                      dist = 'negbin',
                      data = herb_kbs)
 summary(k.m14)
+lrtest(k.m4, k.m14) # model 14
+# calculating effect size - accounting for log link
+exp(0.27490 + -0.22879*0) # 1.316399
+exp(0.27490 + -0.22879*1) # 1.04719
+# effect of herbivory:
+1.04719 - 1.316399 # -0.269209
 
 # interaction between state and species as fixed effects, plus year
 k.m15 <- zeroinfl(p_eaten ~ state * species + as.factor(year),
                      dist = 'negbin',
                      data = herb_kbs)
 summary(k.m15)
+lrtest(k.m14, k.m15) # model 15 slightly better, going with 14 because its simpler
+
+# checking models again
+lrtest(k.m2, k.m4, k.m9, k.m14) # model 14 best - with species
 
 ## interaction between state, species, and year - doesn't run
 #m8 <- zeroinfl(p_eaten ~ state * species * year,
@@ -210,17 +235,14 @@ summary(k.m15)
 #                     data = herb_kbs)
 #summary(m8)
 
-# likelihood ratio test
-lrtest(k.m1, k.m2, k.m3, k.m4, k.m5, k.m6, k.m7, k.m8, k.m8, k.m10, k.m11, k.m12, k.m13, k.m14, k.m15)
-
-# check dispersion - chose lowest loglik model for example
-E <- resid(k.m13, type = "pearson")
+# check dispersion
+E <- resid(k.m14, type = "pearson")
 N  <- nrow(herb_kbs)
-p  <- length(coef(k.m13)) + 1 # '+1' is due to theta
-sum(E^2) / (N - p) # pretty close to one
+p  <- length(coef(k.m14)) + 1 # '+1' is due to theta
+sum(E^2) / (N - p) # a little overdispersed - is that okay?
 
 # pairwise comparisons
-emmeans(k.m13, ~ state + species)
+emmeans(k.m14, ~ state + species + as.factor(year))
 ```
 
 # UMBS
@@ -264,60 +286,72 @@ u.m2 <- zeroinfl(p_eaten ~ state + as.factor(year),
                dist = 'negbin',
                data = herb_umbs)
 summary(u.m2)
+lrtest(u.m1, u.m2) # model 2
 
 # state and growth habit as fixed effects
+herb_umbs <- within(herb_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 u.m3 <- zeroinfl(p_eaten ~ state + growth_habit,
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m3)
+lrtest(u.m2, u.m3) # model 2
 
 # state, growth habit, and year as fixed effects
 u.m4 <- zeroinfl(p_eaten ~ state + growth_habit + as.factor(year),
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m4)
+lrtest(u.m2, u.m4) # model 4
 
 # interaction between state and growth habit as fixed effects
 u.m5 <- zeroinfl(p_eaten ~ state * growth_habit,
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m5)
+lrtest(u.m4, u.m5) # model 4
 
 # interaction between state and growth habit as fixed effects, plus year
 u.m6 <- zeroinfl(p_eaten ~ state * growth_habit + as.factor(year),
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m6)
+lrtest(u.m4, u.m6) # almost the same, going with model 4 because its simpler
 
 # interaction between state, growth habit, and year (year as a factor wouldn't woru - non-finite value)
 u.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m7)
+lrtest(u.m4, u.m7) # model 4
 
 # state and origin as fixed effects
+herb_umbs <- within(herb_umbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
 u.m8 <- zeroinfl(p_eaten ~ state + origin,
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m8)
+lrtest(u.m4, u.m8) # model 4
 
 # state, origin, and year as fixed effects
 u.m9 <- zeroinfl(p_eaten ~ state + origin + as.factor(year),
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m9)
+lrtest(u.m4, u.m9) # model 4
 
 # interaction between state and origin as fixed effects
 u.m10 <- zeroinfl(p_eaten ~ state * origin,
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m10)
+lrtest(u.m4, u.m10) # model 4
 
 # interaction between state and origin as fixed effects, plus year
 u.m11 <- zeroinfl(p_eaten ~ state * origin +  as.factor(year),
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m11)
+lrtest(u.m4, u.m11) # model 4
 
 ## interaction between state, origin, and year - doesn't work
 #u.m12 <- zeroinfl(p_eaten ~ state * origin * as.factor(year),
@@ -330,18 +364,26 @@ u.m13 <- zeroinfl(p_eaten ~ state + species,
                      dist = 'negbin',
                      data = herb_umbs)
 summary(u.m13)
+lrtest(u.m4, u.m13) # model 4
 
 # state, species and year as fixed effects
 u.m14 <- zeroinfl(p_eaten ~ state + species + as.factor(year),
                      dist = 'negbin',
                      data = herb_umbs)
 summary(u.m14)
+lrtest(u.m4, u.m14) # model 14
+# calculating effect size - accounting for log link
+exp(-0.40972 + 0.26343*0) # 0.6638361
+exp(-0.40972 + 0.26343*1) # 0.8639071
+# effect of herbivory:
+0.8639071 - 0.6638361 # 0.200071
 
 # interaction between state and species as fixed effects, plus year
 u.m15 <- zeroinfl(p_eaten ~ state * species + as.factor(year),
                      dist = 'negbin',
                      data = herb_umbs)
 summary(u.m15)
+lrtest(u.m14, u.m15) # model 15 - might go with 14 because its simpler
 
 ## interaction between state, species, and year - doesn't run
 #m8 <- zeroinfl(p_eaten ~ state * species * year,
@@ -349,15 +391,15 @@ summary(u.m15)
 #                     data = herb_umbs)
 #summary(m8)
 
-# likelihood ratio test
-lrtest(u.m1, u.m2, u.m3, u.m4, u.m5, u.m6, u.m7, u.m8, u.m8, u.m10, u.m11, u.m13, u.m14, u.m15)
+# checking models again
+lrtest(u.m2, u.m4, u.m9, u.m14) # model 14 best - with species
 
 # check dispersion - chose lowest loglik model for example
-E <- resid(u.m6, type = "pearson")
+E <- resid(u.m14, type = "pearson")
 N  <- nrow(herb_umbs)
-p  <- length(coef(u.m6)) + 1 # '+1' is due to theta
+p  <- length(coef(u.m14)) + 1 # '+1' is due to theta
 sum(E^2) / (N - p) # pretty close to one
 
 # pairwise comparisons
-emmeans(u.m13, ~ state + species)
+emmeans(u.m14, ~ state + species + as.factor(year))
 ```
