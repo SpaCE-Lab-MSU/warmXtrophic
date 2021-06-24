@@ -39,17 +39,14 @@ umbs_plant_comp <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_plantcom
 # Clean data
 ## KBS
 View(kbs_biomass)
-kbs_biomass <- kbs_biomass %>% 
-        select(-dry_weight_g, -bag, -notes, -bag_size, -bag_code, -weight, -n_bags, -bag_weight, -date)
-kbs_biomass <- lapply(kbs_biomass, remove_col, name=c("dry_weight_g", "notes", "bag", "bag_size", "bag_code", "weight",
+# get rid of unnecessary columns
+kbs_biomass <- remove_col(kbs_biomass, name=c("dry_weight_g", "notes", "bag", "bag_size", "bag_code", "weight",
                                                       "n_bags", "bag_weight", "date"))
 str(kbs_biomass)
 
 View(kbs_plant_comp)
 # get rid of unnecessary columns
-kbs_plant_comp <- kbs_plant_comp %>% 
-        select(-Julian, -Notes, Date)
-kbs_plant_comp <- lapply(kbs_plant_comp, remove_col, name=c("Julian", "Notes", "Date"))
+kbs_plant_comp <- remove_col(kbs_plant_comp, name=c("Julian", "Notes", "Date"))
 str(kbs_plant_comp)
 
 # Change column names to lowercase so that we can merge with the biomass file
@@ -63,7 +60,6 @@ View(kbs_ANPP)
 kbs_ANPP <- kbs_ANPP %>% 
         select(-site.y)
 colnames(kbs_ANPP) <- sub("site.x", "site", colnames(kbs_ANPP))
-#colnames(kbs_ANPP) <- sub("date.y", "date", colnames(kbs_ANPP))
 colnames(kbs_ANPP) <- sub("final_biomass_g", "biomass", colnames(kbs_ANPP))
 
 kbs_ANPP$year <- "2020"
@@ -74,14 +70,14 @@ View(kbs_ANPP)
 
 ## UMBS
 View(umbs_biomass)
-umbs_biomass <- umbs_biomass %>% 
-        select(-dry_weight..g., -X, -dry_weight_kbs, -X.1, -dried.bag.weight, -bag, -notes, -X.2, -date) # get ride of
-# unwanted columns
+# get ride of unwanted columns
+umbs_biomass <- remove_col(umbs_biomass, name=c("dry_weight..g.", "X", "dry_weight_kbs", "X.1", "dried.bag.weight", 
+                                                "bag", "notes", "X.2", "date"))
 umbs_biomass <- umbs_biomass[-c(93, 94, 95),] # get ride of unwanted rows
 
 View(umbs_plant_comp)
-umbs_plant_comp <- umbs_plant_comp %>% 
-        select(-Julian, -Notes, -Date) # get ride of unwanted columns
+# get ride of unwanted columns
+umbs_plant_comp <- remove_col(umbs_plant_comp, name=c("Julian", "Notes", "Date"))
 str(umbs_plant_comp)
 
 # Change column names to lowercase so that we can merge with the biomass file
@@ -95,7 +91,6 @@ View(umbs_ANPP)
 umbs_ANPP <- umbs_ANPP %>% 
         select(-site.y)
 colnames(umbs_ANPP) <- sub("site.x", "site", colnames(umbs_ANPP))
-#colnames(umbs_ANPP) <- sub("date.y", "date", colnames(umbs_ANPP))
 colnames(umbs_ANPP) <- sub("weight_g", "biomass", colnames(umbs_ANPP))
 
 umbs_ANPP$year <- "2020"
@@ -112,12 +107,15 @@ View(final_ANPP)
 # Now that the two sites are merged, now the species list needs to be cleaned like the other scripts we have i.e
 # phenology and plant comp
 
-lapply(final_ANPP, spp_name) # need to fix a few species names
-lapply(final_ANPP, site_name) # need to make these all the same for each site
+spp_name(final_ANPP) # need to fix a few species names
+site_name(final_ANPP) # looks good
 
+final_ANPP <- change_spp(final_ANPP)
+spp_name(final_ANPP)
 
-
-# Need to calculate total biomass for each plot and put zeros where appropriate
+# remove rows with "Total" in the "species" column - this will be calculated in R later
+final_ANPP <- subset(final_ANPP, species != "Total")
+View(final_ANPP)
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
-write.csv(final_ANPP, file = "L1/final_ANPP.csv")  
+write.csv(final_ANPP, file.path(L1_dir,"ANPP/final_ANPP.csv"))
