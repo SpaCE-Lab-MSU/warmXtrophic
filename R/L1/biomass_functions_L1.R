@@ -35,6 +35,7 @@ plot_check <- function(df){
 # change species names
 change_spp <- function(df){
         df$species[df$species == "Rubsp"] <- "Rusp"
+        df$species[df$species == "Bubsp"] <- "Rusp"
         df$species[df$species == "Hipr"] <- "Hisp"
         df$species[df$species == "Assy"] <- "Assp"
         df$species[df$species == "Trpr"] <- "Trsp"
@@ -45,5 +46,11 @@ change_spp <- function(df){
         df$species[df$species == "Ramu"] <- "Romu"
         df$species[df$species == "Soil"] <- "Bare_Ground"
         df$species[df$species == "Bareground"] <- "Bare_Ground"
+        return(df)
+}
+
+# change site names
+change_site <- function(df){
+        df$site[df$site == "kba"] <- "kbs"
         return(df)
 }

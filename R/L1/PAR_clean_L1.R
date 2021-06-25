@@ -73,7 +73,7 @@ kbs <- rbind(list_kbs$KBS_17,list_kbs$KBS_18,list_kbs$KBS_19,list_kbs$KBS_20)
 umbs <- rbind(list_umbs$UMBS_17,list_umbs$UMBS_18,list_umbs$UMBS_19,list_umbs$UMBS_20)
 
 # create csv files
-write.csv(kbs, file.path(L1_dir, "PAR_data/KBS_PAR_L1.csv"))
-write.csv(umbs, file.path(L1_dir, "PAR_data/UMBS_PAR_L1.csv"))
+write.csv(kbs, file.path(L1_dir, "PAR/KBS_PAR_L1.csv"))
+write.csv(umbs, file.path(L1_dir, "PAR/UMBS_PAR_L1.csv"))
 
 

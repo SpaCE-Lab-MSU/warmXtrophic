@@ -17,7 +17,6 @@ library(tidyverse)
 Sys.getenv("L0DIR")
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
-list.files(L0_dir)
 
 # Read in csv files
 
@@ -38,12 +37,15 @@ umbs_plant_comp <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_plantcom
 
 # Clean data
 ## KBS
+
+# Biomass data
 View(kbs_biomass)
 # get rid of unnecessary columns
 kbs_biomass <- remove_col(kbs_biomass, name=c("dry_weight_g", "notes", "bag", "bag_size", "bag_code", "weight",
                                                       "n_bags", "bag_weight", "date"))
 str(kbs_biomass)
 
+# Plant Comp data
 View(kbs_plant_comp)
 # get rid of unnecessary columns
 kbs_plant_comp <- remove_col(kbs_plant_comp, name=c("Julian", "Notes", "Date"))
@@ -53,28 +55,28 @@ str(kbs_plant_comp)
 names(kbs_plant_comp) <- tolower(names(kbs_plant_comp))
 str(kbs_plant_comp)
 
+# Merge KBS biomass and plant comp data together
 #kbs_ANPP <- merge(kbs_biomass, kbs_plant_comp, by = c("plot", "species"))
-kbs_ANPP <- full_join(kbs_biomass, kbs_plant_comp, by = c("plot", "species"))
+kbs_ANPP <- full_join(kbs_biomass, kbs_plant_comp, by = c("plot", "species", "site"))
 View(kbs_ANPP)
 
-kbs_ANPP <- kbs_ANPP %>% 
-        select(-site.y)
-colnames(kbs_ANPP) <- sub("site.x", "site", colnames(kbs_ANPP))
-colnames(kbs_ANPP) <- sub("final_biomass_g", "biomass", colnames(kbs_ANPP))
+colnames(kbs_ANPP) <- sub("final_biomass_g", "weight_g", colnames(kbs_ANPP)) # change column name to biomass
 
-kbs_ANPP$year <- "2020"
-kbs_ANPP$site <- "kbs"
+kbs_ANPP$year <- "2020" # add year to data frame
 
-kbs_ANPP <- kbs_ANPP[, c("site", "year", "plot", "species", "cover", "biomass")]
+kbs_ANPP <- kbs_ANPP[, c("site", "year", "plot", "species", "cover", "weight_g")] # reorganize column order
 View(kbs_ANPP)
 
 ## UMBS
+
+# Biomass data
 View(umbs_biomass)
 # get ride of unwanted columns
 umbs_biomass <- remove_col(umbs_biomass, name=c("dry_weight..g.", "X", "dry_weight_kbs", "X.1", "dried.bag.weight", 
                                                 "bag", "notes", "X.2", "date"))
 umbs_biomass <- umbs_biomass[-c(93, 94, 95),] # get ride of unwanted rows
 
+# Plant Comp data
 View(umbs_plant_comp)
 # get ride of unwanted columns
 umbs_plant_comp <- remove_col(umbs_plant_comp, name=c("Julian", "Notes", "Date"))
@@ -84,19 +86,12 @@ str(umbs_plant_comp)
 names(umbs_plant_comp) <- tolower(names(umbs_plant_comp))
 
 #umbs_ANPP <- merge(umbs_biomass, umbs_plant_comp, by = c("plot", "species"))
-umbs_ANPP <- full_join(umbs_biomass, umbs_plant_comp, by = c("plot", "species"))
+umbs_ANPP <- full_join(umbs_biomass, umbs_plant_comp, by = c("plot", "species", "site"))
 View(umbs_ANPP)
 
-# get rid of site.y column bc there are two site columns currently after the join
-umbs_ANPP <- umbs_ANPP %>% 
-        select(-site.y)
-colnames(umbs_ANPP) <- sub("site.x", "site", colnames(umbs_ANPP))
-colnames(umbs_ANPP) <- sub("weight_g", "biomass", colnames(umbs_ANPP))
+umbs_ANPP$year <- "2020" # add year to data frame
 
-umbs_ANPP$year <- "2020"
-umbs_ANPP$site <- "umbs"
-
-umbs_ANPP <- umbs_ANPP[, c("site", "year", "plot", "species", "cover", "biomass")]
+umbs_ANPP <- umbs_ANPP[, c("site", "year", "plot", "species", "cover", "weight_g")] # reorganize column order
 View(umbs_ANPP)
 
 # Merge the kbs and umbs files together
@@ -108,10 +103,13 @@ View(final_ANPP)
 # phenology and plant comp
 
 spp_name(final_ANPP) # need to fix a few species names
-site_name(final_ANPP) # looks good
+site_name(final_ANPP) # need to change one site name
 
 final_ANPP <- change_spp(final_ANPP)
-spp_name(final_ANPP)
+spp_name(final_ANPP) # looks good
+
+final_ANPP <- change_site(final_ANPP)
+site_name(final_ANPP) # looks good
 
 # remove rows with "Total" in the "species" column - this will be calculated in R later
 final_ANPP <- subset(final_ANPP, species != "Total")
