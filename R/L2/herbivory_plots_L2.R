@@ -25,9 +25,6 @@ str(herb) # for some reason, date column converted back to character
 herb$date <- as.Date(herb$date,format="%Y-%m-%d")
 str(herb)
 
-# Remove weird X column
-herb <- subset(herb, select = -X)
-
 
 
 #### Total herb by site and species with insecticide treatment####
@@ -57,6 +54,22 @@ annotate_figure(final_herb,
                 left = text_grob("Average Percent of Leaf Eaten", color = "black", rot = 90),
                 bottom = text_grob("State", color = "black"))
 
+
+### Overall average ###
+sum_herb_overall <- herb %>%
+        group_by(site, state, insecticide) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_overall <- subset(sum_herb_overall, insecticide == "insects")
+ggplot(sum_herb_overall, aes(x = state, y = avg_eaten, fill = state)) +
+        facet_grid(.~site) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = "State", y = "Average Percent of Leaf Eaten") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        theme_classic()
 
 
 ### Total herb by origin (native/exotic)

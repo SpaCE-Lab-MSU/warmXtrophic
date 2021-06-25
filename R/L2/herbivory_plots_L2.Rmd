@@ -23,9 +23,7 @@ library(tidyverse)
 library(plotrix)
 
 # Get data
-Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
-list.files(L1_dir)
 herb <- read.csv(file.path(L1_dir, "herbivory/final_herbivory_L1.csv"))
 #str(herb) # for some reason, date column converted back to character
 
@@ -33,10 +31,12 @@ herb <- read.csv(file.path(L1_dir, "herbivory/final_herbivory_L1.csv"))
 herb$date <- as.Date(herb$date,format="%Y-%m-%d")
 #str(herb)
 
-# Remove weird X column
-herb <- subset(herb, select = -X)
-
-
+### Overall Herbivory ###
+sum_herb_overall <- herb %>%
+        group_by(site, state, insecticide) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_overall <- subset(sum_herb_overall, insecticide == "insects")
 
 #### Total herb by site and species with insecticide treatment####
 sum_herb_in <- herb %>%
@@ -60,16 +60,29 @@ sum_herb_spp <- herb %>%
 sum_herb_spp <- subset(sum_herb_spp, insecticide == "insects")
 ```
 
+## Plot for average percent leaf eaten - entire experiment averaged (only plots w/ no insecticide)
+```{r, echo = F}
+ggplot(sum_herb_overall, aes(x = state, y = avg_eaten, fill = state)) +
+        facet_grid(.~site) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = "State", y = "Average Percent of Leaf Eaten") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        theme_classic()
+```
+
 ## Plot for average percent leaf eaten between warmed and ambient (only plots with no insecticide)
 ```{r, echo = F}
 herb_plot_in <- function(loc) { 
   herb_spp <- subset(sum_herb_in, site == loc)
   return(ggplot(herb_spp, aes(x = state, y = avg_eaten, fill = state)) +
            facet_grid(.~year) +
-           geom_bar(position = "identity", stat = "identity") +
+           geom_bar(position = "identity", stat = "identity", col = "black") +
            geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
                          position = "identity") +
-           labs(x = "Treatment", y = "Average Percent of Leaf Eaten", title = loc) +
+           labs(x = "State", y = "Average Percent of Leaf Eaten", title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
@@ -84,10 +97,10 @@ dam_plot_in <- function(loc) {
   dam_spp <- subset(sum_dam_in, site == loc)
   return(ggplot(dam_spp, aes(x = state, y = avg_dam, fill = state)) +
            facet_grid(.~year) +
-           geom_bar(position = "identity", stat = "identity") +
+           geom_bar(position = "identity", stat = "identity", col = "black") +
            geom_errorbar(aes(ymin = avg_dam - se, ymax = avg_dam + se), width = 0.2,
                          position = "identity") +
-           labs(x = "Treatment", y = "Average Percent of Leaf Damage", title = loc) +
+           labs(x = "State", y = "Average Percent of Leaf Eaten", title = loc) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
@@ -103,7 +116,7 @@ herb_plot_spp <- function(spp, loc) {
   herb_spp <- subset(sum_herb_spp, species == spp & site == loc)
   return(ggplot(herb_spp, aes(x = state, y = avg_eaten, fill = state)) +
            facet_grid(.~year) +
-           geom_bar(position = "identity", stat = "identity") +
+           geom_bar(position = "identity", stat = "identity", col = "black") +
            geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
                          position = "identity") +
            labs(x = "State", y = "Average Percent of Leaf Eaten", title = spp) +
