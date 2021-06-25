@@ -187,7 +187,7 @@ summary(k.m10)
 lrtest(k.m4, k.m10) # model 4
 
 # interaction between state and origin as fixed effects, plus year
-k.m11 <- zeroinfl(p_eaten ~ state * origin +  as.factor(year),
+k.m11 <- zeroinfl(p_eaten ~ state * origin + as.factor(year),
                    dist = 'negbin',
                    data = herb_kbs)
 summary(k.m11)
@@ -199,6 +199,12 @@ k.m12 <- zeroinfl(p_eaten ~ state * origin * year,
                    data = herb_kbs)
 summary(k.m12)
 lrtest(k.m4,k.m12) # model 4
+
+# just origin - testing to see w/o state
+k.m12.2 <- zeroinfl(p_eaten ~ origin,
+                   dist = 'negbin',
+                   data = herb_kbs)
+summary(k.m12.2)
 
 # state and species as fixed effects
 k.m13 <- zeroinfl(p_eaten ~ state + species,
@@ -230,7 +236,7 @@ lrtest(k.m14, k.m15) # model 15 slightly better, going with 14 because its simpl
 lrtest(k.m2, k.m4, k.m9, k.m14) # model 14 best - with species
 
 ## interaction between state, species, and year - doesn't run
-#m8 <- zeroinfl(p_eaten ~ state * species * year,
+#m8 <- zeroinfl(p_eaten ~ state * species * as.factor(year),
 #                     dist = 'negbin',
 #                     data = herb_kbs)
 #summary(m8)
@@ -347,7 +353,7 @@ summary(u.m10)
 lrtest(u.m4, u.m10) # model 4
 
 # interaction between state and origin as fixed effects, plus year
-u.m11 <- zeroinfl(p_eaten ~ state * origin +  as.factor(year),
+u.m11 <- zeroinfl(p_eaten ~ state * origin + as.factor(year),
                    dist = 'negbin',
                    data = herb_umbs)
 summary(u.m11)
