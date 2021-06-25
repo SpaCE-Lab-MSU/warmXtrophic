@@ -14,40 +14,42 @@ library(tidyverse)
 library(plotrix)
 library(ggpubr)
 
-# Set working directory to Google Drive
-# **** Update with the path to your Google drive on your computer
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+Sys.getenv("L0DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
 
 # Read in plant comp data and meta-data
-comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
-meta <- read.csv("L0/plot.csv")
+comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
+meta <- read.csv(file.path(L0_dir, "plot.csv"))
+taxon <- read.csv(file.path(L0_dir,"taxon.csv"))
 str(comp)
 
 # remove uneeded X column and species
-comp$X <- NULL
+# comp$X <- NULL
 comp$species[comp$species == "Bare_Ground"] <- NA
 comp$species[comp$species == "Brown"] <- NA
 comp$species[comp$species == "Litter"] <- NA
 comp$species[comp$species == "Vert_Litter"] <- NA
 comp <- na.omit(comp)
 
-# getting relative % cover for comparisions between native & exotic #
+# getting relative % cover for comparisons between native & exotic #
 # average sub-quadrats for plots
 comp_org <- subset(comp, origin == "Exotic" | origin == "Native")
 quad.mn <- aggregate(cover ~ plot*origin*species*year*site, data=comp_org, FUN=mean, na.rm=T)
 names(quad.mn)[names(quad.mn)=="cover"]<-"quad.mn"
-
 head(quad.mn)
 
 # convert cover to relative abundance 
 # first get summed cover for all plants per plot
-cov.sum = aggregate(quad.mn ~ plot*origin*year*site, data=quad.mn, FUN=sum, na.rm=T)
-names(cov.sum)[names(cov.sum)=="quad.mn"]<-"cov.sum"
-head(cov.sum)
-comp2 <- merge(quad.mn,cov.sum, by=c("plot","origin","year","site"))
+cover.sum = aggregate(quad.mn ~ plot*origin*year*site, data=quad.mn, FUN=sum, na.rm=T)
+names(cover.sum)[names(cover.sum)=="quad.mn"]<-"cover.sum"
+head(cover.sum)
+comp2 <- merge(quad.mn, cover.sum, by=c("plot","origin","year","site"))
 
 #calculate relative percent cover per species in each quadrat (="relative abundance")
-comp2$relab <- comp2$quad.mn/comp2$cov.sum
+comp2$relabun <- comp2$quad.mn/comp2$cover.sum
 summary(comp2)
 
 # change taxon column name for merging
@@ -55,8 +57,6 @@ colnames(taxon)[which(names(taxon) == "code")] <- "species"
 
 # Merge meta-data with plant comp data
 comp_rel <- left_join(meta, comp2, by = "plot")
-
-
 
 
 #### plots for percent cover #####
@@ -101,8 +101,8 @@ annotate_figure(final_comp,
 # by plant origin (native/exotic) - no grouping by year
 sum_comp_org <- comp_rel %>%
   group_by(site, state, origin) %>%
-  summarize(avg_comp = mean(relab, na.rm = TRUE),
-            se = std.error(relab, na.rm = TRUE))
+  summarize(avg_comp = mean(relabun, na.rm = TRUE),
+            se = std.error(relabun, na.rm = TRUE))
 sum_comp_org <- subset(sum_comp_org, origin == "Exotic" | origin == "Native")
 
 comp_plot_org <- function(loc) { 
@@ -129,8 +129,8 @@ annotate_figure(final_org,
 # by plant origin (native/exotic) - grouped by year
 sum_compyear_org <- comp_rel %>%
   group_by(site, state, origin, year) %>%
-  summarize(avg_comp = mean(relab, na.rm = TRUE),
-            se = std.error(relab, na.rm = TRUE))
+  summarize(avg_comp = mean(relabun, na.rm = TRUE),
+            se = std.error(relabun, na.rm = TRUE))
 sum_compyear_org <- subset(sum_compyear_org, origin == "Exotic" | origin == "Native")
 
 compyear_plot_org <- function(loc) { 
@@ -179,10 +179,10 @@ comp_plot_habit("umbs")
 
 ##### plots for relative percent cover #####
 # filter data to contain the averages and std error for each site
-sum_relcomp_site <- rel_comp %>%
+sum_relcomp_site <- comp_rel %>%
   group_by(site, state, year) %>%
-  summarize(avg_cover = mean(relab, na.rm = TRUE),
-            se = std.error(relab, na.rm = TRUE))
+  summarize(avg_cover = mean(relabun, na.rm = TRUE),
+            se = std.error(relabun, na.rm = TRUE))
 
 # Plot for all species between warmed and ambient
 relcomp_plot_all <- function(loc) { 

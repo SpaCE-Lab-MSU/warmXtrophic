@@ -1,4 +1,4 @@
-# TITLE: Phenology data analysis
+# TITLE: Flowering data analysis
 # AUTHORS: Moriah Young
 # COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Kara Dobson
 # DATA INPUT: CSV files are located in the phenology folder in the shared Google drive
@@ -56,7 +56,7 @@ phen_data$state <- factor(phen_data$state, levels(phen_data$state)[c(2,1)])
 levels(phen_data$state)
 # [1] "warmed"  "ambient"
 
-# flowering data
+# Flowering data
 # species level data for flowering
 flwr_spp <- read.csv(file.path(L1_dir, "phenology/final_flwr_species_L1.csv"))
 flwr_spp$X <- NULL
@@ -64,15 +64,6 @@ flwr_spp$X <- NULL
 # plot level data for flowering
 flwr_plot <- read_csv(file.path(L1_dir, "phenology/final_flwr_plot_L1.csv"))
 flwr_plot$X1 <- NULL
-
-# seed set data
-# species level data for seed set
-seed_spp <- read.csv(file.path(L1_dir, "phenology/final_sd_species_L1.csv"))
-seed_spp$X <- NULL
-
-# plot level data for seed set
-seed_plot <- read.csv(file.path(L1_dir, "phenology/final_sd_plot_L1.csv"))
-seed_plot$X <- NULL
 
 ##########################################################################################
 # Data Exploration
@@ -85,14 +76,17 @@ umbs_firstflwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only da
 hist(umbs_firstflwr_plot$julian_median)
 hist(umbs_firstflwr_plot$julian_min)
 
-# Response variable:
+## Response variable:
 # julian day
 
-# Predictor variables:
+## Predictor variables:
 # state ("ambient" or "warmed")
+# origin
+# insecticide
 
-# Grouping factor:
+## Grouping factor:
 # year
+# plot
 
 ##########################################################################################
 # Centering and transforming data
@@ -120,6 +114,7 @@ m5 <- lmer(log_julian_median ~ state + insecticide + (1|species), data = umbs_fi
 m6 <- lmer(log_julian_median ~ state * insecticide + (1|species) + (1|year_factor), data = umbs_firstflwr_plot)
 m7 <- lmer(log_julian_median ~ state + insecticide + (1|species) + (1|year_factor), data = umbs_firstflwr_plot)
 m8 <- lmer(log_julian_median ~ state + insecticide + origin + (1|species) + (1|year_factor), data = umbs_firstflwr_plot)
+m9 <- lmer(log_julian_median ~ state + insecticide + origin + (1|species) + (1|year_factor) + (1|plot), data = umbs_firstflwr_plot)
 
 ##########################################################################################
 # Compare models
