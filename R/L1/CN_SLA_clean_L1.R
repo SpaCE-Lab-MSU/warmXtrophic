@@ -1,10 +1,10 @@
-# TITLE:          Carbon and Nitrogen Data Cleanup
-# AUTHORS:        Moriah Young, Pat Bills
-# COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Kara Dobson
+# TITLE:          Carbon and Nitrogen, Specific Leaf Area (SLA) Data Cleanup 
+# AUTHORS:        Moriah Young, Pat Bills, Phoebe Zarnetske
+# COLLABORATORS:  Mark Hammond, Kara Dobson
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
-# DATA OUTPUT:    A csv file containing CN data is uploaded to the L1 plant comp folder
+# DATA OUTPUT:    A csv file containing CN & SLA data is uploaded to the L1 plant comp folder
 # PROJECT:        warmXtrophic
-# DATE:           March, 2021
+# DATE:           March-June, 2021
 
 # Clear all existing data
 rm(list=ls())
@@ -19,13 +19,17 @@ L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
 
-# Read in csv files with CN content
-CN1_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_1_2019.csv"))
-CN2_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_2_2019.csv"))
-CN3_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_3_2019.csv"))
-CN4_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_4_2019.csv"))
+# Read in csv files with CN, SLA content
+# KBS
+sla18_raw <- read.csv(file.path(L0_dir, "/KBS/L0/2018/kbs_CN_2018.csv"))
 
-# create function to clean CN data files
+# Why are these data separate and not nested inside /KBS or /UMBS?
+cn19_1_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_1_2019.csv"))
+cn19_2_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_2_2019.csv"))
+cn19_3_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_3_2019.csv"))
+cn19_4_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_4_2019.csv"))
+
+# create function to clean 2019 CN data files
 CN_csvdata_initial_prep <- function(cn_data){
         cn_data <- cn_data[-(1:2),] #get rid of the first 2 rows because it's not data
         names(cn_data) <- cn_data[1,] #make the first row the column names
@@ -36,10 +40,10 @@ CN_csvdata_initial_prep <- function(cn_data){
 }
 
 # Clean CN data 
-CN1 <- CN_csvdata_initial_prep(CN1_raw)
-CN2 <- CN_csvdata_initial_prep(CN2_raw)
-CN3 <- CN_csvdata_initial_prep(CN3_raw)
-CN4 <- CN_csvdata_initial_prep(CN4_raw)
+CN1 <- CN_csvdata_initial_prep(cn19_1_raw)
+CN2 <- CN_csvdata_initial_prep(cn19_2_raw)
+CN3 <- CN_csvdata_initial_prep(cn19_3_raw)
+CN4 <- CN_csvdata_initial_prep(cn19_4_raw)
 
 # read in meta files for CN data
 umbs_CN <- read.csv(file.path(L0_dir, "UMBS/2019/umbs_CN_2019.csv"))
