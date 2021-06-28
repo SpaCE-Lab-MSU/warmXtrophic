@@ -18,7 +18,8 @@ Sys.getenv("L0DIR")
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
-L1_dir<-"/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1"
+source(file.path(L1_dir,"PAR_functions_L1.R"))
+
 # Read in csv files with CN, SLA content
 
 #### PLOT ID INFO ####
@@ -105,7 +106,12 @@ dim(sla_final)
 # Merge in plot ID info
 sla_final <- merge(sla_final, meta, by = c("plot"))
 
-## NOTE TO ADD JULIAN DATE CODE CREATION HERE ****
+# convert to day, month, year -- use POSIXlt *** NEED TO UPDATE FOR 2018 bc in diff format
+sla_final$day<-strptime(sla_final$date, "%m/%d/%Y")$mday
+# convert to day of year (Julian date)
+sla_final$julian<-strptime(sla_final$date, "%m/%d/%Y")$yday+1
+sla_final$month<-strptime(sla_final$date, "%m/%d/%Y")$mon+1
+sla_final$year<-strptime(sla_final$date, "%m/%d/%Y")$year+1900
 
 # write a new csv with the cleaned and merged data and upload to the shared google drive L1 folder
 write.csv(sla_final, file.path(L1_dir, "SLA/SLA_L1.csv", row.names=F))
