@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
 ## DATA INPUT: CSV files are located in the HOBO_data folder in the shared Google drive
-## DATA OUTPUT: Stats results
+## DATA OUTPUT: Computes different averages + error for hobo variables measured at each site
 
 ```{r, message=F}
 # clear all existing data
