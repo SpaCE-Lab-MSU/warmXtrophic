@@ -18,8 +18,11 @@ Sys.getenv("L0DIR")
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
-
+L1_dir<-"/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1"
 # Read in csv files with CN, SLA content
+
+#### PLOT ID INFO ####
+meta <- read.csv(file.path(L0_dir, "plot.csv"))
 
 #### SLA ####
 ## 2017 ##
@@ -53,7 +56,7 @@ sla20u_raw <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_CN_SLA_2020.csv"))
 
 ## 2018 ##
 # KBS - but this doesn't contain data; however the "CN_Inventory.xlsx" file in /CD_data suggests these exist
-cn18k_raw <- read.csv(file.path(L0_dir, "/KBS/L0/2018/kbs_CN_2018.csv"))
+cn18k_raw <- read.csv(file.path(L0_dir, "KBS/2018/kbs_CN_2018.csv"))
 # UMBS
 # ***   Where are these data? the "CN_Inventory.xlsx" file in /CD_data suggests these exist.
 
@@ -91,17 +94,21 @@ sla19k_raw$Avg_width_cm2<-NULL
 # Merge data
 sla_final<-rbind(sla18u_raw,sla19k_raw, sla19u_raw, sla20u_raw)
 # column names to lower case
-names(sla_final) <- tolower(names(sla_all)) 
+names(sla_final) <- tolower(names(sla_final)) 
 # remove zero values for Mass
 sla_final<-sla_final[sla_final$mass_g != 0, ]
 summary(sla_final) # 46 NA values for mass, area; omit them
 dim(sla_final)
 sla_final<-sla_final[rowSums(is.na(sla_final[ , 6:8])) == 0, ]
 dim(sla_final)
+
+# Merge in plot ID info
+sla_final <- merge(sla_final, meta, by = c("plot"))
+
 ## NOTE TO ADD JULIAN DATE CODE CREATION HERE ****
 
 # write a new csv with the cleaned and merged data and upload to the shared google drive L1 folder
-write.csv(sla_final, file.path(L1_dir, "SLA_L1.csv", row.names=F))
+write.csv(sla_final, file.path(L1_dir, "SLA/SLA_L1.csv", row.names=F))
 
 #### Create L1 CN data ####
 
@@ -130,7 +137,6 @@ CN4 <- CN_csvdata_initial_prep(cn19_4_raw)
 # read in 2019 meta files for CN data
 umbs19_CN <- read.csv(file.path(L0_dir, "UMBS/2019/umbs_CN_2019.csv"))
 kbs19_CN <- read.csv(file.path(L0_dir, "KBS/2019/kbs_CN_2019.csv"))
-meta <- read.csv(file.path(L0_dir, "plot.csv"))
 
 # merge separate CN files into one data frame
 CN_all <- merge(CN1, CN2, all = TRUE)
