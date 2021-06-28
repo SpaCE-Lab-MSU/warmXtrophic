@@ -22,7 +22,7 @@ library(plotrix)
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in data
-cn <- read.csv("L1/CN/final_CN_L1.csv")
+cn <- read.csv("L1/final_CN_L1.csv")
 ```
 
 # Carbon data

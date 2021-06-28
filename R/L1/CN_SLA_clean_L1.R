@@ -93,8 +93,11 @@ sla_final<-rbind(sla18u_raw,sla19k_raw, sla19u_raw, sla20u_raw)
 # column names to lower case
 names(sla_final) <- tolower(names(sla_all)) 
 # remove zero values for Mass
-sla_final<-sla_final[sla_final$mass_g != 0, ] 
-
+sla_final<-sla_final[sla_final$mass_g != 0, ]
+summary(sla_final) # 46 NA values for mass, area; omit them
+dim(sla_final)
+sla_final<-sla_final[rowSums(is.na(sla_final[ , 6:8])) == 0, ]
+dim(sla_final)
 ## NOTE TO ADD JULIAN DATE CODE CREATION HERE ****
 
 # write a new csv with the cleaned and merged data and upload to the shared google drive L1 folder
