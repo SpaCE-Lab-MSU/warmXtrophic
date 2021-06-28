@@ -2,7 +2,7 @@
 # AUTHORS: Kara Dobson
 # COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
 # DATA INPUT: CSV files are located in the L1 hobo folder in the shared Google drive
-# DATA OUTPUT: Plots of each graph are in the HOBO_plot_L1.pdf in Github
+# DATA OUTPUT: Plots of the data (also in the .Rmd plot file)
     ## note: plots are saved at each step in the script and merged into final figures at the end
 # PROJECT: warmXtrophic
 # DATE: July 2020, updated June 2021
