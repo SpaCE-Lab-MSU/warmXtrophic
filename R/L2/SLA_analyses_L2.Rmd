@@ -1,0 +1,163 @@
+---
+title: "warmXtrophic Project: Specific Leaf Area (SLA) Analyses"
+author: "Phoebe Zarnetske"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Load in packages & data
+```{r, message = F}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(bbmle)
+library(lmerTest)
+
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
+# Set working directory to Google Drive
+setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+
+# Read in data
+sla <- read.csv("./L1/SLA/SLA_L1.csv")
+
+# create dataframes for kbs and umbs
+sla_kbs <- subset(sla, site == "kbs")
+sla_umbs <- subset(sla, site == "umbs")
+```
+
+# Check what species are measured at each site
+```{r}
+unique(sla$species)
+with(sla,table(sla$site,sla$species))
+```
+## Each species is only at one site, so for now don't make separate dataframes (just use species as fixed effect)
+
+# Data exploration
+```{r}
+ggplot(sla, aes(area_cm2, fill = species, color=species)) +
+        geom_density(alpha = 0.1)
+
+ggplot(sla, aes(area_cm2, fill = species, color=species)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(sla, aes(area_cm2, fill = species, color=species)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + site)
+```
+
+
+# Models testing Warming effect
+```{r}
+# Fixed effects: warming, year, insecticide; Random effect = plot (bc observations are nested within plot)
+# Fit with ML bc we are interested in estimating fixed effects more than random effects
+# See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details 
+par(mfrow=c(1,2))
+m1 <- lmer(area_cm2 ~ state + species + year + insecticide + (1|plot), data = sla, REML=FALSE)
+# Sqrt transform response variable
+m1s <- lmer(sqrt(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla, REML=FALSE)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(m1, main = "Area (cm2)")
+plot(m1s, main = "Square-root Area (cm2)")
+# Both Look like homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values); a little worse for the non-square root one
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met.
+leveneTest(residuals(m1s) ~ sla$state)
+# Assumption not met
+leveneTest(residuals(m1s) ~ sla$species)
+# Assumption not met - not surprising given the differences among species
+leveneTest(residuals(m1s) ~ sla$insecticide)
+# Assumption met
+leveneTest(residuals(m1s) ~ sla$plot)
+# Assumption met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+par(mfrow=c(2,2))
+qqnorm(resid(m1), main = "Area (cm2)")
+hist(residuals(m1), main = "Area (cm2)")
+qqnorm(resid(m1s), main = "Square-root Area (cm2)")
+hist(residuals(m1s), main = "Square-root Area (cm2)")
+# Sqrt transformed model looks better so we will go with the square-root transformation.
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as check the residual. But it is not efficient because you just have 7 random intercepts.
+
+gm<-glmer.nb(area_cm2 ~ state + species + year + insecticide + (1|plot), data = sla)
+summary(m1s) # There is a year effect
+
+AICctab(m1s, m1b, m1c, m1d, weights = T)
+summary(m1a)
+summary(m1c) # plot as a random effect
+
+# nitrogen
+m2a <- lm(nitrogen ~ state, data = cn_kbs)
+m2b <- lm(nitrogen ~ state + insecticide, data = cn_kbs)
+m2c <- lmer(nitrogen ~ state + (1|plot), data = cn_kbs)
+m2d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_kbs)
+AICctab(m2a, m2b, m2c, m2d, weights = T)
+summary(m2a)
+summary(m2c) # plot as a random effect
+```
+
+# Model comparison: UMBS Cest
+```{r}
+# carbon
+m3a <- lm(carbon ~ state, data = cn_cest_umbs)
+m3b <- lm(carbon ~ state + insecticide, data = cn_cest_umbs)
+m3c <- lmer(carbon ~ state + (1|plot), data = cn_cest_umbs)
+m3d <- lmer(carbon ~ state + insecticide + (1|plot), data = cn_cest_umbs)
+AICctab(m3a, m3b, m3c, m3d, weights = T)
+summary(m3a)
+summary(m3c) # plot as a random effect
+
+# nitrogen
+m4a <- lm(nitrogen ~ state, data = cn_cest_umbs)
+m4b <- lm(nitrogen ~ state + insecticide, data = cn_cest_umbs)
+m4c <- lmer(nitrogen ~ state + (1|plot), data = cn_cest_umbs)
+m4d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_cest_umbs)
+AICctab(m4a, m4b, m4c, m4d, weights = T)
+summary(m4a)
+summary(m4c) # plot as a random effect
+```
+
+# Model comparison: UMBS Popr
+```{r}
+# carbon
+m5a <- lm(carbon ~ state, data = cn_popr_umbs)
+m5b <- lm(carbon ~ state + insecticide, data = cn_popr_umbs)
+m5c <- lmer(carbon ~ state + (1|plot), data = cn_popr_umbs)
+m5d <- lmer(carbon ~ state + insecticide + (1|plot), data = cn_popr_umbs)
+AICctab(m5a, m5b, m5c, m5d, weights = T)
+summary(m5a)
+summary(m5c) # plot as a random effect
+
+# nitrogen
+m6a <- lm(nitrogen ~ state, data = cn_popr_umbs)
+m6b <- lm(nitrogen ~ state + insecticide, data = cn_popr_umbs)
+m6c <- lmer(nitrogen ~ state + (1|plot), data = cn_popr_umbs)
+m6d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_popr_umbs)
+AICctab(m6a, m6b, m6c, m6d, weights = T)
+summary(m6a)
+summary(m6c) # plot as a random effect
+```
+
+
+
+

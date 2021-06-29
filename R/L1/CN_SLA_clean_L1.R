@@ -18,7 +18,10 @@ Sys.getenv("L0DIR")
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
-source(file.path(L1_dir,"PAR_functions_L1.R"))
+
+# Above .Renviron not working for PLZ; hard-coding in here
+L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L0/"
+L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1/"
 
 # Read in csv files with CN, SLA content
 
@@ -33,19 +36,19 @@ meta <- read.csv(file.path(L0_dir, "plot.csv"))
 # KBS
 # ***   2018 missing KBS SLA data
 # UMBS
-sla18u_raw <- read.csv(file.path(L0_dir, "UMBS/2018/umbs_SLA_2018.csv"))
+sla18u_raw <- read.csv(file.path(L0_dir, "./UMBS/2018/umbs_SLA_2018.csv"))
 
 ## 2019 ##
 # KBS
-sla19k_raw <- read.csv(file.path(L0_dir, "KBS/2019/kbs_SLA_2019.csv")) 
+sla19k_raw <- read.csv(file.path(L0_dir, "./KBS/2019/kbs_SLA_2019.csv")) 
 # UMBS
-sla19u_raw <- read.csv(file.path(L0_dir, "UMBS/2019/umbs_SLA_2019.csv")) 
+sla19u_raw <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_SLA_2019.csv")) 
 
 ## 2020 ##
 # KBS
 # ***   2020 KBS SLA data missing??
 # UMBS
-sla20u_raw <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_CN_SLA_2020.csv")) 
+sla20u_raw <- read.csv(file.path(L0_dir, "./UMBS/2020/umbs_CN_SLA_2020.csv")) 
 
 #### CN ####
 ## 2017 ##
@@ -57,16 +60,16 @@ sla20u_raw <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_CN_SLA_2020.csv"))
 
 ## 2018 ##
 # KBS - but this doesn't contain data; however the "CN_Inventory.xlsx" file in /CD_data suggests these exist
-cn18k_raw <- read.csv(file.path(L0_dir, "KBS/2018/kbs_CN_2018.csv"))
+cn18k_raw <- read.csv(file.path(L0_dir, "./KBS/2018/kbs_CN_2018.csv"))
 # UMBS
 # ***   Where are these data? the "CN_Inventory.xlsx" file in /CD_data suggests these exist.
 
 ## 2019 ##
 # ***   Why are these data separate and not nested inside /KBS or /UMBS?
-cn19_1_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_1_2019.csv"))
-cn19_2_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_2_2019.csv"))
-cn19_3_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_3_2019.csv"))
-cn19_4_raw <- read.csv(file.path(L0_dir, "CN_data/2019/CN_WeighSheet_4_2019.csv"))
+cn19_1_raw <- read.csv(file.path(L0_dir, "./CN_data/2019/CN_WeighSheet_1_2019.csv"))
+cn19_2_raw <- read.csv(file.path(L0_dir, "./CN_data/2019/CN_WeighSheet_2_2019.csv"))
+cn19_3_raw <- read.csv(file.path(L0_dir, "./CN_data/2019/CN_WeighSheet_3_2019.csv"))
+cn19_4_raw <- read.csv(file.path(L0_dir, "./CN_data/2019/CN_WeighSheet_4_2019.csv"))
 
 #### Create L1 SLA data ####
 head(sla18u_raw)
@@ -106,15 +109,19 @@ dim(sla_final)
 # Merge in plot ID info
 sla_final <- merge(sla_final, meta, by = c("plot"))
 
-# convert to day, month, year -- use POSIXlt *** NEED TO UPDATE FOR 2018 bc in diff format
+# convert to day, month, year -- use POSIXlt 
 sla_final$day<-strptime(sla_final$date, "%m/%d/%Y")$mday
 # convert to day of year (Julian date)
 sla_final$julian<-strptime(sla_final$date, "%m/%d/%Y")$yday+1
 sla_final$month<-strptime(sla_final$date, "%m/%d/%Y")$mon+1
 sla_final$year<-strptime(sla_final$date, "%m/%d/%Y")$year+1900
 
+# 2018 is different: 2-digit year
+yr18<-sla_final$year == 18
+sla_final$year[yr18]<-strptime(sla_final$date, "%m/%d/%y")$year[yr18] + 1900
+
 # write a new csv with the cleaned and merged data and upload to the shared google drive L1 folder
-write.csv(sla_final, file.path(L1_dir, "SLA/SLA_L1.csv", row.names=F))
+write.csv(sla_final, file.path(L1_dir, "./SLA/SLA_L1.csv", row.names=F))
 
 #### Create L1 CN data ####
 
@@ -141,8 +148,8 @@ CN3 <- CN_csvdata_initial_prep(cn19_3_raw)
 CN4 <- CN_csvdata_initial_prep(cn19_4_raw)
 
 # read in 2019 meta files for CN data
-umbs19_CN <- read.csv(file.path(L0_dir, "UMBS/2019/umbs_CN_2019.csv"))
-kbs19_CN <- read.csv(file.path(L0_dir, "KBS/2019/kbs_CN_2019.csv"))
+umbs19_CN <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_2019.csv"))
+kbs19_CN <- read.csv(file.path(L0_dir, "./KBS/2019/kbs_CN_2019.csv"))
 
 # merge separate CN files into one data frame
 CN_all <- merge(CN1, CN2, all = TRUE)
