@@ -20,6 +20,10 @@ rm(list=ls())
 library(tidyverse)
 library(bbmle)
 library(lmerTest)
+library(fitdistrplus)
+library(lme4)
+library(car)
+
 
 # Set ggplot2 plotting
 # This code for ggplot2 sets the theme to mostly black and white 
@@ -33,10 +37,6 @@ setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in data
 sla <- read.csv("./L1/SLA/SLA_L1.csv")
-
-# create dataframes for kbs and umbs
-sla_kbs <- subset(sla, site == "kbs")
-sla_umbs <- subset(sla, site == "umbs")
 ```
 
 # Check what species are measured at each site
@@ -46,8 +46,14 @@ with(sla,table(sla$site,sla$species))
 ```
 ## Each species is only at one site, so for now don't make separate dataframes (just use species as fixed effect)
 
-# Data exploration
+# Data exploration - some different ways of visualizing these data
 ```{r}
+ggplot(sla, aes(area_cm2, fill = species)) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(sla, aes(area_cm2, fill = as.factor(species))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(species~year, margins = TRUE, scales = "free")
+
 ggplot(sla, aes(area_cm2, fill = species, color=species)) +
         geom_density(alpha = 0.1)
 
@@ -58,106 +64,129 @@ ggplot(sla, aes(area_cm2, fill = species, color=species)) +
 ggplot(sla, aes(area_cm2, fill = species, color=species)) +
         geom_density(alpha = 0.1) +
         facet_wrap(~year + site)
+
+# Exploring distributions for these right-skewed data:
+# See: http://www.di.fc.ul.pt/~jpn/r/distributions/fitting.html
+descdist(sla$area_cm2, discrete = FALSE)
+
+# Gamma distribution is an option
+fit.gamma <- fitdist(sla$area_cm2, "gamma")
+plot(fit.gamma)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(sla$area_cm2, "exp")
+plot(fit.exp)
+
+# Lognormal distribution is another option
+fit.ln <- fitdist(sla$area_cm2, "lnorm")
+plot(fit.ln)
+
+# Square root transformed normal distribution 
+fit.sr <- fitdist(sqrt(sla$area_cm2), "norm")
+plot(fit.sr)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Exponential", "Log Normal")
+denscomp(list(fit.gamma, fit.exp, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.exp, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.exp, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.exp, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.exp, fit.ln), fitnames = c("Gamma", "Exponential", "Log Normal"))
+# Lognormal is a winner so far
 ```
 
 
-# Models testing Warming effect
+# Determining appropriate distribution in mixed effects model
 ```{r}
-# Fixed effects: warming, year, insecticide; Random effect = plot (bc observations are nested within plot)
+# See Ben Bolker's site for details on fitting glmms: https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
+#       Fixed effects: warming, year, insecticide
+#       Random effect = plot (bc observations are nested within plot)
 # Fit with ML bc we are interested in estimating fixed effects more than random effects
 # See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details 
-par(mfrow=c(1,2))
-m1 <- lmer(area_cm2 ~ state + species + year + insecticide + (1|plot), data = sla, REML=FALSE)
-# Sqrt transform response variable
-m1s <- lmer(sqrt(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla, REML=FALSE)
+m1 <- lmer(log(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla, REML=FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
 par(mfrow=c(1,2))
-plot(m1, main = "Area (cm2)")
-plot(m1s, main = "Square-root Area (cm2)")
-# Both Look like homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values); a little worse for the non-square root one
-# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met.
-leveneTest(residuals(m1s) ~ sla$state)
+plot(m1, main = "Log Area (cm2)")
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m1) ~ sla$state)
 # Assumption not met
-leveneTest(residuals(m1s) ~ sla$species)
+leveneTest(residuals(m1) ~ sla$species)
 # Assumption not met - not surprising given the differences among species
-leveneTest(residuals(m1s) ~ sla$insecticide)
+leveneTest(residuals(m1) ~ sla$insecticide)
 # Assumption met
-leveneTest(residuals(m1s) ~ sla$plot)
+leveneTest(residuals(m1) ~ sla$plot)
 # Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
-par(mfrow=c(2,2))
-qqnorm(resid(m1), main = "Area (cm2)")
+qqPlot(resid(m1), main = "Area (cm2)")
 hist(residuals(m1), main = "Area (cm2)")
-qqnorm(resid(m1s), main = "Square-root Area (cm2)")
-hist(residuals(m1s), main = "Square-root Area (cm2)")
-# Sqrt transformed model looks better so we will go with the square-root transformation.
+shapiro.test(resid(m1)) # not normally distributed resids bc p>0.05
+# Outliers
+sla[377,]
+sla[801,]
+# Outlier test - yes, these are outliers bc p<0.05 
+outlierTest(m1)
 
-# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as check the residual. But it is not efficient because you just have 7 random intercepts.
+# Remove these 2 points
+sla1<-sla[-c(377, 801),]
+m1.nooutlier <- lmer(log(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla1, REML=FALSE)
+shapiro.test(resid(m1.nooutlier)) # normally distributed resids - good!
 
-gm<-glmer.nb(area_cm2 ~ state + species + year + insecticide + (1|plot), data = sla)
-summary(m1s) # There is a year effect
-
-AICctab(m1s, m1b, m1c, m1d, weights = T)
-summary(m1a)
-summary(m1c) # plot as a random effect
-
-# nitrogen
-m2a <- lm(nitrogen ~ state, data = cn_kbs)
-m2b <- lm(nitrogen ~ state + insecticide, data = cn_kbs)
-m2c <- lmer(nitrogen ~ state + (1|plot), data = cn_kbs)
-m2d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_kbs)
-AICctab(m2a, m2b, m2c, m2d, weights = T)
-summary(m2a)
-summary(m2c) # plot as a random effect
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. [***need to do for final model]
 ```
 
-# Model comparison: UMBS Cest
+Model exploration determined log normal distribution for SLA and dropping 2 outliers. Proceed with re-checking the distribution and assumptions as above with the outliers removed.
 ```{r}
-# carbon
-m3a <- lm(carbon ~ state, data = cn_cest_umbs)
-m3b <- lm(carbon ~ state + insecticide, data = cn_cest_umbs)
-m3c <- lmer(carbon ~ state + (1|plot), data = cn_cest_umbs)
-m3d <- lmer(carbon ~ state + insecticide + (1|plot), data = cn_cest_umbs)
-AICctab(m3a, m3b, m3c, m3d, weights = T)
-summary(m3a)
-summary(m3c) # plot as a random effect
+# Fixed effects: warming, year, insecticide
+# Random effect = plot (bc observations are nested within plot)
+# Fit with ML bc we are interested in estimating fixed effects more than random effects
+# See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details 
+m2 <- lmer(log(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla1, REML=FALSE)
 
-# nitrogen
-m4a <- lm(nitrogen ~ state, data = cn_cest_umbs)
-m4b <- lm(nitrogen ~ state + insecticide, data = cn_cest_umbs)
-m4c <- lmer(nitrogen ~ state + (1|plot), data = cn_cest_umbs)
-m4d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_cest_umbs)
-AICctab(m4a, m4b, m4c, m4d, weights = T)
-summary(m4a)
-summary(m4c) # plot as a random effect
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(m2, main = "Log Area (cm2)")
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m2) ~ sla1$state)
+# Assumption not met
+leveneTest(residuals(m2) ~ sla1$species)
+# Assumption not met - not surprising given the differences among species
+leveneTest(residuals(m2) ~ sla1$insecticide)
+# Assumption met
+leveneTest(residuals(m2) ~ sla1$plot)
+# Assumption met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(m2), main = "Area (cm2)")
+hist(residuals(m2), main = "Area (cm2)")
+shapiro.test(resid(m2)) # normally distributed resids bc p>0.05
+# Outlier test - no, these are no outliers bc p>0.05 
+outlierTest(m2)
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int<- ranef(m2)$plot$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+shapiro.test(r_int) 
+# Yes, normally distributed random effect.
 ```
-
-# Model comparison: UMBS Popr
+According to the results above, the outlier removal helps the model meed the assumptions. Proceed with model comparison. Start with investigating the model summary to determine which coviarates to drop.
 ```{r}
-# carbon
-m5a <- lm(carbon ~ state, data = cn_popr_umbs)
-m5b <- lm(carbon ~ state + insecticide, data = cn_popr_umbs)
-m5c <- lmer(carbon ~ state + (1|plot), data = cn_popr_umbs)
-m5d <- lmer(carbon ~ state + insecticide + (1|plot), data = cn_popr_umbs)
-AICctab(m5a, m5b, m5c, m5d, weights = T)
-summary(m5a)
-summary(m5c) # plot as a random effect
+summary(m2)
+# Looks like year and warmed aren't significant - I'm leaving it in for now bc the data will change. With fuller data we'd begin model comparison here (will pick up here when those data are available). Then run the code below for diff models:
 
-# nitrogen
-m6a <- lm(nitrogen ~ state, data = cn_popr_umbs)
-m6b <- lm(nitrogen ~ state + insecticide, data = cn_popr_umbs)
-m6c <- lmer(nitrogen ~ state + (1|plot), data = cn_popr_umbs)
-m6d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_popr_umbs)
-AICctab(m6a, m6b, m6c, m6d, weights = T)
-summary(m6a)
-summary(m6c) # plot as a random effect
+#AICctab(m2, m3, weights = T)
 ```
-
-
-
 
