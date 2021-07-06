@@ -13,23 +13,39 @@ rm(list=ls())
 # load in packages and set working directory
 library(tidyverse)
 library(prism)
+library(reshape2)
+library(raster)
+library(sp)
 
 # set directory that prism data will be saved to
 L1_dir<-Sys.getenv("L1DIR")
 prism_set_dl_dir("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/climate_data/")
 
 # get 30-year normals for precip and temperature
-get_prism_normals("ppt", "4km", annual = TRUE, keepZip = FALSE)
-get_prism_normals("tmean", "4km", annual = TRUE, keepZip = FALSE)
+# code below commented out because data is already downloaded - redownload when 2020 normals available
+#get_prism_normals("ppt", "4km", annual = TRUE, keepZip = FALSE)
+#get_prism_normals("tmean", "4km", annual = TRUE, keepZip = FALSE)
 prism_archive_ls()
 
-precip <- prism_archive_subset("ppt", "annual normals", resolution = "4km")
+# code below is copied from https://rpubs.com/collnell/get_prism
+## raster file of data
+RS <- pd_stack(prism_archive_ls())
+## assign projection info
+proj4string(RS)<-CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
 
-# load coordinates for Kalamazoo county and Emmet county
+## convert raster to point data frame
+df <- data.frame(rasterToPoints(RS))
+m.df <- melt(df, c("x", "y"))
+names(m.df)[1:2] <- c("lon", "lat")
+
+kzoo <- m.df %>%
+        filter(lat == 42.2278 & lon == 85.5200)
+emmet <- m.df %>%
+        filter(lat == 45.6419 & lon == 84.9769)
+
+# coordinates for Kalamazoo county and Emmet county
 kzoo <- c(42.2278, 85.5200)
 emmet <- c(45.6419, 84.9769)
-
-p <- pd_plot_slice(precip, kzoo)
 
 
 
