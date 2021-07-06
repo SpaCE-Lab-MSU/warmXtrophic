@@ -40,6 +40,7 @@ library(GGally) # ggpairs() function
 Sys.getenv("L1DIR")
 L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
+list.files(L1_dir)
 
 ##########################################################################################
 # Read in data
