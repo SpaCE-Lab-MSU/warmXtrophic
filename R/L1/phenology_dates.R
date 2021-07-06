@@ -6,7 +6,7 @@
 #                 "final_greenup_L1.csv" = the date of 50% cover for greenup 
 #                 "???.csv" for flowering and seeding first dates
 # PROJECT:        warmXtrophic
-# DATE:           March 2021
+# DATE:           March 2021; updated July 2021
 
 # Clear all existing data
 rm(list=ls())
@@ -15,18 +15,27 @@ rm(list=ls())
 library(tidyverse)
 
 # Source in needed functions from the github repo
-source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
+source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R")
+#source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 #source("~/Documents/GitHub/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
-# Set working directory to Google Drive
-# **** Update with the path to your Google drive on your computer
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+Sys.getenv("L0DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+list.files(L1_dir)
 
 # Read in data
-meta <- read.csv("L0/plot.csv")
-taxon <- read.csv("L0/taxon.csv")
-plantcomp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
+# read in meta data for plots
+plot_info <- read.csv(file.path(L0_dir, "plot.csv"))
+
+# read in meta taxon list
+taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
+# change column name for from "code" to "Species" to match cleaned plant comp data
+colnames(taxon) <- sub("code", "species", colnames(taxon))
+
+plantcomp <- read.csv(file.path(L1_dir,"/plant_composition/final_plantcomp_L1.csv"))
 str(plantcomp)
 
 #### **** GREENUP JULIAN DATE **** ####
@@ -60,7 +69,9 @@ greenup<-greenup[!(greenup$species=="Bare_Ground" |
 
 
 # Find the first Julian day of % cover per species, per plot:
-greenup1 <- greenup %>% select(site,plot,species,year,julian,cover)
+greenup1 <- greenup %>% 
+  select(site, plot, species, year, julian, cover) # MY - I dont think this does what we want it too - this isn't
+# the first julian day of % cover per species per plot
 
 # Re-arrange the data to simplify
 greenup1a <- greenup1 %>%
@@ -74,7 +85,7 @@ greenup1a <- greenup1 %>%
 greenup2 <- greenup1 %>%
   group_by(site,plot,species,year) %>%
   summarise(firstjulian = min(julian, na.rm = T))
-greenup2   
+View(greenup2)
 
 greenup2kbs <- greenup2 %>%
   filter(site == "kbs")
@@ -104,24 +115,24 @@ ggsave(file="./L1/greenup/UMBS_firstjulianday_by_species.png", width = 8.5, heig
 greenup3 <- greenup2 %>%
   group_by(site,year) %>%
   summarise(firstjulian = max(firstjulian, na.rm = T))
-greenup3   
+View(greenup3)   
 
-
+# First julian date by plot by each year
 greenup2p <- greenup1 %>%
   group_by(site,plot,year) %>%
   summarise(firstjulian = min(julian, na.rm = T))
-greenup2p   
+View(greenup2p)  
 
 # Max cover by species-plot
 greenup3 <- greenup1 %>%
   group_by(site,plot,species,year,julian) %>%
   summarise(maxcov = max(cover, na.rm = T)) 
-greenup3   
+View(greenup3)
 
 # save these as dataframes
 # species-plot level 
-greendate1st_mn_s<-as.data.frame(greenup2)
-greendate1st_mn_p<-as.data.frame(greenup2p)
+greendate1st_mn_s <- as.data.frame(greenup2) # species level
+greendate1st_mn_p <- as.data.frame(greenup2p) # plot level
 # stopping here for now with Approach (1)...
 
 # Greenup Approach (2) Half Cover Date
@@ -136,14 +147,17 @@ dataup <- split(x = greenup, f = greenup[, c("plot", "site", "year")])
 max_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
   x[which.max(x[["cover"]]), "julian"]
 }))
+
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
   x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
 }))
+
 # Determine dates for each plot where the value of `cover` is at the max value
 max_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
   x[which.max(x[["cover"]]), "julian"]
 }))
+
 # Determine dates for each plot where the value of `cover` is at least half the max value
 half_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
   x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
@@ -259,6 +273,17 @@ p3 + facet_wrap(~year1) + labs(title="Species-level half cover date")
 # this will just show sampling date artifact
 p4 <- ggplot(data = finalgreenp, aes(x = min_green_date, fill=state)) + geom_density(alpha=0.5)
 p4 + facet_wrap(~year1)
+
+# re organize order of column names 
+finalgreens <- finalgreens[, c("site", "plot", "species", "cover", "date", "julian", "year", "month", 
+                                           "treatment_key", "state", "insecticide", "scientific_name", "common_name", 
+                                           "USDA_code", "LTER_code", "origin", "group", "family", "duration", 
+                                           "growth_habit")]
+
+finalgreens <- finalgreens[, c("site", "plot", "species", "cover", "date", "julian", "year", "month", 
+                               "treatment_key", "state", "insecticide", "scientific_name", "common_name", 
+                               "USDA_code", "LTER_code", "origin", "group", "family", "duration", 
+                               "growth_habit")]
 
 
 # upload greenup species-plot level csv to google drive

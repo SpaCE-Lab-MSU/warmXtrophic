@@ -23,16 +23,19 @@ rm(list=ls())
 library(tidyverse)
 library(plotrix)
 
-# Get data
+# Set working directory
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
+L2_dir<-Sys.getenv("L2DIR")
 list.files(L1_dir)
+
+# Read in data
 greenup <- read.csv(file.path(L1_dir, "greenup/final_greenup_L1.csv"))
-#str(greenup)
+gr_plot <- read.csv(file.path(L1_dir, "greenup/final_greenup_plot_L1.csv"))
+gr_species <- read.csv(file.path(L1_dir, "greenup/final_greenup_species_L1.csv"))
 
 # remove uneeded X column
 greenup$X <- NULL
-
 
 # filter data to contain the averages and std error for each site & species
 sum_green_spp <- greenup %>%

@@ -29,7 +29,7 @@ library(ggpubr)
 Sys.getenv("L1DIR")
 L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
-list.files(L1_dir)
+# list.files(L1_dir)
 
 # Read in data 
 # cleaned phenology data from L1
