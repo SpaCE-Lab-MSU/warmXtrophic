@@ -1,13 +1,18 @@
-# TITLE: Flowering data analysis
-# AUTHORS: Moriah Young
-# COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Kara Dobson
-# DATA INPUT: CSV files are located in the phenology folder in the shared Google drive
-# DATA OUTPUT: Stats results
-# PROJECT: warmXtrophic
-# DATE: February 2020
+---
+title: "warmXtrophic Project: Flowering Phenology Analysis"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
 
-##########################################################################################
-# Set Up
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Load in packages & data
+```{r, message = F}
 # clear all existing data
 rm(list=ls())
 
@@ -35,6 +40,7 @@ library(sjPlot)
 library(effects)
 library(glmmTMB)
 library(GGally) # ggpairs() function
+library(bbmle) # AICtab() function
 
 # Set working directory
 Sys.getenv("L1DIR")
@@ -42,7 +48,13 @@ L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
 list.files(L1_dir)
 
-##########################################################################################
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
 # Read in data
 # cleaned phenology data from L1
 phen_data <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
@@ -65,9 +77,10 @@ flwr_spp$X <- NULL
 # plot level data for flowering
 flwr_plot <- read_csv(file.path(L1_dir, "phenology/final_flwr_plot_L1.csv"))
 flwr_plot$X1 <- NULL
+```
 
-##########################################################################################
-# Data Exploration
+# Data exploration
+```{r}
 ## UMBS ##
 umbs_firstflwr_spp <- subset(flwr_spp, site == "umbs") # pull out umbs only data
 hist(umbs_firstflwr_spp$julian_median)
@@ -76,36 +89,25 @@ hist(umbs_firstflwr_spp$julian_min)
 umbs_firstflwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data
 hist(umbs_firstflwr_plot$julian_median)
 hist(umbs_firstflwr_plot$julian_min)
+```
 
-## Response variable:
-# julian day
-
-## Predictor variables:
-# state ("ambient" or "warmed")
-# origin
-# insecticide
-
-## Grouping factor:
-# year
-# plot
-
-##########################################################################################
 # Centering and transforming data
-
+```{r}
 umbs_firstflwr_plot$log_julian_median <- log(umbs_firstflwr_plot$julian_median)
 umbs_firstflwr_plot$log_julianMedian_centered = umbs_firstflwr_plot$log_julian_median - mean(umbs_firstflwr_plot$log_julian_median)
 hist(umbs_firstflwr_plot$log_julianMedian_centered)
+```
 
-##########################################################################################
 # Plot key relationships
+```{r}
 # Convert all columns to factor first
 umbs_firstflwr_plot <- as.data.frame(unclass(umbs_firstflwr_plot),
                        stringsAsFactors = TRUE)
 plot(log_julian_median ~ state, data = umbs_firstflwr_plot)
+```
 
-##########################################################################################
 # Fit models
-
+```{r, error=T}
 m0 <- lmer(log_julian_median ~ 1, data = umbs_firstflwr_plot)
 m1 <- lmer(log_julian_median ~ state, data = umbs_firstflwr_plot)
 m2 <- lmer(log_julian_median ~ state + insecticide, data = umbs_firstflwr_plot)
@@ -117,14 +119,15 @@ m7 <- lmer(log_julian_median ~ state + insecticide + (1|species) + (1|year_facto
 m8 <- lmer(log_julian_median ~ state + insecticide + origin + (1|species) + (1|year_factor), data = umbs_firstflwr_plot)
 m9 <- lmer(log_julian_median ~ state + insecticide + origin + (1|species) + (1|year_factor) + (1|plot), data = umbs_firstflwr_plot)
 
-##########################################################################################
+```
+
 # Compare models
-AICctab(m0,m1,m2,m3,m4,m5, weights=TRUE)
+```{r}
+#AICtab(m0,m1,m2,m3,m4,m5, weights=TRUE)
+```
 
-##########################################################################################
 # Evaluate models using residuals
+```{r}
 
-
-
-
+```
 
