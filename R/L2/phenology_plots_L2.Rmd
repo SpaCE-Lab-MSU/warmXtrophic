@@ -1,5 +1,5 @@
 ---
-title: "warmXtrophic Project:Phenology Plots"
+title: "warmXtrophic Project: Phenology Plots"
 author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
@@ -132,7 +132,7 @@ sum_FirstFlwr_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian DaTE", title = "Average Julian Date of First Flower", 
+                       labs(x = "State", y = "Julian Date", title = "Average Julian Date of First Flower", 
                             subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 180)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
