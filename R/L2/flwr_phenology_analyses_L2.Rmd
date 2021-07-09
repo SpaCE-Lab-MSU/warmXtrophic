@@ -42,6 +42,13 @@ library(glmmTMB)
 library(GGally) # ggpairs() function
 library(bbmle) # AICtab() function
 
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
 # Set working directory
 Sys.getenv("L1DIR")
 L1_dir <- Sys.getenv("L1DIR")
@@ -81,7 +88,28 @@ flwr_plot$X1 <- NULL
 
 # Data exploration
 ```{r}
-## UMBS ##
+# Visualizing avg minimum julian date for both sites
+ggplot(flwr_plot, aes(julian_min, fill = state)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(flwr_plot, aes(julian_min, fill = as.factor(state))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(flwr_plot, aes(julian_min, fill = state, color=state)) +
+        geom_density(alpha = 0.1)
+
+ggplot(flwr_plot, aes(julian_min, fill = state, color=state)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(flwr_plot, aes(julian_min, fill = state, color=state)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + site)
+
+descdist(flwr_plot$julian_min, discrete = FALSE)
+
+### UMBS ###
 umbs_firstflwr_spp <- subset(flwr_spp, site == "umbs") # pull out umbs only data
 hist(umbs_firstflwr_spp$julian_median)
 hist(umbs_firstflwr_spp$julian_min) 
@@ -89,6 +117,31 @@ hist(umbs_firstflwr_spp$julian_min)
 umbs_firstflwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data
 hist(umbs_firstflwr_plot$julian_median)
 hist(umbs_firstflwr_plot$julian_min)
+
+# Exploring distributions for these left-skewed data:
+descdist(umbs_firstflwr_plot$julian_min, discrete = FALSE)
+
+# Beta distribution 
+fit.gamma <- fitdist(umbs_firstflwr_plot$julian_min, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_firstflwr_plot$julian_min, "weibull")
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_firstflwr_plot$julian_min, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Lognormal is slightly better than gamma
 ```
 
 # Centering and transforming data
@@ -98,8 +151,49 @@ umbs_firstflwr_plot$log_julianMedian_centered = umbs_firstflwr_plot$log_julian_m
 hist(umbs_firstflwr_plot$log_julianMedian_centered)
 ```
 
-# Plot key relationships
+# Determining appropriate distribution in mixed effects model
 ```{r}
+# See Ben Bolker's site for details on fitting glmms: https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
+#       Fixed effects: warming, year, insecticide
+#       Random effect = plot (bc observations are nested within plot)
+# Fit with ML bc we are interested in estimating fixed effects more than random effects
+# See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details 
+m1 <- lmer(log(julian_min) ~ state + year + insecticide + (1|plot), data = umbs_firstflwr_plot, REML=FALSE)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(m1, main = "Avg Min Julian Date")
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m1) ~ umbs_firstflwr_plot$state)
+# Assumption met
+leveneTest(residuals(m1) ~ umbs_firstflwr_plot$plot)
+# Assumption met
+leveneTest(residuals(m1) ~ umbs_firstflwr_plot$insecticide)
+# Assumption met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(m1), main = "Avg Min Julian Date")
+hist(residuals(m1), main = "Avg Min Julian Date")
+shapiro.test(resid(m1)) # not normally distributed resids bc p>0.05
+# Outliers
+#sla[377,]
+#sla[801,]
+# Outlier test - yes, these are outliers bc p<0.05 
+outlierTest(m1)
+
+# Remove these 2 points
+# sla1<-sla[-c(377, 801),]
+# m1.nooutlier <- lmer(log(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla1, REML=FALSE)
+# shapiro.test(resid(m1.nooutlier)) # normally distributed resids - good!
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. [***need to do for final model]
+
+# Plot key relationships
+#```{r}
 # Convert all columns to factor first
 umbs_firstflwr_plot <- as.data.frame(unclass(umbs_firstflwr_plot),
                        stringsAsFactors = TRUE)

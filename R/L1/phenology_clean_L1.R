@@ -205,6 +205,7 @@ phen_flwr <- subset(phen_data, action == "flower")
 phen_sd <- subset(phen_data, action == "seed")
 
 #### FLOWERING ####
+### MY - 7/9/2021 - DELETE THIS FROM L1 SCRIPTS AND ADD TO GREENUP_DATES_L2.R
 ### Create a data frame at the SPECIES LEVEL that includes median date of flower and first flower date
 
 # First Flower by SPECIES LEVEL - filter data to contain the date of first flower for each species at each plot
