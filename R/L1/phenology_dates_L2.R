@@ -1,12 +1,15 @@
 # TITLE:          warmXtrophic Phenology Dates
 # AUTHORS:        Kara Dobson, Moriah Young, Phoebe Zarnetske
 # COLLABORATORS:  Mark Hammond, Moriah Young
-# DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
-# DATA OUTPUT:    The following CSV files are uploaded to the phenology L1 folder:
-#                 "final_greenup_L1.csv" = the date of 50% cover for greenup 
+# DATA INPUT:     Data imported as csv files from shared Google drive L0 and L1 folders
+# DATA OUTPUT:    The following CSV files are uploaded to the phenology L2 folder:
+#                 "final_greenup_L2.csv" = the date of 50% cover for greenup 
 #                 "???.csv" for flowering and seeding first dates
 # PROJECT:        warmXtrophic
-# DATE:           March 2021
+# DATE:           March 2021; modified July 9, 2021
+# NOTE:           We decided to add in L2 portion of "phenology_clean_L1.R" into this script
+#                 to organize by metric: (1) Julian Date Calculation, (2) Duration of days of each
+#                 event, (3) Julian Date of 50% (cover for greenup, obs for flower & seed)
 
 # Clear all existing data
 rm(list=ls())
@@ -29,7 +32,7 @@ taxon <- read.csv("L0/taxon.csv")
 plantcomp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
 str(plantcomp)
 
-#### **** GREENUP JULIAN DATE **** ####
+#### **** JULIAN DATE **** #### - need to add in seed & flowering for this
 
 # Greenup can be computed in a few ways by extracting information from % cover data:
 
@@ -57,7 +60,6 @@ greenup<-greenup[!(greenup$species=="Bare_Ground" |
 # 2020: 
 # 
 # UMBS Greenup % cover ~ every 3 days. Duration: greenup observations ended on Julian Day:
-
 
 # Find the first Julian day of % cover per species, per plot:
 greenup1 <- greenup %>% select(site,plot,species,year,julian,cover)
@@ -98,7 +100,9 @@ ggsave(file="./L1/greenup/UMBS_firstjulianday_by_species.png", width = 8.5, heig
 # There are several singletons (species that are only observed once or twice), some that may be mis-IDed, and some that are only first noticed in July or August, which is hard to believe. For now they should be removed but the cleaning on this should take place in plant_comp_clean_L0.R.
 # Need to make some decisions about which of these species to include or re-assign to a different species. All of that needs to be done in plant_comp_clean_L0.R
 
-## PLZ Stopped updating here 10:20am March 10, 2021
+
+###
+## PLZ Stopped updating here 10:20am March 10, 2021 
 
 # By species, find the max of the firstjulian at the site level to determine the last day of the greenup window per site and year
 greenup3 <- greenup2 %>%
