@@ -26,7 +26,7 @@ list.files(L0_dir)
 # Read in data
 # read in meta data for plots
 plot_info <- read.csv(file.path(L0_dir, "plot.csv"))
-# read in neta taxon list
+# read in meta taxon list
 taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
 # change column name for from "code" to "Species" to match cleaned phenology data
 colnames(taxon) <- sub("code", "species", colnames(taxon))

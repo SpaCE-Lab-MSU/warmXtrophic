@@ -234,6 +234,7 @@ lrtest(k.m14, k.m15) # model 15 slightly better, going with 14 because its simpl
 
 # checking models again
 lrtest(k.m2, k.m4, k.m9, k.m14) # model 14 best - with species
+res.k <- AIC(k.m1, k.m2, k.m3, k.m4, k.m5, k.m6, k.m7, k.m8, k.m9, k.m10, k.m11,k.m12,k.m13,k.m14,k.m15)
 
 ## interaction between state, species, and year - doesn't run
 #m8 <- zeroinfl(p_eaten ~ state * species * as.factor(year),
@@ -399,6 +400,7 @@ lrtest(u.m14, u.m15) # model 15 - might go with 14 because its simpler
 
 # checking models again
 lrtest(u.m2, u.m4, u.m9, u.m14) # model 14 best - with species
+res.u <- AIC(u.m1, u.m2, u.m3, u.m4, u.m5, u.m6, u.m7, u.m9, u.m10, u.m11,u.m13,u.m14,u.m15)
 
 # check dispersion - chose lowest loglik model for example
 E <- resid(u.m14, type = "pearson")

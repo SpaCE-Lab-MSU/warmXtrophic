@@ -1,5 +1,5 @@
 ---
-title: "Phenology Visualization"
+title: "warmXtrophic Project: Phenology Plots"
 author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
@@ -16,20 +16,34 @@ knitr::opts_chunk$set(echo = TRUE, tidy.opts = list(width.cutoff=80), tidy=TRUE)
 ```
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Clear existing data
+# Clear all existing data
 rm(list=ls())
 
-# Load packages
+#Load packages
 library(tidyverse)
 library(plotrix)
+library(cowplot)
+library(ggpubr)
 
-# Set working directory to Google Drive
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+Sys.getenv("L1DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+# list.files(L1_dir)
 
 # Read in data 
-phen_data <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flw_sd_L1.csv", stringsAsFactors=FALSE)
+# cleaned phenology data from L1
+phen_data <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
 phen_data <- phen_data %>% 
         select(-X) # get rid of "X" column that shows up
+View(phen_data) # take a look at the data to see if looks good
+
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
 
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(phen_data, action == "flower")
@@ -102,9 +116,9 @@ FirstFlower_plot <- function(spp, loc) {
                        labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        coord_cartesian(ylim = c(100, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_grey())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
+
 FirstFlower_plot("Popr", "umbs")
 FirstFlower_plot("Popr", "kbs")
 ```
@@ -118,13 +132,13 @@ sum_FirstFlwr_plot <- function(loc) {
                        geom_bar(position = "identity", stat = "identity") +
                        geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                                      position = "identity") +
-                       labs(x = "State", y = "Julian DaTE", title = "Average Julian Date of First Flower", 
+                       labs(x = "State", y = "Julian Date", title = "Average Julian Date of First Flower", 
                             subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 180)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_grey())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
+
 sum_FirstFlwr_plot("kbs")
 sum_FirstFlwr_plot("umbs")
 ```
@@ -142,8 +156,7 @@ sum_FlwrDurState_plot <- function(loc) {
                             subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 200)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_grey())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
 
 sum_FlwrDurState_plot("kbs")
@@ -160,10 +173,10 @@ flwr_org_plot <- function(loc) {
                        labs(x = "State", y = "Julian Date", 
                             title = "Native vs Exotic Avg Julian Date of First Flower", subtitle = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
-                       #coord_cartesian(ylim = c(100, 200)) +
-                       theme_grey())
+                       scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")))
+                       #coord_cartesian(ylim = c(100, 200))
 }
+
 flwr_org_plot("kbs")
 flwr_org_plot("umbs")
 ```
@@ -181,9 +194,9 @@ FirstSeed_plot <- function(spp, loc) {
                        labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 300)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_grey())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
+
 FirstSeed_plot("Popr", "umbs")
 FirstSeed_plot("Popr", "kbs")
 ```
@@ -201,9 +214,9 @@ sum_FirstSeed_plot <- function(loc) {
                             subtitle = loc) +
                        coord_cartesian(ylim = c(150, 250)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_grey())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
+
 sum_FirstSeed_plot("kbs")
 sum_FirstSeed_plot("umbs")
 

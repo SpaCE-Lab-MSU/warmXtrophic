@@ -1,10 +1,10 @@
-# TITLE:          Phenology Data Visualization
+# TITLE:          warmXtrophic Project: Phenology Data Visualization
 # AUTHORS:        Moriah Young
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Pat Bills, Kara Dobson
 # DATA INPUT:     Data imported as csv files from shared Google drive L1 folder
 # DATA OUTPUT:    
 # PROJECT:        warmXtrophic
-# DATE:           January, 2020
+# DATE:           January, 2020; updated July, 2020
 
 # Clear all existing data
 rm(list=ls())
@@ -15,12 +15,15 @@ library(plotrix)
 library(cowplot)
 library(ggpubr)
 
-# Set working directory to Google Drive
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+Sys.getenv("L1DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+list.files(L1_dir)
 
 ############################### Read in data #################################3
 # cleaned phenology data from L1
-phen_data <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_flw_sd_L1.csv", stringsAsFactors=FALSE)
+phen_data <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
 phen_data <- phen_data %>% 
         select(-X) # get rid of "X" column that shows up
 View(phen_data) # take a look at the data to see if looks good
@@ -28,6 +31,18 @@ View(phen_data) # take a look at the data to see if looks good
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(phen_data, action == "flower")
 phen_sd <- subset(phen_data, action == "seed")
+
+flwr_plot <- read.csv(file.path(L1_dir, "phenology/final_flwr_plot_L1.csv"))
+flwr_species <- read.csv(file.path(L1_dir, "phenology/final_flwr_species_L1.csv")) 
+sd_plot <- read.csv(file.path(L1_dir, "phenology/final_sd_plot_L1.csv"))
+sd_species <- read.csv(file.path(L1_dir, "phenology/final_sd_species_L1.csv"))
+
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
 
 ###################### Flowering ##########################################
 
@@ -51,15 +66,13 @@ sum_MedFlwr_plot <- function(loc) {
                        labs(x = NULL, y = NULL, title = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       coord_cartesian(ylim = c(150, NA)) +
-                       theme(legend.position = "none") +
-                       theme_classic())
+                       coord_cartesian(ylim = c(150, NA)))
 }
 
 sum_MedFlwr_plot("kbs")
 sum_MedFlwr_plot("umbs")
 
-# Copying Kara but doing it for phenology
+# Create a plot where both kbs and umbs are on the same image
 all_Med_u <- sum_MedFlwr_plot("umbs")
 all_Med_k <- sum_MedFlwr_plot("kbs")
 
@@ -95,8 +108,7 @@ FirstFlower_plot <- function(spp, loc) {
                        labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        coord_cartesian(ylim = c(120, NA)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_classic())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
 
 FirstFlower_plot("Popr", "umbs")
@@ -120,15 +132,13 @@ sum_FirstFlwr_plot <- function(loc) {
                        labs(x = NULL, y = NULL, title = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       coord_cartesian(ylim = c(150, NA)) +
-                       theme(legend.position = "none") +
-                       theme_classic())
+                       coord_cartesian(ylim = c(150, NA)))
 }
 
 sum_FirstFlwr_plot("kbs")
 sum_FirstFlwr_plot("umbs")
 
-# Copying Kara but doing it for phenology
+# Create a plot where both kbs and umbs are on the same image
 all_u <- sum_FirstFlwr_plot("umbs")
 all_k <- sum_FirstFlwr_plot("kbs")
 
@@ -148,9 +158,9 @@ firstflwr_plot_box <- function(loc) {
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
                        coord_cartesian(ylim = c(0, 300)) +
                        theme(legend.position = "none") +
-                       geom_jitter(shape=16, position=position_jitter(0.2)) +
-                       theme_classic())
+                       geom_jitter(shape=16, position=position_jitter(0.2)))
 }
+
 all_u <- firstflwr_plot_box("umbs")
 all_k <- firstflwr_plot_box("kbs")
 
@@ -182,8 +192,7 @@ flwr_org_plot <- function(loc) {
                        labs(x = NULL, y = NULL, title = loc) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
-                       coord_cartesian(ylim = c(100, NA)) +
-                       theme_grey())
+                       coord_cartesian(ylim = c(100, NA)))
 }
 
 orgin_u <- flwr_org_plot("umbs")
@@ -224,8 +233,7 @@ sum_FlwrDurState_plot <- function(loc) {
                        labs(x = NULL, y = NULL, title = loc) +
                        coord_cartesian(ylim = c(0, NA)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_classic())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
 
 all_k_dur <- sum_FlwrDurState_plot("kbs")
@@ -269,8 +277,7 @@ FirstSeed_plot <- function(spp, loc) {
                        labs(x = "State", y = "Julian Date", title = spp, subtitle = loc) +
                        #coord_cartesian(ylim = c(150, 300)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_grey())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
 
 FirstSeed_plot("Popr", "umbs")
@@ -288,8 +295,7 @@ sum_FirstSeed_plot <- function(loc) {
                        labs(x = NULL, y = NULL, title = loc) +
                        coord_cartesian(ylim = c(170, NA)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-                       theme_classic())
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
 
 all_k_sd <- sum_FirstSeed_plot("kbs")

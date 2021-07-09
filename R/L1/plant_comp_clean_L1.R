@@ -14,7 +14,8 @@ rm(list=ls())
 library(tidyverse)
 
 # Source in needed functions from the github repo
-source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
+#source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
+source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R")
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
 # Set working directory
@@ -160,5 +161,10 @@ plant_comp_merge3$old_code <- NULL
 plant_comp_merge3$old_name <- NULL
 plant_comp_merge3$resolution <- NULL
 
+# re organize order of column names 
+plant_comp_merge3 <- plant_comp_merge3[, c("site", "plot", "species", "cover", "date", "julian", "year", "month", "treatment_key", "state",
+                           "insecticide", "scientific_name", "common_name", "USDA_code", "LTER_code",
+                           "origin", "group", "family", "duration", "growth_habit")]
+
 # Upload clean data csv to google drive without the index column
-write.csv(plant_comp_merge3, file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv", row.names=FALSE))
+write.csv(plant_comp_merge3, file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
