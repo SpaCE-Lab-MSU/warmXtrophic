@@ -355,8 +355,8 @@ flwr_dur_p <- phen_flwr %>%
   group_by(site, plot, year, state, action, insecticide, treatment_key, year_factor) %>%
   summarise(flwr_duration = max(julian) - min(julian)) 
 
-# Merge the two data frames above so that you have one data frame that includes median date of flower and first date
-# of flower at PLOT LEVEL
+# Merge the data frames above so that you have one data frame that includes median date of flower, first date
+# of flower, and duration of flowering at PLOT LEVEL
 phen_flwr_plot <- merge(FirstFlwr_plot, MedianFlwr_plot)
 phen_flwr_plot <- merge(phen_flwr_plot, flwr_dur_p)
 
