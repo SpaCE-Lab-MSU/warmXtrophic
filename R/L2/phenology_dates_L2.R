@@ -1,12 +1,15 @@
 # TITLE:          warmXtrophic Phenology Dates
 # AUTHORS:        Kara Dobson, Moriah Young, Phoebe Zarnetske
-# COLLABORATORS:  Mark Hammond, Moriah Young
+# COLLABORATORS:  Mark Hammond
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    The following CSV files are uploaded to the phenology L1 folder:
-#                 "final_greenup_L1.csv" = the date of 50% cover for greenup 
+#                 "final_greenup_L2.csv" = the date of 50% cover for greenup 
 #                 "???.csv" for flowering and seeding first dates
 # PROJECT:        warmXtrophic
-# DATE:           March 2021; updated July 2021
+# DATE:           March 2021; modified July 9, 2021
+# NOTE:           We decided to add in L2 portion of "phenology_clean_L1.R" into this script
+#                 to organize by metric: (1) Julian Date Calculation, (2) Duration of days of each
+#                 event, (3) Julian Date of 50% (cover for greenup, obs for flower & seed)
 
 # Clear all existing data
 rm(list=ls())
@@ -24,7 +27,7 @@ source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functio
 Sys.getenv("L0DIR")
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
-list.files(L1_dir)
+L2_dir <- Sys.getenv("L2DIR")
 
 # Read in data
 # read in meta data for plots
@@ -35,11 +38,24 @@ taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
 # change column name for from "code" to "Species" to match cleaned plant comp data
 colnames(taxon) <- sub("code", "species", colnames(taxon))
 
+# read in plant composition data
 plantcomp <- read.csv(file.path(L1_dir,"/plant_composition/final_plantcomp_L1.csv"))
+plantcomp <- plantcomp %>% select(-X) # get rid of "X" column that shows up
 str(plantcomp)
 
-#### **** GREENUP JULIAN DATE **** ####
+# read in flower and seed set data
+flwr_sd <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
+flwr_sd <- flwr_sd %>% select(-X) # get rid of "X" column that shows up
+str(flwr_sd)
 
+#### **** JULIAN DATE **** #### - need to add in seed & flowering for this
+# Computing various Julian dates of importance by species and plot
+# For greenup: Julian date of first % cover and Julian days until 50% percent cover is reached by species, 
+# by plot
+# For flowering: first Julian date of flower, median Julian date of flower, and duration of flowering
+# For seed set: first Julian date of seed set, median Julian date of seed set, and duration (?) of seed set
+
+# GREENUP
 # Greenup can be computed in a few ways by extracting information from % cover data:
 
 ### ** Approach (1) Greenup computed over the timeframe of observations of first % cover by species, by plot. 
@@ -48,9 +64,9 @@ str(plantcomp)
 ## ** Approach (2) Half Cover Date: Greenup computed as Julian days until 50% percent cover is reached by species, by plot.
 
 # Regardless of the approach, 2015 data should be omitted from greenup because the chambers were not deployed until May in 2015.
-greenup<-subset(plantcomp, year != 2015)
+greenup <- subset(plantcomp, year != 2015)
 # Remove non-plant data
-greenup<-greenup[!(greenup$species=="Bare_Ground" | 
+greenup <- greenup[!(greenup$species=="Bare_Ground" | 
                      greenup$species=="Unknown" | 
                      greenup$species=="Brown" | 
                      greenup$species=="Litter" | 
@@ -70,8 +86,7 @@ greenup<-greenup[!(greenup$species=="Bare_Ground" |
 
 # Find the first Julian day of % cover per species, per plot:
 greenup1 <- greenup %>% 
-  select(site, plot, species, year, julian, cover) # MY - I dont think this does what we want it too - this isn't
-# the first julian day of % cover per species per plot
+  select(site, plot, species, year, julian, cover)
 
 # Re-arrange the data to simplify
 greenup1a <- greenup1 %>%
@@ -97,13 +112,13 @@ k <- ggplot(greenup2kbs, aes(year, firstjulian, colour = species)) + geom_point(
   labs(title = "KBS first julian day of % cover by species") + 
   guides(fill=guide_legend(nrow=3, byrow=TRUE))
 k + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), legend.position="bottom") 
-ggsave(file="./L1/greenup/KBS_firstjulianday_by_species.png", width = 8.5, height = 11)
+#ggsave(file="./L1/greenup/KBS_firstjulianday_by_species.png", width = 8.5, height = 11) #doesn't work
 
 u <- ggplot(greenup2umbs, aes(year, firstjulian, colour = species)) + geom_point() + 
   labs(title = "UMBS first julian day of % cover by species") + 
   guides(fill=guide_legend(nrow=3, byrow=TRUE))
 u + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), legend.position="bottom") 
-ggsave(file="./L1/greenup/UMBS_firstjulianday_by_species.png", width = 8.5, height = 11)
+#ggsave(file="./L1/greenup/UMBS_firstjulianday_by_species.png", width = 8.5, height = 11) #doesn't work
 
 # What are the outliers in terms of firstjulian? 
 # There are several singletons (species that are only observed once or twice), some that may be mis-IDed, and some that are only first noticed in July or August, which is hard to believe. For now they should be removed but the cleaning on this should take place in plant_comp_clean_L0.R.
@@ -124,10 +139,10 @@ greenup2p <- greenup1 %>%
 View(greenup2p)  
 
 # Max cover by species-plot
-greenup3 <- greenup1 %>%
+greenup4 <- greenup1 %>%
   group_by(site,plot,species,year,julian) %>%
   summarise(maxcov = max(cover, na.rm = T)) 
-View(greenup3)
+View(greenup4)
 
 # save these as dataframes
 # species-plot level 
@@ -200,9 +215,9 @@ max_cover_datep_df[["site"]] <- sapply(X = strsplit(x =max_cover_datep_df[["plot
 max_cover_datep_df[["year"]] <- sapply(X = strsplit(x =max_cover_datep_df[["plot.site.year"]], split = ".", fixed = TRUE), FUN = `[`, 3L)
 max_cover_datep_df$plot.site.year <- NULL
 
-# is this value correlated with first date of greenup per site, plot, year?
+# Is this value correlated with first date of greenup per site, plot, year?
 # determine first date of emergence for correlation with 'green-up' index
-min_dates <- aggregate(greenup$julian,by=greenup[,c("site","plot","species","year")],FUN=min)
+min_dates <- aggregate(greenup$julian, by=greenup[ ,c("site","plot","species","year")], FUN=min)
 head(min_dates)
 colnames(min_dates) <- c("site","plot","species","year","min_green_date")
 # note that this is the same as "greenup2" above, which was created with tidy
@@ -213,6 +228,7 @@ greenup2
 min_datep <- aggregate(greenup$julian,by=greenup[,c("site","plot","year")],FUN=min)
 head(min_datep)
 colnames(min_datep) <- c("site","plot","year","min_green_date")
+#names(min_datep)[4] <- "firstjulian" # renaming column X to firstjulian
 
 # merge min date dateframe with "half cover date" df
 green_half_mins <- merge(half_cover_dates_df, min_dates, by=c("site","plot","species","year"))
@@ -224,24 +240,27 @@ cor.test(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date)
 plot(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date)
 
 # calculate correlation
-cor.test(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date) 
+cor.test(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date) # this didn't work for Moriah
 # no cor = -0.08616082; t = -1.3342, df = 238, p-value = 0.1834
 plot(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
 
 # change taxon column name for merging
 colnames(taxon)[which(names(taxon) == "code")] <- "species"
-# taxon contains "site" which is the site where the species is found on our meta-data table, but those data exist in our plant_comp_merge dataset already. Delete "site" from taxon so it doesn't accidentally get merged in.
+# taxon contains "site" which is the site where the species is found on our meta-data table, 
+# but those data exist in our plant_comp_merge dataset already. Delete "site" from taxon so it doesn't 
+# accidentally get merged in.
 taxon$site<-NULL
 
 # re-merge data with meta data info for species-level 
-finalgreens <- left_join(meta, green_half_mins, by = "plot","site")
+finalgreens <- left_join(plot_info, green_half_mins, by = "plot","site")
 finalgreens <- left_join(taxon, finalgreens, by = "species")
 # re-merge data with meta data info for plot-level 
-finalgreenp <- left_join(meta, green_half_minp, by = c("plot"))
+finalgreenp <- left_join(plot_info, green_half_minp, by = c("plot"))
 
 # remove unnecessary columns
 finalgreens$old_code <- NULL
 finalgreens$old_name <- NULL
+finalgreens$old_species <- NULL
 finalgreens$resolution <- NULL
 
 # remove NA values for species in the taxon table that do not exist in these data
@@ -251,41 +270,141 @@ finalgreenp<-finalgreenp[complete.cases(finalgreenp), ]
 # Create some plots to visualize these data
 # histograms for each year - look at them together:
 p1 <- ggplot(data = finalgreenp, aes(x = plot_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p1 + facet_wrap(~year1) + labs(title="Plot-level half cover date")
+p1 + facet_wrap(~year) + labs(title="Plot-level half cover date")
 
 p1 <- ggplot(data = finalgreens, aes(x = spp_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p1 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+p1 + facet_wrap(~year) + labs(title="Species-level half cover date")
 
 # this will just show sampling date artifact
 p2 <- ggplot(data = finalgreenp, aes(x = min_green_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p2 + facet_wrap(~year1)
+p2 + facet_wrap(~year)
 
 p2 <- ggplot(data = finalgreens, aes(x = min_green_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p2 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+p2 + facet_wrap(~year) + labs(title="Species-level half cover date")
 
 # Density plot
 p3 <- ggplot(data = finalgreenp, aes(x = plot_half_cover_date, fill=state)) + geom_density(alpha=0.5)
-p3 + facet_wrap(~year1) + labs(title="Plot-level half cover date")
+p3 + facet_wrap(~year) + labs(title="Plot-level half cover date")
 
 p3 <- ggplot(data = finalgreens, aes(x = spp_half_cover_date, fill=state)) + geom_density(alpha=0.5)
-p3 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+p3 + facet_wrap(~year) + labs(title="Species-level half cover date")
 
 # this will just show sampling date artifact
 p4 <- ggplot(data = finalgreenp, aes(x = min_green_date, fill=state)) + geom_density(alpha=0.5)
-p4 + facet_wrap(~year1)
+p4 + facet_wrap(~year)
 
 # re organize order of column names 
-finalgreens <- finalgreens[, c("site", "plot", "species", "cover", "date", "julian", "year", "month", 
-                                           "treatment_key", "state", "insecticide", "scientific_name", "common_name", 
-                                           "USDA_code", "LTER_code", "origin", "group", "family", "duration", 
-                                           "growth_habit")]
-
 finalgreens <- finalgreens[, c("site", "plot", "species", "cover", "date", "julian", "year", "month", 
                                "treatment_key", "state", "insecticide", "scientific_name", "common_name", 
                                "USDA_code", "LTER_code", "origin", "group", "family", "duration", 
                                "growth_habit")]
 
+finalgreenp <- finalgreenp[, c("site", "plot", "year", "treatment_key", "state", "insecticide", 
+                               "plot_half_cover_date", "min_green_date" )]
 
 # upload greenup species-plot level csv to google drive
+### MY - Should this go in L2 now?
 write.csv(finalgreens, file="L1/greenup/final_greenup_species_L1.csv", row.names=FALSE)
 write.csv(finalgreenp, file="L1/greenup/final_greenup_plot_L1.csv", row.names=FALSE)
+
+# FLOWERING (Moriah did this)
+
+# Create separate data frames for flowering and seeding
+phen_flwr <- subset(flwr_sd, action == "flower")
+phen_sd <- subset(flwr_sd, action == "seed")
+
+### Create a data frame at the SPECIES LEVEL that includes median date of flower, first flower date, and duration
+
+# First Flower by SPECIES LEVEL - filter data to contain the date of first flower for each species at each plot
+FirstFlwr_spp <- phen_flwr %>%
+  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor) %>%
+  summarize(julian_min = min(julian, na.rm=T))
+
+# Median Flower Date by SPECIES LEVEL - filter data to contain the median date of flower for each species at each plot
+MedianFlwr_spp <- phen_flwr %>%
+  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor) %>%
+  summarize(julian_median = median(julian, na.rm=T))
+
+# Duration of flowering time at the SPECIES level
+flwr_dur_s <- phen_flwr %>% 
+  group_by(site, plot, species, year, state, action, origin, insecticide, treatment_key, year_factor) %>%
+  summarise(flwr_duration = max(julian) - min(julian)) 
+
+# Merge the data frames above so that you have one data frame that includes median date of flower, first date
+# of flower, and duration of flowering at SPECIES LEVEL
+phen_flwr_spp <- merge(FirstFlwr_spp, MedianFlwr_spp)
+phen_flwr_spp <- merge(phen_flwr_spp, flwr_dur_s)
+
+# write a new csv with flowering data at the SPECIES LEVEL and upload to the shared google drive
+write.csv(phen_flwr_spp, file.path(L1_dir, "phenology/final_flwr_species_L1.csv"))
+
+### Create a data frame at the PLOT LEVEL that includes median date of flower, first flower date, and duration
+
+# First Flower Date by PLOT LEVEL
+FirstFlwr_plot <- phen_flwr %>%
+  group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+  summarize(julian_min = min(julian, na.rm=T))
+
+# Median Flower Date by PLOT LEVEL
+MedianFlwr_plot <- phen_flwr %>%
+  group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+  summarize(julian_median = median(julian, na.rm=T))
+
+# Duration of flowering time for at the PLOT level
+flwr_dur_p <- phen_flwr %>% 
+  group_by(site, plot, year, state, action, insecticide, treatment_key, year_factor) %>%
+  summarise(flwr_duration = max(julian) - min(julian)) 
+
+# Merge the two data frames above so that you have one data frame that includes median date of flower and first date
+# of flower at PLOT LEVEL
+phen_flwr_plot <- merge(FirstFlwr_plot, MedianFlwr_plot)
+phen_flwr_plot <- merge(phen_flwr_plot, flwr_dur_p)
+
+# write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
+write.csv(phen_flwr_plot, file.path(L1_dir, "phenology/final_flwr_plot_L1.csv"))
+
+# Create some plots to visualize these data (NOT FINISHED - MY 7/11/21)
+# histograms for each year - look at them together:
+p1 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p1 + facet_wrap(~year) + labs(title="Plot-level First Flower")
+
+p1 <- ggplot(data = phen_flwr_spp, aes(x = julian_min, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p1 + facet_wrap(~year) + labs(title="Species-level First Flower")
+
+# this will just show sampling date artifact
+p2 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p2 + facet_wrap(~year)
+
+p2 <- ggplot(data = phen_flwr_spp, aes(x = julian_min, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
+p2 + facet_wrap(~year) + labs(title="Species-level first Flower")
+
+# Density plot
+p3 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_density(alpha=0.5)
+p3 + facet_wrap(~year) + labs(title="Plot-level First Flower")
+
+p3 <- ggplot(data = phen_flwr_spp, aes(x = julian_min, fill=state)) + geom_density(alpha=0.5)
+p3 + facet_wrap(~year) + labs(title="Species-level First Flower")
+
+# this will just show sampling date artifact
+p4 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_density(alpha=0.5)
+p4 + facet_wrap(~year)
+
+# SEED SET (Moriah did this)
+### Create a data frame at the SPECIES LEVEL that includes first date of seed
+# First Seed by SPECIES LEVEL - filter data to contain the date of first seed for each species at each plot
+FirstSd_spp <- phen_sd %>%
+  group_by(plot, year, species, state, site, action, insecticide, treatment_key, year_factor) %>%
+  summarize(julian_min = min(julian, na.rm=T))
+
+### Create a data frame at the PLOT LEVEL that includes first date of seed
+# First Seed Date by PLOT LEVEL
+FirstSd_plot <- phen_sd %>%
+  group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+  summarize(julian_min = min(julian, na.rm=T))
+
+# write a new csv with first seed date at the SPECIES LEVEL and upload to the shared google drive
+write.csv(FirstSd_spp, file.path(L1_dir, "phenology/final_sd_species_L1.csv"))
+
+# write a new csv with first seed date at the PLOT LEVEL and upload to the shared google drive
+write.csv(FirstSd_plot, file.path(L1_dir, "phenology/final_sd_plot_L1.csv"))
+
