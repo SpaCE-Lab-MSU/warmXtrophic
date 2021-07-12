@@ -1,0 +1,139 @@
+---
+title: "warmXtrophic Project: Plant Composition Data Analyses"
+author: "Kara Dobson, Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Load in packages & data
+```{r, message = F}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(olsrr)
+library(predictmeans)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(rstatix)
+library(vegan)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+
+# Set working directory
+Sys.getenv("L1DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+list.files(L1_dir)
+
+# read in plant comp data
+comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
+comp <- comp %>% select(-X) # get rid of "X" column that shows up
+```
+
+
+```{r}
+# adding sequential year variable starting at 1: this is because 2016... are large numbers compare with other 
+# values in the dataset. We can always label axes with these real years.
+comp$year_factor[comp$year == 2015] <- 1
+comp$year_factor[comp$year == 2016] <- 1
+comp$year_factor[comp$year == 2017] <- 2
+comp$year_factor[comp$year == 2018] <- 3
+comp$year_factor[comp$year == 2019] <- 4
+comp$year_factor[comp$year == 2020] <- 5
+
+# Remove non-plant data - MY: not sure if I should remove these?
+comp <- comp[!(comp$species=="Bare_Ground" | 
+                       comp$species=="Unknown" | 
+                       comp$species=="Brown" | 
+                       comp$species=="Litter" | 
+                       comp$species=="Vert_Litter" | 
+                       comp$species=="Animal_Disturbance"), ]
+```
+
+```{r}
+# calculating total composition sums - proxy for most common species
+comp_yearly_totals <- comp %>%
+        group_by(species, site, year, plot) %>%
+        summarize(comp_sum = sum(cover, na.rm = T))
+```
+Relative abundance
+```{r}
+# Calculating relative abundance
+comp1 <- comp %>% 
+        select(species, site, year, plot, cover, state)
+plot_mean <- aggregate(cover ~ plot*species*year*site*state, data = comp1, FUN = mean, na.rm = T)
+names(plot_mean)[names(plot_mean) == "cover"] <- "plot_mean" # change "cover" column name to "plot_mean"
+View(plot_mean)
+
+# convert cover to relative abundance 
+# first get summed cover for all plants per plot
+plot_cover_total = aggregate(plot_mean ~ plot*year*site*state, data = plot_mean, FUN = sum, na.rm = T)
+names(plot_cover_total)[names(plot_cover_total) == "plot_mean"] <- "plot_cover_total"
+View(plot_cover_total)
+comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year","site", "state"))
+
+#calculate relative percent cover per species in each quadrat (="relative abundance")
+comp2$relabun <- comp2$plot_mean/comp2$plot_cover_total
+summary(comp2)
+
+# create dataframes for kbs and umbs - remember that these contain species within plots
+comp_kbs <- subset(comp2, site == "kbs")
+comp_umbs <- subset(comp2, site == "umbs")
+```
+
+
+Relative Abundance for comparisons between native and exotic species
+```{r}
+# getting relative % cover for comparisons between native & exotic 
+# most code from Kileigh's old script
+# average sub-quadrats for plots - MY: what are sub quadrats? Just plots?
+comp_org <- subset(comp, origin == "Exotic" | origin == "Native")
+plot_mean_org <- aggregate(cover ~ plot*origin*species*year*site*state, data = comp_org, FUN = mean, na.rm = T)
+names(plot_mean_org)[names(plot_mean_org)=="cover"]<-"plot_mean_org"
+head(plot_mean_org)
+
+# convert cover to relative abundance 
+# first get summed cover for all plants per plot
+cover_sum = aggregate(plot_mean_org ~ plot*origin*year*site*state, data = plot_mean_org, FUN = sum, na.rm = T)
+names(cover_sum)[names(cover_sum) == "plot_mean_org"] <- "cover_sum"
+head(cover_sum)
+comp2 <- merge(plot_mean_org, cover_sum, by = c("plot","origin","year","site", "state"))
+
+#calculate relative percent cover per species in each quadrat (="relative abundance")
+comp2$relabun <- comp2$plot_mean_org/comp2$cover_sum
+summary(comp2)
+
+# create dataframes for kbs and umbs - remember that these contain species within plots
+comp_org_kbs <- subset(comp2, site == "kbs")
+comp_org_umbs <- subset(comp2, site == "umbs")
+```
+
+```{r}
+# https://rfunctions.blogspot.com/2016/08/comparing-and-estimating-species.html
+```
+
+
+```{r}
+# checking for normality in raw data
+hist(log(comp_kbs$relabun))
+qqnorm(log(comp_kbs$relabun))
+shapiro.test(log(comp_kbs$relabun))
+
+hist(comp_kbs$relabun[comp_kbs$state == "ambient"])
+hist(comp_kbs$relabun[comp_kbs$state == "warmed"])
+```
+
+
