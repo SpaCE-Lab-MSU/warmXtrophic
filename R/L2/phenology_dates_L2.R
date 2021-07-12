@@ -1,10 +1,14 @@
 # TITLE:          warmXtrophic Phenology Dates
 # AUTHORS:        Kara Dobson, Moriah Young, Phoebe Zarnetske
-# COLLABORATORS:  Mark Hammond
-# DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
-# DATA OUTPUT:    The following CSV files are uploaded to the phenology L1 folder:
-#                 "final_greenup_L2.csv" = the date of 50% cover for greenup 
-#                 "???.csv" for flowering and seeding first dates
+# COLLABORATORS:  Mark Hammond, Pat Bills
+# DATA INPUT:     Data imported as csv files from shared Google drive L1 folder
+# DATA OUTPUT:    The following CSV files are uploaded to the phenology L2 folder:
+#                 "final_greenup_species_L2.csv" = the date of 50% cover for greenup by species, 
+#                 "final_greenup_plot_L2.csv" = the date of 50% cover for greenup by plot,
+#                 "final_flwr_species_L2.csv" = minimum, median, and duration of Julian date of flowering by species,
+#                 "final_flwr_plot_L2.csv" = minimum, median, and duration of Julian date of flowering by plot,
+#                 "final_sd_species_L2.csv" = minimum Julian date of seed set by species,
+#                 "final_sd_plot_L2.csv" = minimum Julian date of seed set by plot
 # PROJECT:        warmXtrophic
 # DATE:           March 2021; modified July 9, 2021
 # NOTE:           We decided to add in L2 portion of "phenology_clean_L1.R" into this script
@@ -48,9 +52,9 @@ flwr_sd <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
 flwr_sd <- flwr_sd %>% select(-X) # get rid of "X" column that shows up
 str(flwr_sd)
 
-#### **** JULIAN DATE **** #### - need to add in seed & flowering for this
+#### **** JULIAN DATE **** #### 
 # Computing various Julian dates of importance by species and plot
-# For greenup: Julian date of first % cover and Julian days until 50% percent cover is reached by species, 
+# For greenup: Julian date of first % cover and Julian days until 50% percent cover is reached by species and by 
 # by plot
 # For flowering: first Julian date of flower, median Julian date of flower, and duration of flowering
 # For seed set: first Julian date of seed set, median Julian date of seed set, and duration (?) of seed set
@@ -61,9 +65,11 @@ str(flwr_sd)
 ### ** Approach (1) Greenup computed over the timeframe of observations of first % cover by species, by plot. 
 # This approach requires knowing the last dates of greenup phenology measurements. 
 
-## ** Approach (2) Half Cover Date: Greenup computed as Julian days until 50% percent cover is reached by species, by plot.
+## ** Approach (2) Half Cover Date: Greenup computed as Julian days until 50% percent cover is reached by species, 
+# by plot.
 
-# Regardless of the approach, 2015 data should be omitted from greenup because the chambers were not deployed until May in 2015.
+# Regardless of the approach, 2015 data should be omitted from greenup because the chambers were not deployed until 
+# May in 2015.
 greenup <- subset(plantcomp, year != 2015)
 # Remove non-plant data
 greenup <- greenup[!(greenup$species=="Bare_Ground" | 
@@ -82,7 +88,11 @@ greenup <- greenup[!(greenup$species=="Bare_Ground" |
 # 2020: 
 # 
 # UMBS Greenup % cover ~ every 3 days. Duration: greenup observations ended on Julian Day:
-
+# 2016: 
+# 2017: 
+# 2018: 
+# 2019: 
+# 2020: 
 
 # Find the first Julian day of % cover per species, per plot:
 greenup1 <- greenup %>% 
@@ -107,18 +117,23 @@ greenup2kbs <- greenup2 %>%
 greenup2umbs <- greenup2 %>%
   filter(site == "umbs")
 
+# By plot, first julian date by each year
+greenup2p <- greenup1 %>%
+  group_by(site,plot,year) %>%
+  summarise(firstjulian = min(julian, na.rm = T))
+View(greenup2p)  
+
 # Take a look at these data for each site separately
 k <- ggplot(greenup2kbs, aes(year, firstjulian, colour = species)) + geom_point() + 
   labs(title = "KBS first julian day of % cover by species") + 
   guides(fill=guide_legend(nrow=3, byrow=TRUE))
 k + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), legend.position="bottom") 
-#ggsave(file="./L1/greenup/KBS_firstjulianday_by_species.png", width = 8.5, height = 11) #doesn't work
 
 u <- ggplot(greenup2umbs, aes(year, firstjulian, colour = species)) + geom_point() + 
   labs(title = "UMBS first julian day of % cover by species") + 
   guides(fill=guide_legend(nrow=3, byrow=TRUE))
 u + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), legend.position="bottom") 
-#ggsave(file="./L1/greenup/UMBS_firstjulianday_by_species.png", width = 8.5, height = 11) #doesn't work
+#ggsave(file="./L1/greenup/UMBS_firstjulianday_by_species.png", width = 8.5, height = 11) #doesn't work for Moriah
 
 # What are the outliers in terms of firstjulian? 
 # There are several singletons (species that are only observed once or twice), some that may be mis-IDed, and some that are only first noticed in July or August, which is hard to believe. For now they should be removed but the cleaning on this should take place in plant_comp_clean_L0.R.
@@ -128,19 +143,13 @@ u + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), le
 
 # By species, find the max of the firstjulian at the site level to determine the last day of the greenup window per site and year
 greenup3 <- greenup2 %>%
-  group_by(site,year) %>%
+  group_by(site, year) %>%
   summarise(firstjulian = max(firstjulian, na.rm = T))
 View(greenup3)   
 
-# First julian date by plot by each year
-greenup2p <- greenup1 %>%
-  group_by(site,plot,year) %>%
-  summarise(firstjulian = min(julian, na.rm = T))
-View(greenup2p)  
-
 # Max cover by species-plot
 greenup4 <- greenup1 %>%
-  group_by(site,plot,species,year,julian) %>%
+  group_by(site, plot, species, year, julian) %>%
   summarise(maxcov = max(cover, na.rm = T)) 
 View(greenup4)
 
@@ -152,12 +161,14 @@ greendate1st_mn_p <- as.data.frame(greenup2p) # plot level
 
 # Greenup Approach (2) Half Cover Date
 ### making a csv for greenup at the species-by-plot level ###
-# split the plant_comp dataframe
+# split the plant_comp dataframe at the species level and at the plot level
+### making a csv for greenup at the species level ###
 dataus <- split(x = greenup, f = greenup[, c("plot","species","site","year")])
 
 ### making a csv for greenup at the plot level ###
 dataup <- split(x = greenup, f = greenup[, c("plot", "site", "year")])
 
+# SPECIES LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
 max_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
   x[which.max(x[["cover"]]), "julian"]
@@ -168,6 +179,7 @@ half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
   x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
 }))
 
+# PLOT LEVEL
 # Determine dates for each plot where the value of `cover` is at the max value
 max_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
   x[which.max(x[["cover"]]), "julian"]
@@ -240,8 +252,8 @@ cor.test(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date)
 plot(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date)
 
 # calculate correlation
-cor.test(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date) # this didn't work for Moriah
-# no cor = -0.08616082; t = -1.3342, df = 238, p-value = 0.1834
+cor.test(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
+# no cor = -0.08616082; t = -1.3342, df = 238, p-value = 0.1834 -- Moriah got different numbers 7/12/21
 plot(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
 
 # change taxon column name for merging
@@ -293,19 +305,18 @@ p3 + facet_wrap(~year) + labs(title="Species-level half cover date")
 p4 <- ggplot(data = finalgreenp, aes(x = min_green_date, fill=state)) + geom_density(alpha=0.5)
 p4 + facet_wrap(~year)
 
-# re organize order of column names 
-finalgreens <- finalgreens[, c("site", "plot", "species", "cover", "date", "julian", "year", "month", 
+# reorganize order of column names 
+finalgreens <- finalgreens[, c("site", "plot", "year", "species", "spp_half_cover_date", "min_green_date",
                                "treatment_key", "state", "insecticide", "scientific_name", "common_name", 
-                               "USDA_code", "LTER_code", "origin", "group", "family", "duration", 
+                               "USDA_species", "LTER_species", "origin", "group", "family", "duration", 
                                "growth_habit")]
 
 finalgreenp <- finalgreenp[, c("site", "plot", "year", "treatment_key", "state", "insecticide", 
                                "plot_half_cover_date", "min_green_date" )]
 
 # upload greenup species-plot level csv to google drive
-### MY - Should this go in L2 now?
-write.csv(finalgreens, file="L1/greenup/final_greenup_species_L1.csv", row.names=FALSE)
-write.csv(finalgreenp, file="L1/greenup/final_greenup_plot_L1.csv", row.names=FALSE)
+write.csv(finalgreens, file.path(L2_dir, "final_greenup_species_L2.csv"))
+write.csv(finalgreenp, file.path(L2_dir, "final_greenup_plot_L2.csv"))
 
 # FLOWERING (Moriah did this)
 
@@ -336,7 +347,7 @@ phen_flwr_spp <- merge(FirstFlwr_spp, MedianFlwr_spp)
 phen_flwr_spp <- merge(phen_flwr_spp, flwr_dur_s)
 
 # write a new csv with flowering data at the SPECIES LEVEL and upload to the shared google drive
-write.csv(phen_flwr_spp, file.path(L1_dir, "phenology/final_flwr_species_L1.csv"))
+write.csv(phen_flwr_spp, file.path(L2_dir, "final_flwr_species_L2.csv"))
 
 ### Create a data frame at the PLOT LEVEL that includes median date of flower, first flower date, and duration
 
@@ -361,7 +372,7 @@ phen_flwr_plot <- merge(FirstFlwr_plot, MedianFlwr_plot)
 phen_flwr_plot <- merge(phen_flwr_plot, flwr_dur_p)
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
-write.csv(phen_flwr_plot, file.path(L1_dir, "phenology/final_flwr_plot_L1.csv"))
+write.csv(phen_flwr_plot, file.path(L2_dir, "final_flwr_plot_L2.csv"))
 
 # Create some plots to visualize these data (NOT FINISHED - MY 7/11/21)
 # histograms for each year - look at them together:
@@ -403,8 +414,8 @@ FirstSd_plot <- phen_sd %>%
   summarize(julian_min = min(julian, na.rm=T))
 
 # write a new csv with first seed date at the SPECIES LEVEL and upload to the shared google drive
-write.csv(FirstSd_spp, file.path(L1_dir, "phenology/final_sd_species_L1.csv"))
+write.csv(FirstSd_spp, file.path(L2_dir, "final_sd_species_L2.csv"))
 
 # write a new csv with first seed date at the PLOT LEVEL and upload to the shared google drive
-write.csv(FirstSd_plot, file.path(L1_dir, "phenology/final_sd_plot_L1.csv"))
+write.csv(FirstSd_plot, file.path(L2_dir, "final_sd_plot_L2.csv"))
 

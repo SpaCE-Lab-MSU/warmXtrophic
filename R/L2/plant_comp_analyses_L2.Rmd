@@ -74,6 +74,7 @@ Relative abundance
 # Calculating relative abundance
 comp1 <- comp %>% 
         select(species, site, year, plot, cover, state)
+# calculate plot cover mean by species-plot per year
 plot_mean <- aggregate(cover ~ plot*species*year*site*state, data = comp1, FUN = mean, na.rm = T)
 names(plot_mean)[names(plot_mean) == "cover"] <- "plot_mean" # change "cover" column name to "plot_mean"
 View(plot_mean)
@@ -123,6 +124,11 @@ comp_org_umbs <- subset(comp2, site == "umbs")
 
 ```{r}
 # https://rfunctions.blogspot.com/2016/08/comparing-and-estimating-species.html
+
+# rarefired species richness
+#rarecurve(comp2$species)
+
+#specpool(comp2)
 ```
 
 
