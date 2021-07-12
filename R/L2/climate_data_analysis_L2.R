@@ -37,15 +37,26 @@ proj4string(RS)<-CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m
 df <- data.frame(rasterToPoints(RS))
 m.df <- melt(df, c("x", "y"))
 names(m.df)[1:2] <- c("lon", "lat")
+str(m.df)
 
+# for some reason this doesn't work - these coordinates are in the dataset but it can't find them ?
 kzoo <- m.df %>%
-        filter(lat == 42.2278 & lon == 85.5200)
+        filter(lat == 42.25000 & lon == -85.50000)
 emmet <- m.df %>%
-        filter(lat == 45.6419 & lon == 84.9769)
+        filter(lat == 45.62500 & lon == -84.95833)
 
-# coordinates for Kalamazoo county and Emmet county
-kzoo <- c(42.2278, 85.5200)
-emmet <- c(45.6419, 84.9769)
+# chose coordinates within each county (above) and found these values in m.df manually
+# precipitation 30 yr normals
+# kzoo - 975.440002
+# emmet - 770.690002
+
+# temp 30 yr normals
+# kzoo - 9.330833
+# emmet - 6.421667
+
+# actual coordinates for Kalamazoo county and Emmet county - not in data set, using closest coordinates
+# kzoo <- c(42.2278, 85.5200)
+# emmet <- c(45.6419, 84.9769)
 
 
 
