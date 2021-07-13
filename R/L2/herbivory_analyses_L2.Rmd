@@ -156,6 +156,11 @@ k.m6 <- zeroinfl(p_eaten ~ state * growth_habit + as.factor(year),
                    data = herb_kbs)
 summary(k.m6)
 lrtest(k.m4, k.m6) # virtually the same, keeping model 4 because its simpler
+# calculating effect size of graminoids vs forb herbivory - accounting for log link
+exp(0.470803 + 1.234010*0) # 1.60128
+exp(0.470803 + 1.234010*1) # 5.500357
+# effect of herbivory:
+5.500357 - 1.60128 # 3.899077
 
 # interaction between state, growth habit, and year (year as a factor wouldn't work - non-finite value)
 k.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
@@ -192,6 +197,10 @@ k.m11 <- zeroinfl(p_eaten ~ state * origin + as.factor(year),
                    data = herb_kbs)
 summary(k.m11)
 lrtest(k.m4, k.m11) # model 4
+exp(0.43056 + 0.37613*0) # 1.538119
+exp(0.43056 + 0.37613*1) # 2.24048
+# effect of herbivory:
+2.24048 - 1.538119 # 0.702361
 
 # interaction between state, origin, and year
 k.m12 <- zeroinfl(p_eaten ~ state * origin * year,
@@ -359,6 +368,10 @@ u.m11 <- zeroinfl(p_eaten ~ state * origin + as.factor(year),
                    data = herb_umbs)
 summary(u.m11)
 lrtest(u.m4, u.m11) # model 4
+exp(-0.26760 + 0.37613*0) # 1.538119
+exp(-0.26760 + 0.37613*1) # 2.24048
+# effect of herbivory:
+2.24048 - 1.538119 # 0.702361
 
 ## interaction between state, origin, and year - doesn't work
 #u.m12 <- zeroinfl(p_eaten ~ state * origin * as.factor(year),
