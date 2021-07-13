@@ -1,9 +1,8 @@
 # TITLE: warmXtrophic - climate data analyses
 # AUTHORS: Kara Dobson
 # COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
-# DATA INPUT: CSV files are located in the L0 data folder for each site in the shared Google drive
-        # This data was obtained through NOAA's climate data online search - each file contains daily summary data
-# DATA OUTPUT: Stats results
+# DATA INPUT: Prism data downloaded to the L1 folder in the warmX drive
+# DATA OUTPUT: 30 year precip and temp normals for KBS and UMBS counties (kzoo and emmet)
 # PROJECT: warmXtrophic
 # DATE: June 2021
 
@@ -40,8 +39,8 @@ names(m.df)[1:2] <- c("lon", "lat")
 str(m.df)
 
 # for some reason this doesn't work - these coordinates are in the dataset but it can't find them ?
-kzoo <- m.df %>%
-        filter(lat == 42.25000 & lon == -85.50000)
+# subset and filtering won't work, so I searched through the dataset for each coordinates' values
+kzoo <- subset(m.df, lat == "42.25000" & lon == "-85.50000")
 emmet <- m.df %>%
         filter(lat == 45.62500 & lon == -84.95833)
 
