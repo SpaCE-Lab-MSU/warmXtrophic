@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 library(kableExtra)
-opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
 # Script Details:
@@ -336,7 +336,6 @@ p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state, shape=in
 ```
 
 ```{r}
-
 # New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
 mod4 <- lmer(spp_half_cover_date ~ state * year + (1+year|species), green_kbs)
 
@@ -348,11 +347,11 @@ summary(mod5)
 # *ORIGINAL CODE BELOW; not edited by Phoebe* ##
 
 # Seeing what other distribution could fit
-```{r, eval=FALSE}
+```{r}
 descdist(green_kbs$spp_half_cover_date, discrete = FALSE)
 ```
 # While uniform looks the closest, I'll try poisson
-```{r, fig.align='center', eval=FALSE}
+```{r, fig.align='center'}
 fit <- lm(spp_half_cover_date~state, data = green_kbs)
 residual <- fit$residuals
 hist(residual, main="Raw residuals")  
@@ -365,7 +364,7 @@ hist(pois$residuals, main="Poisson glm residuals")
 # Below I try a few different generalized linear models with poisson distribution:  
 
 ## An interaction between state and year, plus insecticide as a fixed effect and species and plot as random effects
-```{r, eval=FALSE}
+```{r}
 moda <- glmer(spp_half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
               data=green_kbs, family = poisson)
 summary(moda)
@@ -374,7 +373,7 @@ summary(moda)
 \pagebreak
 
 ## No interaction between state and year, but with state and insecticide as fixed effects and species and plot as random effects
-```{r, eval=FALSE}
+```{r}
 modb <- glmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
               data=green_kbs, family = poisson)
 summary(modb)
@@ -392,7 +391,7 @@ summary(modc)
 \pagebreak
 
 # Because no distributions seems to match well, I'll try a Friedman's test
-```{r, eval=FALSE}
+```{r}
 #friedman_kbs <- green_kbs %>% 
 #  friedman_test(spp_half_cover_date ~ state)
 ```
@@ -400,14 +399,14 @@ summary(modc)
 ## Can't figure out what this means  
 
 ## If I include the blocks portion of the formula (from the documentation) I get this error
-```{r, eval=FALSE}
+```{r}
 #friedman_kbs <- green_kbs %>% 
 #  friedman_test(spp_half_cover_date ~ state | plot)
 ```
 ## Error in friedman.test.default(c(141L, 202L, 122L, 101L, 127L, 120L, 197L,  :  not an unreplicated complete block design
 
 # Permanova?
-```{r, cache = T, eval=FALSE}
+```{r, eval=FALSE}
 per1 <- adonis2(green_kbs$spp_half_cover_date ~ state*year + insecticide, data = green_kbs)
 per1
 per2 <- adonis(formula = green_kbs$spp_half_cover_date ~ state*year + insecticide, strata = green_kbs$plot, data = green_kbs)
@@ -421,7 +420,7 @@ per2
 
 # Checking for normality
 
-```{r, eval=FALSE}
+```{r}
 hist(green_umbs$spp_half_cover_date)
 qqnorm(green_umbs$spp_half_cover_date)
 shapiro.test(green_umbs$spp_half_cover_date)
@@ -434,7 +433,7 @@ hist(green_umbs$spp_half_cover_date[green_kbs$state == "warmed"])
 \pagebreak
 
 # Trying log transformation
-```{r, eval=FALSE}
+```{r}
 green_umbs$date_log <- log(green_umbs$spp_half_cover_date)
 hist(green_umbs$date_log)
 shapiro.test(green_umbs$date_log)
@@ -444,7 +443,7 @@ shapiro.test(green_umbs$date_log)
 \pagebreak
 
 # Trying inverse tranformation
-```{r, eval=FALSE}
+```{r}
 green_umbs$date_inv <- 1/(green_umbs$spp_half_cover_date)
 hist(green_umbs$date_inv)
 shapiro.test(green_umbs$date_inv)
