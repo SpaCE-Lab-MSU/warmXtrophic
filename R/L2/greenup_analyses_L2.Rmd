@@ -13,7 +13,7 @@ opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
 ```
 
 # Script Details:
-```{r, message = F}
+```{r, message = F, eval=FALSE}
 script_tbl <- data.frame(
   Item = c("OVERVIEW", "COLLABORATORS", "REQUIRES", "DATA INPUT", "DATA OUTPUT", "NOTES"),
   Details = c("This script explores and analyses the greenup data from the KBS and UMBS stations. Greenup was recorded as percent cover of each species in each plot every 3 days in the beginning of the field season. Percent cover continued to be measured until the end of the field season. For calculating greenup dates, we use the date at which 50% of a species maximum percent cover was reached for each plot, to account for variation in litter depth affecting the early season's first greenup date.",
@@ -70,9 +70,11 @@ library(glmmTMB)
 # Get data
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
-list.files(L1_dir)
-greenup <- read.csv(file.path(L1_dir, "greenup/final_greenup_species_L1.csv"))
-greenupp <- read.csv(file.path(L1_dir, "greenup/final_greenup_plot_L1.csv"))
+L2_dir<-Sys.getenv("L2DIR")
+greenup <- read.csv(file.path(L2_dir, "final_greenup_species_L2.csv"))
+greenup <- greenup %>% select(-X) # get rid of "X" column that shows up
+greenupp <- read.csv(file.path(L2_dir, "final_greenup_plot_L2.csv"))
+greenupp <- greenupp %>% select(-X) # get rid of "X" column that shows up
 
 # Set ggplot2 plots to bw: see here for more options: http://www.sthda.com/english/wiki/ggplot2-themes-and-background-colors-the-3-elements
 theme_set(theme_bw(base_size = 14))
@@ -91,19 +93,17 @@ greenupp$state <- factor(greenupp$state, levels(greenupp$state)[c(2,1)])
 levels(greenupp$state)
 
 # adding sequential year variable starting at 1: this is because 2016... are large numbers compare with other values in the dataset. We can always label axes with these real years.
-greenup$year1<-greenup$year
-greenup$year[greenup$year == 2016] <- 1
-greenup$year[greenup$year == 2017] <- 2
-greenup$year[greenup$year == 2018] <- 3
-greenup$year[greenup$year == 2019] <- 4
-greenup$year[greenup$year == 2020] <- 5
+greenup$year_factor[greenup$year == 2016] <- 1
+greenup$year_factor[greenup$year == 2017] <- 2
+greenup$year_factor[greenup$year == 2018] <- 3
+greenup$year_factor[greenup$year == 2019] <- 4
+greenup$year_factor[greenup$year == 2020] <- 5
 
-greenupp$year1<-greenupp$year
-greenupp$year[greenupp$year == 2016] <- 1
-greenupp$year[greenupp$year == 2017] <- 2
-greenupp$year[greenupp$year == 2018] <- 3
-greenupp$year[greenupp$year == 2019] <- 4
-greenupp$year[greenupp$year == 2020] <- 5
+greenupp$year_factor[greenupp$year == 2016] <- 1
+greenupp$year_factor[greenupp$year == 2017] <- 2
+greenupp$year_factor[greenupp$year == 2018] <- 3
+greenupp$year_factor[greenupp$year == 2019] <- 4
+greenupp$year_factor[greenupp$year == 2020] <- 5
 
 # create dataframes for kbs and umbs - remember that these contain species within plots
 green_kbs <- subset(greenup, site == "kbs")
@@ -120,7 +120,7 @@ green_umbsp <- subset(greenupp, site == "umbs")
 # *Note that since this change, some of the code below breaks because the variable name changed. Also, there seem to be some errors popping up with qqPlot, suggesting that something else changed when this new variable was created. Check* 
 ```{r}
 # remove species, origin, duration,growth habit,spp_half_cover_date - again, this should be done in other script preceding this one
-green_kbsp<-subset(green_kbsp,select=c("plot_half_cover_date","min_green_date","plot","year","state","insecticide","site","year1"))
+green_kbsp<-subset(green_kbsp,select=c("plot_half_cover_date","min_green_date","plot","year","state","insecticide","site","year_factor"))
 head(green_kbsp)
 
 hist(green_kbsp$plot_half_cover_date)
@@ -133,31 +133,31 @@ hist(green_kbsp$plot_half_cover_date[green_kbsp$state == "warmed"])
 
 # histograms for each year - look at them together:
 p1 <- ggplot(data = green_kbsp, aes(x = plot_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p1 + facet_wrap(~year1) + labs(title="Plot-level half cover date")
+p1 + facet_wrap(~year_factor) + labs(title="Plot-level half cover date")
 
 p1 <- ggplot(data = green_kbs, aes(x = spp_half_cover_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p1 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+p1 + facet_wrap(~year_factor) + labs(title="Species-level half cover date")
 
 # this will just show sampling date artifact
 p2 <- ggplot(data = green_kbsp, aes(x = min_green_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p2 + facet_wrap(~year1)
+p2 + facet_wrap(~year_factor)
 
 # Density plot
 p3 <- ggplot(data = green_kbsp, aes(x = plot_half_cover_date, fill=state)) + geom_density(alpha=0.5)
-p3 + facet_wrap(~year1) + labs(title="Plot-level half cover date")
+p3 + facet_wrap(~year_factor) + labs(title="Plot-level half cover date")
 
 p3 <- ggplot(data = green_kbs, aes(x = spp_half_cover_date, fill=state)) + geom_density(alpha=0.5)
-p3 + facet_wrap(~year1) + labs(title="Species-level half cover date")
+p3 + facet_wrap(~year_factor) + labs(title="Species-level half cover date")
 
 # this will just show sampling date artifact
 p4 <- ggplot(data = green_kbsp, aes(x = min_green_date, fill=state)) + geom_density(alpha=0.5)
-p4 + facet_wrap(~year1)
+p4 + facet_wrap(~year_factor)
 
 # Or try with tidyverse format
 green_kbsp.t<-as_tibble(green_kbsp)
-green_kbsp.t %>%
-    gather(state, plot_half_cover_date, year1) %>%
-    ggplot(aes(plot_half_cover_date, fill = state)) + geom_histogram() + facet_wrap(~year1)
+#green_kbsp.t %>%
+#    gather(state, plot_half_cover_date, year_factor) %>%
+#    ggplot(aes(plot_half_cover_date, fill = state)) + geom_histogram() + facet_wrap(~year_factor)
 
 # looks like the 225 spike is from 2018 and 2020 - what's going on here is that you are treating all species-plot records as independent observations, so the influence of species differences is likely coming through here.
 kbs_2018 <- subset(green_kbs, year == 4) # many records on 235
@@ -331,7 +331,7 @@ p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state, shape=in
   scale_size_manual(name="Predictions", values=c("species"=0.5, "Population"=3)) +
   #facet_wrap(~insecticide) +
   theme_bw(base_size=22) 
-print(p)
+#print(p)
 
 ```
 
@@ -348,11 +348,11 @@ summary(mod5)
 # *ORIGINAL CODE BELOW; not edited by Phoebe* ##
 
 # Seeing what other distribution could fit
-```{r}
+```{r, eval=FALSE}
 descdist(green_kbs$spp_half_cover_date, discrete = FALSE)
 ```
 # While uniform looks the closest, I'll try poisson
-```{r, fig.align='center'}
+```{r, fig.align='center', eval=FALSE}
 fit <- lm(spp_half_cover_date~state, data = green_kbs)
 residual <- fit$residuals
 hist(residual, main="Raw residuals")  
@@ -365,7 +365,7 @@ hist(pois$residuals, main="Poisson glm residuals")
 # Below I try a few different generalized linear models with poisson distribution:  
 
 ## An interaction between state and year, plus insecticide as a fixed effect and species and plot as random effects
-```{r}
+```{r, eval=FALSE}
 moda <- glmer(spp_half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
               data=green_kbs, family = poisson)
 summary(moda)
@@ -374,7 +374,7 @@ summary(moda)
 \pagebreak
 
 ## No interaction between state and year, but with state and insecticide as fixed effects and species and plot as random effects
-```{r}
+```{r, eval=FALSE}
 modb <- glmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1|plot),
               data=green_kbs, family = poisson)
 summary(modb)
@@ -383,7 +383,7 @@ summary(modb)
 \pagebreak
 
 ## State and insecticide as fixed effects & year, species and plot as random effects
-```{r}
+```{r, eval=FALSE}
 modc <- glmer(spp_half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
               data=green_kbs, family = poisson)
 summary(modc)
@@ -392,7 +392,7 @@ summary(modc)
 \pagebreak
 
 # Because no distributions seems to match well, I'll try a Friedman's test
-```{r}
+```{r, eval=FALSE}
 #friedman_kbs <- green_kbs %>% 
 #  friedman_test(spp_half_cover_date ~ state)
 ```
@@ -400,14 +400,14 @@ summary(modc)
 ## Can't figure out what this means  
 
 ## If I include the blocks portion of the formula (from the documentation) I get this error
-```{r}
+```{r, eval=FALSE}
 #friedman_kbs <- green_kbs %>% 
 #  friedman_test(spp_half_cover_date ~ state | plot)
 ```
 ## Error in friedman.test.default(c(141L, 202L, 122L, 101L, 127L, 120L, 197L,  :  not an unreplicated complete block design
 
 # Permanova?
-```{r, cache = T}
+```{r, cache = T, eval=FALSE}
 per1 <- adonis2(green_kbs$spp_half_cover_date ~ state*year + insecticide, data = green_kbs)
 per1
 per2 <- adonis(formula = green_kbs$spp_half_cover_date ~ state*year + insecticide, strata = green_kbs$plot, data = green_kbs)
@@ -421,7 +421,7 @@ per2
 
 # Checking for normality
 
-```{r}
+```{r, eval=FALSE}
 hist(green_umbs$spp_half_cover_date)
 qqnorm(green_umbs$spp_half_cover_date)
 shapiro.test(green_umbs$spp_half_cover_date)
@@ -434,7 +434,7 @@ hist(green_umbs$spp_half_cover_date[green_kbs$state == "warmed"])
 \pagebreak
 
 # Trying log transformation
-```{r}
+```{r, eval=FALSE}
 green_umbs$date_log <- log(green_umbs$spp_half_cover_date)
 hist(green_umbs$date_log)
 shapiro.test(green_umbs$date_log)
@@ -444,7 +444,7 @@ shapiro.test(green_umbs$date_log)
 \pagebreak
 
 # Trying inverse tranformation
-```{r}
+```{r, eval=FALSE}
 green_umbs$date_inv <- 1/(green_umbs$spp_half_cover_date)
 hist(green_umbs$date_inv)
 shapiro.test(green_umbs$date_inv)
