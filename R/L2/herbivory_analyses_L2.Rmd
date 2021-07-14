@@ -75,33 +75,47 @@ herb_kbs %>% count(state, species)
 100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #61%
 ```
 
-# KBS
-```{r, eval = F}
-### determining distribution ###
-# first, checking for normality
+# KBS Data Exploration
+```{r, message = F}
+descdist(herb_kbs$p_eaten, discrete = FALSE)
+# normal distribution?
 hist(herb_kbs$p_eaten)
-#qqnorm(herb_kbs$p_eaten)
+qqnorm(herb_kbs$p_eaten)
 shapiro.test(herb_kbs$p_eaten)
-#fit <- lm(p_eaten~state, data = herb_kbs)
-#qqPlot(fit)
+fit <- lm(p_eaten~state, data = herb_kbs)
+qqPlot(fit)
+
+# looking at each treatment separately
 hist(herb_kbs$p_eaten[herb_kbs$state == "ambient"])
 hist(herb_kbs$p_eaten[herb_kbs$state == "warmed"])
-# not normal, attempting to transform data below
+
+# gamma distribution? - error message "the function mle failed to estimate the parameters"
+#fit.gamma <- fitdist(herb_kbs$p_eaten, "gamma")
+#plot(fit.gamma)
+
+# lognormal distribution? - error message "values must be positive to fit a lognormal"
+#fit.ln <- fitdist(herb_kbs$p_eaten, "lnorm")
+#plot(fit.ln)
+
 # log transform
 herb_kbs$p_log <- log(herb_kbs$p_eaten+1)
 hist(herb_kbs$p_log)
-#qqnorm(herb_kbs$p_log)
+qqnorm(herb_kbs$p_log)
 shapiro.test(herb_kbs$p_log) # NAs - data contains 0s
+
 # mean centering p_eaten
 herb_kbs$p_scaled <- herb_kbs$p_log - mean(herb_kbs$p_log)
 hist(herb_kbs$p_scaled)
 hist(herb_kbs$p_scaled[herb_kbs$state == "ambient"])
 hist(herb_kbs$p_scaled[herb_kbs$state == "warmed"])
-#qqnorm(herb_kbs$p_scaled)
+qqnorm(herb_kbs$p_scaled)
 shapiro.test(herb_kbs$p_scaled)
+
 # square root?
 herb_kbs$p_sqrt <- sqrt(herb_kbs$p_eaten)
 hist(herb_kbs$p_sqrt)
+qqnorm(herb_kbs$p_sqrt)
+shapiro.test(herb_kbs$p_sqrt)
 ```
 
 ## Transformations are a no-go
@@ -261,23 +275,47 @@ sum(E^2) / (N - p) # a little overdispersed - is that okay?
 emmeans(k.m14, ~ state + species + as.factor(year))
 ```
 
-# UMBS
-```{r, eval = F}
-### determining distribution ###
-# first, checking for normality
+# UMBS - Data Exploration
+```{r, messagae = F}
+descdist(herb_umbs$p_eaten, discrete = FALSE)
+# normal distribution?
 hist(herb_umbs$p_eaten)
 qqnorm(herb_umbs$p_eaten)
 shapiro.test(herb_umbs$p_eaten)
 fit <- lm(p_eaten~state, data = herb_umbs)
 qqPlot(fit)
+
+# looking at each treatment separately
 hist(herb_umbs$p_eaten[herb_umbs$state == "ambient"])
 hist(herb_umbs$p_eaten[herb_umbs$state == "warmed"])
-# not normal- attempting to transform data below
-# log transform 
-herb_umbs$p_log <- log(herb_umbs$p_eaten)
+
+# gamma distribution? - error message "the function mle failed to estimate the parameters"
+#fit.gamma <- fitdist(herb_umbs$p_eaten, "gamma")
+#plot(fit.gamma)
+
+# lognormal distribution? - error message "values must be positive to fit a lognormal"
+#fit.ln <- fitdist(herb_umbs$p_eaten, "lnorm")
+#plot(fit.ln)
+
+# log transform
+herb_umbs$p_log <- log(herb_umbs$p_eaten+1)
 hist(herb_umbs$p_log)
 qqnorm(herb_umbs$p_log)
-shapiro.test(herb_umbs$p_log)
+shapiro.test(herb_umbs$p_log) # NAs - data contains 0s
+
+# mean centering p_eaten
+herb_umbs$p_scaled <- herb_umbs$p_log - mean(herb_umbs$p_log)
+hist(herb_umbs$p_scaled)
+hist(herb_umbs$p_scaled[herb_umbs$state == "ambient"])
+hist(herb_umbs$p_scaled[herb_umbs$state == "warmed"])
+qqnorm(herb_umbs$p_scaled)
+shapiro.test(herb_umbs$p_scaled)
+
+# square root?
+herb_umbs$p_sqrt <- sqrt(herb_umbs$p_eaten)
+hist(herb_umbs$p_sqrt)
+qqnorm(herb_umbs$p_sqrt)
+shapiro.test(herb_umbs$p_sqrt)
 ```
 
 ## Transformations are a no-go
