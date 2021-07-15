@@ -34,6 +34,11 @@ hist(cn$carbon)
 qqnorm(cn$carbon)
 shapiro.test(cn$carbon)
 
+# looking at each species separately
+hist(cn$carbon[cn$species == "Soca"])
+hist(cn$carbon[cn$species == "Cest"])
+hist(cn$carbon[cn$species == "Popr"]) # skewness looks species specific
+
 # logistic distribution?
 c.fit.logis <- fitdist(cn$carbon, "logis")
 plot(c.fit.logis)
@@ -56,6 +61,11 @@ descdist(cn$nitrogen, discrete = FALSE)
 hist(cn$nitrogen)
 qqnorm(cn$nitrogen)
 shapiro.test(cn$nitrogen)
+
+# looking at each species separately
+hist(cn$nitrogen[cn$species == "Soca"])
+hist(cn$nitrogen[cn$species == "Cest"])
+hist(cn$nitrogen[cn$species == "Popr"])
 
 # logistic distribution?
 n.fit.logis <- fitdist(cn$nitrogen, "logis")
