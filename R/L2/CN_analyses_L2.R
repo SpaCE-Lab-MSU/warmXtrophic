@@ -4,7 +4,7 @@
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    A csv file containing CN data is uploaded to the L1 plant comp folder
 # PROJECT:        warmXtrophic
-# DATE:           March, 2021
+# DATE:           July, 2021
 
 # Clear all existing data
 rm(list=ls())
@@ -13,56 +13,75 @@ rm(list=ls())
 library(tidyverse)
 library(bbmle)
 library(lme4)
+library(fitdistrplus)
 
-# Set working directory to Google Drive
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+L1_dir<-Sys.getenv("L1DIR")
 
 # Read in data
-cn <- read.csv("L1/final_CN_L1.csv")
+cn <- read.csv(file.path(L1_dir, "CN/CN_L1.csv"))
 
-# create dataframes for kbs and umbs
-cn_kbs <- subset(cn, site == "kbs")
-cn_umbs <- subset(cn, site == "umbs")
+# check species in dataframe
+with(cn,table(cn$site,cn$species)) # keep sites in same dataframe for now bc unique spp at each site
 
-# check species at each site
-unique(cn_kbs$species)
-unique(cn_umbs$species)
+# removing NAs - two rows have NAs for both N and C, so this takes care of both
+cn <- cn[!is.na(cn$carbon), ]
 
-# separate dataframes for each species
-cn_cest_umbs <- subset(cn_umbs, species == "Cest")
-cn_popr_umbs <- subset(cn_umbs, species == "Popr")
 
-# data visualization check
-# KBS - Soca
-hist(cn_kbs$carbon)
-qqnorm(cn_kbs$carbon)
-shapiro.test(cn_kbs$carbon)
+# carbon data visualization
+descdist(cn$carbon, discrete = FALSE)
+hist(cn$carbon)
+qqnorm(cn$carbon)
+shapiro.test(cn$carbon)
 
-hist(cn_kbs$nitrogen)
-qqnorm(cn_kbs$nitrogen)
-shapiro.test(cn_kbs$nitrogen)
+# logistic distribution?
+c.fit.logis <- fitdist(cn$carbon, "logis")
+plot(c.fit.logis)
 
- # UMBS - Cest
-hist(cn_cest_umbs$carbon)
-qqnorm(cn_cest_umbs$carbon)
-shapiro.test(cn_cest_umbs$carbon)
+# normal distribution?
+c.fit.norm <- fitdist(cn$carbon, "norm")
+plot(c.fit.norm)
 
-hist(cn_cest_umbs$nitrogen)
-qqnorm(cn_cest_umbs$nitrogen)
-shapiro.test(cn_cest_umbs$nitrogen)
+par(mfrow=c(2,2))
+plot.legend <- c("Logistic", "Normal")
+denscomp(list(c.fit.logis, c.fit.norm), legendtext = plot.legend)
+cdfcomp (list(c.fit.logis, c.fit.norm), legendtext = plot.legend)
+qqcomp  (list(c.fit.logis, c.fit.norm), legendtext = plot.legend)
+ppcomp  (list(c.fit.logis, c.fit.norm), legendtext = plot.legend)
+gofstat(list(c.fit.logis, c.fit.norm), fitnames = c("Logistic", "Normal")) #Normal looks best
 
-# UMBS - Popr
-hist(cn_popr_umbs$carbon)
-qqnorm(cn_popr_umbs$carbon)
-shapiro.test(cn_popr_umbs$carbon)
 
-hist(cn_popr_umbs$nitrogen)
-qqnorm(cn_popr_umbs$nitrogen)
-shapiro.test(cn_popr_umbs$nitrogen)
+# nitrogen data visualization
+descdist(cn$nitrogen, discrete = FALSE)
+hist(cn$nitrogen)
+qqnorm(cn$nitrogen)
+shapiro.test(cn$nitrogen)
+
+# logistic distribution?
+n.fit.logis <- fitdist(cn$nitrogen, "logis")
+plot(n.fit.logis)
+
+# normal distribution?
+n.fit.norm <- fitdist(cn$nitrogen, "norm")
+plot(n.fit.norm)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Logistic", "Normal")
+denscomp(list(n.fit.logis, n.fit.norm), legendtext = plot.legend)
+cdfcomp (list(n.fit.logis, n.fit.norm), legendtext = plot.legend)
+qqcomp  (list(n.fit.logis, n.fit.norm), legendtext = plot.legend)
+ppcomp  (list(n.fit.logis, n.fit.norm), legendtext = plot.legend)
+gofstat(list(n.fit.logis, n.fit.norm), fitnames = c("Logistic", "Normal")) #Normal looks best
+
+# check assumptions
+m1 <- lmer(carbon ~ state + insecticide + (1|plot), data = cn, REML=F)
+# updates end here - need to merge meta-data with cn data
+# code below is old
+
+
 
 
 ### Model comparison ###
-# KBS - Soca
 m1a <- lm(carbon ~ state, data = cn_kbs)
 m1b <- lm(carbon ~ state + insecticide, data = cn_kbs)
 m1c <- lmer(carbon ~ state + (1|plot), data = cn_kbs)
