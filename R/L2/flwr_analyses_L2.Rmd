@@ -1,0 +1,217 @@
+---
+title: "warmXtrophic Project: Flowering Phenology Analyses"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Load in packages & data
+```{r, message = F}
+# clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(vegan)
+library(car)
+library(rstatix)
+library(scales)
+library(fitdistrplus)
+library(moments)# for calculating skewness of data
+library(ggpubr)
+library(jtools) # summ() function
+library(predictmeans)
+library(olsrr)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(GGally) # ggpairs() function
+library(bbmle) # AICtab() function
+
+# Set working directory
+Sys.getenv("L1DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
+# Read in data
+flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv"))
+flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
+flwr_species$X <- NULL # get rid of "X" column that shows up
+flwr_plot$X <- NULL # get rid of "X" column that shows up
+View(flwr_species) # take a look at the data to see if looks good
+View(flwr_plot) # take a look at the data to see if looks good
+
+# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor
+flwr_species$state <- as.factor(flwr_species$state)
+levels(flwr_species$state)
+# [1] "ambient" "warmed" 
+flwr_species$state <- factor(flwr_species$state, levels(flwr_species$state)[c(2,1)])
+levels(flwr_species$state)
+# [1] "warmed"  "ambient"
+
+# again for plot level data
+flwr_plot$state <- as.factor(flwr_plot$state)
+levels(flwr_plot$state)
+# [1] "ambient" "warmed" 
+flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
+levels(flwr_plot$state)
+# [1] "warmed"  "ambient"
+```
+
+# Data exploration for median Julian date of flowering at the PLOT LEVEL
+```{r}
+# Visualizing avg minimum Julian date for both sites at the PLOT LEVEL
+ggplot(flwr_plot, aes(julian_min, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(flwr_plot, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(flwr_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(flwr_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(flwr_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+descdist(flwr_plot$julian_min, discrete = FALSE)
+```
+
+# UMBS PLOT LEVEL
+```{r, warning=F}
+### UMBS ###
+umbs_flwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
+hist(umbs_flwr_plot$julian_median)
+hist(umbs_flwr_plot$julian_min)
+
+# Visualizing avg minimum Julian date for both sites at the PLOT LEVEL
+ggplot(umbs_flwr_plot, aes(julian_min, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+#ggplot(umbs_flwr_plot, aes(julian_min, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year)
+#
+#ggplot(umbs_flwr_plot, aes(julian_min, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(umbs_flwr_plot$julian_min, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_flwr_plot$julian_min, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_flwr_plot$julian_min, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_flwr_plot$julian_min, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Lognormal is slightly better than gamma
+```
+
+# Centering and transforming data
+```{r, eval=F}
+umbs_flwr_plot$log_julian_median <- log(umbs_flwr_plot$julian_median)
+umbs_flwr_plot$log_julianMedian_centered = umbs_flwr_plot$log_julian_median - mean(umbs_flwr_plot$log_julian_median)
+hist(umbs_flwr_plot$log_julianMedian_centered)
+```
+
+# Determining appropriate distribution in mixed effects model
+```{r}
+# See Ben Bolker's site for details on fitting glmms: https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
+#       Fixed effects: warming, year, insecticide
+#       Random effect = plot (bc observations are nested within plot)
+# Fit with ML bc we are interested in estimating fixed effects more than random effects
+# See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details 
+m1 <- lmer(log(julian_min) ~ state + year + insecticide + (1|plot), data = umbs_flwr_plot, REML=FALSE)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(m1, main = "Avg Min Julian Date")
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m1) ~ umbs_flwr_plot$state)
+# Assumption met
+leveneTest(residuals(m1) ~ umbs_flwr_plot$plot)
+# Assumption met
+leveneTest(residuals(m1) ~ umbs_flwr_plot$insecticide)
+# Assumption met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(m1), main = "Avg Min Julian Date")
+hist(residuals(m1), main = "Avg Min Julian Date")
+shapiro.test(resid(m1)) # p>0.05 so we can assume normality
+# Outlier test - no outliers
+outlierTest(m1)
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. [***need to do for final model]
+```
+
+
+```{r}
+# Plot key relationships
+# Convert all columns to factor first
+umbs_flwr_plot <- as.data.frame(unclass(umbs_flwr_plot),
+                       stringsAsFactors = TRUE)
+plot(log(julian_min) ~ state, data = umbs_flwr_plot)
+```
+
+# Fit models
+```{r}
+summary(m1)
+```
+
+# Compare models
+```{r}
+#AICtab(m0,m1, weights=TRUE)
+```

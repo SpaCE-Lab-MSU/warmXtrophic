@@ -45,14 +45,13 @@ comp <- comp %>% select(-X) # get rid of "X" column that shows up
 
 
 ```{r}
-# adding sequential year variable starting at 1: this is because 2016... are large numbers compare with other 
-# values in the dataset. We can always label axes with these real years.
+# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
 comp$year_factor[comp$year == 2015] <- 1
-comp$year_factor[comp$year == 2016] <- 1
-comp$year_factor[comp$year == 2017] <- 2
-comp$year_factor[comp$year == 2018] <- 3
-comp$year_factor[comp$year == 2019] <- 4
-comp$year_factor[comp$year == 2020] <- 5
+comp$year_factor[comp$year == 2016] <- 2
+comp$year_factor[comp$year == 2017] <- 3
+comp$year_factor[comp$year == 2018] <- 4
+comp$year_factor[comp$year == 2019] <- 5
+comp$year_factor[comp$year == 2020] <- 6
 
 # Remove non-plant data - MY: not sure if I should remove these?
 comp <- comp[!(comp$species=="Bare_Ground" | 

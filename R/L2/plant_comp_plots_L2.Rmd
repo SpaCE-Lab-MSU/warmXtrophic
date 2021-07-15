@@ -14,27 +14,49 @@ PROJECT: warmXtrophic
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, echo = F, message=FALSE, warning=FALSE}
+```{r, echo=F}
 # Clear all existing data
 rm(list=ls())
 
 # Load packages
 library(tidyverse)
 library(plotrix)
+library(ggpubr)
 
-# Set working directory to Google Drive
-# **** Update with the path to your Google drive on your computer
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+Sys.getenv("L0DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
 
-# Read in plant comp data
-comp <- read.csv("L1/plant_composition/final_plantcomp_L1.csv")
-#str(comp)
+# Read in plant comp data and meta-data
+comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
+meta <- read.csv(file.path(L0_dir, "plot.csv"))
+taxon <- read.csv(file.path(L0_dir,"taxon.csv"))
+str(comp)
 
-# remove uneeded X column
-comp$X <- NULL
+comp$X <- NULL # remove uneeded X column
+str(comp)
+
+# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
+comp$year_factor[comp$year == 2015] <- 1
+comp$year_factor[comp$year == 2016] <- 2
+comp$year_factor[comp$year == 2017] <- 3
+comp$year_factor[comp$year == 2018] <- 4
+comp$year_factor[comp$year == 2019] <- 5
+comp$year_factor[comp$year == 2020] <- 6
+
+# Remove non-plant data - MY: not sure if I should remove these?
+comp <- comp[!(comp$species=="Bare_Ground" | 
+                       comp$species=="Unknown" | 
+                       comp$species=="Brown" | 
+                       comp$species=="Litter" | 
+                       comp$species=="Vert_Litter" | 
+                       comp$species=="Animal_Disturbance"), ]
+```
 
 
-
+```{r, echo=F, message=FALSE, warning=FALSE}
 # filter data to contain the averages and std error for each site
 sum_comp_site <- comp %>%
   group_by(site, state, year) %>%
