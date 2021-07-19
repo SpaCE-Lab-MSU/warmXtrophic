@@ -48,6 +48,10 @@ herb <- herb[complete.cases(herb),]
 # create dataframes for kbs and umbs only for plots with no insecticide
 herb_kbs <- subset(herb, site == "kbs" & insecticide == "insects")
 herb_umbs <- subset(herb, site == "umbs" & insecticide == "insects")
+herb_kbs_in <- subset(herb, site == "kbs")
+herb_umbs_in <- subset(herb, site == "umbs")
+# made separate dataframes for insects & no insects because the amount of herbivory measurements between
+# each species differs with each, and is relevant for the below data checks
 
 # only keep species that were recorded in both warmed and ambient plots
 herb_kbs <- herb_kbs %>%
@@ -56,23 +60,38 @@ herb_kbs <- herb_kbs %>%
 herb_umbs <- herb_umbs %>%
         group_by(species) %>% 
         filter(all(c('warmed', 'ambient') %in% state))
+herb_kbs_in <- herb_kbs_in %>%
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+herb_umbs_in <- herb_umbs_in %>%
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
 
 # checking to see if any species/state combos are all zeros
 with(herb_kbs,table(species,state,p_eaten==0)) 
 with(herb_umbs,table(species,state,p_eaten==0))
+with(herb_kbs_in,table(species,state,p_eaten==0)) 
+with(herb_umbs_in,table(species,state,p_eaten==0))
 
 # number of observation per species/state combo (to find rare species)
 herb_kbs %>% count(state, species)
 herb_umbs %>% count(state, species)
+herb_kbs_in %>% count(state, species)
+herb_umbs_in %>% count(state, species)
 
 # removing rare species from KBS
 herb_kbs <- herb_kbs[!grepl("Hype",herb_kbs$species),]
-herb_kbs %>% count(state, species)
+herb_kbs_in <- herb_kbs_in[!grepl("Ceor",herb_kbs_in$species),]
+herb_kbs_in <- herb_kbs_in[!grepl("Dagl",herb_kbs_in$species),]
+herb_kbs_in <- herb_kbs_in[!grepl("Pore",herb_kbs_in$species),]
+herb_kbs_in <- herb_kbs_in[!grepl("Trpr",herb_kbs_in$species),]
 
 # How much of the data is zeros?
 100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #68% - thats a lot! probably have to use a zero-inflated model,
 # but I'll still check for normality & try some transformations below
 100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #61%
+100*sum(herb_kbs_in$p_eaten == 0)/nrow(herb_kbs_in) #70.5%
+100*sum(herb_umbs_in$p_eaten == 0)/nrow(herb_umbs_in) #69.6%
 ```
 
 # KBS Data Exploration
@@ -116,6 +135,9 @@ herb_kbs$p_sqrt <- sqrt(herb_kbs$p_eaten)
 hist(herb_kbs$p_sqrt)
 qqnorm(herb_kbs$p_sqrt)
 shapiro.test(herb_kbs$p_sqrt)
+
+# quick look at insecticide plots
+hist(herb_kbs_in$p_eaten)
 ```
 
 ## Transformations are a no-go
@@ -125,21 +147,27 @@ shapiro.test(herb_kbs$p_sqrt)
 herb_kbs %>%
   dplyr::filter(p_eaten != "0") %>%
   dplyr::summarize(mean_eaten = mean(p_eaten, na.rm=T), var_eaten = var(p_eaten, na.rm=T))
+herb_kbs_in %>%
+  dplyr::filter(p_eaten != "0") %>%
+  dplyr::summarize(mean_eaten = mean(p_eaten, na.rm=T), var_eaten = var(p_eaten, na.rm=T))
 # variance is also > mean, so can't be poisson
 # I'll try zero-inflated negative binomial due to an excess of zeros
+```
 
+## Models for non-insecticide plots (KBS)
+```{r, message=F}
 # zero-inflated negative binomial
 # state as a fixed effect
 k.m1 <- zeroinfl(p_eaten ~ state,
                dist = 'negbin',
                data = herb_kbs)
-summary(k.m1)
+#summary(k.m1)
 
 # state and year as fixed effects
 k.m2 <- zeroinfl(p_eaten ~ state + as.factor(year),
                dist = 'negbin',
                data = herb_kbs)
-summary(k.m2)
+#summary(k.m2)
 lrtest(k.m1, k.m2) # model 2
 
 # state and growth habit as fixed effects
@@ -147,21 +175,21 @@ herb_kbs <- within(herb_kbs, growth_habit <- relevel(factor(growth_habit), ref =
 k.m3 <- zeroinfl(p_eaten ~ state + growth_habit,
                    dist = 'negbin',
                    data = herb_kbs)
-summary(k.m3)
+#summary(k.m3)
 lrtest(k.m2, k.m3) # model 2
 
 # state, growth habit, and year as fixed effects
 k.m4 <- zeroinfl(p_eaten ~ state + growth_habit + as.factor(year),
                    dist = 'negbin',
                    data = herb_kbs)
-summary(k.m4)
+#summary(k.m4)
 lrtest(k.m2, k.m4) # model 4
 
 # interaction between state and growth habit as fixed effects
 k.m5 <- zeroinfl(p_eaten ~ state * growth_habit,
                    dist = 'negbin',
                    data = herb_kbs)
-summary(k.m5)
+#summary(k.m5)
 lrtest(k.m4, k.m5) # model 4
 
 # interaction between state and growth habit as fixed effects, plus year
@@ -180,7 +208,7 @@ exp(0.470803 + 1.234010*1) # 5.500357
 k.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
                    dist = 'negbin',
                    data = herb_kbs)
-summary(k.m7)
+#summary(k.m7)
 lrtest(k.m4, k.m7) # model 4
 
 # state and origin as fixed effects
@@ -188,7 +216,7 @@ herb_kbs <- within(herb_kbs, origin <- relevel(factor(origin), ref = "Native")) 
 k.m8 <- zeroinfl(p_eaten ~ state + origin,
                    dist = 'negbin',
                    data = herb_kbs)
-summary(k.m8)
+#summary(k.m8)
 lrtest(k.m4, k.m8) # model 4
 
 # state, origin, and year as fixed effects
@@ -202,7 +230,7 @@ lrtest(k.m4, k.m9) # model 4
 k.m10 <- zeroinfl(p_eaten ~ state * origin,
                    dist = 'negbin',
                    data = herb_kbs)
-summary(k.m10)
+#summary(k.m10)
 lrtest(k.m4, k.m10) # model 4
 
 # interaction between state and origin as fixed effects, plus year
@@ -220,20 +248,20 @@ exp(0.43056 + 0.37613*1) # 2.24048
 k.m12 <- zeroinfl(p_eaten ~ state * origin * year,
                    dist = 'negbin',
                    data = herb_kbs)
-summary(k.m12)
+#summary(k.m12)
 lrtest(k.m4,k.m12) # model 4
 
 # just origin - testing to see w/o state
 k.m12.2 <- zeroinfl(p_eaten ~ origin,
                    dist = 'negbin',
                    data = herb_kbs)
-summary(k.m12.2)
+#summary(k.m12.2)
 
 # state and species as fixed effects
 k.m13 <- zeroinfl(p_eaten ~ state + species,
                      dist = 'negbin',
                      data = herb_kbs)
-summary(k.m13)
+#summary(k.m13)
 lrtest(k.m4, k.m13) # model 4
 
 # state. species and year as fixed effects
@@ -273,6 +301,33 @@ sum(E^2) / (N - p) # a little overdispersed - is that okay?
 
 # pairwise comparisons
 emmeans(k.m14, ~ state + species + as.factor(year))
+```
+
+## Insecticide plots included (KBS)
+```{r, messagae=F}
+# zero-inflated negative binomial
+# insecticide as fixed effect
+k.m1.i <- zeroinfl(p_eaten ~ insecticide,
+               dist = 'negbin',
+               data = herb_kbs_in)
+summary(k.m1.i)
+
+# full model
+k.m2.i <- zeroinfl(p_eaten ~ insecticide + state + species + as.factor (year),
+               dist = 'negbin',
+               data = herb_kbs_in)
+#summary(k.m2.i)
+
+# full model w/ interaction term
+k.m3.i <- zeroinfl(p_eaten ~ insecticide * state + species + as.factor (year),
+               dist = 'negbin',
+               data = herb_kbs_in)
+summary(k.m3.i)
+# calculating effect size - accounting for log link
+exp(0.70150 + -0.23501*0) # 2.016776
+exp(0.70150 + -0.23501*1) # 1.594388
+# effect of herbivory:
+1.594388 - 2.016776 # -0.422388
 ```
 
 # UMBS - Data Exploration
@@ -333,13 +388,13 @@ herb_umbs %>%
 u.m1 <- zeroinfl(p_eaten ~ state,
                dist = 'negbin',
                data = herb_umbs)
-summary(u.m1)
+#summary(u.m1)
 
 # state and year as fixed effects
 u.m2 <- zeroinfl(p_eaten ~ state + as.factor(year),
                dist = 'negbin',
                data = herb_umbs)
-summary(u.m2)
+#summary(u.m2)
 lrtest(u.m1, u.m2) # model 2
 
 # state and growth habit as fixed effects
@@ -347,21 +402,21 @@ herb_umbs <- within(herb_umbs, growth_habit <- relevel(factor(growth_habit), ref
 u.m3 <- zeroinfl(p_eaten ~ state + growth_habit,
                    dist = 'negbin',
                    data = herb_umbs)
-summary(u.m3)
+#summary(u.m3)
 lrtest(u.m2, u.m3) # model 2
 
 # state, growth habit, and year as fixed effects
 u.m4 <- zeroinfl(p_eaten ~ state + growth_habit + as.factor(year),
                    dist = 'negbin',
                    data = herb_umbs)
-summary(u.m4)
+#summary(u.m4)
 lrtest(u.m2, u.m4) # model 4
 
 # interaction between state and growth habit as fixed effects
 u.m5 <- zeroinfl(p_eaten ~ state * growth_habit,
                    dist = 'negbin',
                    data = herb_umbs)
-summary(u.m5)
+#summary(u.m5)
 lrtest(u.m4, u.m5) # model 4
 
 # interaction between state and growth habit as fixed effects, plus year
@@ -375,7 +430,7 @@ lrtest(u.m4, u.m6) # almost the same, going with model 4 because its simpler
 u.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
                    dist = 'negbin',
                    data = herb_umbs)
-summary(u.m7)
+#summary(u.m7)
 lrtest(u.m4, u.m7) # model 4
 
 # state and origin as fixed effects
@@ -383,21 +438,21 @@ herb_umbs <- within(herb_umbs, origin <- relevel(factor(origin), ref = "Native")
 u.m8 <- zeroinfl(p_eaten ~ state + origin,
                    dist = 'negbin',
                    data = herb_umbs)
-summary(u.m8)
+#summary(u.m8)
 lrtest(u.m4, u.m8) # model 4
 
 # state, origin, and year as fixed effects
 u.m9 <- zeroinfl(p_eaten ~ state + origin + as.factor(year),
                    dist = 'negbin',
                    data = herb_umbs)
-summary(u.m9)
+#summary(u.m9)
 lrtest(u.m4, u.m9) # model 4
 
 # interaction between state and origin as fixed effects
 u.m10 <- zeroinfl(p_eaten ~ state * origin,
                    dist = 'negbin',
                    data = herb_umbs)
-summary(u.m10)
+#summary(u.m10)
 lrtest(u.m4, u.m10) # model 4
 
 # interaction between state and origin as fixed effects, plus year
@@ -421,7 +476,7 @@ exp(-0.26760 + 0.37613*1) # 2.24048
 u.m13 <- zeroinfl(p_eaten ~ state + species,
                      dist = 'negbin',
                      data = herb_umbs)
-summary(u.m13)
+#summary(u.m13)
 lrtest(u.m4, u.m13) # model 4
 
 # state, species and year as fixed effects
