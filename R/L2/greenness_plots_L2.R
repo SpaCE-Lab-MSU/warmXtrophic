@@ -24,10 +24,15 @@ green2 <- green %>%
         summarize(greenness = mean(greenness, na.rm = TRUE))
 
 # Boxplot
-ggplot(green2, aes(x = state, y = greenness, fill = state)) +
-        geom_boxplot(color = "black") +
-        labs(x = "Treatment", y = "Greenness level") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+png("warmx_green.png", units="in", width=5, height=5, res=300)
+ggplot(green2, aes(x = state, y = greenness, fill=state)) +
         geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        theme_classic()
+        scale_color_manual(values = c("ambient" = "olivedrab", "warmed" = "olivedrab")) +
+        geom_boxplot(color = "black") +
+        labs(x = "Treatment", y = "Leaf Greenness") +
+        scale_fill_manual(values = c("olivedrab", "olivedrab")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient",
+                                  "warmed" = "Warmed")) +
+        theme_classic() +
+        theme(legend.position = "none")
+dev.off()

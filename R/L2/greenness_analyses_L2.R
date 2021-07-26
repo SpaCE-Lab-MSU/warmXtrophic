@@ -12,9 +12,10 @@ rm(list=ls())
 # Load packages
 library(tidyverse)
 library(bbmle)
-library(lme4)
+library(lmerTest)
 library(fitdistrplus)
 library(sjPlot)
+library(car)
 
 # Set working directory
 L1_dir<-Sys.getenv("L1DIR")
