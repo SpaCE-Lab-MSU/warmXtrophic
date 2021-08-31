@@ -36,6 +36,10 @@ L1_dir<-Sys.getenv("L1DIR")
 list.files(L1_dir)
 herb <- read.csv(file.path(L1_dir, "herbivory/final_herbivory_L1.csv"))
 
+
+
+
+################## Checking data for both KBS and UMBS #####################
 # changing scale of years
 herb$year1<-herb$year
 herb$year[herb$year == 2015] <- 1
@@ -82,13 +86,16 @@ herb_umbs %>% count(state, species)
 herb_kbs_in %>% count(state, species)
 herb_umbs_in %>% count(state, species)
 
-# removing rare species from KBS
+# removing rare species
 herb_kbs <- herb_kbs[!grepl("Hype",herb_kbs$species),]
 herb_kbs_in <- herb_kbs_in[!grepl("Ceor",herb_kbs_in$species),]
 herb_kbs_in <- herb_kbs_in[!grepl("Dagl",herb_kbs_in$species),]
 herb_kbs_in <- herb_kbs_in[!grepl("Pore",herb_kbs_in$species),]
 herb_kbs_in <- herb_kbs_in[!grepl("Trpr",herb_kbs_in$species),]
 
+
+
+###################### KBS distribution check ########################
 # How much of the data is zeros?
 100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #68% - thats a lot! probably have to use a zero-inflated model,
 # but I'll still check for normality & try some transformations below
@@ -96,8 +103,6 @@ herb_kbs_in <- herb_kbs_in[!grepl("Trpr",herb_kbs_in$species),]
 100*sum(herb_kbs_in$p_eaten == 0)/nrow(herb_kbs_in) #70.5%
 100*sum(herb_umbs_in$p_eaten == 0)/nrow(herb_umbs_in) #69.6%
 
-
-####### kbs #########
 ### determining distribution ###
 descdist(herb_kbs$p_eaten, discrete = FALSE)
 # normal distribution?
@@ -142,7 +147,6 @@ shapiro.test(herb_kbs$p_sqrt)
 # quick look at insecticide plots
 hist(herb_kbs_in$p_eaten)
 
-
 # transformations are a no-go
 # mean and var of non-zero counts
 herb_kbs %>%
@@ -155,7 +159,8 @@ herb_kbs_in %>%
 # I'll try zero-inflated negative binomial due to an excess of zeros
 
 
-### zero-inflated negative binomial ###
+
+############### KBS zero-inflated negative binomial - no insecticide ################
 ## models with state and year ##
 # state as a fixed effect
 k.m1 <- zeroinfl(p_eaten ~ state,
@@ -303,7 +308,8 @@ sum(E^2) / (N - p) # a little overdispersed - is that okay?
 emmeans(k.m14, ~ state + species + as.factor(year))
 
 
-## Insecticide plots included
+
+############### KBS zero-inflated negative binomial - insecticide ################
 # zero-inflated negative binomial
 # insecticide as fixed effect
 k.m1.i <- zeroinfl(p_eaten ~ insecticide,
@@ -331,8 +337,7 @@ exp(0.70150 + -0.23501*1) # 1.594388
 
 
 
-####### umbs #########
-### determining distribution ###
+###################### UMBS distribution check ###########################
 # first, checking for normality
 descdist(herb_umbs$p_eaten, discrete = FALSE)
 # normal distribution?
@@ -374,7 +379,6 @@ hist(herb_umbs$p_sqrt)
 qqnorm(herb_umbs$p_sqrt)
 shapiro.test(herb_umbs$p_sqrt)
 
-
 # transformations are a no-go
 # mean and var of non-zero counts
 herb_umbs %>%
@@ -383,7 +387,9 @@ herb_umbs %>%
 # variance is also > mean, so can't be poisson
 # I'll try zero-inflated negative binomial due to an excess of zeros
 
-# zero-inflated negative binomial
+
+
+############### UMBS zero-inflated negative binomial - no insecticide ################
 # state as a fixed effect
 u.m1 <- zeroinfl(p_eaten ~ state,
                  dist = 'negbin',
@@ -517,6 +523,217 @@ sum(E^2) / (N - p) # pretty close to one
 # pairwise comparisons
 emmeans(u.m14, ~ state + species + as.factor(year))
 
+
+
+############### UMBS zero-inflated negative binomial - insecticide ################
+
+
+
+
+################# KBS leaf damage ########################
+# How much of the data is zeros?
+100*sum(herb_kbs$p_damage == 0)/nrow(herb_kbs) #34%
+100*sum(herb_umbs$p_damage == 0)/nrow(herb_umbs) #53%
+100*sum(herb_kbs_in$p_damage == 0)/nrow(herb_kbs_in) #35%
+100*sum(herb_umbs_in$p_damage == 0)/nrow(herb_umbs_in) #57%
+
+### determining distribution ###
+descdist(herb_kbs$p_damage, discrete = FALSE)
+# normal distribution?
+hist(herb_kbs$p_damage)
+qqnorm(herb_kbs$p_damage)
+shapiro.test(herb_kbs$p_damage)
+fit <- lm(p_damage~state, data = herb_kbs)
+qqPlot(fit)
+
+# looking at each treatment separately
+hist(herb_kbs$p_damage[herb_kbs$state == "ambient"])
+hist(herb_kbs$p_damage[herb_kbs$state == "warmed"])
+
+# gamma distribution? - error message "the function mle failed to estimate the parameters"
+#fit.gamma <- fitdist(herb_kbs$p_damage, "gamma")
+#plot(fit.gamma)
+
+# lognormal distribution? - error message "values must be positive to fit a lognormal"
+#fit.ln <- fitdist(herb_kbs$p_damage, "lnorm")
+#plot(fit.ln)
+
+# log transform
+herb_kbs$p_log_damage <- log(herb_kbs$p_damage+1)
+hist(herb_kbs$p_log_damage)
+qqnorm(herb_kbs$p_log_damage)
+shapiro.test(herb_kbs$p_log_damage)
+
+# mean centering p_damage
+herb_kbs$p_scaled_damage <- herb_kbs$p_damage - mean(herb_kbs$p_damage)
+hist(herb_kbs$p_scaled_damage)
+hist(herb_kbs$p_scaled_damage[herb_kbs$state == "ambient"])
+hist(herb_kbs$p_scaled_damage[herb_kbs$state == "warmed"])
+qqnorm(herb_kbs$p_scaled_damage)
+shapiro.test(herb_kbs$p_scaled_damage)
+
+# square root?
+herb_kbs$p_sqrt_damage <- sqrt(herb_kbs$p_damage)
+hist(herb_kbs$p_sqrt_damage)
+qqnorm(herb_kbs$p_sqrt_damage)
+shapiro.test(herb_kbs$p_sqrt_damage)
+
+# quick look at insecticide plots
+hist(herb_kbs_in$p_damage)
+
+# transformations are a no-go
+# mean and var of non-zero counts
+herb_kbs %>%
+        dplyr::filter(p_damage != "0") %>%
+        dplyr::summarize(mean_damage = mean(p_damage, na.rm=T), var_damage = var(p_damage, na.rm=T))
+herb_kbs_in %>%
+        dplyr::filter(p_damage != "0") %>%
+        dplyr::summarize(mean_damage = mean(p_damage, na.rm=T), var_damage = var(p_damage, na.rm=T))
+# variance is also > mean, so can't be poisson
+# I'll try zero-inflated negative binomial due to an excess of zeros
+
+### zero-inflated negative binomial ###
+## models with state and year ##
+# state as a fixed effect
+k.m1.d <- zeroinfl(p_damage ~ state,
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m1.d)
+
+# state and year as fixed effects
+k.m2.d <- zeroinfl(p_damage ~ state + as.factor(year),
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m2.d)
+lrtest(k.m1.d, k.m2.d) # model2
+
+# state and growth habit as fixed effects
+herb_kbs <- within(herb_kbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+k.m3.d <- zeroinfl(p_damage ~ state + growth_habit,
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m3.d)
+lrtest(k.m2.d, k.m3.d) # model 2
+
+# state, growth habit, and year as fixed effects
+k.m4.d <- zeroinfl(p_damage ~ state + growth_habit + as.factor(year),
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m4.d)
+lrtest(k.m2.d, k.m4.d) # model 4
+
+# interaction between state and growth habit as fixed effects
+k.m5.d <- zeroinfl(p_damage ~ state * growth_habit,
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m5.d)
+lrtest(k.m4.d, k.m5.d) # model 4
+
+# interaction between state and growth habit as fixed effects, plus year
+k.m6.d <- zeroinfl(p_damage ~ state * growth_habit + as.factor(year),
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m6.d)
+lrtest(k.m4.d, k.m6.d) # m6
+# calculating effect size of graminoids vs forb herbivory - accounting for log link
+exp(0.470803 + 1.234010*0) # 1.60128
+exp(0.470803 + 1.234010*1) # 5.500357
+# effect of herbivory:
+5.500357 - 1.60128 # 3.899077
+
+# interaction between state, growth habit, and year (year as a factor wouldn't work - non-finite value)
+k.m7.d <- zeroinfl(p_damage ~ state * growth_habit * year,
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m7.d)
+lrtest(k.m4.d, k.m7.d) # model 4
+
+# state and origin as fixed effects
+herb_kbs <- within(herb_kbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+k.m8.d <- zeroinfl(p_damage ~ state + origin,
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m8.d)
+lrtest(k.m4.d, k.m8.d) # model 4
+
+# state, origin, and year as fixed effects
+k.m9.d <- zeroinfl(p_damage ~ state + origin + as.factor(year),
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m9.d)
+lrtest(k.m4.d, k.m9.d) # model 4
+
+# interaction between state and origin as fixed effects
+k.m10.d <- zeroinfl(p_damage ~ state * origin,
+                  dist = 'negbin',
+                  data = herb_kbs)
+summary(k.m10.d)
+lrtest(k.m4.d, k.m10.d) # model 4
+
+# interaction between state and origin as fixed effects, plus year
+k.m11.d <- zeroinfl(p_damage ~ state * origin + as.factor(year),
+                  dist = 'negbin',
+                  data = herb_kbs)
+summary(k.m11.d)
+lrtest(k.m4.d, k.m11.d) # model 11
+exp(0.43056 + 0.37613*0) # 1.538119
+exp(0.43056 + 0.37613*1) # 2.24048
+# effect of herbivory:
+2.24048 - 1.538119 # 0.702361
+
+# interaction between state, origin, and year
+k.m12.d <- zeroinfl(p_damage ~ state * origin * year,
+                  dist = 'negbin',
+                  data = herb_kbs)
+summary(k.m12.d)
+lrtest(k.m11.d,k.m12.d) # model 11
+
+# just origin - testing to see w/o state
+k.m12.2.d <- zeroinfl(p_damage ~ origin,
+                    dist = 'negbin',
+                    data = herb_kbs)
+summary(k.m12.2.d)
+
+# state and species as fixed effects
+k.m13.d <- zeroinfl(p_damage ~ state + species,
+                  dist = 'negbin',
+                  data = herb_kbs)
+summary(k.m13.d)
+lrtest(k.m11.d, k.m13.d) # model 11
+
+# state. species and year as fixed effects
+k.m14.d <- zeroinfl(p_damage ~ state + species + as.factor(year),
+                  dist = 'negbin',
+                  data = herb_kbs)
+summary(k.m14.d)
+lrtest(k.m11.d, k.m14.d) # model 14
+# calculating effect size - accounting for log link
+exp(0.27490 + -0.22879*0) # 1.316399
+exp(0.27490 + -0.22879*1) # 1.04719
+# effect of herbivory:
+1.04719 - 1.316399 # -0.269209
+
+# interaction between state and species as fixed effects, plus year
+k.m15.d <- zeroinfl(p_damage ~ state * species + as.factor(year),
+                  dist = 'negbin',
+                  data = herb_kbs)
+summary(k.m15.d)
+lrtest(k.m14.d, k.m15.d) # model 15 slightly better
+
+# checking models again
+lrtest(k.m2.d, k.m4.d, k.m9.d, k.m14.d) # model 14 best - with species
+res.k <- AIC(k.m1.d, k.m2.d, k.m3.d, k.m4.d, k.m5.d, k.m6.d, k.m7.d, k.m8.d, k.m9.d, k.m10.d, k.m11.d,k.m12.d,k.m13.d,k.m14.d,k.m15.d)
+res.k
+
+
+# check dispersion
+E <- resid(k.m14, type = "pearson")
+N  <- nrow(herb_kbs)
+p  <- length(coef(k.m14)) + 1 # '+1' is due to theta
+sum(E^2) / (N - p) # a little overdispersed - is that okay?
+
+# pairwise comparisons
+emmeans(k.m14, ~ state + species + as.factor(year))
 
 
 
