@@ -95,7 +95,7 @@ herb_kbs_in <- herb_kbs_in[!grepl("Trpr",herb_kbs_in$species),]
 
 
 
-###################### KBS distribution check ########################
+###################### KBS herbivory distribution check ########################
 # How much of the data is zeros?
 100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #68% - thats a lot! probably have to use a zero-inflated model,
 # but I'll still check for normality & try some transformations below
@@ -160,7 +160,7 @@ herb_kbs_in %>%
 
 
 
-############### KBS zero-inflated negative binomial - no insecticide ################
+############### KBS herbivory zero-inflated negative binomial - no insecticide ################
 ## models with state and year ##
 # state as a fixed effect
 k.m1 <- zeroinfl(p_eaten ~ state,
@@ -206,8 +206,8 @@ lrtest(k.m4, k.m6) # virtually the same, keeping model 4 because its simpler
 # calculating effect size of graminoids vs forb herbivory - accounting for log link
 exp(0.470803 + 1.234010*0) # 1.60128
 exp(0.470803 + 1.234010*1) # 5.500357
-# effect of herbivory:
-5.500357 - 1.60128 # 3.899077
+# effect:
+5.500357 - 1.60128 # 3.899077 % more herbivory on graminoids
 
 # interaction between state, growth habit, and year (year as a factor wouldn't work - non-finite value)
 k.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
@@ -246,8 +246,8 @@ summary(k.m11)
 lrtest(k.m4, k.m11) # model 4
 exp(0.43056 + 0.37613*0) # 1.538119
 exp(0.43056 + 0.37613*1) # 2.24048
-# effect of herbivory:
-2.24048 - 1.538119 # 0.702361
+# effect:
+2.24048 - 1.538119 # 0.702361 % more herbivory on exotics
 
 # interaction between state, origin, and year
 k.m12 <- zeroinfl(p_eaten ~ state * origin * year,
@@ -278,8 +278,8 @@ lrtest(k.m4, k.m14) # model 14
 # calculating effect size - accounting for log link
 exp(0.27490 + -0.22879*0) # 1.316399
 exp(0.27490 + -0.22879*1) # 1.04719
-# effect of herbivory:
-1.04719 - 1.316399 # -0.269209
+# effect:
+1.04719 - 1.316399 # -0.269209 % less herbivory on warmed plants (compared to ambient)
 
 # interaction between state and species as fixed effects, plus year
 k.m15 <- zeroinfl(p_eaten ~ state * species + as.factor(year),
@@ -309,7 +309,7 @@ emmeans(k.m14, ~ state + species + as.factor(year))
 
 
 
-############### KBS zero-inflated negative binomial - insecticide ################
+############### KBS herbivory zero-inflated negative binomial - insecticide ################
 # zero-inflated negative binomial
 # insecticide as fixed effect
 k.m1.i <- zeroinfl(p_eaten ~ insecticide,
@@ -331,13 +331,19 @@ summary(k.m3.i)
 # calculating effect size - accounting for log link
 exp(0.70150 + -0.23501*0) # 2.016776
 exp(0.70150 + -0.23501*1) # 1.594388
-# effect of herbivory:
-1.594388 - 2.016776 # -0.422388
+# effect:
+1.594388 - 2.016776 # -0.422388 % less herbivory in insecticide plots
+
+# calculating effect size - accounting for log link
+exp(0.70150 + -0.15813*0) # 2.016776
+exp(0.70150 + -0.15813*1) # 1.7218
+# effect:
+1.7218 - 2.016776 # -0.294976 % less herbivory in warmed plots
 
 
 
 
-###################### UMBS distribution check ###########################
+###################### UMBS herbivory distribution check ###########################
 # first, checking for normality
 descdist(herb_umbs$p_eaten, discrete = FALSE)
 # normal distribution?
@@ -389,7 +395,7 @@ herb_umbs %>%
 
 
 
-############### UMBS zero-inflated negative binomial - no insecticide ################
+############### UMBS herbivory zero-inflated negative binomial - no insecticide ################
 # state as a fixed effect
 u.m1 <- zeroinfl(p_eaten ~ state,
                  dist = 'negbin',
@@ -431,6 +437,11 @@ u.m6 <- zeroinfl(p_eaten ~ state * growth_habit + as.factor(year),
                  data = herb_umbs)
 summary(u.m6)
 lrtest(u.m4, u.m6) # almost the same, going with model 4 because its simpler
+# calculating effect size of graminoids vs forb herbivory - accounting for log link
+exp(-0.270199 + 0.254834*0) # 0.7632276
+exp(-0.270199 + 0.254834*1) # 0.9847524
+# effect:
+0.9847524 - 0.7632276 # 0.22 % more herbivory on graminoids (not very sig. diff.)
 
 # interaction between state, growth habit, and year (year as a factor wouldn't woru - non-finite value)
 u.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
@@ -467,10 +478,10 @@ u.m11 <- zeroinfl(p_eaten ~ state * origin + as.factor(year),
                   data = herb_umbs)
 summary(u.m11)
 lrtest(u.m4, u.m11) # model 4
-exp(-0.26760 + 0.37613*0) # 1.538119
-exp(-0.26760 + 0.37613*1) # 2.24048
-# effect of herbivory:
-2.24048 - 1.538119 # 0.702361
+exp(-0.26760 + -0.02525*0) # 0.7652138
+exp(-0.26760 + -0.02525*1) # 0.7461341
+# effect:
+0.7461341 - 0.7652138 # -0.0190797 % less herbivory on exotics (not sig. diff.)
 
 ## interaction between state, origin, and year - doesn't work
 #u.m12 <- zeroinfl(p_eaten ~ state * origin * as.factor(year),
@@ -494,8 +505,8 @@ lrtest(u.m4, u.m14) # model 14
 # calculating effect size - accounting for log link
 exp(-0.40972 + 0.26343*0) # 0.6638361
 exp(-0.40972 + 0.26343*1) # 0.8639071
-# effect of herbivory:
-0.8639071 - 0.6638361 # 0.200071
+# effect:
+0.8639071 - 0.6638361 # 0.200071 % more herbivory on warmed plants
 
 # interaction between state and species as fixed effects, plus year
 u.m15 <- zeroinfl(p_eaten ~ state * species + as.factor(year),
@@ -525,12 +536,42 @@ emmeans(u.m14, ~ state + species + as.factor(year))
 
 
 
-############### UMBS zero-inflated negative binomial - insecticide ################
+############### UMBS herbivory zero-inflated negative binomial - insecticide ################
+# zero-inflated negative binomial
+# insecticide as fixed effect
+u.m1.i <- zeroinfl(p_eaten ~ insecticide,
+                   dist = 'negbin',
+                   data = herb_umbs_in)
+summary(u.m1.i)
+
+# full model
+u.m2.i <- zeroinfl(p_eaten ~ insecticide + state + species + as.factor (year),
+                   dist = 'negbin',
+                   data = herb_umbs_in)
+summary(u.m2.i)
+
+# full model w/ interaction term
+u.m3.i <- zeroinfl(p_eaten ~ insecticide * state + species + as.factor (year),
+                   dist = 'negbin',
+                   data = herb_umbs_in)
+summary(u.m3.i)
+# calculating effect size - accounting for log link
+exp(-0.008434 + -0.427356*0) # 0.9916015
+exp(-0.008434 + -0.427356*1) # 0.6467535
+# effect:
+0.6467535 - 0.9916015 # -0.344848 % less herbivory in insecticide plots
+
+# calculating effect size - accounting for log link
+exp(-0.008434 + 0.247264*0) # 0.9916015
+exp(-0.008434 + 0.247264*1) # 1.269763
+# effect:
+1.269763 - 0.9916015 # 0.2781615 % more herbivory in warmed plots
 
 
 
 
-################# KBS leaf damage ########################
+
+################# KBS leaf damage distribution check ########################
 # How much of the data is zeros?
 100*sum(herb_kbs$p_damage == 0)/nrow(herb_kbs) #34%
 100*sum(herb_umbs$p_damage == 0)/nrow(herb_umbs) #53%
@@ -592,7 +633,9 @@ herb_kbs_in %>%
 # variance is also > mean, so can't be poisson
 # I'll try zero-inflated negative binomial due to an excess of zeros
 
-### zero-inflated negative binomial ###
+
+
+############### KBS leaf damage zero-inflated negative binomial - no insecticide ############
 ## models with state and year ##
 # state as a fixed effect
 k.m1.d <- zeroinfl(p_damage ~ state,
@@ -724,7 +767,6 @@ lrtest(k.m14.d, k.m15.d) # model 15 slightly better
 lrtest(k.m2.d, k.m4.d, k.m9.d, k.m14.d) # model 14 best - with species
 res.k <- AIC(k.m1.d, k.m2.d, k.m3.d, k.m4.d, k.m5.d, k.m6.d, k.m7.d, k.m8.d, k.m9.d, k.m10.d, k.m11.d,k.m12.d,k.m13.d,k.m14.d,k.m15.d)
 res.k
-
 
 # check dispersion
 E <- resid(k.m14, type = "pearson")

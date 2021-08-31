@@ -8,7 +8,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+# Check .R analyses script for most up-to-date code - this version may be older
 # Load in and prepare data for analyses  
 ```{r, message = F}
 # Clear all existing data
