@@ -1,11 +1,11 @@
 ---
 title: "Plant Comp Plots"
-author: "Kara Dobson"
+author: "Kara Dobson, Moriah"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
 
-COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young  
+COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills 
 DATA INPUT: Clean & plot plant comp csv from the shared Google drive  
 DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
 PROJECT: warmXtrophic 
@@ -156,3 +156,32 @@ comp_plot_habit <- function(loc) {
 comp_plot_habit("kbs")
 comp_plot_habit("umbs")  
 ```
+
+```{r}
+site_df <- data.frame(site = comp$site, plot_id =  comp$plot, species = as.character(comp$species), 
+                      year = comp$year, stringsAsFactors = FALSE )
+
+# set of unique species per plot
+species_sets <- aggregate(species ~ site + plot_id + year, site_df, function(x) unique(x))
+
+# cardinality  of unique species per plot
+species_cardinalities <- aggregate(species ~ site + plot_id + year, site_df, function(x) length(unique(x)))
+
+# smush together 
+species_summary <- merge(species_sets,species_cardinalities, by.x = c("site", "plot_id", "year"),by.y  = c("site", "plot_id", "year"))
+
+# rename the columns 
+names(species_summary) <- c("site", "plot_id", "year", "species_list", "species_cardinality")
+
+View(species_summary)
+
+# The "species_list" column is a list of lists. To get a vector of unique species for all plots for that 
+# whole year do:
+unique(unlist(species_summary$species_list))
+
+# to get just one of those you need to use double brackets, other wise you get a list with one element, 
+# and that element is the list of species. for example to get a vector of species on row four, use
+species_summary[4,]$species_list[[1]]
+
+```
+
