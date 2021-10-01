@@ -46,11 +46,22 @@ change_spp <- function(df){
         df$species[df$species == "Ramu"] <- "Romu"
         df$species[df$species == "Soil"] <- "Bare_Ground"
         df$species[df$species == "Bareground"] <- "Bare_Ground"
+        df$species[df$species == "Evening_Primrose"] <- "Oebi"
+        df$species[df$species == "Lichen"] <- "Ulsp"
+        df$species[df$species == "Hieracium"] <- "Hisp"
+        df$species[df$species == "Solidago"] <- "Sosp"
+        df$species[df$species == "Capedi"] <- "Cape"
+        df$species[df$species == "Moss"] <- "Umsp"
+        df$species[df$species == "Red Maple"] <- "Acru"
+        df$species[df$species == "Bareground_sand"] <- "Bare_Ground"
+        df$species[df$species == "Groundhog_hole_sand"] <- "Groundhog"
+        df$species[df$species == "Surface_Litter"] <- "Litter"
         return(df)
 }
 
 # change site names
 change_site <- function(df){
         df$site[df$site == "kba"] <- "kbs"
+        df$site[df$site == "UMBS"] <- "umbs"
         return(df)
 }

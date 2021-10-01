@@ -62,6 +62,16 @@ comp <- comp[!(comp$species=="Bare_Ground" |
                        comp$species=="Animal_Disturbance"), ]
 ```
 
+I want to count how many unique species are in each plot each year.
+For example, I want this information:
+plot - A1
+total_species - 3
+species - Apan, Acmi, Cest
+year - 2016
+```{r}
+
+```
+
 ```{r}
 # calculating total composition sums - proxy for most common species
 comp_yearly_totals <- comp %>%
