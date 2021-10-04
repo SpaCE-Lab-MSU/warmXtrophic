@@ -53,6 +53,24 @@ comp <- comp[!(comp$species=="Bare_Ground" |
                        comp$species=="Litter" | 
                        comp$species=="Vert_Litter" | 
                        comp$species=="Animal_Disturbance"), ]
+#comp <- na.omit(comp)
+```
+```{r}
+# subset out a date in August (one in late July) for each site to look at biomass w/o repeating measurements
+comp_peak <- subset(comp, date == "2015-08-25" | date == "2015-07-28" | # first date is kbs, second is umbs
+                      date == "2016-08-19" | date == "2016-08-13" |
+                      date == "2017-08-02" | date == "2017-08-10" |
+                      date == "2018-08-23" | date == "2018-08-09" |
+                      date == "2019-08-12" | date == "2019-08-14" |
+                      date == "2020-08-15" | date == "2020-08-04")
+
+# filter data to contain the averages and std error for each site
+comp_peak$species[comp_peak$species == "Litter"] <- NA
+comp_peak$species[comp_peak$species == "Vert_Litter"] <- NA
+sum_comp_site <- comp_peak %>%
+  group_by(site, state, year) %>%
+  summarize(avg_cover = mean(cover, na.rm = TRUE),
+            se = std.error(cover, na.rm = TRUE))
 ```
 
 
@@ -77,7 +95,7 @@ sum_compyear_org <- comp %>%
             se = std.error(cover, na.rm = TRUE))
 sum_compyear_org <- subset(sum_compyear_org, origin == "Exotic" | origin == "Native")
 
-# by plant growth habit (forb, graminoid, shrub)
+# by plant growth habit (forb, graminoid, shrub) - no grouping by year
 sum_comp_habit <- comp %>%
   group_by(site, growth_habit, state) %>%
   summarize(avg_cover = mean(cover, na.rm = TRUE),
