@@ -3,6 +3,8 @@ title: "warmXtrophic Project: Greenup Analyses"
 author: "Kara Dobson, Phoebe Zarnetske"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -53,7 +55,7 @@ rm(list=ls())
 #Load packages
 library(tidyverse)
 library(ggplot2)
-library(lme4)
+library(lmerTest)
 library(olsrr)
 library(predictmeans)
 library(car)
@@ -65,15 +67,15 @@ library(interactions)
 library(sjPlot)
 library(effects)
 library(glmmTMB)
+library(bbmle)
 #install.packages('TMB',type='source')
 
 # Get data
-Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
 L2_dir<-Sys.getenv("L2DIR")
-greenup <- read.csv(file.path(L2_dir, "final_greenup_species_L2.csv"))
+greenup <- read.csv(file.path(L2_dir, "greenup/final_greenup_species_L2.csv"))
 greenup <- greenup %>% select(-X) # get rid of "X" column that shows up
-greenupp <- read.csv(file.path(L2_dir, "final_greenup_plot_L2.csv"))
+greenupp <- read.csv(file.path(L2_dir, "greenup/final_greenup_plot_L2.csv"))
 greenupp <- greenupp %>% select(-X) # get rid of "X" column that shows up
 
 # Set ggplot2 plots to bw: see here for more options: http://www.sthda.com/english/wiki/ggplot2-themes-and-background-colors-the-3-elements
@@ -116,13 +118,8 @@ green_umbsp <- subset(greenupp, site == "umbs")
 # Data Exploration: are there differences between warmed vs. ambient plots when we account for species?
 # *Starting with KBS*
 
-# First, checking for normality in raw data. This is a little weird to do because each row in the dataframe is a species-plot combo, so you're missing the influence of species below. Instead, re-run this on plot-level half cover date (re-compute this in plant_comp_clean_L0.R to get that variable first). It's also not going to tell you about normality once you fit a model to these data - that's when you really need to investigate the residuals.
-# *Note that since this change, some of the code below breaks because the variable name changed. Also, there seem to be some errors popping up with qqPlot, suggesting that something else changed when this new variable was created. Check* 
+# First, checking for normality in raw data. It's not going to tell you about normality once you fit a model to these data - that's when you really need to investigate the residuals.
 ```{r}
-# remove species, origin, duration,growth habit,spp_half_cover_date - again, this should be done in other script preceding this one
-green_kbsp<-subset(green_kbsp,select=c("plot_half_cover_date","min_green_date","plot","year","state","insecticide","site","year_factor"))
-head(green_kbsp)
-
 hist(green_kbsp$plot_half_cover_date)
 qqnorm(green_kbsp$plot_half_cover_date)
 shapiro.test(green_kbsp$plot_half_cover_date)
@@ -171,14 +168,9 @@ kbs_2020 <- subset(green_kbs, year == 6) # records from 227 & 228
 ```{r}
 # checking fit for date as a function of state and species - bringing in species here makes it obvious that that is explaining some of the variation compared with the state-only model you had previously.
 
-# State-only model (not really correct bc species differ)
+# State-only model
 fit<- lm(spp_half_cover_date~state, data = green_kbs)
-outlierTest(fit)
-# record 551 is the largest outlier
-
-# State-only model - not really correct bc species should be included
-fit<- lm(spp_half_cover_date~state, data = green_kbs)
-outlierTest(fit) 
+outlierTest(fit) # no outliers
 qqPlot(fit, main="QQ Plot") 
 hist(fit$residuals)
 leveragePlots(fit)
@@ -260,6 +252,7 @@ plot_model(mod1, type = "re", terms = c("species", "plot"))
 # Do we need to include insecticide? 
 mod3 <- lmer(spp_half_cover_date ~ state*year + (1|species), green_kbs, REML=FALSE)
 anova(mod1, mod3)
+AICctab(mod1, mod3, weights=T)
 # Looks like yes P<0.05, insecticide improves model fit so we will continue to include it and stick with mod1
 
 # Does year need to be interactive with insecticide?
@@ -272,11 +265,12 @@ anova(mod3, mod4)
 # Does year need to be interactive with state?
 mod5 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1|plot), green_kbs, REML=FALSE)
 anova(mod4, mod5)
+AICctab(mod4, mod5, weights=T)
 # No, P>0.05 so state*year doesn't improve model fit so we could drop it and go with mod5, but note that the AIC values are super close. mod4 makes sense, with increased divergence between warmed and ambient.
 summary(mod4)
 anova(mod4)
 
-# these are the fixed effects estimates from summary(mod5)
+# these are the fixed effects estimates from summary(mod4)
 plot_model(mod4, sort.est = TRUE)
 # these are the fixed predicted values:
 plot_model(mod4, type = "pred", terms = c("year", "state", "insecticide"))
@@ -295,8 +289,6 @@ plot_model(mod7, type = "pred", terms = c("year", "state", "insecticide"))
 plot_model(mod7, type = "re", terms = c("species", "plot"))
 
 # mod4 (and mod7) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
-# We're going to use lmerTest for this example so you can see how to run through post-hoc tests.
-library(lmerTest)
 mod8 <- lmer(spp_half_cover_date ~ state + species + (1+year|plot), green_kbs, REML=FALSE)
 anova(mod7, mod8) # model 8 is a better fit to data
 summary(mod8)
@@ -324,23 +316,25 @@ newdat <- expand.grid(state=unique(green_kbs$state),
                   year=c(min(green_kbs$year),
                             max(green_kbs$year)),
                   insecticide=unique(green_kbs$insecticide))
-p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state, shape=insecticide)) +
-  geom_point(size=3) +
-  geom_line(aes(y=predict(mod5), group=species, size="species")) +
-  geom_line(data=newdat, aes(y=predict(mod5, level=0, newdata=newdat), size="Population")) +
-  scale_size_manual(name="Predictions", values=c("species"=0.5, "Population"=3)) +
-  #facet_wrap(~insecticide) +
-  theme_bw(base_size=22) 
+#p <- ggplot(green_kbs, aes(x=year, y=spp_half_cover_date, colour=state, shape=insecticide)) +
+#  geom_point(size=3) +
+#  geom_line(aes(y=predict(mod5), group=species, size="species")) +
+#  geom_line(data=newdat, aes(y=predict(mod5, level=0, newdata=newdat), size="Population")) +
+#  scale_size_manual(name="Predictions", values=c("species"=0.5, "Population"=3)) +
+#  #facet_wrap(~insecticide) +
+#  theme_bw(base_size=22) 
 #print(p)
 
 ```
 
 ```{r}
 # New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
-mod4 <- lmer(spp_half_cover_date ~ state * year + (1+year|species), green_kbs)
+# updated mod4
+mod9 <- lmer(spp_half_cover_date ~ state * year + (1+year|species), green_kbs)
 
 # So another version of this model would include the interaction but not include the nesting (and thus would assume that species aren't observed ea yr)
-mod5 <- lmer(spp_half_cover_date ~ state * year + (1|species), green_kbs)
+# updated mod5
+mod10 <- lmer(spp_half_cover_date ~ state * year + (1|species), green_kbs)
 summary(mod5) 
 ```
 
