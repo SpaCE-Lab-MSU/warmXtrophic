@@ -15,7 +15,7 @@ opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
 # Script Details:
-```{r, message = F, eval=FALSE}
+```{r, message = F, eval=FALSE, echo=F}
 script_tbl <- data.frame(
   Item = c("OVERVIEW", "COLLABORATORS", "REQUIRES", "DATA INPUT", "DATA OUTPUT", "NOTES"),
   Details = c("This script explores and analyses the greenup data from the KBS and UMBS stations. Greenup was recorded as percent cover of each species in each plot every 3 days in the beginning of the field season. Percent cover continued to be measured until the end of the field season. For calculating greenup dates, we use the date at which 50% of a species maximum percent cover was reached for each plot, to account for variation in litter depth affecting the early season's first greenup date.",
@@ -68,6 +68,7 @@ library(sjPlot)
 library(effects)
 library(glmmTMB)
 library(bbmle)
+library(emmeans)
 #install.packages('TMB',type='source')
 
 # Get data
@@ -267,7 +268,7 @@ mod5 <- lmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (1
 anova(mod4, mod5)
 AICctab(mod4, mod5, weights=T)
 # No, P>0.05 so state*year doesn't improve model fit so we could drop it and go with mod5, but note that the AIC values are super close. mod4 makes sense, with increased divergence between warmed and ambient.
-summary(mod4)
+summary(mod5)
 anova(mod4)
 
 # these are the fixed effects estimates from summary(mod4)
@@ -278,31 +279,64 @@ plot_model(mod4, type = "pred", terms = c("year", "state", "insecticide"))
 plot_model(mod4, type = "re", terms = c("species", "plot"))
 
 # If we wanted to include plots nested within year it would look like this:
-mod7 <- lmer(spp_half_cover_date ~ state*year + insecticide + (1|species) + (1+year|plot), green_kbs, REML=FALSE)
-anova(mod4, mod7)
-anova(mod7)
+mod6 <- lmer(spp_half_cover_date ~ state*year + insecticide + (1|species) + (1+year|plot), green_kbs, REML=FALSE)
+anova(mod4, mod6)
+anova(mod6)
 # Yup, seems to matter but it is making this more complex, though not overly so because it's on the random effects structure only.
-plot_model(mod7, sort.est = TRUE)
+plot_model(mod6, sort.est = TRUE)
 # these are the fixed predicted values:
-plot_model(mod7, type = "pred", terms = c("year", "state", "insecticide"))
+plot_model(mod6, type = "pred", terms = c("year", "state", "insecticide"))
 # these are the random effects estimates
-plot_model(mod7, type = "re", terms = c("species", "plot"))
+plot_model(mod6, type = "re", terms = c("species", "plot"))
 
-# mod4 (and mod7) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
-mod8 <- lmer(spp_half_cover_date ~ state + species + (1+year|plot), green_kbs, REML=FALSE)
-anova(mod7, mod8) # model 8 is a better fit to data
-summary(mod8)
-anova(mod8) # investigates whether at least one of the levels within each factor is significantly different. 
+# mod4 (and mod6) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+mod7 <- lmer(spp_half_cover_date ~ state + species + (1+year|plot), green_kbs, REML=FALSE)
+mod7a <- lmer(spp_half_cover_date ~ state + species + year + (1|plot), green_kbs, REML=FALSE)
+anova(mod6, mod7) # model 7 is a better fit to data
+anova(mod7, mod7a) #mod 7a?
+summary(mod7)
+summary(mod7a)
+anova(mod7a) # investigates whether at least one of the levels within each factor is significantly different. 
 # Yes, at least one of the species is different (they do not all have the same half cover dates). 
 
 # Take a look at the estimates for each fixed effect. These are the estimates from summary(mod8). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
-plot_model(mod8, sort.est = TRUE)
+plot_model(mod7, sort.est = TRUE)
 # if you want to standardize the estimates:
-plot_model(mod8, sort.est = TRUE, type="std") 
+plot_model(mod7, sort.est = TRUE, type="std") 
 # these are the fixed predicted values: - note this is a new plot
-plot_model(mod8, type = "pred", terms = c("species", "state"))
+plot_model(mod7, type = "pred", terms = c("species", "state"))
 # these are the random effects estimates
-plot_model(mod8, type = "re")
+plot_model(mod7, type = "re")
+
+
+# including native vs. exotic - first with interaction term
+green_kbs <- within(green_kbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+mod8 <- lmer(spp_half_cover_date ~ state * origin + (1+year|plot), green_kbs, REML=FALSE)
+summary(mod8)
+anova(mod8)
+
+# including native vs. exotic - first with interaction term
+mod9 <- lmer(spp_half_cover_date ~ state + origin + (1+year|plot), green_kbs, REML=FALSE)
+mod9a <- lmer(spp_half_cover_date ~ state + origin + year + (1|plot), green_kbs, REML=FALSE)
+anova(mod8, mod9) # model 9 is a better fit to data
+anova(mod9, mod9a) # mod 9a?
+summary(mod9a)
+anova(mod9)
+
+
+# including growth form - first with interaction term
+green_kbs <- within(green_kbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+mod10 <- lmer(spp_half_cover_date ~ state * growth_habit + (1+year|plot), green_kbs, REML=FALSE)
+summary(mod10)
+anova(mod10)
+
+# including native vs. exotic - first with interaction term
+mod11 <- lmer(spp_half_cover_date ~ state + growth_habit + (1+year|plot), green_kbs, REML=FALSE)
+mod11a <- lmer(spp_half_cover_date ~ state + growth_habit + year + (1|plot), green_kbs, REML=FALSE)
+anova(mod10, mod11) # model 11 is a better fit to data
+anova(mod11, mod11a)
+summary(mod11a)
+anova(mod11)
 
 # You could now run some post hoc tests on these (see: https://stats.stackexchange.com/questions/169543/output-of-fixed-effects-summary-in-lmertest-in-r-and-post-hoc-tests)
 
@@ -330,12 +364,11 @@ newdat <- expand.grid(state=unique(green_kbs$state),
 ```{r}
 # New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
 # updated mod4
-mod9 <- lmer(spp_half_cover_date ~ state * year + (1+year|species), green_kbs)
+mod12 <- lmer(spp_half_cover_date ~ state * year + (1+year|species), green_kbs)
 
 # So another version of this model would include the interaction but not include the nesting (and thus would assume that species aren't observed ea yr)
 # updated mod5
-mod10 <- lmer(spp_half_cover_date ~ state * year + (1|species), green_kbs)
-summary(mod5) 
+mod13 <- lmer(spp_half_cover_date ~ state * year + (1|species), green_kbs)
 ```
 
 # *ORIGINAL CODE BELOW; not edited by Phoebe* ##

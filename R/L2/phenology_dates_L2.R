@@ -10,7 +10,7 @@
 #                 "final_sd_species_L2.csv" = minimum Julian date of seed set by species,
 #                 "final_sd_plot_L2.csv" = minimum Julian date of seed set by plot
 # PROJECT:        warmXtrophic
-# DATE:           March 2021; modified July 9, 2021
+# DATE:           March 2021; modified July 9, 2021; modified Oct. 5 2021
 # NOTE:           We decided to add in L2 portion of "phenology_clean_L1.R" into this script
 #                 to organize by metric: (1) Julian Date Calculation, (2) Duration of days of each
 #                 event, (3) Julian Date of 50% (cover for greenup, obs for flower & seed)
@@ -21,9 +21,9 @@ rm(list=ls())
 #Load packages
 library(tidyverse)
 
-# Source in needed functions from the github repo
+# Source in needed functions from the github repo - could add this to Renviron?
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R")
-#source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
+source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R")
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 #source("~/Documents/GitHub/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
