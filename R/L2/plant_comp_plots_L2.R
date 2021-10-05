@@ -1,4 +1,4 @@
-# TITLE:          Plant comp plots
+# TITLE:          Plant Composition Plots
 # AUTHORS:        Kara Dobson
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Moriah Young
 # DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder
@@ -27,15 +27,14 @@ taxon <- read.csv(file.path(L0_dir,"taxon.csv"))
 str(comp)
 
 # remove uneeded X column and species
-# comp$X <- NULL
+comp$X <- NULL
 comp$species[comp$species == "Bare_Ground"] <- NA
 comp$species[comp$species == "Brown"] <- NA
 comp$species[comp$species == "Litter"] <- NA
 comp$species[comp$species == "Vert_Litter"] <- NA
-comp <- na.omit(comp)
+#comp <- na.omit(comp)
 
-# getting relative % cover for comparisons between native & exotic #
-# average sub-quadrats for plots
+# getting relative % cover for comparisons between native & exotic average sub-quadrats for plots
 comp_org <- subset(comp, origin == "Exotic" | origin == "Native")
 quad.mn <- aggregate(cover ~ plot*origin*species*year*site, data=comp_org, FUN=mean, na.rm=T)
 names(quad.mn)[names(quad.mn)=="cover"]<-"quad.mn"

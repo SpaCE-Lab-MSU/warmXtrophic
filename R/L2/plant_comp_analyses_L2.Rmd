@@ -11,6 +11,8 @@ library(knitr)
 opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
 ```
 
+Main questions (for now): how does plant composition differ between native & exotic species over time? In general, how does relative % cover change over time btwn each treatment?
+
 # Load in packages & data
 ```{r, message = F}
 # Clear all existing data
@@ -31,9 +33,12 @@ library(interactions)
 library(sjPlot)
 library(effects)
 library(glmmTMB)
+library(labdsv) # used with Vegan package, the matrify() and matrify2() functions
+library(agricolae) # HSD.test() function
 
 # Set working directory
 Sys.getenv("L1DIR")
+L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
 list.files(L1_dir)
@@ -41,6 +46,9 @@ list.files(L1_dir)
 # read in plant comp data
 comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
 comp <- comp %>% select(-X) # get rid of "X" column that shows up
+
+# read in meta data
+meta <- read.csv(file.path(L0_dir, "plot.csv"))
 ```
 
 
@@ -53,7 +61,7 @@ comp$year_factor[comp$year == 2018] <- 4
 comp$year_factor[comp$year == 2019] <- 5
 comp$year_factor[comp$year == 2020] <- 6
 
-# Remove non-plant data - MY: not sure if I should remove these?
+# Remove non-plant data
 comp <- comp[!(comp$species=="Bare_Ground" | 
                        comp$species=="Unknown" | 
                        comp$species=="Brown" | 
@@ -62,38 +70,97 @@ comp <- comp[!(comp$species=="Bare_Ground" |
                        comp$species=="Animal_Disturbance"), ]
 ```
 
-I want to count how many unique species are in each plot each year.
-For example, I want this information:
-plot - A1
-total_species - 3
-species - Apan, Acmi, Cest
-year - 2016
+Setting up dataframe for diversity indices
 ```{r}
+# Getting data in wide format to work in Vegan package
 
+# attempt 1
+comp1 <- comp %>%
+        select(plot, species, cover, year, site)
+comp1$concatenated <- paste(comp1$site, ".", comp1$plot, ".", comp1$year)
+comp1 <- comp1 %>% 
+        select(concatenated, species, cover)
+comp1_wide <- matrify(comp1)
+
+
+# attempt 2
+#comp1 <- comp %>% 
+#        select(plot, species, cover, year, site)
+#
+#comp_kbs <- subset(comp1, site == "kbs")
+#comp_kbs <- comp_kbs %>% 
+#        select(plot, species, cover, year)
+#
+#comp_umbs <- subset(comp1, site == "umbs")
+#comp_umbs <- comp_umbs %>% 
+#        select(plot, species, cover, year)
+#
+## https://stackoverflow.com/questions/50691393/transform-community-data-into-wide-format-for-vegan-package
+#matrify2 <-  function(data) { 
+#   #Data must have columns: plot, SPEC, abundance measure,Year 
+#   if (ncol(data) != 4) 
+#       stop("data frame must have four column format")
+#   plt <- factor(data[, 1]) 
+#   spc <- factor(data[, 2])
+#   abu <- data[, 3]
+#   yrs <- factor(data[, 4])
+#   plt.codes <- sort(levels(factor(plt)))##object with sorted plot numbers
+#   spc.codes <- levels(factor(spc))##object with sorted SPEC names
+#   yrs.codes <- sort(levels(factor(yrs)))##object with sorted sampling Years
+#   taxa <- matrix(0, nrow = length(plt.codes)*length(yrs.codes), ncol = length(spc.codes))##Create empty matrix with #proper dimensions (unique(plotxYear) by # of SPEC)
+#   plt.list <- rep(plt.codes,length(yrs.codes))##Create a list of all the plot numbers (in order of input data) to add #as an ID column at end of function
+#   yrs.list <- rep(yrs.codes,each=length(plt.codes))##Create a list of all the Year numbers (in order of input data) to #add as an ID column at end of function
+#   col <- match(spc, spc.codes)##object that determines the alphabetical order ranking of each SPEC in the spc.code #list
+#   row.plt <- match(plt, plt.codes)##object that determines the rank order ranking of each plot of the input data in #the plt.code list
+#   row.yrs <- match(yrs,yrs.codes)##object that determines the rank order ranking of each Year of the input data in the #yrs.code list
+#   for (i in 1:length(abu)) {
+#       row <- (row.plt[i])+length(plt.codes)*(row.yrs[i]-1)##Determine row number by assuming each row represents a #specific plot & year in an object of rep(plot,each=Year)
+#       if(!is.na(abu[i])) {##ONly use value if !is.na .. [ignore all is.NA values]
+#         taxa[row, col[i]] <- sum(taxa[row, col[i]], abu[i])##Add abundance measure of row i to the proper SPEC column #and plot/Year row. Sum across all identical individuals.
+#       }
+#   }
+#   taxa <- data.frame(taxa)##Convert to data.frame for easier manipulation
+#   taxa <- cbind(plt.list,yrs.list,taxa)##Add ID columns for plot and Year to each row already representing the #abundance of Each SPEC of that given plot/Year.
+#   names(taxa) <- c('Plot','Year',spc.codes)
+#   taxa
+#}
+#
+#comp_wide_kbs <- matrify2(comp_kbs)
+#comp_wide_umbs <- matrify2(comp_umbs)
 ```
 
+Calculating Diversity Indices
+```{r}
+# species richness
+sppr <- specnumber(comp1_wide)
+
+sppr_aov <- aov(sppr ~ state, data = meta)
+summary(sppr_aov)
+```
+
+Calculating Absolute Abundance
 ```{r}
 # calculating total composition sums - proxy for most common species
 comp_yearly_totals <- comp %>%
-        group_by(species, site, year, plot) %>%
+        group_by(site, year, plot, species) %>%
         summarize(comp_sum = sum(cover, na.rm = T))
+
 ```
-Relative abundance
+Calculating Relative Abundance
 ```{r}
-# Calculating relative abundance
 comp1 <- comp %>% 
-        select(species, site, year, plot, cover, state)
+        select(species, site, year, plot, cover, state, insecticide, growth_habit, origin)
 # calculate plot cover mean by species-plot per year
-plot_mean <- aggregate(cover ~ plot*species*year*site*state, data = comp1, FUN = mean, na.rm = T)
+plot_mean <- aggregate(cover ~ plot*species*year*site*state*insecticide*growth_habit*origin, data = comp1, FUN = mean, na.rm = T)
 names(plot_mean)[names(plot_mean) == "cover"] <- "plot_mean" # change "cover" column name to "plot_mean"
 View(plot_mean)
 
 # convert cover to relative abundance 
 # first get summed cover for all plants per plot
-plot_cover_total = aggregate(plot_mean ~ plot*year*site*state, data = plot_mean, FUN = sum, na.rm = T)
+plot_cover_total = aggregate(plot_mean ~ plot*year*site*state*insecticide*growth_habit*origin, data = plot_mean, FUN = sum, na.rm = T)
 names(plot_cover_total)[names(plot_cover_total) == "plot_mean"] <- "plot_cover_total"
 View(plot_cover_total)
-comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year","site", "state"))
+comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year","site", "state", "insecticide", "growth_habit", "origin"))
 
 #calculate relative percent cover per species in each quadrat (="relative abundance")
 comp2$relabun <- comp2$plot_mean/comp2$plot_cover_total
