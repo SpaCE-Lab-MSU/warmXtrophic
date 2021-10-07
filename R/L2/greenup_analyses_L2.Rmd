@@ -15,7 +15,7 @@ opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
 # Script Details:
-```{r, message = F, eval=FALSE, echo=F}
+```{r, message = F, eval=FALSE}
 script_tbl <- data.frame(
   Item = c("OVERVIEW", "COLLABORATORS", "REQUIRES", "DATA INPUT", "DATA OUTPUT", "NOTES"),
   Details = c("This script explores and analyses the greenup data from the KBS and UMBS stations. Greenup was recorded as percent cover of each species in each plot every 3 days in the beginning of the field season. Percent cover continued to be measured until the end of the field season. For calculating greenup dates, we use the date at which 50% of a species maximum percent cover was reached for each plot, to account for variation in litter depth affecting the early season's first greenup date.",
@@ -322,7 +322,7 @@ anova(mod8, mod9) # model 9 is a better fit to data
 anova(mod9, mod9a) # mod 9a?
 summary(mod9a)
 anova(mod9)
-
+emmeans(mod9a, ~state + origin)
 
 # including growth form - first with interaction term
 green_kbs <- within(green_kbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
