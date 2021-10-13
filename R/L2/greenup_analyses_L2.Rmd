@@ -184,7 +184,7 @@ qqPlot(fit1, main="QQ Plot")
 leveragePlots(fit1)
 
 fit1a <- lm(min_green_date~state + species, data = green_kbs)
-outlierTest(fit1a) # no outliers
+outlierTest(fit1a) # record 473 is an outlier, could probably ignore since we aren't using min date as a response variable
 hist(fit1a$residuals)
 qqPlot(fit1a, main="QQ Plot") 
 leveragePlots(fit1a)
@@ -291,22 +291,29 @@ plot_model(mod6, type = "re", terms = c("species", "plot"))
 
 # mod4 (and mod6) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
 mod7 <- lmer(spp_half_cover_date ~ state + species + (1+year|plot), green_kbs, REML=FALSE)
-mod7a <- lmer(spp_half_cover_date ~ state + species + year + (1|plot), green_kbs, REML=FALSE)
+mod7a <- lmer(spp_half_cover_date ~ state + species + as.factor(year) + (1|plot), green_kbs, REML=FALSE)
+mod7b <- lmer(spp_half_cover_date ~ state * as.factor(year) + species + (1|plot), green_kbs, REML=FALSE)
+mod7c <- lmer(spp_half_cover_date ~ state + species + as.factor(year) + insecticide + (1|plot), green_kbs, REML=FALSE)
 anova(mod6, mod7) # model 7 is a better fit to data
-anova(mod7, mod7a) #mod 7a?
-summary(mod7)
+anova(mod7, mod7a) #mod 7a
+anova(mod7a, mod7b) #mod 7a
+anova(mod7a, mod7c) #mod 7a slightly better
 summary(mod7a)
+summary(mod7b)
+summary(mod7c)
 anova(mod7a) # investigates whether at least one of the levels within each factor is significantly different. 
 # Yes, at least one of the species is different (they do not all have the same half cover dates). 
+emmeans(mod7a, list(pairwise ~ as.factor(year)), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
 
-# Take a look at the estimates for each fixed effect. These are the estimates from summary(mod8). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
-plot_model(mod7, sort.est = TRUE)
+# Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
+plot_model(mod7a, sort.est = TRUE)
 # if you want to standardize the estimates:
-plot_model(mod7, sort.est = TRUE, type="std") 
+plot_model(mod7a, sort.est = TRUE, type="std") 
 # these are the fixed predicted values: - note this is a new plot
-plot_model(mod7, type = "pred", terms = c("species", "state"))
+plot_model(mod7a, type = "pred", terms = c("species", "state", "year"))
 # these are the random effects estimates
-plot_model(mod7, type = "re")
+plot_model(mod7a, type = "re")
 
 
 # including native vs. exotic - first with interaction term
@@ -316,27 +323,28 @@ summary(mod8)
 anova(mod8)
 
 # including native vs. exotic - first with interaction term
-mod9 <- lmer(spp_half_cover_date ~ state + origin + (1+year|plot), green_kbs, REML=FALSE)
-mod9a <- lmer(spp_half_cover_date ~ state + origin + year + (1|plot), green_kbs, REML=FALSE)
+mod9 <- lmer(spp_half_cover_date ~ state + origin + (1+as.factor(year)|plot), green_kbs, REML=FALSE)
+mod9a <- lmer(spp_half_cover_date ~ state + origin + as.factor(year) + (1|plot), green_kbs, REML=FALSE)
 anova(mod8, mod9) # model 9 is a better fit to data
 anova(mod9, mod9a) # mod 9a?
 summary(mod9a)
 anova(mod9)
-emmeans(mod9a, ~state + origin)
+emmeans(mod9a, list(pairwise ~ state + origin), adjust = "tukey")
 
 # including growth form - first with interaction term
 green_kbs <- within(green_kbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
-mod10 <- lmer(spp_half_cover_date ~ state * growth_habit + (1+year|plot), green_kbs, REML=FALSE)
+mod10 <- lmer(spp_half_cover_date ~ state * growth_habit + (1+as.factor(year)|plot), green_kbs, REML=FALSE)
 summary(mod10)
 anova(mod10)
 
 # including native vs. exotic - first with interaction term
-mod11 <- lmer(spp_half_cover_date ~ state + growth_habit + (1+year|plot), green_kbs, REML=FALSE)
-mod11a <- lmer(spp_half_cover_date ~ state + growth_habit + year + (1|plot), green_kbs, REML=FALSE)
+mod11 <- lmer(spp_half_cover_date ~ state + growth_habit + (1+as.factor(year)|plot), green_kbs, REML=FALSE)
+mod11a <- lmer(spp_half_cover_date ~ state + growth_habit + as.factor(year) + (1|plot), green_kbs, REML=FALSE)
 anova(mod10, mod11) # model 11 is a better fit to data
 anova(mod11, mod11a)
 summary(mod11a)
 anova(mod11)
+emmeans(mod11a, list(pairwise ~ state + growth_habit), adjust = "tukey")
 
 # You could now run some post hoc tests on these (see: https://stats.stackexchange.com/questions/169543/output-of-fixed-effects-summary-in-lmertest-in-r-and-post-hoc-tests)
 
@@ -371,6 +379,56 @@ mod12 <- lmer(spp_half_cover_date ~ state * year + (1+year|species), green_kbs)
 mod13 <- lmer(spp_half_cover_date ~ state * year + (1|species), green_kbs)
 ```
 
+# UMBS
+```{r}
+# umod4 (and umod6) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative umodel that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+umod7 <- lmer(spp_half_cover_date ~ state + species + (1+year|plot), green_umbs, REML=FALSE)
+umod7a <- lmer(spp_half_cover_date ~ state + species + as.factor(year) + (1|plot), green_umbs, REML=FALSE)
+umod7b <- lmer(spp_half_cover_date ~ state * as.factor(year) + species + (1|plot), green_umbs, REML=FALSE)
+umod7c <- lmer(spp_half_cover_date ~ state + species + as.factor(year) + insecticide + (1|plot), green_umbs, REML=FALSE)
+#anova(umod6, umod7) # umodel 7 is a better fit to data
+anova(umod7, umod7a) #umod 7a
+anova(umod7a, umod7b) #umod 7a
+anova(umod7a, umod7c) #umod 7a
+summary(umod7a)
+summary(umod7b)
+summary(umod7c)
+anova(umod7a) # investigates whether at least one of the levels within each factor is significantly different. 
+# Yes, at least one of the species is different (they do not all have the same half cover dates). 
+emmeans(umod7a, list(pairwise ~ as.factor(year)), adjust = "tukey")
+emmeans(umod7a, list(pairwise ~ species), adjust = "tukey")
+
+
+# including native vs. exotic - first with interaction term
+green_umbs <- within(green_umbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+umod8 <- lmer(spp_half_cover_date ~ state * origin + (1+year|plot), green_umbs, REML=FALSE)
+summary(umod8)
+anova(umod8)
+
+# including native vs. exotic - first with interaction term
+umod9 <- lmer(spp_half_cover_date ~ state + origin + (1+as.factor(year)|plot), green_umbs, REML=FALSE)
+umod9a <- lmer(spp_half_cover_date ~ state + origin + as.factor(year) + (1|plot), green_umbs, REML=FALSE)
+anova(umod8, umod9) # umodel 9 is a better fit to data
+anova(umod9, umod9a) # umod 9a?
+summary(umod9a)
+anova(umod9)
+emmeans(umod9a, list(pairwise ~ state + origin), adjust = "tukey")
+
+# including growth form - first with interaction term
+green_umbs <- within(green_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+umod10 <- lmer(spp_half_cover_date ~ state * growth_habit + (1+year|plot), green_umbs, REML=FALSE)
+summary(umod10)
+anova(umod10)
+
+# including native vs. exotic - first with interaction term
+umod11 <- lmer(spp_half_cover_date ~ state + growth_habit + (1+as.factor(year)|plot), green_umbs, REML=FALSE)
+umod11a <- lmer(spp_half_cover_date ~ state + growth_habit + as.factor(year) + (1|plot), green_umbs, REML=FALSE)
+anova(umod10, umod11) # umodel 11 is a better fit to data
+anova(umod11, umod11a)
+summary(umod11a)
+anova(umod11)
+emmeans(umod11a, list(pairwise ~ state + growth_habit), adjust = "tukey")
+```
 # *ORIGINAL CODE BELOW; not edited by Phoebe* ##
 
 # Seeing what other distribution could fit
