@@ -11,8 +11,6 @@ library(knitr)
 opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
 ```
 
-Main questions (for now): how does plant composition differ between native & exotic species over time? In general, how does relative % cover change over time btwn each treatment?
-
 # Load in packages & data
 ```{r, message = F}
 # Clear all existing data
@@ -75,58 +73,67 @@ Setting up dataframe for diversity indices
 # Getting data in wide format to work in Vegan package
 
 # attempt 1
-comp1 <- comp %>%
-        select(plot, species, cover, year, site)
-comp1$concatenated <- paste(comp1$site, ".", comp1$plot, ".", comp1$year)
-comp1 <- comp1 %>% 
-        select(concatenated, species, cover)
-comp1_wide <- matrify(comp1)
+# comp1 <- comp %>%
+#         select(plot, species, cover, year, site)
+# comp1$concatenated <- paste(comp1$site, ".", comp1$plot, ".", comp1$year)
+# comp1 <- comp1 %>% 
+#         select(concatenated, species, cover)
+# comp1_wide <- matrify(comp1)
 
 
 # attempt 2
-#comp1 <- comp %>% 
-#        select(plot, species, cover, year, site)
-#
-#comp_kbs <- subset(comp1, site == "kbs")
-#comp_kbs <- comp_kbs %>% 
-#        select(plot, species, cover, year)
-#
-#comp_umbs <- subset(comp1, site == "umbs")
-#comp_umbs <- comp_umbs %>% 
-#        select(plot, species, cover, year)
-#
-## https://stackoverflow.com/questions/50691393/transform-community-data-into-wide-format-for-vegan-package
-#matrify2 <-  function(data) { 
-#   #Data must have columns: plot, SPEC, abundance measure,Year 
-#   if (ncol(data) != 4) 
-#       stop("data frame must have four column format")
-#   plt <- factor(data[, 1]) 
-#   spc <- factor(data[, 2])
-#   abu <- data[, 3]
-#   yrs <- factor(data[, 4])
-#   plt.codes <- sort(levels(factor(plt)))##object with sorted plot numbers
-#   spc.codes <- levels(factor(spc))##object with sorted SPEC names
-#   yrs.codes <- sort(levels(factor(yrs)))##object with sorted sampling Years
-#   taxa <- matrix(0, nrow = length(plt.codes)*length(yrs.codes), ncol = length(spc.codes))##Create empty matrix with #proper dimensions (unique(plotxYear) by # of SPEC)
-#   plt.list <- rep(plt.codes,length(yrs.codes))##Create a list of all the plot numbers (in order of input data) to add #as an ID column at end of function
-#   yrs.list <- rep(yrs.codes,each=length(plt.codes))##Create a list of all the Year numbers (in order of input data) to #add as an ID column at end of function
-#   col <- match(spc, spc.codes)##object that determines the alphabetical order ranking of each SPEC in the spc.code #list
-#   row.plt <- match(plt, plt.codes)##object that determines the rank order ranking of each plot of the input data in #the plt.code list
-#   row.yrs <- match(yrs,yrs.codes)##object that determines the rank order ranking of each Year of the input data in the #yrs.code list
-#   for (i in 1:length(abu)) {
-#       row <- (row.plt[i])+length(plt.codes)*(row.yrs[i]-1)##Determine row number by assuming each row represents a #specific plot & year in an object of rep(plot,each=Year)
-#       if(!is.na(abu[i])) {##ONly use value if !is.na .. [ignore all is.NA values]
-#         taxa[row, col[i]] <- sum(taxa[row, col[i]], abu[i])##Add abundance measure of row i to the proper SPEC column #and plot/Year row. Sum across all identical individuals.
-#       }
-#   }
-#   taxa <- data.frame(taxa)##Convert to data.frame for easier manipulation
-#   taxa <- cbind(plt.list,yrs.list,taxa)##Add ID columns for plot and Year to each row already representing the #abundance of Each SPEC of that given plot/Year.
-#   names(taxa) <- c('Plot','Year',spc.codes)
-#   taxa
-#}
-#
-#comp_wide_kbs <- matrify2(comp_kbs)
-#comp_wide_umbs <- matrify2(comp_umbs)
+comp1 <- comp %>% 
+        select(plot, species, cover, year, site)
+
+comp_kbs <- subset(comp1, site == "kbs")
+comp_kbs <- comp_kbs %>% 
+        select(plot, species, cover, year)
+
+comp_umbs <- subset(comp1, site == "umbs")
+comp_umbs <- comp_umbs %>% 
+        select(plot, species, cover, year)
+
+# https://stackoverflow.com/questions/50691393/transform-community-data-into-wide-format-for-vegan-package
+matrify2 <-  function(data) { 
+   #Data must have columns: plot, SPEC, abundance measure,Year 
+   if (ncol(data) != 4) 
+       stop("data frame must have four column format")
+   plt <- factor(data[, 1]) 
+   spc <- factor(data[, 2])
+   abu <- data[, 3]
+   yrs <- factor(data[, 4])
+   plt.codes <- sort(levels(factor(plt)))##object with sorted plot numbers
+   spc.codes <- levels(factor(spc))##object with sorted SPEC names
+   yrs.codes <- sort(levels(factor(yrs)))##object with sorted sampling Years
+   taxa <- matrix(0, nrow = length(plt.codes)*length(yrs.codes), ncol = length(spc.codes))##Create empty matrix with proper dimensions (unique(plotxYear) by # of SPEC)
+   plt.list <- rep(plt.codes,length(yrs.codes))##Create a list of all the plot numbers (in order of input data) to add as an ID column at end of function
+   yrs.list <- rep(yrs.codes,each=length(plt.codes))##Create a list of all the Year numbers (in order of input data) to add as an ID column at end of function
+   col <- match(spc, spc.codes)##object that determines the alphabetical order ranking of each SPEC in the spc.code list
+   row.plt <- match(plt, plt.codes)##object that determines the rank order ranking of each plot of the input data in the plt.code list
+   row.yrs <- match(yrs,yrs.codes)##object that determines the rank order ranking of each Year of the input data in he #yrs.code list
+   for (i in 1:length(abu)) {
+       row <- (row.plt[i])+length(plt.codes)*(row.yrs[i]-1)##Determine row number by assuming each row represents a specific plot & year in an object of rep(plot,each=Year)
+       if(!is.na(abu[i])) {##ONly use value if !is.na .. [ignore all is.NA values]
+         taxa[row, col[i]] <- sum(taxa[row, col[i]], abu[i])##Add abundance measure of row i to the proper SPEC column and plot/Year row. Sum across all identical individuals.
+       }
+   }
+   taxa <- data.frame(taxa)##Convert to data.frame for easier manipulation
+   taxa <- cbind(plt.list,yrs.list,taxa)##Add ID columns for plot and Year to each row already representing the abundance of Each SPEC of that given plot/Year.
+   names(taxa) <- c('Plot','Year',spc.codes)
+   taxa
+}
+
+comp_wide_kbs <- matrify2(comp_kbs)
+comp_wide_umbs <- matrify2(comp_umbs)
+```
+
+```{r}
+# https://rfunctions.blogspot.com/2016/08/comparing-and-estimating-species.html
+
+# rarefired species richness
+#rarecurve(comp2$species)
+
+#specpool(comp2)
 ```
 
 Calculating Diversity Indices
@@ -141,27 +148,30 @@ summary(sppr_aov)
 Calculating Absolute Abundance
 ```{r}
 # calculating total composition sums - proxy for most common species
-comp_yearly_totals <- comp %>%
-        group_by(site, year, plot, species) %>%
-        summarize(comp_sum = sum(cover, na.rm = T))
+# comp_yearly_totals <- comp %>%
+#         group_by(site, year, plot, species) %>%
+#         summarize(comp_sum = sum(cover, na.rm = T))
+
+ comp1 <- comp %>% 
+        select(species, site, year_factor, plot, cover, state, insecticide, growth_habit, origin)
+
+ # calculate plot cover mean by species-plot per year
+plot_mean <- aggregate(cover ~ plot*species*year_factor*site*state*insecticide*growth_habit*origin, data = comp1, FUN = mean, na.rm = T)
+names(plot_mean)[names(plot_mean) == "cover"] <- "plot_mean" # change "cover" column name to "plot_mean"
+View(plot_mean)
+
+# first get summed cover for all plants per plot
+plot_cover_total = aggregate(plot_mean ~ plot*year_factor*site*state*insecticide*growth_habit*origin, data = plot_mean, FUN = sum, na.rm = T)
+names(plot_cover_total)[names(plot_cover_total) == "plot_mean"] <- "plot_cover_total"
+View(plot_cover_total)
+comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year_factor","site", "state", "insecticide", "growth_habit", "origin"))
+
+#calculate absolute percent cover per species in each quadrat (="relative abundance")
+comp2$absolute <- comp2$plot_mean/100
 
 ```
 Calculating Relative Abundance
 ```{r}
-comp1 <- comp %>% 
-        select(species, site, year, plot, cover, state, insecticide, growth_habit, origin)
-# calculate plot cover mean by species-plot per year
-plot_mean <- aggregate(cover ~ plot*species*year*site*state*insecticide*growth_habit*origin, data = comp1, FUN = mean, na.rm = T)
-names(plot_mean)[names(plot_mean) == "cover"] <- "plot_mean" # change "cover" column name to "plot_mean"
-View(plot_mean)
-
-# convert cover to relative abundance 
-# first get summed cover for all plants per plot
-plot_cover_total = aggregate(plot_mean ~ plot*year*site*state*insecticide*growth_habit*origin, data = plot_mean, FUN = sum, na.rm = T)
-names(plot_cover_total)[names(plot_cover_total) == "plot_mean"] <- "plot_cover_total"
-View(plot_cover_total)
-comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year","site", "state", "insecticide", "growth_habit", "origin"))
-
 #calculate relative percent cover per species in each quadrat (="relative abundance")
 comp2$relabun <- comp2$plot_mean/comp2$plot_cover_total
 summary(comp2)
@@ -171,43 +181,7 @@ comp_kbs <- subset(comp2, site == "kbs")
 comp_umbs <- subset(comp2, site == "umbs")
 ```
 
-
-Relative Abundance for comparisons between native and exotic species
-```{r}
-# getting relative % cover for comparisons between native & exotic 
-# most code from Kileigh's old script
-# average sub-quadrats for plots - MY: what are sub quadrats? Just plots?
-comp_org <- subset(comp, origin == "Exotic" | origin == "Native")
-plot_mean_org <- aggregate(cover ~ plot*origin*species*year*site*state, data = comp_org, FUN = mean, na.rm = T)
-names(plot_mean_org)[names(plot_mean_org)=="cover"]<-"plot_mean_org"
-head(plot_mean_org)
-
-# convert cover to relative abundance 
-# first get summed cover for all plants per plot
-cover_sum = aggregate(plot_mean_org ~ plot*origin*year*site*state, data = plot_mean_org, FUN = sum, na.rm = T)
-names(cover_sum)[names(cover_sum) == "plot_mean_org"] <- "cover_sum"
-head(cover_sum)
-comp2 <- merge(plot_mean_org, cover_sum, by = c("plot","origin","year","site", "state"))
-
-#calculate relative percent cover per species in each quadrat (="relative abundance")
-comp2$relabun <- comp2$plot_mean_org/comp2$cover_sum
-summary(comp2)
-
-# create dataframes for kbs and umbs - remember that these contain species within plots
-comp_org_kbs <- subset(comp2, site == "kbs")
-comp_org_umbs <- subset(comp2, site == "umbs")
-```
-
-```{r}
-# https://rfunctions.blogspot.com/2016/08/comparing-and-estimating-species.html
-
-# rarefired species richness
-#rarecurve(comp2$species)
-
-#specpool(comp2)
-```
-
-
+KBS relative abundance data analyses 
 ```{r}
 # checking for normality in raw data
 hist(log(comp_kbs$relabun))
@@ -218,4 +192,25 @@ hist(comp_kbs$relabun[comp_kbs$state == "ambient"])
 hist(comp_kbs$relabun[comp_kbs$state == "warmed"])
 ```
 
+```{r}
+# Assumption checking
+m1 <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), data = comp_kbs, REML=FALSE)
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+plot(m1, main = "Relative Abundance")
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m1) ~ comp_kbs$state)
+# Assumption met
+leveneTest(residuals(m1) ~ comp_kbs$year_factor)
+# Assumption not met
+leveneTest(residuals(m1) ~ comp_kbs$insecticide)
+# Assumption met
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(m1), main = "Relative Abundance")
+hist(residuals(m1), main = "Relative Abundance")
+shapiro.test(resid(m1)) # Not normal
+```
 
