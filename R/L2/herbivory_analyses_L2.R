@@ -189,6 +189,11 @@ k.m4 <- zeroinfl(p_eaten ~ state + growth_habit + as.factor(year),
                  data = herb_kbs)
 summary(k.m4)
 lrtest(k.m2, k.m4) # model 4
+# calculating effect size of graminoids vs forb herbivory - accounting for log link
+exp(0.49467 + 1.00010*0) # 1.639957
+exp(0.49467 + 1.00010*1) # 4.458311
+# effect:
+4.458311 - 1.639957 # 2.818354 % more herbivory on graminoids
 
 # interaction between state and growth habit as fixed effects
 k.m5 <- zeroinfl(p_eaten ~ state * growth_habit,
@@ -202,12 +207,7 @@ k.m6 <- zeroinfl(p_eaten ~ state * growth_habit + as.factor(year),
                  dist = 'negbin',
                  data = herb_kbs)
 summary(k.m6)
-lrtest(k.m4, k.m6) # virtually the same, keeping model 4 because its simpler
-# calculating effect size of graminoids vs forb herbivory - accounting for log link
-exp(0.470803 + 1.234010*0) # 1.60128
-exp(0.470803 + 1.234010*1) # 5.500357
-# effect:
-5.500357 - 1.60128 # 3.899077 % more herbivory on graminoids
+lrtest(k.m4, k.m6)
 
 # interaction between state, growth habit, and year (year as a factor wouldn't work - non-finite value)
 k.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
@@ -230,6 +230,10 @@ k.m9 <- zeroinfl(p_eaten ~ state + origin + as.factor(year),
                  data = herb_kbs)
 summary(k.m9)
 lrtest(k.m4, k.m9) # model 4
+exp(0.45619 + 0.30246*0) # 1.57805
+exp(0.45619 + 0.30246*1) # 2.135391
+# effect:
+2.135391 - 1.57805 # 0.557341 % more herbivory on exotics
 
 # interaction between state and origin as fixed effects
 k.m10 <- zeroinfl(p_eaten ~ state * origin,
@@ -244,10 +248,6 @@ k.m11 <- zeroinfl(p_eaten ~ state * origin + as.factor(year),
                   data = herb_kbs)
 summary(k.m11)
 lrtest(k.m4, k.m11) # model 4
-exp(0.43056 + 0.37613*0) # 1.538119
-exp(0.43056 + 0.37613*1) # 2.24048
-# effect:
-2.24048 - 1.538119 # 0.702361 % more herbivory on exotics
 
 # interaction between state, origin, and year
 k.m12 <- zeroinfl(p_eaten ~ state * origin * year,
@@ -318,16 +318,18 @@ k.m1.i <- zeroinfl(p_eaten ~ insecticide,
 summary(k.m1.i)
 
 # full model
-k.m2.i <- zeroinfl(p_eaten ~ insecticide + state + species + as.factor (year),
+k.m2.i <- zeroinfl(p_eaten ~ insecticide + state + species + as.factor(year),
                    dist = 'negbin',
                    data = herb_kbs_in)
 summary(k.m2.i)
+lrtest(k.m1.i, k.m2.i)
 
 # full model w/ interaction term
-k.m3.i <- zeroinfl(p_eaten ~ insecticide * state + species + as.factor (year),
+k.m3.i <- zeroinfl(p_eaten ~ insecticide * state + species + as.factor(year),
                    dist = 'negbin',
                    data = herb_kbs_in)
 summary(k.m3.i)
+lrtest(k.m2.i, k.m3.i)
 # calculating effect size - accounting for log link
 exp(0.70150 + -0.23501*0) # 2.016776
 exp(0.70150 + -0.23501*1) # 1.594388
@@ -340,7 +342,29 @@ exp(0.70150 + -0.15813*1) # 1.7218
 # effect:
 1.7218 - 2.016776 # -0.294976 % less herbivory in warmed plots
 
+# growth forms
+herb_kbs_in <- within(herb_kbs_in, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+k.m4.i <- zeroinfl(p_eaten ~ insecticide * state + growth_habit + as.factor(year),
+                   dist = 'negbin',
+                   data = herb_kbs_in)
+summary(k.m4.i)
+# calculating effect size - accounting for log link
+exp(0.62279 + 0.91339*0) # 1.864122
+exp(0.62279 + 0.91339*1) # 4.646806
+# effect:
+4.646806 - 1.864122 # 2.782684 % more herbivory for graminoids
 
+# origin comparisons
+herb_kbs_in <- within(herb_kbs_in, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+k.m5.i <- zeroinfl(p_eaten ~ insecticide * state + origin + as.factor(year),
+                   dist = 'negbin',
+                   data = herb_kbs_in)
+summary(k.m5.i)
+# calculating effect size - accounting for log link
+exp(0.54184 +  0.33766*0) # 1.719167
+exp(0.54184 +  0.33766*1) # 2.409695
+# effect:
+2.409695 - 1.719167 # 0.690528 % more herbivory for exotics
 
 
 ###################### UMBS herbivory distribution check ###########################
@@ -423,6 +447,11 @@ u.m4 <- zeroinfl(p_eaten ~ state + growth_habit + as.factor(year),
                  data = herb_umbs)
 summary(u.m4)
 lrtest(u.m2, u.m4) # model 4
+# calculating effect size of graminoids vs forb herbivory - accounting for log link
+exp(-0.27115 + 0.26020*0) # 0.7625021
+exp(-0.27115 + 0.26020*1) # 0.9891097
+# effect:
+0.9891097 - 0.7625021 # 0.2266076 % more herbivory on graminoids
 
 # interaction between state and growth habit as fixed effects
 u.m5 <- zeroinfl(p_eaten ~ state * growth_habit,
@@ -437,11 +466,6 @@ u.m6 <- zeroinfl(p_eaten ~ state * growth_habit + as.factor(year),
                  data = herb_umbs)
 summary(u.m6)
 lrtest(u.m4, u.m6) # almost the same, going with model 4 because its simpler
-# calculating effect size of graminoids vs forb herbivory - accounting for log link
-exp(-0.270199 + 0.254834*0) # 0.7632276
-exp(-0.270199 + 0.254834*1) # 0.9847524
-# effect:
-0.9847524 - 0.7632276 # 0.22 % more herbivory on graminoids (not very sig. diff.)
 
 # interaction between state, growth habit, and year (year as a factor wouldn't woru - non-finite value)
 u.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
@@ -478,10 +502,6 @@ u.m11 <- zeroinfl(p_eaten ~ state * origin + as.factor(year),
                   data = herb_umbs)
 summary(u.m11)
 lrtest(u.m4, u.m11) # model 4
-exp(-0.26760 + -0.02525*0) # 0.7652138
-exp(-0.26760 + -0.02525*1) # 0.7461341
-# effect:
-0.7461341 - 0.7652138 # -0.0190797 % less herbivory on exotics (not sig. diff.)
 
 ## interaction between state, origin, and year - doesn't work
 #u.m12 <- zeroinfl(p_eaten ~ state * origin * as.factor(year),
@@ -549,12 +569,14 @@ u.m2.i <- zeroinfl(p_eaten ~ insecticide + state + species + as.factor (year),
                    dist = 'negbin',
                    data = herb_umbs_in)
 summary(u.m2.i)
+lrtest(u.m1.i, u.m2.i)
 
 # full model w/ interaction term
 u.m3.i <- zeroinfl(p_eaten ~ insecticide * state + species + as.factor (year),
                    dist = 'negbin',
                    data = herb_umbs_in)
 summary(u.m3.i)
+lrtest(u.m2.i, u.m3.i) #m2 and m3 about the same - going with m3 to match the KBS model
 # calculating effect size - accounting for log link
 exp(-0.008434 + -0.427356*0) # 0.9916015
 exp(-0.008434 + -0.427356*1) # 0.6467535
@@ -567,7 +589,29 @@ exp(-0.008434 + 0.247264*1) # 1.269763
 # effect:
 1.269763 - 0.9916015 # 0.2781615 % more herbivory in warmed plots
 
+# growth forms
+herb_umbs_in <- within(herb_umbs_in, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+u.m4.i <- zeroinfl(p_eaten ~ insecticide * state + growth_habit + as.factor(year),
+                   dist = 'negbin',
+                   data = herb_umbs_in)
+summary(u.m4.i)
+# calculating effect size - accounting for log link
+exp(0.047394 + 0.475327*0) # 1.048535
+exp(0.047394 + 0.475327*1) # 4.646806
+# effect:
+4.646806 - 1.048535 # 3.598271 % more herbivory for graminoids
 
+# origin comparisons
+herb_umbs_in <- within(herb_umbs_in, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+u.m5.i <- zeroinfl(p_eaten ~ insecticide * state + origin + as.factor(year),
+                   dist = 'negbin',
+                   data = herb_umbs_in)
+summary(u.m5.i)
+# calculating effect size - accounting for log link
+exp(0.54184 +  0.33766*0) # 1.719167
+exp(0.54184 +  0.33766*1) # 2.409695
+# effect:
+2.409695 - 1.719167 # 0.690528 % more herbivory for exotics
 
 
 
