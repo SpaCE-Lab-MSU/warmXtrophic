@@ -35,6 +35,11 @@ Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
 list.files(L1_dir)
 herb <- read.csv(file.path(L1_dir, "herbivory/final_herbivory_L1.csv"))
+str(herb)
+
+# classifying p_eaten_bins column as a character
+herb$p_eaten_bins <- as.factor(herb$p_eaten_bins)
+str(herb)
 
 
 
@@ -146,6 +151,7 @@ shapiro.test(herb_kbs$p_sqrt)
 
 # quick look at insecticide plots
 hist(herb_kbs_in$p_eaten)
+
 
 # transformations are a no-go
 # mean and var of non-zero counts
@@ -306,6 +312,19 @@ sum(E^2) / (N - p) # a little overdispersed - is that okay?
 
 # pairwise comparisons
 emmeans(k.m14, ~ state + species + as.factor(year))
+
+
+# models with binned data - https://stats.idre.ucla.edu/r/dae/ordinal-logistic-regression/
+# ordinal logistic regression
+# state. species and year as fixed effects
+k.m16 <- polr(p_eaten_bins ~ state + species + as.factor(year), data = herb_kbs, Hess=TRUE)
+summary(k.m16)
+# to get p-values - check this, is it right?
+(ctable <- coef(summary(k.m16)))
+# calculate and store p values
+p <- pnorm(abs(ctable[, "t value"]), lower.tail = FALSE) * 2
+# combined table
+(ctable <- cbind(ctable, "p value" = p))
 
 
 

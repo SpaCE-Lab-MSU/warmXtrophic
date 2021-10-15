@@ -112,5 +112,13 @@ herb2$common_name <- NULL
 # fix column name
 colnames(herb2)[which(names(herb2) == "site.y")] <- "site"
 
+# adding column to re-classify different bins of herbivory levels
+herb3 <- data.frame(herb2)
+herb3$p_eaten_bins <- "no_damage"
+herb3$p_eaten_bins[herb3$p_eaten >= 1] = "level1"
+herb3$p_eaten_bins[herb3$p_eaten >= 11] = "level2"
+herb3$p_eaten_bins[herb3$p_eaten >= 50] = "level3"
+str(herb3)
+
 # Upload clean csv to google drive
-write.csv(herb2, file.path(L1_dir,"herbivory/final_herbivory_L1.csv"), row.names=F)
+write.csv(herb3, file.path(L1_dir,"herbivory/final_herbivory_L1.csv"), row.names=F)
