@@ -183,6 +183,13 @@ hist(fit1$residuals)
 qqPlot(fit1, main="QQ Plot") 
 leveragePlots(fit1)
 
+# State and species model 
+fit1umbs <- lm(spp_half_cover_date~state + species, data = green_umbs)
+outlierTest(fit1umbs) # no outliers
+hist(fit1umbs$residuals)
+qqPlot(fit1umbs, main="QQ Plot") 
+leveragePlots(fit1umbs)
+
 fit1a <- lm(min_green_date~state + species, data = green_kbs)
 outlierTest(fit1a) # record 473 is an outlier, could probably ignore since we aren't using min date as a response variable
 hist(fit1a$residuals)
