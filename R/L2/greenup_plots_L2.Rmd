@@ -34,9 +34,14 @@ L2_dir<-Sys.getenv("L2DIR")
 # Read in data
 gr_plot <- read.csv(file.path(L2_dir, "greenup/final_greenup_plot_L2.csv"))
 gr_species <- read.csv(file.path(L2_dir, "greenup/final_greenup_species_L2.csv"))
+gr_growth <- read.csv(file.path(L2_dir, "greenup/final_greenup_growthhabit_L2.csv"))
+gr_origin <- read.csv(file.path(L2_dir, "greenup/final_greenup_origin_L2.csv"))
 
 # remove uneeded X column
 gr_species$X <- NULL
+gr_plot$X <- NULL
+gr_growth$X <- NULL
+gr_origin$X <- NULL
 
 # filter data to contain the averages and std error for each site & species
 sum_green_spp <- gr_species %>%
@@ -71,7 +76,7 @@ sum_green_habit <- gr_species %>%
 sum_green_habit <- subset(sum_green_habit, growth_habit == "Forb" | growth_habit == "Graminoid" | growth_habit == "Shrub")
 ```
 
-## Bar plot for greenup for KBS and UMBS - Half cover date
+## Bar plot for greenup for KBS and UMBS - Species half cover date
 ```{r, echo = F}
 greenup_plot_all <- function(loc) { 
   greenup_spp <- subset(sum_green_site, site == loc)
@@ -90,7 +95,7 @@ greenup_plot_all("kbs")
 greenup_plot_all("umbs")
 ```
 
-## Box plot for greenup for KBS and UMBS - Half cover date
+## Box plot for greenup for KBS and UMBS - Species half cover date
 ```{r, echo = F}
 greenup_plot_box <- function(loc) { 
   greenup_spp <- subset(gr_species, site == loc)
@@ -106,7 +111,23 @@ greenup_plot_box("kbs")
 greenup_plot_box("umbs")
 ```
 
-## Bar plot for greenup for KBS and UMBS - Min cover date
+## Box plot for greenup for KBS and UMBS - Plot half cover date
+```{r, echo = F}
+greenup_plot_boxp <- function(loc) { 
+  greenup_plot <- subset(gr_plot, site == loc)
+  return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date, fill = state)) +
+           facet_grid(.~year) +
+           geom_boxplot(color = "black") +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+greenup_plot_boxp("kbs")
+greenup_plot_boxp("umbs")
+```
+
+## Bar plot for greenup for KBS and UMBS - Species min cover date
 ```{r, echo = F}
 greenup_plot_all <- function(loc) { 
   greenup_spp <- subset(sum_green_site_min, site == loc)
@@ -124,7 +145,7 @@ greenup_plot_all("kbs")
 greenup_plot_all("umbs")
 ```
 
-## Box plot for greenup for KBS and UMBS - Min cover date
+## Box plot for greenup for KBS and UMBS - Species min cover date
 ```{r, echo = F}
 greenup_plot_box <- function(loc) { 
   greenup_spp <- subset(gr_species, site == loc)
@@ -140,7 +161,7 @@ greenup_plot_box("kbs")
 greenup_plot_box("umbs")
 ```
 
-## Plot for warmed vs ambient greenup between native and exotic
+## Plot for warmed vs ambient greenup between native and exotic - Species half cover date
 ```{r, echo = F}
 greenup_plot_org <- function(loc) { 
   greenup_spp <- subset(sum_green_org, site == loc)
@@ -159,7 +180,24 @@ greenup_plot_org("kbs")
 greenup_plot_org("umbs")     
 ```
 
-## Plot for warmed vs ambient greenup between growth types (forb, graminoid, shrub)
+## Plot for warmed vs ambient greenup between native and exotic - Plot half cover date
+```{r, echo = F}
+greenup_plot_org2 <- function(loc) { 
+  greenup_plot <- subset(gr_origin, site == loc)
+  return(ggplot(greenup_plot, aes(x = origin, y = origin_half_cover_date, fill = state)) +
+           #facet_grid(.~year) +
+           geom_boxplot(color = "black") +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+
+greenup_plot_org2("kbs")
+greenup_plot_org2("umbs")     
+```
+
+## Plot for warmed vs ambient greenup between growth types - Species half cover date
 ```{r, echo = F}
 greenup_plot_habit <- function(loc) { 
   greenup_spp <- subset(sum_green_habit, site == loc)
@@ -178,7 +216,24 @@ greenup_plot_habit("kbs")
 greenup_plot_habit("umbs")  
 ```
 
-## Greenup plot for a given site and species
+## Plot for warmed vs ambient greenup between growth types - Plot half cover date
+```{r, echo = F}
+greenup_plot_habit2 <- function(loc) { 
+  greenup_plot <- subset(gr_growth, site == loc)
+  return(ggplot(greenup_plot, aes(x = growth_habit, y = habit_half_cover_date, fill = state)) +
+           #facet_grid(.~year) +
+           geom_boxplot(color = "black") +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+
+greenup_plot_habit2("kbs")
+greenup_plot_habit2("umbs")     
+```
+
+## Greenup plot for a given site and species - half cover date
 ### Ex: Soca at KBS, Cest at UMBS
 ```{r, echo = F}
 greenup_plot <- function(spp, loc) { 
