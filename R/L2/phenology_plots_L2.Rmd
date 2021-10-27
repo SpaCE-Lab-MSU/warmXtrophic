@@ -38,6 +38,18 @@ phen_data <- phen_data %>%
         select(-X) # get rid of "X" column that shows up
 View(phen_data) # take a look at the data to see if looks good
 
+# Read in data
+flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv"))
+flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
+
+sd_species <- read.csv(file.path(L2_dir, "phenology/final_sd_species_L2.csv"))
+sd_plot <- read.csv(file.path(L2_dir, "phenology/final_sd_plot_L2.csv"))
+
+
+# remove unneeded X column
+flwr_species$X <- NULL # get rid of "X" column that shows up
+flwr_plot$X <- NULL # get rid of "X" column that shows up
+
 # Set ggplot2 plotting
 # This code for ggplot2 sets the theme to mostly black and white 
 # (Arial font, and large font, base size=24)
@@ -45,69 +57,51 @@ theme_set(theme_bw(14))
 theme_update(axis.text.x = element_text(size = 12, angle = 90),
              axis.text.y = element_text(size = 12))
 
-# Create separate data frames for flowering and seeding
-phen_flwr <- subset(phen_data, action == "flower")
-phen_sd <- subset(phen_data, action == "seed")
+# FLOWERING
+# filter the data to contain the mean and std error for julian date of each site & species
+sum_firstflwr_spp <- flwr_species %>%
+  group_by(site, state, species, year) %>%
+  summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+            se = std.error(julian_min, na.rm = TRUE))
 
-# This creates a data frame that returns the first date of flower for every species and plot
-# Filter data to contain the date of first occurrence for each species
-FirstFlower_all <- phen_flwr %>%
-        group_by(plot, year, species, state, site, action, origin) %>%
-        summarize(julian = min(julian, na.rm=T))
-
-# This creates a data frame that returns the mean julian date of first flower by site, state, species and year      
-sum_FirstFlower <- FirstFlower_all %>%
-        group_by(site, state, species, year) %>%
-        summarize(avg_julian = mean(julian, na.rm = TRUE),
-                  se = std.error(julian, na.rm = TRUE))
-
-# This gives the average julian day of first flower for all species for each site and year for warmed and ambient
-sum_FirstFlwr_state <- FirstFlower_all %>%
-        group_by(site, state, year) %>%
-        summarize(avg_julian = mean(julian, na.rm = TRUE),
-                  se = std.error(julian, na.rm = TRUE)) 
+# filter data to contain the averages and std error for each site
+sum_firstflwr_site <- flwr_species %>%
+  group_by(site, state, year) %>%
+  summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+            se = std.error(julian_min, na.rm = TRUE))
 
 # Native vs Exotic
-sum_flwr_org <- FirstFlower_all %>%
+sum_firstflwr_org <- flwr_species %>%
         group_by(site, origin, state, year) %>%
-        summarize(avg_julian = mean(julian, na.rm = TRUE),
-                  se = std.error(julian, na.rm = TRUE))
-sum_flwr_org <- subset(sum_flwr_org, origin == "Exotic" | origin == "Native")
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE))
+sum_flwr_org <- subset(sum_firstflwr_org, origin == "Exotic" | origin == "Native")
 
-# Flower duration
-flwr_duration <- phen_flwr %>% 
-        group_by(site, plot, species, year, state, action, origin) %>%
-        summarise(flwr_duration = max(julian) - min(julian)) 
-
-sum_flwrduration_state <- flwr_duration %>% 
+# filter data to contain the averages and std error for flower duration at each site
+sum_flwrduration_state <- flwr_species %>% 
         group_by(site, state, action, year) %>% 
         summarise(mean_duration = mean(flwr_duration),
                   se = std.error(flwr_duration, na.rm = TRUE))
 
-# This creates a data frame that returns the first date of seed for every species and plot
-# Filter data to contain the date of first occurrence for each species
-FirstSeed_all <- phen_sd %>%
-        group_by(plot, year, species, state, site, action) %>%
-        summarize(julian = min(julian, na.rm=T))
-
-# This creates a data frame that returns the mean julian date of first seed by site, state, species and year        
-sum_FirstSeed <- FirstSeed_all %>%
+# SEED SET
+# filter date to contain mean julian date of first seed by site and species     
+sum_firstsd_spp <- sd_species %>%
         group_by(site, state, species, year) %>%
-        summarize(avg_julian = mean(julian, na.rm = TRUE),
-                  se = std.error(julian, na.rm = TRUE))
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE))
 
-# This gives the average julian day of first flower for all species for each site and year for warmed and ambient
-sum_FirstSeed_state <- FirstSeed_all %>%
+# filter date to contain mean julian date of first seed by site
+sum_firstsd_site <- sd_species %>%
         group_by(site, state, year) %>%
-        summarize(avg_julian = mean(julian, na.rm = TRUE),
-                  se = std.error(julian, na.rm = TRUE)) 
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE)) 
 ```
 
 # Plots to Visualize Flowering
-## This creates a plot for a given species and site and for every year
+## Given species and site and for every year plot
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
-FirstFlower_plot <- function(spp, loc) { 
-        FirstFlower_spp <- subset(sum_FirstFlower, species == spp & site == loc)
+FirstFlwr_plot <- function(spp, loc) { 
+        FirstFlower_spp <- subset(sum_firstflwr_spp, species == spp & site == loc)
         return(ggplot(FirstFlower_spp, aes(x = state, y = avg_julian, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
@@ -119,14 +113,14 @@ FirstFlower_plot <- function(spp, loc) {
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
 
-FirstFlower_plot("Popr", "umbs")
-FirstFlower_plot("Popr", "kbs")
+FirstFlwr_plot("Popr", "umbs")
+FirstFlwr_plot("Popr", "kbs")
 ```
 
-## Plots for a given site and year for average first date of flower comparing ambient vs warmed plots
+## Bar plot for a given site and year for average first date of flower comparing ambient vs warmed plots
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 sum_FirstFlwr_plot <- function(loc) { 
-        FirstFlwr_sub <- subset(sum_FirstFlwr_state, site == loc)
+        FirstFlwr_sub <- subset(sum_firstflwr_site, site == loc)
         return(ggplot(FirstFlwr_sub, aes(x = state, y = avg_julian, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
@@ -141,7 +135,33 @@ sum_FirstFlwr_plot <- function(loc) {
 
 sum_FirstFlwr_plot("kbs")
 sum_FirstFlwr_plot("umbs")
+
+# Create a plot where both kbs and umbs are on the same image
+all_firstflwr_u <- sum_FirstFlwr_plot("umbs")
+all_firstflwr_k <- sum_FirstFlwr_plot("kbs")
+
+final_firstflwr_all <- ggarrange(all_firstflwr_u, all_firstflwr_k, nrow = 2, legend = "none")
+annotate_figure(final_firstflwr_all,
+                left = text_grob("Julian Day of First Flower", color = "black", rot = 90),
+                bottom = text_grob("State", color = "black"))
 ```
+
+Boxplot
+```{r}
+sum_FirstFlwr_boxp <- function(loc) { 
+        FirstFlwr_sub <- subset(flwr_plot, site == loc)
+        return(ggplot(flwr_plot, aes(x = state, y = julian_median, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_boxplot(color = "black") +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
+}
+
+sum_FirstFlwr_boxp("kbs")
+sum_FirstFlwr_boxp("umbs")
+```
+
 
 ## Flowering Duration
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
@@ -162,6 +182,23 @@ sum_FlwrDurState_plot <- function(loc) {
 sum_FlwrDurState_plot("kbs")
 sum_FlwrDurState_plot("umbs")
 ```
+# Duration Boxplot
+```{r}
+sum_duration_boxp <- function(loc) { 
+        duration <- subset(sum_flwrduration_state, site == loc)
+        return(ggplot(sum_flwrduration_state, aes(x = state, y = mean_duration, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_boxplot(color = "black") +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
+}
+
+sum_duration_boxp("kbs")
+sum_duration_boxp("umbs")
+```
+
+
 ```{r, echo=FALSE}
 flwr_org_plot <- function(loc) { 
         flwr_spp <- subset(sum_flwr_org, site == loc)
@@ -180,12 +217,28 @@ flwr_org_plot <- function(loc) {
 flwr_org_plot("kbs")
 flwr_org_plot("umbs")
 ```
+# Boxplot
+```{r}
+sum_org_boxp <- function(loc) { 
+        duration <- subset(sum_flwr_org, site == loc)
+        return(ggplot(sum_flwr_org, aes(x = origin, y = avg_julian, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_boxplot(color = "black") +
+           labs(x = "State", y = "Average Julian Day of First Flower", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
+}
+
+sum_org_boxp("kbs")
+sum_org_boxp("umbs")
+```
+
 
 # Plots to Visualize Seed Set
 # Plots for a given species and site and it's mean julian day of first seed for every year of data collection
 ```{r, echo=FALSE}
 FirstSeed_plot <- function(spp, loc) { 
-        FirstSeed_spp <- subset(sum_FirstSeed, species == spp & site == loc)
+        FirstSeed_spp <- subset(sum_firstsd_spp, species == spp & site == loc)
         return(ggplot(FirstSeed_spp, aes(x = state, y = avg_julian, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
@@ -204,7 +257,7 @@ FirstSeed_plot("Popr", "kbs")
 ## Plots for a given site and year for average first date of seed comparing ambient vs warmed plots
 ```{r, echo=FALSE}
 sum_FirstSeed_plot <- function(loc) { 
-        FirstSeed_sub <- subset(sum_FirstSeed_state, site == loc)
+        FirstSeed_sub <- subset(sum_firstflwr_site, site == loc)
         return(ggplot(FirstSeed_sub, aes(x = state, y = avg_julian, fill = state)) +
                        facet_grid(.~year) +
                        geom_bar(position = "identity", stat = "identity") +
@@ -212,7 +265,7 @@ sum_FirstSeed_plot <- function(loc) {
                                      position = "identity") +
                        labs(x = "State", y = "Julian Date", title = "Average Julian Date of First Seed", 
                             subtitle = loc) +
-                       coord_cartesian(ylim = c(150, 250)) +
+                       coord_cartesian(ylim = c(150, 210)) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
 }
@@ -221,4 +274,22 @@ sum_FirstSeed_plot("kbs")
 sum_FirstSeed_plot("umbs")
 
 ```
+
+# Boxplot
+```{r}
+sum_sd_boxp <- function(loc) { 
+        duration <- subset(sum_firstsd_site, site == loc)
+        return(ggplot(sum_flwr_org, aes(x = origin, y = avg_julian, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_boxplot(color = "black") +
+           labs(x = "State", y = "Julian Day of Greenup", title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")))
+}
+
+sum_org_boxp("kbs")
+sum_org_boxp("umbs")
+```
+
+
 

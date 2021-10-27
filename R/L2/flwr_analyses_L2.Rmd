@@ -79,7 +79,7 @@ levels(flwr_plot$state)
 # [1] "warmed"  "ambient"
 ```
 
-# Data exploration for median Julian date of flowering at the PLOT LEVEL
+# Data exploration for minimum (first) Julian date of flowering at the PLOT LEVEL
 ```{r}
 # Visualizing avg minimum Julian date for both sites at the PLOT LEVEL
 ggplot(flwr_plot, aes(julian_min, fill = plot)) + 
@@ -158,11 +158,12 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 
 # Centering and transforming data
 ```{r, eval=F}
-umbs_flwr_plot$log_julian_median <- log(umbs_flwr_plot$julian_median)
-umbs_flwr_plot$log_julianMedian_centered = umbs_flwr_plot$log_julian_median - mean(umbs_flwr_plot$log_julian_median)
-hist(umbs_flwr_plot$log_julianMedian_centered)
+umbs_flwr_plot$log_julian_min <- log(umbs_flwr_plot$julian_min)
+umbs_flwr_plot$log_julianMin_centered = umbs_flwr_plot$log_julian_min - mean(umbs_flwr_plot$log_julian_min)
+hist(umbs_flwr_plot$log_julianMin_centered)
 ```
 
+# Date of first flower (min_julian)
 # Determining appropriate distribution in mixed effects model
 ```{r}
 # See Ben Bolker's site for details on fitting glmms: https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
@@ -208,7 +209,12 @@ plot(log(julian_min) ~ state, data = umbs_flwr_plot)
 
 # Fit models
 ```{r}
+m1 <- lmer(log(julian_min) ~ state + year + insecticide + (1|plot), data = umbs_flwr_plot, REML=FALSE)
 summary(m1)
+m2 <- lmer(log(julian_min) ~ state*year + insecticide*year + (1|plot), data = umbs_flwr_plot, REML=FALSE)
+m3 <- lmer(log(julian_min) ~ state + year * insecticide + (1|plot), data = umbs_flwr_plot, REML=FALSE)
+m4 <- lmer(log(julian_min) ~ state * year + insecticide + (1|plot), data = umbs_flwr_plot, REML=FALSE)
+m5 <- lmer(log(julian_min) ~ state * year + insecticide + (1|plot), data = umbs_flwr_plot, REML=FALSE)
 ```
 
 # Compare models
