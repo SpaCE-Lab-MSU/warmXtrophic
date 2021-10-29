@@ -112,13 +112,24 @@ herb2$common_name <- NULL
 # fix column name
 colnames(herb2)[which(names(herb2) == "site.y")] <- "site"
 
+# removing rows that have NAs - p_eaten and p_damage have the same NAs
+herb2 <- herb2 %>%
+        drop_na(p_eaten)
+
 # adding column to re-classify different bins of herbivory levels
 herb3 <- data.frame(herb2)
-herb3$p_eaten_bins <- "no_damage"
+herb3$p_eaten_bins <- "level0"
 herb3$p_eaten_bins[herb3$p_eaten >= 1] = "level1"
 herb3$p_eaten_bins[herb3$p_eaten >= 11] = "level2"
 herb3$p_eaten_bins[herb3$p_eaten >= 50] = "level3"
 str(herb3)
+
+# adding a column for p_eaten with equal bins
+# this doesn't work - the data has so many 0's it can't equally make >1 bin
+#library(Hmisc)
+#herb3$p_eaten_bins2 <- as.numeric(cut_number(herb3$p_eaten,4))
+#herb3 %>%
+#        count(p_eaten_bins2)
 
 # Upload clean csv to google drive
 write.csv(herb3, file.path(L1_dir,"herbivory/final_herbivory_L1.csv"), row.names=F)
