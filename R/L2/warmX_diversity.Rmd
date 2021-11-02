@@ -1,0 +1,225 @@
+---
+title: "warmXtrophic Project: Plant Community Composition Data Analyses"
+author: "Moriah Young, Pat Bills"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Load in packages & data
+```{r, message = F}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(olsrr)
+library(predictmeans)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(rstatix)
+library(vegan)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(labdsv) # used with Vegan package, the matrify() and matrify2() functions
+library(agricolae) # HSD.test() function
+
+# Set working directory
+Sys.getenv("L1DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+list.files(L1_dir)
+
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
+# read in plant comp data
+comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
+comp <- comp %>% select(-X) # get rid of "X" column that shows up
+
+# read in meta data
+meta <- read.csv(file.path(L0_dir, "plot.csv")) # data frame above already has meta data in it but we will need this later
+```
+
+
+```{r}
+# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
+comp$year_factor[comp$year == 2015] <- 1
+comp$year_factor[comp$year == 2016] <- 2
+comp$year_factor[comp$year == 2017] <- 3
+comp$year_factor[comp$year == 2018] <- 4
+comp$year_factor[comp$year == 2019] <- 5
+comp$year_factor[comp$year == 2020] <- 6
+
+# Remove non-plant data
+comp <- comp[!(comp$species=="Bare_Ground" | 
+                       comp$species=="Unknown" | 
+                       comp$species=="Brown" | 
+                       comp$species=="Litter" | 
+                       comp$species=="Vert_Litter" | 
+                       comp$species=="Animal_Disturbance"), ]
+```
+
+
+```{r}
+# select peak biomass dates - for this I'm choosing August % cover date
+peak_comp <- dplyr::filter(comp, month %in% c(8))
+
+# Absolute Abundance
+peak_comp1 <- peak_comp %>% 
+        select(species, site, year_factor, date, plot, cover, state, insecticide, growth_habit, origin)
+
+ # calculate plot cover total by species-plot per year
+peak_comp1 <- aggregate(cover ~ plot*year_factor*date*site, data = peak_comp, FUN = sum, na.rm = T)
+names(peak_comp1)[names(peak_comp1) == "cover"] <- "plot_total" # change "cover" column name to "plot_mean"
+View(peak_comp1)
+
+peak_comp2 <- left_join(peak_comp, peak_comp1)
+
+peak_comp2 <- peak_comp2 %>% 
+        select(species, site, year_factor, date, plot, cover, plot_total, state, insecticide, growth_habit, origin)
+
+#calculate absolute percent cover per species in each quadrat (="relative abundance")
+peak_comp2$absolute <- peak_comp2$cover/100
+
+# Relative Abundance
+#calculate relative percent cover per species in each quadrat (="relative abundance")
+peak_comp2$relabun <- peak_comp2$cover/peak_comp2$plot_total
+summary(peak_comp2)
+
+# create dataframes for kbs and umbs - remember that these contain species within plots
+peakcomp_k <- subset(peak_comp2, site == "kbs")
+peakcomp_u <- subset(peak_comp2, site == "umbs")
+
+```
+
+```{r}
+# testing this by selecting data from a specific year - ideally turn this into a function so that you can do this for every year at each site
+kbs_2018 <- peakcomp_k %>% 
+        select(plot, year_factor, species, relabun)
+
+kbs_2018 <- dplyr::filter(kbs_2018, year_factor %in% c(4))
+
+kbs_2018$year_factor <- NULL
+
+# Transform data frame to wide format
+kbs_2018_wide <- matrify(kbs_2018)
+#kbs_2020 <- kbs_2020[-1]
+
+```
+
+```{r}
+# https://rpubs.com/an-bui/vegan-cheat-sheet
+# how many species are within each plot
+sppr <- specnumber(kbs_2018_wide)
+# Analysis of variance - is mean species richness significantly different across plots?
+sppr_aov <- aov(sppr ~ state, data = meta)
+summary(sppr_aov)
+# there is a significant difference in species richness between "warmed" and "ambient" treatments
+
+# plot
+sppr_df <- sppr %>% 
+  enframe() %>% 
+  full_join(meta, by = c("name" = "plot"))
+
+pal <- c("lightseagreen", "darkred")
+
+plot_sppr <- ggplot(sppr_df, aes(x = state, y = value, fill = state)) +
+  geom_boxplot() +
+  scale_fill_manual(values = pal) +
+  scale_x_discrete(labels = c("ambient", "warmed")) +
+  labs(x = "State",
+       y = "Number of species per plot",
+       title = "KBS 2018 Species richness")
+plot_sppr
+
+shannondiv <- diversity(kbs_2018_wide)
+head(shannondiv)
+
+sppdiv_aov <- aov(shannondiv ~ state, data = meta)
+summary(sppdiv_aov)
+
+shandiv_df <- shannondiv %>% 
+  # put all those calculations into a data frame
+  enframe() %>% 
+  # rename columns for ease of joining
+  rename(plot = name,
+         shan_div = value)
+
+div_plot_df <- shandiv_df %>% 
+  # join with site_type
+  full_join(meta, ., by = "plot") %>% 
+  # group by landtype
+  group_by(state) %>% 
+  # calculate mean and standard error of diversity
+  summarize(mean = round(mean(shan_div), 2),
+            err = sd(shan_div)/sqrt(length(shan_div))) %>% 
+  dplyr::mutate(label = "mean") %>% 
+  unite("mean_label", label, mean, sep = " = ", remove = FALSE)
+
+plot_shandiv <- ggplot(div_plot_df, aes(x = state, y = mean, fill = state)) +
+  geom_col(color = "black") +
+  scale_fill_manual(values = pal) +
+  geom_errorbar(aes(ymin = mean - err, ymax = mean + err), width = 0.5) +
+  geom_text(aes(x = state, y = mean + err + 0.07, label = mean_label)) +
+  scale_x_discrete(labels = c("ambient", "warmed")) +
+  scale_y_continuous(limits = c(0, 2.75), expand = c(0,0)) +
+  labs(x = "State",
+       y = "Mean Shannon diversity",
+       title = "Shannon diversity")
+plot_shandiv
+
+kbs2018_perm <- adonis(kbs_2018_wide ~ state, data = meta)
+kbs2018_perm 
+
+kbs2018_PCA <- rda(kbs_2018_wide)
+kbs2018_PCA
+
+PCAscores <- scores(kbs2018_PCA, display = "sites") %>% 
+  as.data.frame() %>% 
+  rownames_to_column("plot") %>% 
+  full_join(meta, by = "plot")
+
+PCAvect <- scores(kbs2018_PCA, display = "species") %>% 
+  as.data.frame()
+
+plot_PCA <- ggplot() +
+  geom_point(data = PCAscores, aes(x = PC1, y = PC2, color = state)) +
+  scale_color_manual(values = pal) +
+  geom_vline(xintercept = c(0), color = "grey70", linetype = 2) +
+  geom_hline(yintercept = c(0), color = "grey70", linetype = 2) +
+  geom_segment(data = PCAvect, aes(x = 0, y = 0, xend = PC1, yend = PC2), arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(data = PCAvect, aes(x = PC1, y = PC2, label = rownames(PCAvect))) +
+  labs(x = "PC1",
+       y = "PC2",
+       title = "Principal Components Analysis") 
+plot_PCA
+```
+
+```{r}
+speccurve <- specaccum(comm = kbs_2018_wide, method = "random", permutations = 1000)
+plot(speccurve)
+
+spp_rich <- specnumber(kbs_2018_wide)
+spp_rich
+
+diversity(kbs_2018_wide, index = "shannon")
+
+ord <- metaMDS(kbs_2018_wide)
+plot(ord, type = "t")
+
+adonis2(kbs_2018_wide ~ state, data = meta, permutations = 99)
+```
+

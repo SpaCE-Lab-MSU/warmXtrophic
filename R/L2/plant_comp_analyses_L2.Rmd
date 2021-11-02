@@ -46,7 +46,7 @@ comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
 comp <- comp %>% select(-X) # get rid of "X" column that shows up
 
 # read in meta data
-meta <- read.csv(file.path(L0_dir, "plot.csv"))
+meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
 ```
 
 
@@ -68,7 +68,7 @@ comp <- comp[!(comp$species=="Bare_Ground" |
                        comp$species=="Animal_Disturbance"), ]
 ```
 
-Setting up dataframe for diversity indices
+Setting up data frame for diversity indices
 ```{r}
 # Getting data in wide format to work in Vegan package
 
@@ -169,7 +169,7 @@ diversity_by_year_umbs <- diversity_by_year(comp, site = "umbs", div_index = "sh
 # this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
 library(reshape2)
 diversity_by_plot_year_kbs <- reshape2::melt(diversity_by_year_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
-
+diversity_by_plot_year_umbs <- reshape2::melt(diversity_by_year_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
 
 ```
 
@@ -216,6 +216,7 @@ comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year_factor","site", 
 comp2$absolute <- comp2$plot_mean/100
 
 ```
+
 Calculating Relative Abundance
 ```{r}
 #calculate relative percent cover per species in each quadrat (="relative abundance")
