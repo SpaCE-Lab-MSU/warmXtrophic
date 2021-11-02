@@ -25,7 +25,7 @@ library(tidyverse)
 
 # Source in needed functions from the github repo - could add this to Renviron?
 #source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R")
-source("~/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # Kara's location
+source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 #source("~/Documents/GitHub/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
@@ -80,6 +80,7 @@ greenup <- greenup[!(greenup$species=="Bare_Ground" |
                      greenup$species=="Litter" | 
                      greenup$species=="Vert_Litter" | 
                      greenup$species=="Animal_Disturbance"), ]
+sort(unique(greenup$species))
 
 
 
@@ -170,17 +171,20 @@ greendate1st_mn_p <- as.data.frame(greenup2p) # plot level
 ###### Greenup Approach (2) Half Cover Date ######
 ### making a csv for greenup at the species-by-plot level ###
 # split the plant_comp dataframe at the species level and at the plot level
-### making a csv for greenup at the species level ###
 dataus <- split(x = greenup, f = greenup[, c("plot","species","site","year")])
+dataus <- dataus[sapply(dataus, nrow)>0] # removing the dataframes that contain no data
 
 ### making a csv for greenup at the plot level ###
 dataup <- split(x = greenup, f = greenup[, c("plot", "site", "year")])
+dataup <- dataup[sapply(dataup, nrow)>0]
 
 ### making a csv for greenup at the growth form level ###
 dataug <- split(x = greenup, f = greenup[, c("plot","growth_habit","site","year")])
+dataug <- dataug[sapply(dataug, nrow)>0]
 
 ### making a csv for greenup at the origin level ###
 datauo <- split(x = greenup, f = greenup[, c("plot","origin","site","year")])
+datauo <- datauo[sapply(datauo, nrow)>0]
 
 
 # SPECIES LEVEL
@@ -191,7 +195,7 @@ max_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
-  x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
+  x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
 }))
 
 # PLOT LEVEL
@@ -202,7 +206,7 @@ max_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
 
 # Determine dates for each plot where the value of `cover` is at least half the max value
 half_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
-  x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
+  x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
 }))
 
 # GROWTH HABIT LEVEL
@@ -213,7 +217,7 @@ max_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
-        x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
+        x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
 }))
 
 # ORIGIN LEVEL
@@ -224,7 +228,7 @@ max_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
-        x[which.max(x[["cover"]] >= max(x[["cover"]])/2), "julian"]
+        x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
 }))
 
 
@@ -312,12 +316,13 @@ head(min_dates)
 colnames(min_dates) <- c("site","plot","species","year","min_green_date")
 # note that this is the same as "greenup2" above, which was created with tidy
 head(min_dates)
-greenup2
+#greenup2
 
 # plot-level (drop species)
 min_datep <- aggregate(greenup$julian,by=greenup[,c("site","plot","year")],FUN=min)
 head(min_datep)
 colnames(min_datep) <- c("site","plot","year","min_green_date")
+head(min_datep)
 #names(min_datep)[4] <- "firstjulian" # renaming column X to firstjulian
 
 # growth_habit
@@ -341,12 +346,12 @@ green_half_mino <- merge(half_cover_dateo_df, min_dateo, by=c("site","plot","ori
 
 # calculate correlation
 cor.test(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date) 
-# yes cor = 0.6944626; t = 47.607, df = 2433, p-value < 2.2e-16
+# yes cor = 0.8065159; t = 66.914, df = 2406, p-value < 2.2e-16
 plot(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date)
 
 # calculate correlation
 cor.test(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
-# no cor = -0.08616082; t = -1.3342, df = 238, p-value = 0.1834 -- Moriah got different numbers 7/12/21
+# yes cor = 0.1597517; t = 2.732, df = 285, p-value = 0.006688 -- Moriah got different numbers 7/12/21
 plot(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
 
 # change taxon column name for merging
@@ -392,7 +397,7 @@ p2 <- ggplot(data = finalgreenp, aes(x = min_green_date, fill=state)) + geom_his
 p2 + facet_wrap(~year)
 
 p2 <- ggplot(data = finalgreens, aes(x = min_green_date, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p2 + facet_wrap(~year) + labs(title="Species-level half cover date")
+p2 + facet_wrap(~year) + labs(title="Species-level min cover date")
 
 # Density plot
 p3 <- ggplot(data = finalgreenp, aes(x = plot_half_cover_date, fill=state)) + geom_density(alpha=0.5)
