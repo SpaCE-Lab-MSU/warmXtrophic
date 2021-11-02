@@ -58,6 +58,11 @@ remove_spp <- function(df){
         df <- df[!grepl("Sypi",df$Species),]
         df <- df[!grepl("Hipi",df$Species),]
         df <- df[!grepl("Popsp",df$Species),]
+        df <- df[!grepl("Acsy",df$Species),]
+        df <- df[!grepl("Lampu",df$Species),]
+        df <- df[!grepl("Lapu",df$Species),]
+        df <- df[!grepl("Sysa",df$Species),]
+        df <- df[!grepl("WILD_RASP?",df$Species),]
         return(df)
 }
 
@@ -80,16 +85,58 @@ change_spp <- function(df){
   df$Species[df$Species == "phpr"] <- "Phpr"
   df$Species[df$Species == "Elrre"] <- "Elre"
   df$Species[df$Species == "Lepidium campestre"] <- "Leca"
+  df$Species[df$Species == "Evening Primrose"] <- "Oebi"
+  df$Species[df$Species == "Milkweed"] <- "Assp"
+  df$Species[df$Species == "Red Maple"] <- "Acru"
+  df$Species[df$Species == "unknown dicot"] <- "Unknown_Dicot"
+  df$Species[df$Species == "Unknown 5"] <- "Unknown"
+  df$Species[df$Species == "UNKNOWN 5"] <- "Unknown"
+  df$Species[df$Species == "UNKNOWN_7"] <- "Unknown"
+  df$Species[df$Species == "UKNOWN_Grass"] <- "Unknown_Grass"
+  df$Species[df$Species == "unknown_grass"] <- "Unknown_Grass"
+  df$Species[df$Species == "Unknown_grass"] <- "Unknown_Grass"
+  df$Species[df$Species == "UNKNOWN_GRASS"] <- "Unknown_Grass"
+  df$Species[df$Species == "UNKNOWN_GRASS2"] <- "Unknown_Grass"
+  df$Species[df$Species == "UNKNOWN_GRASS3"] <- "Unknown_Grass"
+  df$Species[df$Species == "UNK_Forb"] <- "Unknown_Forb"
+  df$Species[df$Species == "UNK_Grass"] <- "Unknown_Grass"
+  df$Species[df$Species == "uUk Grass"] <- "Unknown_Grass"
+  df$Species[df$Species == "UNKNOWN_PLANT1"] <- "Unknown"
+  df$Species[df$Species == "Unknown_shrub"] <- "Unknown_Shrub"
+  df$Species[df$Species == "UNK_Shrub2"] <- "Unknown_Shrub"
+  df$Species[df$Species == "Shrub/tree"] <- "Unknown_Shrub_Tree"
+  df$Species[df$Species == "UKNOWN_sp"] <- "Unknown"
+  df$Species[df$Species == "Unknown."] <- "Unknown"
+  df$Species[df$Species == "UNKNOWN!"] <- "Unknown"
+  df$Species[df$Species == "UNK_2"] <- "Unknown"
+  df$Species[df$Species == "Grass"] <- "Unknown_Grass"
+  df$Species[df$Species == "Thin_Blade_Grass"] <- "Unknown_Thin_Blade_Grass"
+  df$Species[df$Species == "Wide bladed grass"] <- "Unknown_Wide_Blade_Grass"
+  df$Species[df$Species == "Chickweed"] <- "Stme"
+  df$Species[df$Species == "Animal"] <- "Animal_Disturbance"
+  df$Species[df$Species == "Groundhog hole/sand"] <- "Animal_Disturbance"
+  df$Species[df$Species == "Aster sp"] <- "Asun"
+  df$Species[df$Species == "Aster"] <- "Asun"
+  df$Species[df$Species == "UNK_Aster"] <- "Asun"
+  df$Species[df$Species == "UNK_Assy"] <- "Assp"
+  df$Species[df$Species == "Dogbane"] <- "Apsp"
   df$Species[df$Species == "Ramu"] <- "Romu"
+  df$Species[df$Species == "moss"] <- "Moss"
   df$Species[df$Species == "Anspp"] <- "Ansp"
   df$Species[df$Species == "Smooth_oat"] <- "Arel"
   df$Species[df$Species == "Bown"] <- "Brown"
   df$Species[df$Species == "Brown "] <- "Brown"
   df$Species[df$Species == "Bare"] <- "Bare_Ground"
   df$Species[df$Species == "Bare Groud"] <- "Bare_Ground"
+  df$Species[df$Species == "Bareground"] <- "Bare_Ground"
   df$Species[df$Species == "Bare Ground "] <- "Bare_Ground"
   df$Species[df$Species == "Bare Ground"] <- "Bare_Ground"
   df$Species[df$Species == "Bare Groud "] <- "Bare_Ground"
+  df$Species[df$Species == "Total Live"] <- "Live"
+  df$Species[df$Species == "Total No Live"] <- "Nonlive"
+  df$Species[df$Species == "LItter"] <- "Litter"
+  df$Species[df$Species == "Standing Dead"] <- "Vert_Litter"
+  df$Species[df$Species == "Total "] <- "Total"
   return(df)
 }
 
