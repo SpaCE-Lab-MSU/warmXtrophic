@@ -105,12 +105,14 @@ greenup$year_factor[greenup$year == 2017] <- 2
 greenup$year_factor[greenup$year == 2018] <- 3
 greenup$year_factor[greenup$year == 2019] <- 4
 greenup$year_factor[greenup$year == 2020] <- 5
+greenup$year_factor[greenup$year == 2021] <- 6
 
 greenupp$year_factor[greenupp$year == 2016] <- 1
 greenupp$year_factor[greenupp$year == 2017] <- 2
 greenupp$year_factor[greenupp$year == 2018] <- 3
 greenupp$year_factor[greenupp$year == 2019] <- 4
 greenupp$year_factor[greenupp$year == 2020] <- 5
+greenupp$year_factor[greenupp$year == 2021] <- 6
 
 # create dataframes for kbs and umbs - remember that these contain species within plots
 green_kbs <- subset(greenup, site == "kbs")
@@ -208,6 +210,7 @@ outlierTest(fit1) # no outliers
 hist(fit1$residuals)
 qqPlot(fit1, main="QQ Plot") 
 leveragePlots(fit1)
+ols_test_normality(fit1) # p < 0.05 for all, so data is normal (I think)
 
 # UMBS State and species model 
 fit1umbs <- lm(spp_half_cover_date~state + species, data = green_umbs)
@@ -215,19 +218,21 @@ outlierTest(fit1umbs) # no outliers
 hist(fit1umbs$residuals)
 qqPlot(fit1umbs, main="QQ Plot") 
 leveragePlots(fit1umbs)
+ols_test_normality(fit1umbs) # p < 0.05 for all, so data is normal (I think)
 
 fit1a <- lm(min_green_date~state + species, data = green_kbs)
-outlierTest(fit1a) # record 473 is an outlier, could probably ignore since we aren't using min date as a response variable
+outlierTest(fit1a) # no outliers
 hist(fit1a$residuals)
 qqPlot(fit1a, main="QQ Plot") 
 leveragePlots(fit1a)
 
 # checking fit for date as a function of state and year
-fit2 <- lm(spp_half_cover_date~state+species+year, data = green_kbs)
+fit2 <- lm(spp_half_cover_date~state+species+year_factor, data = green_kbs)
 hist(fit2$residuals)
 outlierTest(fit2) # no outliers
 qqPlot(fit2, main="QQ Plot") 
 leveragePlots(fit2)
+ols_test_normality(fit2) # p < 0.05 for all, so data is normal (I think)
 
 
 # plot level data
@@ -237,6 +242,7 @@ outlierTest(fitp) # no outliers
 qqPlot(fitp, main="QQ Plot") 
 hist(fitp$residuals)
 leveragePlots(fitp)
+ols_test_normality(fitp)
 
 # UMBS State-only model
 fitpu<- lm(plot_half_cover_date~state, data = green_umbsp)
@@ -244,26 +250,29 @@ outlierTest(fitpu) # no outliers
 qqPlot(fitpu, main="QQ Plot") 
 hist(fitpu$residuals)
 leveragePlots(fitpu)
+ols_test_normality(fitpu)
 
 # KBS State and year model
-fitp2<- lm(plot_half_cover_date~state+year, data = green_kbsp)
+fitp2<- lm(plot_half_cover_date~state+year_factor, data = green_kbsp)
 outlierTest(fitp2) # no outliers
 qqPlot(fitp2, main="QQ Plot") 
 hist(fitp2$residuals)
 leveragePlots(fitp2)
+ols_test_normality(fitp2)
 
 # UMBS State and year model
 fitp2u<- lm(plot_half_cover_date~state+year, data = green_umbsp)
-outlierTest(fitp2u) # 118 and 158 are outliers - remove? look like the only plots with a half cover date >200
+outlierTest(fitp2u)
 qqPlot(fitp2u, main="QQ Plot") 
 hist(fitp2u$residuals)
 leveragePlots(fitp2u)
+ols_test_normality(fitp2u)
 
 ```
 
 \pagebreak
 
-# Normal distribution after accounting for species - we will be using species as a random effect to account for their variation. Set up some linear mixed effects models to evaluate. From Ben Bolker: "The traditional view of random effects is as a way to do correct statistical tests when some observations are correlated. ... Random effects are especially useful when we have (1) lots of levels (e.g., many species or blocks), (2) relatively little data on each level (although we need multiple samples from most of the levels), and (3) uneven sampling across levels. People sometimes say that random effects are “factors that you aren’t interested in.” This is not always true. While it is often the case in ecological experiments (where variation among sites is usually just a nuisance), it is sometimes of great interest." In our case, variation among plots is a nuisance, and not something we're interested in. For some questions, variation among species is also a nuisance for us. It's possible that variation among years is a nuisance if we only care about warm vs. ambient, but I think time is an interesting variable to consider with this study. 
+# Normal distribution after accounting for species and/or year for each site and model. Set up some linear mixed effects models to evaluate. From Ben Bolker: "The traditional view of random effects is as a way to do correct statistical tests when some observations are correlated. ... Random effects are especially useful when we have (1) lots of levels (e.g., many species or blocks), (2) relatively little data on each level (although we need multiple samples from most of the levels), and (3) uneven sampling across levels. People sometimes say that random effects are “factors that you aren’t interested in.” This is not always true. While it is often the case in ecological experiments (where variation among sites is usually just a nuisance), it is sometimes of great interest." In our case, variation among plots is a nuisance, and not something we're interested in. For some questions, variation among species is also a nuisance for us. It's possible that variation among years is a nuisance if we only care about warm vs. ambient, but I think time is an interesting variable to consider with this study. 
 
 # We should also think about how we're treating year. Some of the models have a state * year interaction as a fixed effect, which means that the warming or ambient treatment could affect the half_cover_date differently over time (there would be a different slope for each state in the relationship between half_cover_date (y) and year (x)). If we just had state + year, the states would have the same slope, indicating that they have no interaction in their effect on half_cover_date (but they could still have different intercepts).
 
@@ -372,7 +381,7 @@ plot_model(mod6, type = "re", terms = c("species", "plot"))
 
 # mod4 (and mod6) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
 mod7 <- lmer(spp_half_cover_date ~ state + species + (1+year_factor|plot), green_kbs, REML=FALSE)
-mod7a <- lmer(spp_half_cover_date ~ state + species + year_factor + (1|plot), green_kbs, REML=FALSE)
+mod7a <- lmer(spp_half_cover_date ~ state + species + factor(year_factor) + (1|plot), green_kbs, REML=FALSE)
 mod7b <- lmer(spp_half_cover_date ~ state * year_factor + species + (1|plot), green_kbs, REML=FALSE)
 mod7c <- lmer(spp_half_cover_date ~ state + species + year_factor + insecticide + (1|plot), green_kbs, REML=FALSE)
 anova(mod6, mod7) # model 7 is a better fit to data
@@ -382,6 +391,7 @@ anova(mod7a, mod7c) #mod 7a.2 slightly better
 summary(mod7a)
 anova(mod7a) # investigates whether at least one of the levels within each factor is significantly different.
 # Yes, at least one of the species is different (they do not all have the same half cover dates). 
+emmeans(mod7a, list(pairwise ~ state+year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
 
@@ -401,7 +411,7 @@ plot_model(mod7a, type = "re")
 green_kbs <- within(green_kbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
 mod8 <- lmer(spp_half_cover_date ~ state * origin + (1+year_factor|plot), green_kbs, REML=FALSE)
 mod9 <- lmer(spp_half_cover_date ~ state + origin + (1+year_factor|plot), green_kbs, REML=FALSE)
-mod9a <- lmer(spp_half_cover_date ~ state + origin + year_factor + (1|plot), green_kbs, REML=FALSE)
+mod9a <- lmer(spp_half_cover_date ~ state + origin + factor(year_factor) + (1|plot), green_kbs, REML=FALSE)
 anova(mod8, mod9) # model 9 is a better fit to data
 anova(mod9, mod9a) # mod 9a?
 summary(mod9a)
@@ -412,12 +422,12 @@ emmeans(mod9a, list(pairwise ~ state + origin), adjust = "tukey")
 green_kbs <- within(green_kbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 mod10 <- lmer(spp_half_cover_date ~ state * growth_habit + (1+year_factor|plot), green_kbs, REML=FALSE)
 mod11 <- lmer(spp_half_cover_date ~ state + growth_habit + (1+year_factor|plot), green_kbs, REML=FALSE)
-mod11a <- lmer(spp_half_cover_date ~ state + growth_habit + year_factor + (1|plot), green_kbs, REML=FALSE)
+mod11a <- lmer(spp_half_cover_date ~ state + growth_habit + factor(year_factor) + (1|plot), green_kbs, REML=FALSE)
 anova(mod10, mod11) # model 11 is a better fit to data
 anova(mod11, mod11a)
 summary(mod11a)
 anova(mod11a)
-emmeans(mod11a, list(pairwise ~ state + growth_habit), adjust = "tukey")
+emmeans(mod11a, list(pairwise ~ year_factor + growth_habit), adjust = "tukey")
 
 # You could now run some post hoc tests on these (see: https://stats.stackexchange.com/questions/169543/output-of-fixed-effects-summary-in-lmertest-in-r-and-post-hoc-tests)
 
@@ -452,10 +462,11 @@ mod13 <- lmer(spp_half_cover_date ~ state * year + (1|species), green_kbs)
 # KBS Plot-level Mixed Effects Models:
 ```{r}
 mod1p <- lmer(plot_half_cover_date ~ state + (1|plot), green_kbsp, REML=FALSE)
-mod2p <- lmer(plot_half_cover_date ~ state + year_factor + (1|plot), green_kbsp, REML=FALSE)
+mod2p <- lmer(plot_half_cover_date ~ state + factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
 mod3p <- lmer(plot_half_cover_date ~ state * year_factor + (1|plot), green_kbsp, REML=FALSE)
 anova(mod1p, mod2p, mod3p) #mod2p
 summary(mod2p)
+emmeans(mod2p, list(pairwise ~ state+year_factor), adjust = "tukey")
 mod2p.2 <- lmer(plot_half_cover_date ~ state + year_factor + insecticide + (1|plot), green_kbsp, REML=FALSE)
 anova(mod2p, mod2p.2) #mod2p
 ```
@@ -484,7 +495,7 @@ emmeans(umod7a, list(pairwise ~ species), adjust = "tukey")
 green_umbs <- within(green_umbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
 umod8 <- lmer(spp_half_cover_date ~ state * origin + (1+year_factor|plot), green_umbs, REML=FALSE)
 umod9 <- lmer(spp_half_cover_date ~ state + origin + (1+year_factor|plot), green_umbs, REML=FALSE)
-umod9a <- lmer(spp_half_cover_date ~ state + origin + year_factor + (1|plot), green_umbs, REML=FALSE)
+umod9a <- lmer(spp_half_cover_date ~ state + origin + factor(year_factor) + (1|plot), green_umbs, REML=FALSE)
 anova(umod8, umod9) # umodel 9 is a better fit to data
 anova(umod9, umod9a) # umod 9a?
 summary(umod9a)
@@ -506,11 +517,10 @@ emmeans(umod11a, list(pairwise ~ state + growth_habit), adjust = "tukey")
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
 mod1pu <- lmer(plot_half_cover_date ~ state + (1|plot), green_umbsp, REML=FALSE)
-mod2pu <- lmer(plot_half_cover_date ~ state + year_factor + (1|plot), green_umbsp, REML=FALSE)
+mod2pu <- lmer(plot_half_cover_date ~ state + factor(year_factor) + (1|plot), green_umbsp, REML=FALSE)
 mod3pu <- lmer(plot_half_cover_date ~ state * year_factor + (1|plot), green_umbsp, REML=FALSE)
 anova(mod1pu, mod2pu, mod3pu) #mod2pu
 summary(mod2pu)
-outlierTest(mod2pu) # remove these outliers?
 ```
 
 
