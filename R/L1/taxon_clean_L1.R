@@ -29,5 +29,5 @@ names(taxa1) <- taxa1[1,] #make the first row the column names
 taxon_uptodate <- taxa1[-1,] #get rid of the first row because it's now the column names
 
 # Save a .csv file with the cleaned taxon list
-write.csv(taxon_uptodate, file = "L2/taxon.csv", row.names = FALSE) 
+write.csv(taxon_uptodate, file.path(L0_dir,"taxon.csv"))
 #this will save an up to date taxon list .csv file in the shared folder of the warmXtrophic project

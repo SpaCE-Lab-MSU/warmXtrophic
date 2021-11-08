@@ -38,12 +38,14 @@ kbs_2017 <- read.csv(file.path(L0_dir, "KBS/2017/kbs_flwr_sd_2017.csv"))
 kbs_2018 <- read.csv(file.path(L0_dir, "KBS/2018/kbs_flwr_sd_2018.csv"))
 kbs_2019 <- read.csv(file.path(L0_dir, "KBS/2019/kbs_flwr_sd_2019.csv"))
 kbs_2020 <- read.csv(file.path(L0_dir, "KBS/2020/kbs_flwr_sd_2020.csv"))
+kbs_2021 <- read.csv(file.path(L0_dir, "KBS/2021/kbs_flwr_sd_2021.csv"))
 umbs_2015 <- read.csv(file.path(L0_dir, "UMBS/2015/umbs_flwr_sd_2015.csv"))
 umbs_2016 <- read.csv(file.path(L0_dir, "UMBS/2016/umbs_flwr_sd_2016.csv"))
 umbs_2017 <- read.csv(file.path(L0_dir, "UMBS/2017/umbs_flwr_sd_2017.csv"))
 umbs_2018 <- read.csv(file.path(L0_dir, "UMBS/2018/umbs_flwr_sd_2018.csv"))
 umbs_2019 <- read.csv(file.path(L0_dir, "UMBS/2019/umbs_flwr_sd_2019.csv"))
 umbs_2020 <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_flwr_sd_2020.csv"))
+umbs_2021 <- read.csv(file.path(L0_dir, "UMBS/2021/umbs_flwr_sd_2021.csv"))
 
 # Add "Site" column for kbs and umbs 2016
 kbs_2016$Site <- "kbs"
@@ -59,34 +61,40 @@ umbs_2017 <- umbs_2017[!grepl("Vear",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Vear",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Vear",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Vear",umbs_2020$Species),]
+umbs_2021 <- umbs_2021[!grepl("Vear",umbs_2021$Species),]
 
 umbs_2016 <- umbs_2016[!grepl("Elre",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Elre",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Elre",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Elre",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Elre",umbs_2020$Species),]
+umbs_2021 <- umbs_2021[!grepl("Elre",umbs_2021$Species),]
 
 umbs_2016 <- umbs_2016[!grepl("Rusp",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Rusp",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Rusp",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Rusp",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Rusp",umbs_2020$Species),]
+umbs_2021 <- umbs_2021[!grepl("Rusp",umbs_2021$Species),]
 
 umbs_2016 <- umbs_2016[!grepl("Ruag",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Ruag",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Ruag",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Ruag",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Ruag",umbs_2020$Species),]
+umbs_2021 <- umbs_2021[!grepl("Ruag",umbs_2021$Species),]
 
 umbs_2016 <- umbs_2016[!grepl("Rual",umbs_2016$Species),]
 umbs_2017 <- umbs_2017[!grepl("Rual",umbs_2017$Species),]
 umbs_2018 <- umbs_2018[!grepl("Rual",umbs_2018$Species),]
 umbs_2019 <- umbs_2019[!grepl("Rual",umbs_2019$Species),]
 umbs_2020 <- umbs_2020[!grepl("Rual",umbs_2020$Species),]
+umbs_2021 <- umbs_2021[!grepl("Rual",umbs_2021$Species),]
 
 # Add dataframes into a list so that needed functions can be applied 
 phen_list <- list(kbs_2015=kbs_2015, kbs_2016=kbs_2016, kbs_2017=kbs_2017, kbs_2018=kbs_2018, kbs_2019=kbs_2019, kbs_2020=kbs_2020, 
-                  umbs_2015=umbs_2015, umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, umbs_2019=umbs_2019, umbs_2020=umbs_2020)
+                  kbs_2021=kbs_2021, umbs_2015=umbs_2015, umbs_2016=umbs_2016, umbs_2017=umbs_2017, umbs_2018=umbs_2018, 
+                  umbs_2019=umbs_2019, umbs_2020=umbs_2020, umbs_2021=umbs_2021)
 
 # Apply functions
 phen_list <- lapply(phen_list, change_colnames) 
@@ -131,7 +139,8 @@ lapply(phen_list, date_check) # looks good
 
 # Merge final data (make a single data frame from all of the lists)
 phen_merge <- rbind(phen_list$kbs_2015, phen_list$kbs_2016, phen_list$kbs_2017, phen_list$kbs_2018, phen_list$kbs_2019, phen_list$kbs_2020,
-                    phen_list$umbs_2016, phen_list$umbs_2017, phen_list$umbs_2018, phen_list$umbs_2019, phen_list$umbs_2020)
+                    phen_list$kbs_2021, phen_list$umbs_2016, phen_list$umbs_2017, phen_list$umbs_2018, phen_list$umbs_2019, 
+                    phen_list$umbs_2020, phen_list$umbs_2021)
 str(phen_merge)
 sort(unique(phen_merge$Species))
 
@@ -176,7 +185,7 @@ str(phen_data)
 
 phen_data <- phen_data[, c("site", "plot", "species", "action", "date", "julian", "year", "month", "treatment_key", "state",
                           "insecticide", "scientific_name", "common_name", "usda_species", "lter_species",
-                          "origin", "group", "family", "duration", "growth_habit")]
+                          "origin", "group", "family", "duration", "growth_habit", "rhizomatous")]
 
 str(phen_data)
 
@@ -187,7 +196,8 @@ phen_data$year_factor <-
                       ifelse(phen_data$year == 2017, "3",
                              ifelse(phen_data$year == 2018, "4",
                                     ifelse(phen_data$year == 2019, "5",
-                                           ifelse(phen_data$year == 2020, "6", NA))))))
+                                           ifelse(phen_data$year == 2020, "6", 
+                                                  ifelse(phen_data$year == 2021, "7", NA)))))))
 
 # Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor
 phen_data$state <- as.factor(phen_data$state)

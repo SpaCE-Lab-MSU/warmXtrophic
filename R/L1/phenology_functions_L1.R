@@ -80,6 +80,12 @@ change_spp <- function(df){
         df$Species[df$Species == "Dafl"] <- "Dagl"
         df$Species[df$Species == "Agre"] <- "Elre"
         df$Species[df$Species == "unknown"] <- "Unknown"
+        df$Species[df$Species == "Solgig"] <- "Sogi"
+        df$Species[df$Species == "Achmi"] <- "Acmi"
+        df$Species[df$Species == "Desmodium"] <- "Desp"
+        df$Species[df$Species == "Acpa"] <- "Apca"
+        df$Species[df$Species == "Asla"] <- "Syur"
+        df$Species[df$Species == "Lampu"] <- "Lapu"
         return(df)
 }
 
