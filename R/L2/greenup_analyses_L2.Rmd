@@ -471,6 +471,17 @@ mod2p.2 <- lmer(plot_half_cover_date ~ state + year_factor + insecticide + (1|pl
 anova(mod2p, mod2p.2) #mod2p
 ```
 
+# Analyses for species who reached half cover within the green-up observation window
+```{r}
+# Selecting species (these were determined in the half_cover_kbs dataframe made in the phenology_dates_L2.R script)
+species_kbs <- subset(green_kbs, species == "Taof") # can change/add more species 
+mod_spp <- lmer(spp_half_cover_date ~ state + factor(year_factor) + (1|plot), species_kbs, REML=FALSE)
+mod_spp2 <- lmer(min_green_date ~ state + factor(year_factor) + (1|plot), species_kbs, REML=FALSE)
+summary(mod_spp)
+summary(mod_spp2)
+```
+
+
 # UMBS Mixed Effects Models
 ```{r}
 # umod4 (and umod6) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative umodel that's simpler to understand and also one that provides more insight about the species. That would be something like this:
