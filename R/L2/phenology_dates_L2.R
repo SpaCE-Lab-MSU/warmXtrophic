@@ -90,8 +90,9 @@ sort(unique(greenup$species))
 # 2016: 104
 # 2017: 121
 # 2018: 130
-# 2019: 143?
-# 2020: 
+# 2019: 143
+# 2020: 119 - few measurements
+# 2021: 103 - very few measurements
 # 
 # UMBS Greenup % cover ~ every 3 days. Duration: greenup observations ended on Julian Day:
 # 2016: 
@@ -233,26 +234,26 @@ half_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
 
 
 # make each into a dataframe
-max_cover_dates_df <- data.frame("plot.species.site.year" = names(half_cover_dates),
-                                  "spp_max_cover_date" = unname(half_cover_dates), stringsAsFactors = FALSE)
+max_cover_dates_df <- data.frame("plot.species.site.year" = names(max_cover_dates),
+                                  "spp_max_cover_date" = unname(max_cover_dates), stringsAsFactors = FALSE)
 
 half_cover_dates_df <- data.frame("plot.species.site.year" = names(half_cover_dates),
                                   "spp_half_cover_date" = unname(half_cover_dates), stringsAsFactors = FALSE)
 
-max_cover_datep_df <- data.frame("plot.site.year" = names(half_cover_datep),
-                                 "plot_max_cover_date" = unname(half_cover_datep), stringsAsFactors = FALSE)
+max_cover_datep_df <- data.frame("plot.site.year" = names(max_cover_datep),
+                                 "plot_max_cover_date" = unname(max_cover_datep), stringsAsFactors = FALSE)
 
 half_cover_datep_df <- data.frame("plot.site.year" = names(half_cover_datep),
                                   "plot_half_cover_date" = unname(half_cover_datep), stringsAsFactors = FALSE)
 
-max_cover_dateg_df <- data.frame("plot.growth_habit.site.year" = names(half_cover_dateg),
-                                 "habit_max_cover_date" = unname(half_cover_dateg), stringsAsFactors = FALSE)
+max_cover_dateg_df <- data.frame("plot.growth_habit.site.year" = names(max_cover_dateg),
+                                 "habit_max_cover_date" = unname(max_cover_dateg), stringsAsFactors = FALSE)
 
 half_cover_dateg_df <- data.frame("plot.growth_habit.site.year" = names(half_cover_dateg),
                                   "habit_half_cover_date" = unname(half_cover_dateg), stringsAsFactors = FALSE)
 
-max_cover_dateo_df <- data.frame("plot.origin.site.year" = names(half_cover_dateo),
-                                 "origin_max_cover_date" = unname(half_cover_dateo), stringsAsFactors = FALSE)
+max_cover_dateo_df <- data.frame("plot.origin.site.year" = names(max_cover_dateo),
+                                 "origin_max_cover_date" = unname(max_cover_dateo), stringsAsFactors = FALSE)
 
 half_cover_dateo_df <- data.frame("plot.origin.site.year" = names(half_cover_dateo),
                                   "origin_half_cover_date" = unname(half_cover_dateo), stringsAsFactors = FALSE)
@@ -429,7 +430,32 @@ write.csv(finalgreeng, file.path(L2_dir, "greenup/final_greenup_growthhabit_L2.c
 write.csv(finalgreeno, file.path(L2_dir, "greenup/final_greenup_origin_L2.csv"))
 
 
+## Finding species whose mean half cover was within the window of green-up observations each year
+# First, finding the mean half cover date per species
+half_cover_mean <- half_cover_dates_df %>%
+        group_by(species, site, year) %>%
+        mutate(half_cover_mean = mean(spp_half_cover_date))
 
+# making a new column that contains the date green-up observations ended
+# (found the end date of greenup by visually inspecting the dataframes for the last data of record)
+# these are the same dates listed under approach one
+half_cover_mean$end_greenup <- NA
+half_cover_mean$end_greenup[half_cover_mean$year == 2016 & half_cover_mean$site == "kbs"] = 104
+half_cover_mean$end_greenup[half_cover_mean$year == 2017 & half_cover_mean$site == "kbs"] = 121
+half_cover_mean$end_greenup[half_cover_mean$year == 2018 & half_cover_mean$site == "kbs"] = 130
+half_cover_mean$end_greenup[half_cover_mean$year == 2019 & half_cover_mean$site == "kbs"] = 143
+half_cover_mean$end_greenup[half_cover_mean$year == 2020 & half_cover_mean$site == "kbs"] = 119
+half_cover_mean$end_greenup[half_cover_mean$year == 2021 & half_cover_mean$site == "kbs"] = 103
+
+# testing just with KBS at first
+half_cover_mean_kbs <- subset(half_cover_mean, site == "kbs")
+
+# find species whose half cover mean is less than or equal to the date greenup observations ended
+half_cover_kbs <- half_cover_mean_kbs %>%
+        filter(half_cover_mean <= end_greenup)
+half_cover_kbs <- unique(half_cover_kbs[c("species", "year")])
+# this dataframe shows species who reached their half cover dates within the greenup window
+# can pick these out and analyze these separately
 
 
 ###### FLOWERING (Moriah did this) ######
