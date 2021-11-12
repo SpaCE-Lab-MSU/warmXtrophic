@@ -55,14 +55,17 @@ theme_update(axis.text.x = element_text(size = 12, angle = 90),
              axis.text.y = element_text(size = 12))
 
 # Read in data
-flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv"))
-flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
-flwr_species$X <- NULL # get rid of "X" column that shows up
-flwr_plot$X <- NULL # get rid of "X" column that shows up
-View(flwr_species) # take a look at the data to see if looks good
-View(flwr_plot) # take a look at the data to see if looks good
+flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) # species level data
+flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
 
-# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor
+# get rid of "X" column that shows up
+flwr_species$X <- NULL
+flwr_plot$X <- NULL
+# take a look at the data to see if looks good
+View(flwr_species) 
+View(flwr_plot) 
+
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 flwr_species$state <- as.factor(flwr_species$state)
 levels(flwr_species$state)
 # [1] "ambient" "warmed" 
@@ -79,7 +82,7 @@ levels(flwr_plot$state)
 # [1] "warmed"  "ambient"
 ```
 
-# Data exploration for minimum (first) Julian date of flowering at the PLOT LEVEL
+# Data exploration for minimum (first) Julian date of flowering at the PLOT for both sites
 ```{r}
 # Visualizing avg minimum Julian date for both sites at the PLOT LEVEL
 ggplot(flwr_plot, aes(julian_min, fill = plot)) + 
@@ -103,22 +106,24 @@ ggplot(flwr_plot, aes(julian_min, fill = plot, color=plot)) +
 descdist(flwr_plot$julian_min, discrete = FALSE)
 ```
 
-# UMBS PLOT LEVEL
+# UMBS SPECIES LEVEL - Looking at MEDIAN JULIAN DAY
 ```{r, warning=F}
 ### UMBS ###
-umbs_flwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
-hist(umbs_flwr_plot$julian_median)
-hist(umbs_flwr_plot$julian_min)
+umbs_flwr_spp <- subset(flwr_species, site == "umbs") # pull out umbs only data at species level
 
-# Visualizing avg minimum Julian date for both sites at the PLOT LEVEL
-ggplot(umbs_flwr_plot, aes(julian_min, fill = plot)) + 
+hist(umbs_flwr_spp$julian_median)
+qqnorm(umbs_flwr_spp$julian_median)
+shapiro.test(umbs_flwr_spp$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(umbs_flwr_spp, aes(julian_median, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year ~ site, margins = TRUE, scales = "free")
 
-ggplot(umbs_flwr_plot, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+ggplot(umbs_flwr_spp, aes(julian_median, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
         facet_grid(state~year, margins = TRUE, scales = "free")
 
-ggplot(umbs_flwr_plot, aes(julian_min, fill = plot, color=plot)) +
+ggplot(umbs_flwr_spp, aes(julian_median, fill = plot, color=plot)) +
         geom_density(alpha = 0.1)
 
 #ggplot(umbs_flwr_plot, aes(julian_min, fill = plot, color=plot)) +
@@ -130,18 +135,18 @@ ggplot(umbs_flwr_plot, aes(julian_min, fill = plot, color=plot)) +
 #        facet_wrap(~year + plot)
 
 # Exploring distributions for these right-skewed data:
-descdist(umbs_flwr_plot$julian_min, discrete = FALSE)
+descdist(umbs_flwr_spp$julian_median, discrete = FALSE)
 
 # Gamma distribution 
-fit.gamma <- fitdist(umbs_flwr_plot$julian_min, "gamma")
+fit.gamma <- fitdist(umbs_flwr_spp$julian_median, "gamma")
 plot(fit.gamma)
 
 # Weibull distribution
-fit.weibull  <- fitdist(umbs_flwr_plot$julian_min, "weibull")
+fit.weibull  <- fitdist(umbs_flwr_spp$julian_median, "weibull")
 plot(fit.weibull)
 
 # Lognormal distribution 
-fit.ln <- fitdist(umbs_flwr_plot$julian_min, "lnorm")
+fit.ln <- fitdist(umbs_flwr_spp$julian_median, "lnorm")
 plot(fit.ln)
 
 par(mfrow=c(2,2))
@@ -156,22 +161,235 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 # Lognormal is slightly better than gamma
 ```
 
-# Centering and transforming data
+# Centering and transforming data - Ignore right now!!
 ```{r, eval=F}
-umbs_flwr_plot$log_julian_min <- log(umbs_flwr_plot$julian_min)
-umbs_flwr_plot$log_julianMin_centered = umbs_flwr_plot$log_julian_min - mean(umbs_flwr_plot$log_julian_min)
-hist(umbs_flwr_plot$log_julianMin_centered)
+#umbs_flwr_plot$log_julian_min <- log(umbs_flwr_plot$julian_min)
+#umbs_flwr_plot$log_julianMin_centered = umbs_flwr_plot$log_julian_min - mean(umbs_flwr_plot$log_julian_min)
+#hist(umbs_flwr_plot$log_julianMin_centered)
+```
+# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
+# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
+```{r}
+# species level data
+# UMBS State-only model
+fit_spp_state <- lm(julian_median~state, data = umbs_flwr_spp)
+outlierTest(fit_spp_state) # no outliers
+qqPlot(fit_spp_state, main="QQ Plot") 
+hist(fit_spp_state$residuals)
+leveragePlots(fit_spp_state)
+ols_test_normality(fit_spp_state)
+
+# UMBS State and year model
+fit_spp_stateyear <- lm(julian_median~state+year_factor, data = umbs_flwr_spp)
+outlierTest(fit_spp_stateyear) # no outliers
+qqPlot(fit_spp_stateyear, main="QQ Plot") 
+hist(fit_spp_stateyear$residuals)
+leveragePlots(fit_spp_stateyear)
+ols_test_normality(fit_spp_stateyear)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(julian_median ~ state + year_factor + species, data = umbs_flwr_spp)
+interact_plot(fit3, pred = year_factor, modx = state)
+fit4 <- lm(julian_median ~ state * year_factor + species, data = umbs_flwr_spp)
+interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
+```
+UMBS Species-level Mixed Effects Models
+```{r}
+# Start by replicating (almost) what we did in the Oecologia 2018 paper. The only difference here is that we have multiple years, so we are also including year as a fixed effect and as an interactive term. Our goal here is to find a model that is the best fit to the data. We also want to find a model that is the most parsimonious (one that has the fewest parameters).
+
+# Do we need to include plot as a random effect with the UMBS models?   
+mod1 <- lmer(julian_median ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), umbs_flwr_spp, REML=FALSE)
+mod2 <- lmer(julian_median ~ state*year_factor + insecticide*year_factor + (1|species), umbs_flwr_spp, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1)
+anova(mod2)
+
+# Run an ANOVA to test the 2 models to test whether the more complex model is significantly better at capturing the data than the simpler model. If the resulting p-value is sufficiently low (usually less than 0.05), we conclude that the more complex model is significantly better than the simpler model, and thus favor the more complex model. If the p-value is not sufficiently low (usually greater than 0.05), we should favor the simpler model. https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
+anova(mod1, mod2) # Go with model 2
+summary(mod1) 
+summary(mod2)
+
+# Next, plot the model. There are multiple variables but here's one way to do it based on this package sjPlot:
+# https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html
+# Annoyingly, this package somehow overwrites the factor order in its plotting so we will have to modify the code to get warmed = red. I haven't figured this out yet. It does seem to work on some of the plots. hmm.
+#?plot_model
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod2, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod2, type = "pred", terms = c("year_factor", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod2, type = "re", terms = c("species"))
+
+# Do we need to include insecticide? (dropping insecticide from the model)
+mod3 <- lmer(julian_median ~ state*year_factor + (1|species), umbs_flwr_spp, REML=FALSE)
+anova(mod2, mod3)
+
+AICctab(mod1, mod3, weights=T)
+# Looks like no P>0.05, insecticide does not improve model fit so we will not include it and go with mod3
+
+# Does year need to be interactive with state?
+mod4 <- lmer(julian_median ~ state + year_factor + (1|species), umbs_flwr_spp, REML=FALSE)
+anova(mod3, mod4)
+# No, P>0.05 so state*year_factor doesn't strongly improve model fit so we will shift to mod4
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod4, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod4, type = "pred", terms = c("year_factor", "state"))
+# these are the random effects estimates
+plot_model(mod4, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+mod5 <- lmer(julian_median ~ state + year_factor + (1|species) + (1 + year|plot), umbs_flwr_spp, REML=FALSE)
+anova(mod4, mod5)
+anova(mod5)
+# Yup, seems to matter but it is making this more complex, though not overly so because it's on the random effects structure only.
+plot_model(mod5, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod5, type = "pred", terms = c("year_factor", "state"))
+# these are the random effects estimates
+plot_model(mod5, type = "re", terms = c("species", "plot"))
+
+# mod4 (and mod5) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+mod7 <- lmer(julian_median ~ state + species + (1+year_factor|plot), umbs_flwr_spp, REML=FALSE)
+mod7a <- lmer(julian_median ~ state + species + factor(year_factor) + (1|plot), umbs_flwr_spp, REML=FALSE)
+mod7b <- lmer(julian_median ~ state * year_factor + species + (1|plot), umbs_flwr_spp, REML=FALSE)
+mod7c <- lmer(julian_median ~ state + species + year_factor + insecticide + (1|plot), umbs_flwr_spp, REML=FALSE)
+anova(mod5, mod7) # model 7 is a better fit to data
+anova(mod7, mod7a) #mod 7a
+anova(mod7a, mod7b) #mod 7a.2 - interaction between state and year doesn't improve model
+anova(mod7a, mod7c) #mod 7a.2 slightly better
+summary(mod7a)
+anova(mod7a) # investigates whether at least one of the levels within each factor is significantly different.
+# Yes, at least one of the species is different (they do not all have the same half cover dates). 
+emmeans(mod7a, list(pairwise ~ state+year_factor), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ year_factor), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
+
+# Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
+plot_model(mod7a, sort.est = TRUE)
+# if you want to standardize the estimates:
+plot_model(mod7a, sort.est = TRUE, type="std") 
+# these are the fixed predicted values: - note this is a new plot
+plot_model(mod7a, type = "pred", terms = c("species", "state", "year_factor"))
+# these are the random effects estimates
+plot_model(mod7a, type = "re")
+
+
+# including native vs. exotic
+umbs_flwr_spp <- within(umbs_flwr_spp, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+mod8 <- lmer(julian_median ~ state * origin + (1+year_factor|plot), umbs_flwr_spp, REML=FALSE)
+mod9 <- lmer(julian_median ~ state + origin + (1+year_factor|plot), umbs_flwr_spp, REML=FALSE)
+mod9a <- lmer(julian_median ~ state + origin + factor(year_factor) + (1|plot), umbs_flwr_spp, REML=FALSE)
+anova(mod8, mod9) # model 9 is a better fit to data
+anova(mod9, mod9a) # mod 9a?
+summary(mod9a)
+anova(mod9)
+emmeans(mod9a, list(pairwise ~ state + origin), adjust = "tukey")
+
+# including growth form - first with interaction term
+umbs_flwr_spp <- within(umbs_flwr_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+mod10 <- lmer(julian_median ~ state * growth_habit + (1+year_factor|plot), umbs_flwr_spp, REML=FALSE)
+mod11 <- lmer(julian_median ~ state + growth_habit + (1+year_factor|plot), umbs_flwr_spp, REML=FALSE)
+mod11a <- lmer(julian_median ~ state + growth_habit + factor(year_factor) + (1|plot), umbs_flwr_spp, REML=FALSE)
+anova(mod10, mod11) # model 11 is a better fit to data
+anova(mod11, mod11a)
+summary(mod11a)
+anova(mod11a)
+emmeans(mod11a, list(pairwise ~ year_factor + growth_habit), adjust = "tukey")
+
+# New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
+# updated mod4
+mod12 <- lmer(julian_median ~ state * year_factor + (1+year_factor|species), umbs_flwr_spp)
+
+# So another version of this model would include the interaction but not include the nesting (and thus would assume that species aren't observed ea yr)
+# updated mod5
+mod13 <- lmer(julian_median ~ state * year_factor + (1|species), umbs_flwr_spp)
 ```
 
-# Date of first flower (min_julian)
-# Determining appropriate distribution in mixed effects model
+
+# UMBS Plot-level Mixed Effects Models:
+```{r}
+umbs_flwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
+mod1p <- lmer(julian_median ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod2p <- lmer(julian_median ~ state + factor(year_factor) + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod3p <- lmer(julian_median ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+anova(mod1p, mod2p, mod3p) #mod2p
+summary(mod2p)
+emmeans(mod2p, list(pairwise ~ state+year_factor), adjust = "tukey")
+mod2p.2 <- lmer(julian_median ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+anova(mod2p, mod2p.2) #mod2p
+```
+
+
+# KBS Mixed Effects Models
+```{r}
+kbs_flwr_spp <- subset(flwr_species, site == "kbs") # pull out kbs only data at species level
+# umod4 (and umod6) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative kmodel that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+kmod7 <- lmer(julian_median ~ state + species + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+kmod7a <- lmer(julian_median ~ state + species + year_factor + (1|plot), kbs_flwr_spp, REML=FALSE)
+kmod7b <- lmer(julian_median ~ state * year_factor + species + (1|plot), kbs_flwr_spp, REML=FALSE)
+kmod7c <- lmer(julian_median ~ state + species + year_factor + insecticide + (1|plot), kbs_flwr_spp, REML=FALSE)
+#anova(umod6, umod7) # umodel 7 is a better fit to data
+anova(kmod7, kmod7a) #kmod 7a
+anova(kmod7a, kmod7b) #kmod 7a
+anova(kmod7a, kmod7c) #kmod 7a
+summary(kmod7a)
+summary(kmod7b)
+summary(kmod7c)
+anova(kmod7a) # investigates whether at least one of the levels within each factor is significantly different. 
+# Yes, at least one of the species is different (they do not all have the same half cover dates). 
+emmeans(kmod7a, list(pairwise ~ year_factor), adjust = "tukey")
+emmeans(kmod7a, list(pairwise ~ species), adjust = "tukey")
+
+
+# including native vs. exotic - first with interaction term
+kbs_flwr_spp <- within(kbs_flwr_spp, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+kmod8 <- lmer(julian_median ~ state * origin + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+kmod9 <- lmer(julian_median ~ state + origin + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+kmod9a <- lmer(julian_median ~ state + origin + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
+anova(kmod8, kmod9) # kmodel 9 is a better fit to data
+anova(kmod9, kmod9a) # kmod 9a?
+summary(kmod9a)
+anova(kmod9)
+emmeans(kmod9a, list(pairwise ~ state + origin), adjust = "tukey")
+
+# including growth form - first with interaction term
+kbs_flwr_spp <- within(kbs_flwr_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+kmod10 <- lmer(julian_median ~ state * growth_habit + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+kmod11 <- lmer(julian_median ~ state + growth_habit + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+kmod11a <- lmer(julian_median ~ state + growth_habit + year_factor + (1|plot), kbs_flwr_spp, REML=FALSE)
+knova(kmod10, kmod11) # kmodel 11 is a better fit to data
+knova(kmod11, kmod11a)
+summary(kmod11a)
+anova(kmod11)
+emmeans(kmod11a, list(pairwise ~ state + growth_habit), adjust = "tukey")
+```
+
+# UMBS Plot-level Mixed Effects Models:
+```{r}
+kbs_flwr_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
+mod1pk <- lmer(julian_median ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod2pk <- lmer(julian_median ~ state + factor(year_factor) + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod3pk <- lmer(julian_median ~ state * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+anova(mod1pk, mod2pk, mod3pk) #mod2pk
+summary(mod2pk)
+```
+
+
+
+Older code below
+UMBS Plot-level Mixed Effects Models:
 ```{r}
 # See Ben Bolker's site for details on fitting glmms: https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
 #       Fixed effects: warming, year, insecticide
 #       Random effect = plot (bc observations are nested within plot)
 # Fit with ML bc we are interested in estimating fixed effects more than random effects
 # See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details 
-m1 <- lmer(log(julian_min) ~ state + year + insecticide + (1|plot), data = umbs_flwr_plot, REML=FALSE)
+m1 <- lmer(log(julian_median) ~ state + year + insecticide + (1|plot), data = umbs_flwr_plot, REML=FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
