@@ -468,17 +468,17 @@ phen_sd <- subset(flwr_sd, action == "seed")
 
 # First Flower by SPECIES LEVEL - filter data to contain the date of first flower for each species at each plot
 FirstFlwr_spp <- phen_flwr %>%
-  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor) %>%
+  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarize(julian_min = min(julian, na.rm=T))
 
 # Median Flower Date by SPECIES LEVEL - filter data to contain the median date of flower for each species at each plot
 MedianFlwr_spp <- phen_flwr %>%
-  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor) %>%
+  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarize(julian_median = median(julian, na.rm=T))
 
 # Duration of flowering time at the SPECIES level
 flwr_dur_s <- phen_flwr %>% 
-  group_by(site, plot, species, year, state, action, origin, insecticide, treatment_key, year_factor) %>%
+  group_by(site, plot, species, year, state, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarise(flwr_duration = max(julian) - min(julian)) 
 
 # Merge the data frames above so that you have one data frame that includes median date of flower, first date
@@ -547,7 +547,7 @@ p4 + facet_wrap(~year)
 ### Create a data frame at the SPECIES LEVEL that includes first date of seed
 # First Seed by SPECIES LEVEL - filter data to contain the date of first seed for each species at each plot
 FirstSd_spp <- phen_sd %>%
-  group_by(plot, year, species, state, site, action, insecticide, treatment_key, year_factor) %>%
+  group_by(plot, year, species, state, site, action, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarize(julian_min = min(julian, na.rm=T))
 
 ### Create a data frame at the PLOT LEVEL that includes first date of seed
