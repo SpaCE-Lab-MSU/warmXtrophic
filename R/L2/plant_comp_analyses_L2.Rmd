@@ -58,6 +58,7 @@ comp$year_factor[comp$year == 2017] <- 3
 comp$year_factor[comp$year == 2018] <- 4
 comp$year_factor[comp$year == 2019] <- 5
 comp$year_factor[comp$year == 2020] <- 6
+comp$year_factor[comp$year == 2021] <- 7
 
 # Remove non-plant data
 comp <- comp[!(comp$species=="Bare_Ground" | 
@@ -152,7 +153,7 @@ diversity_by_year <- function(comp, site, div_index = "shannon"){
     diversity_by_year_list<- lapply(comp_wide_by_year,vegan::diversity, index = div_index)
 
     # each item in the list is a year of diversity, so name those with the years we know we have
-    names(diversity_by_year_list) <- as.character(2015:2020)
+    names(diversity_by_year_list) <- as.character(2015:2021)
 
     # "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
     x<- do.call(cbind,diversity_by_year_list) %>% cbind(Plot = plot_names ) %>% as.data.frame()
@@ -162,15 +163,38 @@ diversity_by_year <- function(comp, site, div_index = "shannon"){
     return(x)
 }
 
+comp$cover <- as.numeric(comp$cover)
+
 # use the one function above to both matrify and calculate Shannon diversity index per year
 diversity_by_year_kbs  <- diversity_by_year(comp, site = "kbs", div_index = "shannon")
 diversity_by_year_umbs <- diversity_by_year(comp, site = "umbs", div_index = "shannon")
+
 
 # this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
 library(reshape2)
 diversity_by_plot_year_kbs <- reshape2::melt(diversity_by_year_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
 diversity_by_plot_year_umbs <- reshape2::melt(diversity_by_year_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
 
+# To do just August (peak_comp):
+
+peak_comp <- dplyr::filter(comp, month == 8)
+
+peak_shannon_by_year_kbs  <- diversity_by_year(peak_comp, site = "kbs", div_index = "shannon")
+peak_shannon_by_year_umbs  <- diversity_by_year(peak_comp, site = "umbs", div_index = "shannon")
+
+peak_simpson_by_year_kbs <- diversity_by_year(peak_comp, site = "kbs", div_index = "simpson")
+peak_simpson_by_year_umbs <- diversity_by_year(peak_comp, site = "umbs", div_index = "simpson")
+
+# this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
+peak_shannon_by_plot_year_kbs <- reshape2::melt(peak_shannon_by_year_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
+peak_shannon_by_plot_year_umbs <- reshape2::melt(peak_shannon_by_year_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
+
+# this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
+peak_simpson_by_plot_year_kbs <- reshape2::melt(peak_simpson_by_year_kbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
+peak_simpson_by_plot_year_umbs <- reshape2::melt(peak_simpson_by_year_umbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
+
+diversity_kbs <- left_join(peak_shannon_by_plot_year_kbs, peak_simpson_by_plot_year_kbs)
+diversity_umbs <- left_join(peak_shannon_by_plot_year_umbs, peak_simpson_by_plot_year_umbs)
 ```
 
 ```{r}
