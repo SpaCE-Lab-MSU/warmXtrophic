@@ -1,0 +1,64 @@
+---
+title: "warmXtrophic Project: Seed Set Phenology Analyses"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Load in packages & data
+```{r}
+# clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(vegan)
+library(car)
+library(rstatix)
+library(scales)
+library(fitdistrplus)
+library(moments)# for calculating skewness of data
+library(ggpubr)
+library(jtools) # summ() function
+library(predictmeans)
+library(olsrr)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(GGally) # ggpairs() function
+library(bbmle) # AICtab() function
+
+# Set working directory
+Sys.getenv("L1DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+# seed set data
+# species level data for seed set
+seed_spp <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_sd_species_L1.csv")
+seed_spp$X <- NULL
+# plot level data for seed set
+seed_plot <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/phenology/final_sd_plot_L1.csv")
+seed_plot$X <- NULL
+```
+
