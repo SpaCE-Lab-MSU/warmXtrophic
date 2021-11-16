@@ -1,11 +1,39 @@
-#Change column names for pendant cleanup
+#Change column names for pendant cleanup - kbs
 change_pend_names <- function(df){
   colnames(df) <- sub("^Date.Time..GMT.0\\d.00", "Date_Time", colnames(df))
+  colnames(df) <- sub("^Date.Time..GMT..0\\d00", "Date_Time", colnames(df))
+  colnames(df) <- sub("^X04.*\\d\\d", "Date_Time", colnames(df))
   colnames(df) <- sub("^Temp.*warmed_air_1m.", "Temp_F_XP_air_1m", colnames(df))
+  colnames(df) <- sub("^Temp....C.", "Temp_F_XP_air_1m", colnames(df))
+  colnames(df) <- sub("^X\\d\\d.\\d\\d", "Temp_F_XP_air_1m", colnames(df))
   colnames(df) <- sub("^Intensity.*warmed_light_1..", "Intensity_lum_ft_XP_light_1m", colnames(df))
-  df = subset(df, select = -c(X.))
+  colnames(df) <- sub("^Intensity....lux.", "Intensity_lum_ft_XP_light_1m", colnames(df))
+  colnames(df) <- sub("^X\\d\\d\\d\\d\\d.\\d\\d", "Intensity_lum_ft_XP_light_1m", colnames(df))
   return(df)
-  }
+}
+
+#Change column names for pendant cleanup - umbs
+change_pend_names_umbs <- function(df){
+        colnames(df) <- sub("^Date.Time..GMT.0\\d.00", "Date_Time", colnames(df))
+        colnames(df) <- sub("^Date.Time..GMT..0\\d00", "Date_Time", colnames(df))
+        colnames(df) <- sub("^X12.*\\d\\d", "Date_Time", colnames(df))
+        colnames(df) <- sub("^X05.*\\d\\d", "Date_Time", colnames(df))
+        colnames(df) <- sub("^Temp.*warmed_air_1m.", "Temp_F_XP_air_1m", colnames(df))
+        colnames(df) <- sub("^Temp....C.", "Temp_F_XP_air_1m", colnames(df))
+        colnames(df) <- sub("^X\\d\\d.\\d\\d", "Temp_F_XP_air_1m", colnames(df))
+        colnames(df) <- sub("^X.\\d.\\d\\d", "Temp_F_XP_air_1m", colnames(df))
+        colnames(df) <- sub("^X\\d.\\d\\d", "Temp_F_XP_air_1m", colnames(df))
+        colnames(df) <- sub("^Intensity.*warmed_light_1..", "Intensity_lum_ft_XP_light_1m", colnames(df))
+        colnames(df) <- sub("^Intensity....lux.", "Intensity_lum_ft_XP_light_1m", colnames(df))
+        colnames(df) <- sub("^X\\d\\d\\d\\d\\d.\\d\\d", "Intensity_lum_ft_XP_light_1m", colnames(df))
+        return(df)
+}
+
+# change column names for pendant cleanup again - just fixing the mistakes made from the random characters above
+change_pend_names2 <-  function(df){
+        colnames(df) <- sub("^Temp_F_XP_air_1m.*\\d", "Intensity_lum_ft_XP_light_1m", colnames(df))
+        return(df)
+}
 
 #Change column names for paired sensor cleanup
 change_pair_names <- function(df){
@@ -46,7 +74,7 @@ f_to_c <- function(df){
   return(df)
 }
 
-#Change 2020 dataframe to celsius for pendant sensors
+# Change 2020 dataframe to celsius for pendant sensors
 f_to_c2 <- function(df){
   df[["Temp_F_XP_air_1m"]] <- fahrenheit.to.celsius(df[["Temp_F_XP_air_1m"]])
   return(df)
@@ -54,16 +82,14 @@ f_to_c2 <- function(df){
 
 #Change date format to POSIX format
 change_POSIX <- function(df){
-  df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],tryFormats = c("%m/%d/%y %I:%M:%S %p", "%m/%d/%Y %H:%M"), tz="UTC")
+  df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],tryFormats = c("%m/%d/%y %I:%M:%S %p",
+                                                                   "%m/%d/%Y %H:%M",
+                                                                   "%m/%d/%y %H:%M",
+                                                                   "%m/%d/%Y %I:%M:%S",
+                                                                   "%m/%d/%Y %H:%M:%S",
+                                                                   "%F %H:%M:%S"), tz="UTC")
   return(df)
 }
-
-#Change date format to POSIX format for 2020
-change_POSIX2 <- function(df){
-  df[["Date_Time"]] <- as.POSIXct(df[["Date_Time"]],tryFormats = c("%m/%d/%y %H:%M"), tz="UTC")
-  return(df)
-}
-
 
 #Adding in pendant_ID column
 add_name_cols <- function(l){
@@ -73,6 +99,36 @@ add_name_cols <- function(l){
   return(l)
 }
 
+# Adding column for plot ID for pendants - KBS
+plot_ID_kbs <- function(df){
+        df[["Plot"]] = 0
+        df[["Plot"]][df[["Pendant_ID"]] == '4P'] = "D2"
+        df[["Plot"]][df[["Pendant_ID"]] == '5P'] = "A2"
+        df[["Plot"]][df[["Pendant_ID"]] == '6P'] = "B2"
+        df[["Plot"]][df[["Pendant_ID"]] == '7P'] = "C4"
+        df[["Plot"]][df[["Pendant_ID"]] == '8P'] = "D3"
+        df[["Plot"]][df[["Pendant_ID"]] == '9P'] = "A4"
+        df[["Plot"]][df[["Pendant_ID"]] == '10P'] = "A5"
+        df[["Plot"]][df[["Pendant_ID"]] == '11P'] = "C6"
+        df[["Plot"]][df[["Pendant_ID"]] == '12P'] = "D6"
+        return(df)
+}
+
+# Adding column for plot ID for pendants - UMBS
+plot_ID_umbs <- function(df){
+        df[["Plot"]] = 0
+        df[["Plot"]][df[["Pendant_ID"]] == '4P'] = "C1"
+        df[["Plot"]][df[["Pendant_ID"]] == '5P'] = "A2"
+        df[["Plot"]][df[["Pendant_ID"]] == '6P'] = "B2"
+        df[["Plot"]][df[["Pendant_ID"]] == '7P'] = "B3"
+        df[["Plot"]][df[["Pendant_ID"]] == '8P'] = "D3"
+        df[["Plot"]][df[["Pendant_ID"]] == '9P'] = "A4"
+        df[["Plot"]][df[["Pendant_ID"]] == '10P'] = "B6"
+        df[["Plot"]][df[["Pendant_ID"]] == '11P'] = "C6"
+        df[["Plot"]][df[["Pendant_ID"]] == '12P'] = "D6"
+        return(df)
+}
+
 #Remove columns from paired sensors
 remove_col <- function(df,name){
   vec <- which(names(df) %in% name)
@@ -80,11 +136,12 @@ remove_col <- function(df,name){
   return(df)
 }
 
+# removing outliers from paired sensors
 remove_outliers = function(df){
-  is.na(df[["XU_warmed_soil_temp_5cm"]]) <- df[["XU_warmed_soil_temp_5cm"]] >= 40
-  is.na(df[["XU_ambient_soil_temp_5cm"]]) <- df[["XU_ambient_soil_temp_5cm"]] >= 40
-  is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] >= 40
-  is.na(df[["XU_ambient_air_10cm"]]) <- df[["XU_ambient_air_10cm"]] >= 40
+  is.na(df[["XU_warmed_soil_temp_5cm"]]) <- df[["XU_warmed_soil_temp_5cm"]] >= 50
+  is.na(df[["XU_ambient_soil_temp_5cm"]]) <- df[["XU_ambient_soil_temp_5cm"]] >= 50
+  is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] >= 50
+  is.na(df[["XU_ambient_air_10cm"]]) <- df[["XU_ambient_air_10cm"]] >= 50
   is.na(df[["XH_warmed_soil_moisture_5cm"]]) <- df[["XH_warmed_soil_moisture_5cm"]] <= 0
   is.na(df[["XH_ambient_soil_moisture_5cm"]]) <- df[["XH_ambient_soil_moisture_5cm"]] <= 0
   is.na(df[["XH_ambient_air_1m"]]) <- df[["XH_ambient_air_1m"]] <= -30
