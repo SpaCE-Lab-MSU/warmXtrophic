@@ -208,6 +208,10 @@ yr18<-sla_final$year == 18
 sla_final$year[yr18]<-strptime(sla_final$date, "%m/%d/%y")$year[yr18] + 1900
 
 sla_final<-sla_final[with(sla_final, order(site, year, species)),]
+
+# Compute SLA
+sla_final$sla<-sla_final$area_cm2/sla_final$mass_g
+
 # write a new csv with the cleaned and merged data and upload to the shared google drive L1 folder
 write.csv(sla_final, file.path(L1_dir, "./SLA/SLA_L1.csv"), row.names=F)
 
