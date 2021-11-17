@@ -1,5 +1,5 @@
 ---
-title: "warmXtrophic Project: Specific Leaf Area (SLA) Analyses"
+title: "warmXtrophic Project: Specific Leaf Area (spla) Analyses"
 author: "Phoebe Zarnetske"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
@@ -20,7 +20,7 @@ rm(list=ls())
 library(tidyverse)
 library(bbmle)
 library(lmerTest)
-library(fitdistrplus)
+library(fitdistrplus) 
 library(lme4)
 library(car)
 
@@ -36,53 +36,56 @@ theme_update(axis.text.x = element_text(size = 12, angle = 90),
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in data
-sla <- read.csv("./L1/SLA/SLA_L1.csv")
+spla <- read.csv("./L1/SLA/SLA_L1.csv")
 ```
-
+# Methods for SLA: 
+For a subset of species, per site, use scissors to collect 4-5 mature leaves with little to no obvious insect damage or disease off of 3-5 plants of the same species. PICK one representative leaf from the samples of leaves for SLA and place it in a separate glassine envelope or ziploc (for wet surface area and for dry weight later) - place this in a cooler ASAP. This equates to multiple SLA values per plant. As such, "plant_number" should be used as a random effect. If possible, also use "plot" as a random effect (plant_number within plot).
 # Check what species are measured at each site
 ```{r}
-unique(sla$species)
-with(sla,table(sla$site,sla$species))
+unique(spla$species)
+with(spla,table(spla$site,spla$species))
+with(spla,table(spla$plot,spla$species))
+with(spla,table(spla$year,spla$plant_number)) # 2020 has odd entries of letters for plant_number - Chk w Mark
 ```
-## Each species is only at one site, so for now don't make separate dataframes (just use species as fixed effect)
+Almost all species are only at one site, except Popr. Use species as fixed effect, and site as fixed effect. Plant_number and plot as random effects account for the pseudoreplication of observations within a plant and within a plot.
 
 # Data exploration - some different ways of visualizing these data
 ```{r}
-ggplot(sla, aes(area_cm2, fill = species)) + geom_histogram(binwidth = 0.5) + 
+ggplot(spla, aes(sla, fill = species)) + geom_histogram(binwidth = 50) + 
         facet_grid(year ~ site, margins = TRUE, scales = "free")
 
-ggplot(sla, aes(area_cm2, fill = as.factor(species))) + geom_histogram(binwidth = 0.5) + 
+ggplot(spla, aes(sla, fill = as.factor(species))) + geom_histogram(binwidth = 50) + 
         facet_grid(species~year, margins = TRUE, scales = "free")
 
-ggplot(sla, aes(area_cm2, fill = species, color=species)) +
-        geom_density(alpha = 0.1)
+ggplot(spla, aes(sla, fill = species, color=species)) +
+        geom_density(alpha = 25)
 
-ggplot(sla, aes(area_cm2, fill = species, color=species)) +
-        geom_density(alpha = 0.1) +
+ggplot(spla, aes(sla, fill = species, color=species)) +
+        geom_density(alpha = 25) +
         facet_wrap(~year)
 
-ggplot(sla, aes(area_cm2, fill = species, color=species)) +
-        geom_density(alpha = 0.1) +
+ggplot(spla, aes(sla, fill = species, color=species)) +
+        geom_density(alpha = 25) +
         facet_wrap(~year + site)
 
 # Exploring distributions for these right-skewed data:
 # See: http://www.di.fc.ul.pt/~jpn/r/distributions/fitting.html
-descdist(sla$area_cm2, discrete = FALSE)
+descdist(spla$sla, discrete = FALSE)
 
 # Gamma distribution is an option
-fit.gamma <- fitdist(sla$area_cm2, "gamma")
+fit.gamma <- fitdist(spla$sla, "gamma")
 plot(fit.gamma)
 
-# Exponential distribution is another option
-fit.exp <- fitdist(sla$area_cm2, "exp")
+# Exponential distribution is another option; not as good but ok
+fit.exp <- fitdist(spla$sla, "exp")
 plot(fit.exp)
 
-# Lognormal distribution is another option
-fit.ln <- fitdist(sla$area_cm2, "lnorm")
+# Lognormal distribution is another option; not as good w Q-Q plot
+fit.ln <- fitdist(spla$sla, "lnorm")
 plot(fit.ln)
 
-# Square root transformed normal distribution 
-fit.sr <- fitdist(sqrt(sla$area_cm2), "norm")
+# Square root transformed normal distribution - not as good
+fit.sr <- fitdist(sqrt(spla$sla), "norm")
 plot(fit.sr)
 
 par(mfrow=c(2,2))
@@ -94,95 +97,105 @@ ppcomp  (list(fit.gamma, fit.exp, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.exp, fit.ln), fitnames = c("Gamma", "Exponential", "Log Normal"))
-# Lognormal is a winner so far
+# Gamma is a winner so far (lowest AIC, BIC), but Lognormal is pretty close. *We will need to re-check this after investigating outliers.*
 ```
 
 
-# Determining appropriate distribution in mixed effects model
+# Determining appropriate distribution in mixed effects model.
+See Ben Bolker's site for details on fitting glmms: https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
+
+Fixed effects: warming, year, insecticide
+Random effect = plant_number, plot (bc observations are nested within plant and plot)
+
+Fit with ML (REML = FALSE) bc we are interested in estimating fixed effects more than random effects. See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details.
 ```{r}
-# See Ben Bolker's site for details on fitting glmms: https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html
-#       Fixed effects: warming, year, insecticide
-#       Random effect = plot (bc observations are nested within plot)
-# Fit with ML bc we are interested in estimating fixed effects more than random effects
-# See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details 
-m1 <- lmer(log(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla, REML=FALSE)
+m1 <- lmer(log(sla) ~ state + species + year + insecticide + (1 | plot/plant_number), data = spla, REML=FALSE)
+ggplot(spla,aes(x=plot,y=log(sla),col=plant_number)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plant_number)
+
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
 par(mfrow=c(1,2))
-plot(m1, main = "Log Area (cm2)")
+plot(m1, main = "Log Specific Leaf Area (cm2/g)")
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
-leveneTest(residuals(m1) ~ sla$state)
-# Assumption not met
-leveneTest(residuals(m1) ~ sla$species)
-# Assumption not met - not surprising given the differences among species
-leveneTest(residuals(m1) ~ sla$insecticide)
+leveneTest(residuals(m1) ~ spla$state)
 # Assumption met
-leveneTest(residuals(m1) ~ sla$plot)
+leveneTest(residuals(m1) ~ spla$species)
+# Assumption not met - not surprising given the differences among species
+leveneTest(residuals(m1) ~ spla$insecticide)
+# Assumption met
+leveneTest(residuals(m1) ~ spla$plot)
 # Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
-qqPlot(resid(m1), main = "Area (cm2)")
-hist(residuals(m1), main = "Area (cm2)")
-shapiro.test(resid(m1)) # not normally distributed resids bc p>0.05
-# Outliers
-sla[377,]
-sla[801,]
+qqPlot(resid(m1), main = "Specific Leaf Area (cm2/g)")
+hist(residuals(m1), main = "Specific Leaf Area (cm2/g)")
+shapiro.test(resid(m1)) # normally distributed resids bc p<0.05
+# Outliers from plots above:
+spla[1375,]
+spla[1406,]
+# These are extremely small numbers for area relative to mass; also an order of magnitude lower than other area measurements in 2020.
 # Outlier test - yes, these are outliers bc p<0.05 
 outlierTest(m1)
-
 # Remove these 2 points
-sla1<-sla[-c(377, 801),]
-m1.nooutlier <- lmer(log(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla1, REML=FALSE)
-shapiro.test(resid(m1.nooutlier)) # normally distributed resids - good!
+spla1<-spla[-c(1375, 1406),]
+m1.1 <- lmer(log(sla) ~ state + species + year + insecticide + (1|plot), data = spla1, REML=FALSE)
+qqPlot(resid(m1.1), main = "Specific Leaf Area (cm2/g)")
+hist(residuals(m1.1), main = "Specific Leaf Area (cm2/g)")
+shapiro.test(resid(m1.1)) # normally distributed resids - still good!
+outlierTest(m1.1) # still outliers
+spla1[697,] # this data point is an order of magnitude higher for mass (0.164) than similar ones; likely recording error. Edit to appropriate magnitude.
+spla1$mass_g[697]=0.0164
+spla1[697,] 
+spla1[835,] # this data point is an order of magnitude lower for mass (0.0017) than similar ones for Popr with similar area; likely recording error. Edit to appropriate magnitude.
+spla1$mass_g[835]=0.017
+spla1[835,]
 
-# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. [***need to do for final model]
-```
+# Re-compute SLA on these data without outliers:
+spla1$sla<-spla1$area_cm2/spla1$mass_g
 
-Model exploration determined log normal distribution for SLA and dropping 2 outliers. Proceed with re-checking the distribution and assumptions as above with the outliers removed.
-```{r}
-# Fixed effects: warming, year, insecticide
-# Random effect = plot (bc observations are nested within plot)
-# Fit with ML bc we are interested in estimating fixed effects more than random effects
-# See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details 
-m2 <- lmer(log(area_cm2) ~ state + species + year + insecticide + (1|plot), data = sla1, REML=FALSE)
+# Re-fit model without outliers
+m1.2 <- lmer(log(sla) ~ state + species + year + insecticide + (1|site), data = spla1, REML=FALSE)
+qqPlot(resid(m1.2), main = "Specific Leaf Area (cm2/g)")
+hist(residuals(m1.2), main = "Specific Leaf Area (cm2/g)")
+outlierTest(m1.2) # no outliers (they are all below +-2 resids)
 
-# Check Assumptions:
-# (1) Linearity: if covariates are not categorical (year isn't)
-# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-par(mfrow=c(1,2))
-plot(m2, main = "Log Area (cm2)")
-# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
-# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
-leveneTest(residuals(m2) ~ sla1$state)
-# Assumption not met
-leveneTest(residuals(m2) ~ sla1$species)
+# Check homogeneity of variances again
+leveneTest(residuals(m1.2) ~ spla1$state)
+# Assumption met bc p>0.05
+leveneTest(residuals(m1.2) ~ spla1$species)
 # Assumption not met - not surprising given the differences among species
-leveneTest(residuals(m2) ~ sla1$insecticide)
-# Assumption met
-leveneTest(residuals(m2) ~ sla1$plot)
-# Assumption met
-
-# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
-# Check for normal residuals
-qqPlot(resid(m2), main = "Area (cm2)")
-hist(residuals(m2), main = "Area (cm2)")
-shapiro.test(resid(m2)) # normally distributed resids bc p>0.05
-# Outlier test - no, these are no outliers bc p>0.05 
-outlierTest(m2)
+leveneTest(residuals(m1.2) ~ spla1$insecticide)
+# Assumption met bc p>0.05
+leveneTest(residuals(m1.2) ~ spla1$plot)
+# Assumption met bc p>0.05
 
 # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
 require(lme4)
-r_int<- ranef(m2)$plot$`(Intercept)`
+r_int<- ranef(m1.2)$plot$`(Intercept)`
 qqnorm(r_int)
 qqline(r_int)
 shapiro.test(r_int) 
 # Yes, normally distributed random effect.
+
 ```
-According to the results above, the outlier removal helps the model meed the assumptions. Proceed with model comparison. Start with investigating the model summary to determine which coviarates to drop.
+
+*Export* the "no outliers" SLA L1 dataframe as a CSV to ensure it is used for subsequent analyses. This is now the updated csv with the cleaned and merged SLA L0 data, lacking outliers, uploaded to the shared google drive L1 folder:
+```{r}
+write.csv(spla1, file.path(L1_dir, "./SLA/SLA_L1_nooutliers.csv"), row.names=F)
+```
+
+#SUMMARY SO FAR: 
+Model exploration from above determined log normal distribution for spla, identified 4 outliers (dropped 2 outliers, and adjusting values in 2 others due to likely measurement error). Proceed with re-checking the distribution and assumptions as above with the outliers removed.
+```{r}
+
+
+
+```
+According to the results above, the outlier removal helps the model meet the assumptions. Proceed with model comparison. Start with investigating the model summary to determine which coviarates to drop.
 ```{r}
 summary(m2)
 # Looks like year and warmed aren't significant - I'm leaving it in for now bc the data will change. With fuller data we'd begin model comparison here (will pick up here when those data are available). Then run the code below for diff models:
