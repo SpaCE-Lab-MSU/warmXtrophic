@@ -254,7 +254,7 @@ KBS_season_soil <- KBS_season_soil %>%
 KBS_avg_soil <- KBS_season_soil %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
 
-# test for outliers - some extreme, but they seem like reasonable values
+# test for outliers - some extreme, go back and remove soil temp >30
 outliers <- KBS_avg_soil %>%
   group_by(treatment, year) %>%
   identify_outliers(temp)
@@ -316,7 +316,7 @@ UMBS_season_soil <- UMBS_season_soil %>%
 UMBS_avg_soil <- UMBS_season_soil %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
 
-# test for outliers - some extreme, but they seem like reasonable values
+# test for outliers - none extreme
 outliers <- UMBS_avg_soil %>%
         group_by(treatment, year) %>%
         identify_outliers(temp)
