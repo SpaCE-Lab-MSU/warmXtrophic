@@ -471,6 +471,19 @@ FirstFlwr_spp <- phen_flwr %>%
   group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarize(julian_min = min(julian, na.rm=T))
 
+# Kara - looking at species w/ earliest and latest flowering time
+# this dataframe was only used to determine these species
+phen_flwr_control_kbs <- subset(phen_flwr, state == "ambient" & site == "kbs")
+phen_flwr_control_umbs <- subset(phen_flwr, state == "ambient" & site == "umbs")
+early_late_kbs <- phen_flwr_control_kbs %>%
+        add_count(species) %>%
+        group_by(species, n) %>%
+        summarize(julian_min = min(julian, na.rm=T)) # n = number of observations for that species
+early_late_umbs <- phen_flwr_control_umbs %>%
+        add_count(species) %>%
+        group_by(species, n) %>%
+        summarize(julian_min = min(julian, na.rm=T)) # n = number of observations for that species
+
 # Median Flower Date by SPECIES LEVEL - filter data to contain the median date of flower for each species at each plot
 MedianFlwr_spp <- phen_flwr %>%
   group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
