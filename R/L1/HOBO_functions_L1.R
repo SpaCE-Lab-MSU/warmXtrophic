@@ -147,6 +147,7 @@ remove_outliers = function(df){
   is.na(df[["XH_ambient_air_1m"]]) <- df[["XH_ambient_air_1m"]] <= -30
   is.na(df[["XH_warmed_air_1m"]]) <- df[["XH_warmed_air_1m"]] <= -30
   is.na(df[["XH_warmed_RH_1m"]]) <- df[["XH_warmed_RH_1m"]] <= -30
+  is.na(df[["XH_ambient_RH_1m"]]) <- df[["XH_ambient_RH_1m"]] <= -30
   is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] >= 50
   is.na(df[["XU_ambient_air_10cm"]]) <- df[["XU_ambient_air_10cm"]] >= 50
   is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] <= -30
