@@ -24,8 +24,8 @@ rm(list=ls())
 library(tidyverse)
 
 # Source in needed functions from the github repo - could add this to Renviron?
-#source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R")
-source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
+source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Moriah's location
+#source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 #source("~/Documents/GitHub/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
@@ -552,8 +552,6 @@ p3 + facet_wrap(~year) + labs(title="Species-level First Flower")
 # this will just show sampling date artifact
 p4 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_density(alpha=0.5)
 p4 + facet_wrap(~year)
-
-
 
 
 ###### SEED SET (Moriah did this) ######
