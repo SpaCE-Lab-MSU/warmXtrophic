@@ -1,0 +1,73 @@
+---
+title: "PAR Plots"
+author: "Kara Dobson"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat Bills, Kileigh Welshofer, Moriah Young
+## DATA INPUT: CSV files are located in the L1 PAR folder in the shared Google drive
+## DATA OUTPUT: Plots of PAR data  
+
+```{r, echo = F, message = F}
+# clear all existing data
+rm(list=ls())
+
+# load in packages and source in functions
+library(tidyverse)
+
+# set working directory
+L1_dir<-Sys.getenv("L1DIR")
+
+# read in the data
+KBS <- read.csv(file.path(L1_dir,"PAR/KBS_PAR_L1.csv"))
+UMBS <- read.csv(file.path(L1_dir,"PAR/UMBS_PAR_L1.csv"))
+
+# convert date column back to date
+KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d")
+UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d")
+```
+\pagebreak
+
+## Average PAR above the plant canopy for warmed and ambient
+```{r, message = F, warning = F}
+ggplot(KBS, aes(x=state, y=Overstory, fill=state)) +
+        geom_boxplot() +
+        scale_fill_manual(labels = c("Ambient", "Warmed"),
+                          values=c('steelblue3','#fb6a4a')) +
+        labs(title="KBS",y="Above Canopy PAR (µmol m-2s-1)", x="Treatment") +
+        theme_classic() +
+        theme(legend.position = "none")
+ggplot(UMBS, aes(x=state, y=Overstory, fill=state)) +
+        geom_boxplot() +
+        scale_fill_manual(labels = c("Ambient", "Warmed"),
+                          values=c('steelblue3','#fb6a4a')) +
+        labs(title="UMBS",y="Above Canopy PAR (µmol m-2s-1)", x="Treatment") +
+        theme_classic() +
+        theme(legend.position = "none")
+```
+\pagebreak
+
+## Average PAR below the plant canopy for warmed and ambient
+```{r, message = F, warning = F}
+ggplot(KBS, aes(x=state, y=Average_Ground, fill=state)) +
+        geom_boxplot() +
+        scale_fill_manual(labels = c("Ambient", "Warmed"),
+                          values=c('steelblue3','#fb6a4a')) +
+        labs(title="KBS",y="Below Canopy PAR (µmol m-2s-1)", x="Treatment") +
+        theme_classic() +
+        theme(legend.position = "none")
+ggplot(UMBS, aes(x=state, y=Average_Ground, fill=state)) +
+        geom_boxplot() +
+        scale_fill_manual(labels = c("Ambient", "Warmed"),
+                          values=c('steelblue3','#fb6a4a')) +
+        labs(title="UMBS",y="Below Canopy PAR (µmol m-2s-1)", x="Treatment") +
+        theme_classic() +
+        theme(legend.position = "none")
+```
+
+
