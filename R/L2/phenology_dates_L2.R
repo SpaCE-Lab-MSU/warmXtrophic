@@ -558,13 +558,13 @@ p4 + facet_wrap(~year)
 ### Create a data frame at the SPECIES LEVEL that includes first date of seed
 # First Seed by SPECIES LEVEL - filter data to contain the date of first seed for each species at each plot
 FirstSd_spp <- phen_sd %>%
-  group_by(plot, year, species, state, site, action, insecticide, treatment_key, year_factor, growth_habit) %>%
+  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarize(julian_min = min(julian, na.rm=T))
 
 ### Create a data frame at the PLOT LEVEL that includes first date of seed
 # First Seed Date by PLOT LEVEL
 FirstSd_plot <- phen_sd %>%
-  group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+  group_by(plot, year, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarize(julian_min = min(julian, na.rm=T))
 
 # write a new csv with first seed date at the SPECIES LEVEL and upload to the shared google drive

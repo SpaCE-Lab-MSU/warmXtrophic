@@ -80,9 +80,18 @@ levels(sd_plot$state)
 sd_plot$state <- factor(sd_plot$state, levels(sd_plot$state)[c(2,1)])
 levels(sd_plot$state)
 # [1] "warmed"  "ambient"
+
+# make the year_factor a factor
+sd_plot$year_factor <- as.factor(sd_plot$year_factor)
+sd_species$year_factor <- as.factor(sd_species$year_factor)
+
+umbs_sd_plot <- subset(sd_plot, site == "umbs") # pull out umbs only data at plot level
+umbs_sd_spp <- subset(sd_species, site == "umbs") # pull out umbs only data at species level
+kbs_sd_plot <- subset(sd_plot, site == "kbs") # pull out kbs only data at plot level
+kbs_sd_spp <- subset(sd_species, site == "kbs") # pull out kbs only data at species level
 ```
 
-# Data exploration for minimum (first) Julian date of flowering at the PLOT for both sites
+# Data exploration for minimum (first) Julian date of seed set at the PLOT for both sites
 ```{r}
 # Visualizing avg minimum Julian date for both sites at the PLOT LEVEL
 ggplot(sd_plot, aes(julian_min, fill = plot)) + 
@@ -109,8 +118,6 @@ descdist(sd_plot$julian_min, discrete = FALSE)
 # KBS SPECIES LEVEL - Looking at MINIMUM JULIAN DAY (aka date of observed first seed set)
 ```{r, warning=F}
 ### KBS ###
-kbs_sd_spp <- subset(sd_species, site == "kbs") # pull out kbs only data at species level
-
 hist(kbs_sd_spp$julian_min)
 qqnorm(kbs_sd_spp$julian_min)
 shapiro.test(kbs_sd_spp$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
@@ -134,7 +141,7 @@ ggplot(kbs_sd_spp, aes(julian_min, fill = plot, color=plot)) +
         geom_density(alpha = 0.1) +
         facet_wrap(~year + plot)
 
-# Exploring distributions for these right-skewed data:
+# Exploring distributions 
 descdist(kbs_sd_spp$julian_min, discrete = FALSE)
 
 # Gamma distribution 
@@ -156,35 +163,202 @@ cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
-# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
 # Lognormal is better - going with a lognormal transformation for kbs seed set at the species level
 
-kbs_sd_spp$log_julian_min <- log(kbs_sd_spp$julian_min)
-hist(kbs_sd_spp$log_julian_min)
-shapiro.test(kbs_sd_spp$log_julian_min) # this says the data isn't normal so not sure if I should proceed with log transformation going forward or not
+#kbs_sd_spp$log_julian_min <- log(kbs_sd_spp$julian_min)
+#hist(kbs_sd_spp$log_julian_min)
+#shapiro.test(kbs_sd_spp$log_julian_min) # this says the data isn't normal so not sure if I should proceed with log #transformation going forward or not...
+```
 
+# KBS PLOT LEVEL - Looking at MINIMUM JULIAN DAY (aka date of observed first seed set)
+```{r, warning=F}
+### KBS ###
+hist(kbs_sd_plot$julian_min)
+qqnorm(kbs_sd_plot$julian_min)
+shapiro.test(kbs_sd_plot$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(kbs_sd_plot, aes(julian_min, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_sd_plot, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state ~ year, margins = TRUE, scales = "free")
+
+ggplot(kbs_sd_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_sd_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(kbs_sd_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(kbs_sd_plot$julian_min, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_sd_plot$julian_min, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_sd_plot$julian_min, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_sd_plot$julian_min, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Lognormal is better - going with a lognormal transformation for kbs seed set at the plot level
+
+#kbs_sd_plot$log_julian_min <- log(kbs_sd_plot$julian_min)
+#hist(kbs_sd_plot$log_julian_min)
+#shapiro.test(kbs_sd_plot$log_julian_min) # this says the data isn't normal so not sure if I should proceed with log #transformation going forward or not
+```
+
+# UMBS SPECIES LEVEL - Looking at MINIMUM JULIAN DAY (aka date of observed first seed set)
+```{r, warning=F}
+### UMBS ###
+hist(umbs_sd_spp$julian_min)
+qqnorm(umbs_sd_spp$julian_min)
+shapiro.test(umbs_sd_spp$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(umbs_sd_spp, aes(julian_min, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_sd_spp, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state ~ year, margins = TRUE, scales = "free")
+
+ggplot(umbs_sd_spp, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_sd_spp, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(umbs_sd_spp, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(umbs_sd_spp$julian_min, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_sd_spp$julian_min, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_sd_spp$julian_min, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_sd_spp$julian_min, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Lognormal is slightly better than gamma - going with a lognormal transformation for umbs seed set at the species level
+
+#umbs_sd_spp$log_julian_min <- log(umbs_sd_spp$julian_min)
+#hist(umbs_sd_spp$log_julian_min)
+#shapiro.test(umbs_sd_spp$log_julian_min) # this says the data isn't normal so not sure if I should proceed with log #transformation going forward or not
+```
+
+# UMBS PLOT LEVEL - Looking at MINIMUM JULIAN DAY (aka date of observed first seed set)
+```{r, warning=F}
+### UMBS ###
+hist(umbs_sd_plot$julian_min)
+qqnorm(umbs_sd_plot$julian_min)
+shapiro.test(umbs_sd_plot$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(umbs_sd_plot, aes(julian_min, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_sd_plot, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state ~ year, margins = TRUE, scales = "free")
+
+ggplot(umbs_sd_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_sd_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(umbs_sd_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(umbs_sd_plot$julian_min, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_sd_plot$julian_min, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_sd_plot$julian_min, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_sd_plot$julian_min, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Gamma is slightly better here but going to go with a lognormal transformation for umbs seed set at the plot level
+
+#umbs_sd_plot$log_julian_min <- log(umbs_sd_plot$julian_min)
+#hist(umbs_sd_plot$log_julian_min)
+#shapiro.test(umbs_sd_plot$log_julian_min) # this says the data isn't normal so not sure if I should proceed with log #transformation going forward or not
 ```
 
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
 # These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
+
 ```{r}
-# species level data
+# KBS species level data
 # KBS State-only model
-fit_spp_state <- lm(log(julian_min) ~ state, data = kbs_sd_spp)
-outlierTest(fit_spp_state) # no outliers
-qqPlot(fit_spp_state, main="QQ Plot") 
-hist(fit_spp_state$residuals)
-leveragePlots(fit_spp_state)
-ols_test_normality(fit_spp_state)
+fit_spp_state_kbs <- lm(log(julian_min) ~ state, data = kbs_sd_spp)
+outlierTest(fit_spp_state_kbs) # no outliers
+qqPlot(fit_spp_state_kbs, main="QQ Plot") 
+hist(fit_spp_state_kbs$residuals)
+leveragePlots(fit_spp_state_kbs)
+ols_test_normality(fit_spp_state_kbs)
 
 # KBS State and year model
-fit_spp_stateyear <- lm(log(julian_min) ~ state + year_factor, data = kbs_sd_spp)
-outlierTest(fit_spp_stateyear) # no outliers
-qqPlot(fit_spp_stateyear, main="QQ Plot") 
-hist(fit_spp_stateyear$residuals)
-leveragePlots(fit_spp_stateyear)
-ols_test_normality(fit_spp_stateyear)
+fit_spp_stateyear_kbs <- lm(log(julian_min) ~ state + year_factor, data = kbs_sd_spp)
+outlierTest(fit_spp_stateyear_kbs) # no outliers
+qqPlot(fit_spp_stateyear_kbs, main="QQ Plot") 
+hist(fit_spp_stateyear_kbs$residuals)
+leveragePlots(fit_spp_stateyear_kbs)
+ols_test_normality(fit_spp_stateyear_kbs)
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
@@ -193,6 +367,81 @@ interact_plot(fit3, pred = year_factor, modx = state)
 fit4 <- lm(log(julian_min) ~ state * year_factor + species, data = kbs_sd_spp)
 interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
 ```
+```{r}
+# KBS Plot level data
+# KBS State-only model
+fit_plot_state_kbs <- lm(log(julian_min) ~ state, data = kbs_sd_plot)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs)
+
+# KBS State and year model
+fit_plot_stateyear_kbs <- lm(log(julian_min) ~ state + year_factor, data = kbs_sd_plot)
+outlierTest(fit_spp_stateyear_kbs) 
+qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs$residuals)
+leveragePlots(fit_plot_stateyear_kbs)
+ols_test_normality(fit_plot_stateyear_kbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(log(julian_min) ~ state * year_factor, data = kbs_sd_plot)
+interact_plot(fit3, pred = year_factor, modx = state)
+```
+
+```{r}
+# UMBS species level data
+# UMBS State-only model
+fit_spp_state_umbs <- lm(log(julian_min) ~ state, data = umbs_sd_spp)
+outlierTest(fit_spp_state_umbs) # no outliers
+qqPlot(fit_spp_state_umbs, main="QQ Plot") 
+hist(fit_spp_state_umbs$residuals)
+leveragePlots(fit_spp_state_umbs)
+ols_test_normality(fit_spp_state_umbs)
+
+# UMBS State and year model
+fit_spp_stateyear_umbs <- lm(log(julian_min) ~ state + year_factor, data = umbs_sd_spp)
+outlierTest(fit_spp_stateyear_umbs)
+qqPlot(fit_spp_stateyear_umbs, main="QQ Plot") 
+hist(fit_spp_stateyear_umbs$residuals)
+leveragePlots(fit_spp_stateyear_umbs)
+ols_test_normality(fit_spp_stateyear_umbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3_spp_umbs <- lm(log(julian_min) ~ state + year_factor + species, data = umbs_sd_spp)
+interact_plot(fit3, pred = year_factor, modx = state)
+fit4_spp_umbs <- lm(log(julian_min) ~ state * year_factor + species, data = umbs_sd_spp)
+interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
+```
+
+```{r}
+# Plot level data
+# UMBS State-only model
+fit_plot_state_umbs <- lm(log(julian_min) ~ state, data = umbs_sd_plot)
+outlierTest(fit_plot_state_umbs) # no outliers
+qqPlot(fit_plot_state_umbs, main="QQ Plot") 
+hist(fit_plot_state_umbs$residuals)
+leveragePlots(fit_plot_state_umbs)
+ols_test_normality(fit_plot_state_umbs)
+
+# UMBS State and year model
+fit_plot_stateyear_umbs <- lm(log(julian_min) ~ state + year_factor, data = umbs_sd_plot)
+outlierTest(fit_spp_stateyear_umbs) 
+qqPlot(fit_plot_stateyear_umbs, main="QQ Plot") 
+hist(fit_plot_stateyear_umbs$residuals)
+leveragePlots(fit_plot_stateyear_umbs)
+ols_test_normality(fit_plot_stateyear_umbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3_plot_umbs <- lm(log(julian_min) ~ state * year_factor, data = umbs_sd_plot)
+interact_plot(fit3_plot_umbs, pred = year_factor, modx = state)
+```
+
+MODEL BUILDING
 
 KBS Species-level Mixed Effects Models
 ```{r}
@@ -206,7 +455,7 @@ anova(mod1)
 anova(mod2)
 
 # Run an ANOVA to test the 2 models to test whether the more complex model is significantly better at capturing the data than the simpler model. If the resulting p-value is sufficiently low (usually less than 0.05), we conclude that the more complex model is significantly better than the simpler model, and thus favor the more complex model. If the p-value is not sufficiently low (usually greater than 0.05), we should favor the simpler model. https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
-anova(mod1, mod2) # Go with model 1
+anova(mod1, mod2) # models are not different from each other so go with simpler model = model 2
 summary(mod1) 
 summary(mod2)
 
@@ -216,27 +465,120 @@ summary(mod2)
 #?plot_model
 # Plot the fixed effects estimates for different models
 # these are the fixed effects estimates 
-plot_model(mod1, sort.est = TRUE)
+plot_model(mod2, sort.est = TRUE)
 # these are the fixed predicted values:
-plot_model(mod1, type = "pred", terms = c("year_factor", "state", "insecticide"))
+plot_model(mod2, type = "pred", terms = c("year_factor", "state", "insecticide"))
 # these are the random effects estimates
-plot_model(mod1, type = "re", terms = c("species"))
+plot_model(mod2, type = "re", terms = c("species"))
 
 # Do we need to include insecticide? 
 mod3 <- lmer(log(julian_min) ~ state*year_factor + (1|species), kbs_sd_spp, REML=FALSE)
-anova(mod1, mod3)
+anova(mod1, mod3) # Don't need insecticide, continue with mod3
 
-# Does year need to be interactive with insecticide?
-mod4 <- lmer(log(julian_min) ~ state*year_factor + insecticide + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
-# mod1 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
-anova(mod1, mod4)
-# yes stick with mod1
+# Does year need to be interactive with insecticide? - already removed insecticide
+# mod4 <- lmer(log(julian_min) ~ state*year_factor + insecticide + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
 
 # Does year need to be interactive with state?
-mod5 <- lmer(log(julian_min) ~ state + year_factor + insecticide + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
-anova(mod1, mod5)
-# # mod1 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
-AICctab(mod1, mod5, weights=T)
-# Stick with mod1
+mod5 <- lmer(log(julian_min) ~ state + year_factor + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
+anova(mod3, mod5)
+AICctab(mod3, mod5, weights=T) # go with mod5
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod5, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod5, type = "pred", terms = c("year_factor", "state"))
+# these are the random effects estimates
+plot_model(mod5, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+mod6 <- lmer(log(julian_min) ~ state + year_factor + (1|species) + (1 + year|plot), kbs_sd_spp, REML=FALSE)
+anova(mod5, mod6) #stick with mod5
+anova(mod5)
+
+plot_model(mod5, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod5, type = "pred", terms = c("year_factor", "state"))
+# these are the random effects estimates
+plot_model(mod5, type = "re", terms = c("species", "plot"))
+
+# mod4 (and mod5) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+mod7 <- lmer(log(julian_min) ~ state + species + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
+mod7a <- lmer(log(julian_min)  ~ state + species + year_factor + (1|plot), kbs_sd_spp, REML=FALSE)
+mod7b <- lmer(log(julian_min)  ~ state * year_factor + species + (1|plot), kbs_sd_spp, REML=FALSE)
+mod7c <- lmer(log(julian_min)  ~ state + species + year_factor + insecticide + (1|plot), kbs_sd_spp, REML=FALSE)
+anova(mod5, mod7) # model 7 is a better fit to data
+anova(mod7, mod7a) #mod 7a
+anova(mod7a, mod7b) #mod 7a 
+anova(mod7a, mod7c) #mod7a
+summary(mod7a)
+anova(mod7a) # investigates whether at least one of the levels within each factor is significantly different.
+# Yes, at least one of the species is different (they do not all have the median first flwr dates). 
+emmeans(mod7a, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ year_factor), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ insecticide), adjust = "tukey")
+
+# Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
+plot_model(mod7a, sort.est = TRUE)
+# if you want to standardize the estimates:
+plot_model(mod7a, sort.est = TRUE, type="std") 
+# these are the fixed predicted values: - note this is a new plot
+plot_model(mod7a, type = "pred", terms = c("species", "state", "year_factor"))
+# these are the random effects estimates
+plot_model(mod7a, type = "re")
+
+# including native vs. exotic
+kbs_sd_spp <- within(kbs_sd_spp, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+mod8 <- lmer(log(julian_min) ~ state * origin + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
+mod9 <- lmer(log(julian_min) ~ state + origin + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
+mod9a <- lmer(log(julian_min) ~ state + origin + year_factor + (1|plot), kbs_sd_spp, REML=FALSE)
+anova(mod8, mod9) # model 8 is a better fit to data
+anova(mod8, mod9a) # mod 8
+summary(mod8)
+anova(mod8)
+emmeans(mod8, list(pairwise ~ state * origin), adjust = "tukey")
+
+# including growth form - first with interaction term
+kbs_flwr_spp <- within(kbs_flwr_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+mod10 <- lmer(log(julian_min) ~ state * growth_habit + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
+mod11 <- lmer(log(julian_min) ~ state + growth_habit + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
+mod11a <- lmer(log(julian_min) ~ state + growth_habit + year_factor + (1|plot), kbs_sd_spp, REML=FALSE)
+anova(mod10, mod11) # model 10 is a better fit to data
+anova(mod10, mod11a) # model 10 is still a better fit to data
+summary(mod10)
+anova(mod10)
+emmeans(mod10, list(pairwise ~ factor(year_factor) * growth_habit), adjust = "tukey")
+
+# New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
+# updated mod4
+mod12 <- lmer(log(julian_min) ~ state * factor(year_factor) + (1+factor(year_factor)|species), kbs_sd_spp)
+
+# So another version of this model would include the interaction but not include the nesting (and thus would assume that species aren't observed ea yr)
+# updated mod5
+mod13 <- lmer(log(julian_min) ~ state * factor(year_factor) + (1|species), kbs_sd_spp)
+
+# All the models ran:
+mod1 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
+mod2 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|species), kbs_sd_spp, REML=FALSE)
+mod3 <- lmer(log(julian_min) ~ state*year_factor + (1|species), kbs_sd_spp, REML=FALSE)
+mod4 <- lmer(log(julian_min) ~ state*year_factor + insecticide + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
+mod5 <- lmer(log(julian_min) ~ state + year_factor + (1|species), umbs_flwr_spp, REML=FALSE)
+mod6 <- lmer(log(julian_min) ~ state + year_factor + (1|species) + (1 + year|plot), kbs_sd_spp, REML=FALSE)
+mod7 <- lmer(log(julian_min) ~ state + species + (1+factor(year_factor)|plot), kbs_sd_spp, REML=FALSE)
+mod7a <- lmer(log(julian_min) ~ state + species + factor(year_factor) + (1|plot), kbs_sd_spp, REML=FALSE)
+mod7b <- lmer(log(julian_min) ~ state * factor(year_factor) + species + (1|plot), kbs_sd_spp, REML=FALSE)
+mod7c <- lmer(log(julian_min) ~ state + species + factor(year_factor) + insecticide + (1|plot), kbs_sd_spp, REML=FALSE)
+mod8 <- lmer(log(julian_min) ~ state * origin + (1+factor(year_factor)|plot), kbs_sd_spp, REML=FALSE)
+mod9 <- lmer(log(julian_min) ~ state + origin + (1+factor(year_factor)|plot), kbs_sd_spp, REML=FALSE)
+mod9a <- lmer(log(julian_min) ~ state + origin + factor(year_factor) + (1|plot), kbs_sd_spp, REML=FALSE)
+mod10 <- lmer(log(julian_min) ~ state * growth_habit + (1+factor(year_factor)|plot), kbs_sd_spp, REML=FALSE)
+mod11 <- lmer(log(julian_min) ~ state + growth_habit + (1+factor(year_factor)|plot), kbs_sd_spp, REML=FALSE)
+mod11a <- lmer(log(julian_min) ~ state + growth_habit + factor(year_factor) + (1|plot), kbs_sd_spp, REML=FALSE)
+mod12 <- lmer(log(julian_min) ~ state * factor(year_factor) + (1+factor(year_factor)|species), kbs_sd_spp)
+mod13 <- lmer(log(julian_min) ~ state * factor(year_factor) + (1|species), kbs_sd_spp)
+AICctab(mod1, mod2, mod3, mod5, mod6, mod7, mod7a, mod7b, mod7c, mod8, mod9, mod9a, mod10, mod11, mod11a, mod13, weights=T) #mod7a is the best fitting model (took out mod12 bc it wouldn't run)
+summary(mod7a)
+anova(mod7a)
 ```
 
