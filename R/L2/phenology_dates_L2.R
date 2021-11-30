@@ -500,7 +500,7 @@ phen_flwr_spp <- merge(FirstFlwr_spp, MedianFlwr_spp)
 phen_flwr_spp <- merge(phen_flwr_spp, flwr_dur_s)
 
 # write a new csv with flowering data at the SPECIES LEVEL and upload to the shared google drive
-write.csv(phen_flwr_spp, file.path(L2_dir, "final_flwr_species_L2.csv"))
+write.csv(phen_flwr_spp, file.path(L2_dir, "phenology/final_flwr_species_L2.csv"))
 
 ### Create a data frame at the PLOT LEVEL that includes median date of flower, first flower date, and duration
 
@@ -525,7 +525,7 @@ phen_flwr_plot <- merge(FirstFlwr_plot, MedianFlwr_plot)
 phen_flwr_plot <- merge(phen_flwr_plot, flwr_dur_p)
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
-write.csv(phen_flwr_plot, file.path(L2_dir, "final_flwr_plot_L2.csv"))
+write.csv(phen_flwr_plot, file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
 
 # Create some plots to visualize these data (NOT FINISHED - MY 7/11/21)
 # histograms for each year - look at them together:
@@ -568,8 +568,8 @@ FirstSd_plot <- phen_sd %>%
   summarize(julian_min = min(julian, na.rm=T))
 
 # write a new csv with first seed date at the SPECIES LEVEL and upload to the shared google drive
-write.csv(FirstSd_spp, file.path(L2_dir, "final_sd_species_L2.csv"))
+write.csv(FirstSd_spp, file.path(L2_dir, "phenology/final_sd_species_L2.csv"))
 
 # write a new csv with first seed date at the PLOT LEVEL and upload to the shared google drive
-write.csv(FirstSd_plot, file.path(L2_dir, "final_sd_plot_L2.csv"))
+write.csv(FirstSd_plot, file.path(L2_dir, "phenology/final_sd_plot_L2.csv"))
 
