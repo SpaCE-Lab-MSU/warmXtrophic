@@ -11,12 +11,14 @@ rm(list=ls())
 
 # load in packages and source in functions
 library(tidyverse)
-
 source("~/warmXtrophic/R/L1/PAR_functions_L1.R")
 
 # set working directory
 L0_dir<-Sys.getenv("L0DIR")
 L1_dir<-Sys.getenv("L1DIR")
+
+# get plot meta-data
+plot <- read.csv(file.path(L0_dir,"plot.csv"))
 
 #######################################################################
 #    KBS
@@ -72,8 +74,13 @@ list_umbs <- lapply(list_umbs, change_POSIX)
 kbs <- rbind(list_kbs$KBS_17,list_kbs$KBS_18,list_kbs$KBS_19,list_kbs$KBS_20)
 umbs <- rbind(list_umbs$UMBS_17,list_umbs$UMBS_18,list_umbs$UMBS_19,list_umbs$UMBS_20)
 
+# merge with meta-data
+colnames(plot)[which(names(plot) == "plot")] <- "Plot"
+kbs_meta <- left_join(plot, kbs, by = "Plot")
+umbs_meta <- left_join(plot, umbs, by = "Plot")
+
 # create csv files
-write.csv(kbs, file.path(L1_dir, "PAR/KBS_PAR_L1.csv"))
-write.csv(umbs, file.path(L1_dir, "PAR/UMBS_PAR_L1.csv"))
+write.csv(kbs_meta, file.path(L1_dir, "PAR/KBS_PAR_L1.csv"))
+write.csv(umbs_meta, file.path(L1_dir, "PAR/UMBS_PAR_L1.csv"))
 
 
