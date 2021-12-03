@@ -30,9 +30,6 @@ L1_dir<-Sys.getenv("L1DIR")
 KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv"))
 UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv"))
 
-KBS_par <- read.csv(file.path(L1_dir,"PAR/KBS_PAR_L1.csv"))
-UMBS_par <- read.csv(file.path(L1_dir,"PAR/UMBS_PAR_L1.csv"))
-
 KBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv"))
 UMBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv"))
 
@@ -51,17 +48,28 @@ KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
 
 # remove sensor 1 from 2021 KBS because it failed
 str(KBS_season)
-KBS_season <- KBS_season[!(KBS_season$sensor == 1 & KBS_season$year =="2021" ),] 
+KBS_season1 <- KBS_season[!(KBS_season$sensor == 1 & KBS_season$year =="2021" ),] 
 
-KBS_season <- KBS_season %>%
+# 1m
+KBS_season <- KBS_season1 %>%
   filter(month > "03") %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
 
+# 10cm
+KBS_season_10cm <- KBS_season1 %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  dplyr::select(Date_Time, year, month, hour, XU_warmed_air_10cm, XU_ambient_air_10cm)
+
 # create new dataframes for temperatures averaged by year & averaged by month and year
 KBS_avg_year <- KBS_season %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+KBS_avg_year_10cm <- KBS_season_10cm %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
 
 # test for outliers - none extreme
@@ -69,9 +77,18 @@ outliers <- KBS_avg_year %>%
   group_by(treatment, year) %>%
   identify_outliers(temp)
 view(outliers)
+outliers <- KBS_avg_year_10cm %>%
+  group_by(treatment, year) %>%
+  identify_outliers(temp)
+view(outliers)
 
 # avg temps in the chambers during the daytime
 KBS_avg_temp <- KBS_avg_year %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+print(KBS_avg_temp)
+KBS_avg_temp_10cm <- KBS_avg_year_10cm %>%
         group_by(treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
@@ -148,29 +165,48 @@ print(KBS_avg_night)
 
 ## UMBS air temperatures
 ```{r}
-UMBS_season <- UMBS
-UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
-UMBS_season$year <- format(UMBS_season$Date_Time,format="%Y")
-UMBS_season$hour <- format(UMBS_season$Date_Time, format="%H")
+UMBS_season1 <- UMBS
+UMBS_season1$month <- format(UMBS_season1$Date_Time,format="%m")
+UMBS_season1$year <- format(UMBS_season1$Date_Time,format="%Y")
+UMBS_season1$hour <- format(UMBS_season1$Date_Time, format="%H")
 
-UMBS_season <- UMBS_season %>%
+# 1m
+UMBS_season <- UMBS_season1 %>%
   filter(month > "03") %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
 
+# 10cm
+UMBS_season_10cm <- UMBS_season1 %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  dplyr::select(Date_Time, year, month, hour, XU_warmed_air_10cm, XU_ambient_air_10cm)
+
 # create new dataframes for temperatures averaged by year & averaged by month and year
 UMBS_avg_year <- UMBS_season %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+UMBS_avg_year_10cm <- UMBS_season_10cm %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
 
 # test for outliers - none extreme
 outliers <- UMBS_avg_year %>%
   group_by(treatment, year) %>%
   identify_outliers(temp)
+outliers <- UMBS_avg_year_10cm %>%
+  group_by(treatment, year) %>%
+  identify_outliers(temp)
 
 # avg temps in the chambers during the daytime
 UMBS_avg_temp <- UMBS_avg_year %>%
+        group_by(treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm = T),
+                  sd_temp = sd(temp, na.rm = T))
+print(UMBS_avg_temp)
+UMBS_avg_temp_10cm <- UMBS_avg_year_10cm %>%
         group_by(treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
@@ -311,12 +347,12 @@ print(KBS_avg_soil_moist)
 ## UMBS soil temp & moisture
 ```{r}
 # merge the data + filter data for only the daytime during the growing season
-UMBS_season_soil <- UMBS
-UMBS_season_soil$month <- format(UMBS_season_soil$Date_Time,format="%m")
-UMBS_season_soil$year <- format(UMBS_season_soil$Date_Time,format="%y")
-UMBS_season_soil$hour <- format(UMBS_season_soil$Date_Time, format="%H")
+UMBS_season_soil1 <- UMBS
+UMBS_season_soil1$month <- format(UMBS_season_soil1$Date_Time,format="%m")
+UMBS_season_soil1$year <- format(UMBS_season_soil1$Date_Time,format="%y")
+UMBS_season_soil1$hour <- format(UMBS_season_soil1$Date_Time, format="%H")
 
-UMBS_season_soil <- UMBS_season_soil %>%
+UMBS_season_soil <- UMBS_season_soil1 %>%
         filter(month > "03") %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
