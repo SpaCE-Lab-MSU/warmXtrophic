@@ -23,11 +23,12 @@ list.files(L1_dir)
 # load in the data
 KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv"))
 KBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv"))
-KBS_par <- read.csv(file.path(L1_dir,"PAR_data/KBS_PAR_L1.csv"))
 
 UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv"))
 UMBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv"))
-UMBS_par <- read.csv(file.path(L1_dir,"PAR_data/UMBS_PAR_L1.csv"))
+
+KBS_par <- read.csv(file.path(L1_dir,"PAR/KBS_PAR_L1.csv"))
+UMBS_par <- read.csv(file.path(L1_dir,"PAR/UMBS_PAR_L1.csv"))
 
 # date is a character column - convert to date format
 KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d %H:%M")
@@ -53,12 +54,16 @@ KBS_season$month <- format(KBS_season$Date_Time,format="%m")
 KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
 KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
 
+# remove sensor 1 from 2021 KBS because it failed
+str(KBS_season)
+KBS_season <- KBS_season[!(KBS_season$sensor == 1 & KBS_season$year =="2021" ),] 
+
 KBS_season_air <- KBS_season %>%
   filter(month > "03") %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
-  select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+  dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
 
 # another one for both heights of air measurements
 KBS_season_air2 <- KBS_season %>%
@@ -66,7 +71,7 @@ KBS_season_air2 <- KBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m,XU_warmed_air_10cm, XU_ambient_air_10cm)
+        dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m,XU_warmed_air_10cm, XU_ambient_air_10cm)
 
 # soil
 KBS_season_soil <- KBS_season %>%
@@ -74,7 +79,7 @@ KBS_season_soil <- KBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
+        dplyr::select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
 
 # soil moisture
 KBS_season_soilmo <- KBS_season %>%
@@ -82,7 +87,7 @@ KBS_season_soilmo <- KBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
+        dplyr::select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
 
 ## new dataframe for only july during the day
 #KBS_season_july <- KBS_season %>%
@@ -146,7 +151,7 @@ k_month <- ggplot(KBS_avg_month, aes(x = month, y = average_temp, fill = treatme
   labs(x = NULL, y = NULL, fill = "Treatment")
 
 k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)) + 
-  geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
+  geom_bar(position = "identity", alpha=0.5, stat = "identity", color = 'black') +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
                 position = "identity") +
   ylim(0, 30) +
@@ -166,16 +171,24 @@ k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)
 # Manuscript Fig 1 - OTC air and soil temps
 Fig1_kbs <- ggplot(KBS_avg_year_air, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
   geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
-  scale_fill_manual(labels = c("Ambient air (1m)", "Warmed air (1m)", "Ambient air (10cm)", "Warmed air (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
-  scale_shape_manual(labels = c("Ambient air (1m)", "Warmed air (1m)", "Ambient air (10cm)", "Warmed air (10cm)"), values=c(22, 22, 21, 21))+
+  scale_fill_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
+  scale_shape_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c(22, 22, 21, 21))+
   labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
   theme(legend.position="bottom") +
   theme_classic()
 
 Fig1_soil_kbs <- ggplot(KBS_avg_year_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
-        scale_fill_manual(labels = c("Ambient soil (5cm)", "Warmed soil (5cm)"), values=c('steelblue3','#fb6a4a'))+
-        scale_shape_manual(labels = c("Ambient soil (5cm)", "Warmed soil (5cm)"), values=c(24, 24))+
+        scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
+        labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
+        theme(legend.position="bottom") +
+        theme_classic()
+
+Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
+        scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
         labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
@@ -416,7 +429,6 @@ lm_kbs2
 #  theme(legend.position = "bottom")
 
 
-# currently updating this in the first section above
 ###### soil moisture ######
 # create a new data frame
 KBS_season_moist <- KBS
@@ -429,7 +441,7 @@ KBS_season_moist <- KBS_season_moist %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
-  select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
+  dplyr::select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
 
 # average warmed and ambient air temps for each year + standard error
 KBS_avg_moist <- KBS_season_moist %>%
@@ -501,7 +513,7 @@ UMBS_season_air <- UMBS_season %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
-  select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+  dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
 
 # another one for both air heights
 UMBS_season_air2 <- UMBS_season %>%
@@ -509,7 +521,7 @@ UMBS_season_air2 <- UMBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, XU_warmed_air_10cm, XU_ambient_air_10cm)
+        dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, XU_warmed_air_10cm, XU_ambient_air_10cm)
 
 # soil
 UMBS_season_soil <- UMBS_season %>%
@@ -517,7 +529,7 @@ UMBS_season_soil <- UMBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
+        dplyr::select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
 
 # soil moisture
 UMBS_season_soilmo <- UMBS_season %>%
@@ -525,7 +537,7 @@ UMBS_season_soilmo <- UMBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
+        dplyr::select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
 
 ## new dataframe for only july
 #UMBS_season_july <- UMBS_season %>%
@@ -608,16 +620,24 @@ u_year <- ggplot(UMBS_avg_year, aes(x = year, y = average_temp, fill = treatment
 # Manuscript Fig 1 - OTC data plots
 Fig1_umbs <- ggplot(UMBS_avg_year_air, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
-        scale_fill_manual(labels = c("Ambient air (1m)", "Warmed air (1m)", "Ambient air (10cm)", "Warmed air (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
-        scale_shape_manual(labels = c("Ambient air (1m)", "Warmed air (1m)", "Ambient air (10cm)", "Warmed air (10cm)"), values=c(22, 22, 21, 21))+
+        scale_fill_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
+        scale_shape_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c(22, 22, 21, 21))+
         labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
 
 Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
-        scale_fill_manual(labels = c("Ambient soil (5cm)", "Warmed soil (5cm)"), values=c('steelblue3','#fb6a4a'))+
-        scale_shape_manual(labels = c("Ambient soil (5cm)", "Warmed soil (5cm)"), values=c(24, 24))+
+        scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
+        labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
+        theme(legend.position="bottom") +
+        theme_classic()
+
+Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
+        scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
         labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
@@ -767,16 +787,34 @@ annotate_figure(final_month,
 #                top = text_grob("Year"))
 
 Fig1 <- ggarrange(Fig1_kbs, Fig1_umbs, ncol = 2, common.legend = T, legend = "right")
+png("Fig_S1.png", units="in", width=8, height=5, res=300)
 annotate_figure(Fig1,
-                left = text_grob("Average Temperature (°C)", color = "black", rot = 90),
+                left = text_grob("Average Air Temperature (°C)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
+dev.off()
 
 Fig1.1 <- ggarrange(Fig1_soil_kbs, Fig1_soil_umbs, ncol = 2, common.legend = T, legend = "right")
+png("Fig_S2.png", units="in", width=8, height=5, res=300)
 annotate_figure(Fig1.1,
-                left = text_grob("Average Temperature (°C)", color = "black", rot = 90),
+                left = text_grob("Average Soil Temperature 5cm (°C)", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
+dev.off()
+
+Fig1.2 <- ggarrange(Fig1_soil_moist_kbs, Fig1_soil_moist_umbs, ncol = 2, common.legend = T, legend = "right")
+png("Fig_S3.png", units="in", width=8, height=5, res=300)
+annotate_figure(Fig1.1,
+                left = text_grob("Average Soil Moisture 5cm (%)", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
+dev.off()
+
+# this one below not complete, need to fix the annotation for the separate y-axis
+Fig1.3 <- ggarrange(Fig1.1, Fig1.2, nrow = 2, common.legend = F)
+annotate_figure(Fig1.2,
+                left = text_grob("Average Moisture (%)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
 
-Fig1.2 <- ggarrange(Fig1_soil_kbs_dualy, Fig1_soil_umbs_dualy, ncol = 2, common.legend = T, legend = "bottom")
+# something went wrong with this one too        
+Fig1.4 <- ggarrange(Fig1_soil_kbs_dualy, Fig1_soil_umbs_dualy, ncol = 2, common.legend = T, legend = "bottom")
 annotate_figure(Fig1.2,
                 left = text_grob("Soil Temperature (°C)", color = "black", rot = 90),
                 right = text_grob("Soil Moisture", color = "black", rot = 270))
