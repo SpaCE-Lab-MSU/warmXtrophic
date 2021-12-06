@@ -1,0 +1,209 @@
+---
+title: "warmXtrophic Project: Plant Composition Diversity Data Analyses"
+author: "Kara Dobson, Moriah Young, Pat Bills"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Load in packages & data
+```{r, message = F}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(olsrr)
+library(predictmeans)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(rstatix)
+library(vegan)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(labdsv) # used with Vegan package, the matrify() and matrify2() functions
+library(agricolae) # HSD.test() function
+
+# Set working directory
+Sys.getenv("L1DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+list.files(L1_dir)
+
+# read in plant comp data
+comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
+comp <- comp %>% select(-X) # get rid of "X" column that shows up
+
+# read in meta data
+meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
+```
+
+```{r}
+# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
+comp$year_factor[comp$year == 2015] <- 1
+comp$year_factor[comp$year == 2016] <- 2
+comp$year_factor[comp$year == 2017] <- 3
+comp$year_factor[comp$year == 2018] <- 4
+comp$year_factor[comp$year == 2019] <- 5
+comp$year_factor[comp$year == 2020] <- 6
+comp$year_factor[comp$year == 2021] <- 7
+
+# Remove non-plant data
+comp <- comp[!(comp$species=="Bare_Ground" | 
+                       comp$species=="Unknown" | 
+                       comp$species=="Brown" | 
+                       comp$species=="Litter" | 
+                       comp$species=="Vert_Litter" | 
+                       comp$species=="Animal_Disturbance"), ]
+
+```
+
+Calculating Diversity Indices
+```{r}
+# Getting data in wide format to work in Vegan package
+
+#comp1 <- comp %>% 
+#        select(plot, species, cover, year, site)
+#
+#comp_kbs <- subset(comp1, site == "kbs")
+#comp_kbs <- comp_kbs %>% 
+#        select(plot, species, cover, year)
+#
+#comp_umbs <- subset(comp1, site == "umbs")
+#comp_umbs <- comp_umbs %>% 
+#        select(plot, species, cover, year)
+
+# https://stackoverflow.com/questions/50691393/transform-community-data-into-wide-format-for-vegan-package
+matrify2 <-  function(data) {
+    #Data must have columns: plot, SPEC, abundance measure,Year
+    if (ncol(data) != 4)
+        stop("data frame must have four column format")
+    plt <- factor(data[, 1])
+    spc <- factor(data[, 2])
+    abu <- data[, 3]
+    yrs <- factor(data[, 4])
+    plt.codes <- sort(levels(factor(plt)))##object with sorted plot numbers
+    spc.codes <- levels(factor(spc))##object with sorted SPEC names
+    yrs.codes <- sort(levels(factor(yrs)))##object with sorted sampling Years
+    taxa <- matrix(0, nrow = length(plt.codes)*length(yrs.codes), ncol = length(spc.codes))##Create empty matrix with proper dimensions (unique(plotxYear) by # of SPEC)
+    plt.list <- rep(plt.codes,length(yrs.codes))##Create a list of all the plot numbers (in order of input data) to add as an ID column at end of function
+    yrs.list <- rep(yrs.codes,each=length(plt.codes))##Create a list of all the Year numbers (in order of input data) to add as an ID column at end of function
+    col <- match(spc, spc.codes)##object that determines the alphabetical order ranking of each SPEC in the spc.code list
+    row.plt <- match(plt, plt.codes)##object that determines the rank order ranking of each plot of the input data in the plt.code list
+    row.yrs <- match(yrs,yrs.codes)##object that determines the rank order ranking of each Year of the input data in he #yrs.code list
+    for (i in 1:length(abu)) {
+        row <- (row.plt[i])+length(plt.codes)*(row.yrs[i]-1)##Determine row number by assuming each row represents a specific plot & year in an object of rep(plot,each=Year)
+        if(!is.na(abu[i])) {##ONly use value if !is.na .. [ignore all is.NA values]
+            taxa[row, col[i]] <- sum(taxa[row, col[i]], abu[i])##Add abundance measure of row i to the proper SPEC column and plot/Year row. Sum across all identical individuals.
+        }
+    }
+    taxa <- data.frame(taxa)##Convert to data.frame for easier manipulation
+    taxa <- cbind(yrs.list,plt.list,taxa)##Add ID columns for plot and Year to each row already representing the abundance of Each SPEC of that given plot/Year.
+    names(taxa) <- c('Year','Plot',spc.codes)
+    taxa
+}
+
+#' function to calculate annual diversity index for a specific site
+#'
+#' after reading a comp file, this function should do all that's needed to prep it and
+#' run the diversity function on for each year.  diversity indexes are for the year only,
+#' the diversity indexes use total abundances for a year,  do not sum/count/pool abundances in other years
+#'
+#' @param comp plant composition data as read from project folder
+#' @param site one of kbs or umbs as coded in the comp data
+#' @param div_index is the same as 'index' for vegan::diversity function "shannon", "simpson" or "invsimpson".
+#'
+#' @returns a matrix (data frame) of diversity indices for one site with years in the columns, and plot in rows
+#'
+diversity_by_year <- function(comp, site, div_index = "shannon"){
+    comp_site <- subset(comp, site == site) %>% dplyr::select(plot, species, cover, year)
+
+    # remove non-species using "not in"
+    #obs_to_exclude = c("Bare_Ground", "Unknown","Brown","Litter", "Vert_Litter", "Animal_Disturbance")
+    #comp_site <-dplyr::filter(comp_site, !(species %in% obs_to_exclude))
+
+    # convert the abundance data to abundance for each species in columns for the vegan package
+    comp_wide <- matrify2(comp_site)
+
+    # comp_wide_data is assumes to have columns Year, Plot, and columns for each species found, e.g. for Vegan
+
+    # first, split up the wide data into a list of years.  Each list item is a year of data
+    comp_wide_by_year <- dplyr::group_by(comp_wide, Year) %>% dplyr::group_split()
+
+    # we need to add plot names.  Get those Plot names by taking a column from any one of the years
+    # since we are assuming the Plot column is the exact same across years and IN THE SAME ORDER
+    plot_names <- comp_wide_by_year[[1]]$Plot
+
+    # remove the plot and year columns from each item in the list so that Vegan will work.
+    # This assumes row order is the exact same for all years (each row a plot)
+    comp_wide_by_year<- lapply(comp_wide_by_year, dplyr::select, c(-Year, -Plot))
+
+    #  apply  the diversity function to each year  - in this case the main index is plot, each year considered separately
+    diversity_by_year_list<- lapply(comp_wide_by_year,vegan::diversity, index = div_index)
+
+    # each item in the list is a year of diversity, so name those with the years we know we have
+    names(diversity_by_year_list) <- as.character(2015:2021)
+
+    # "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
+    x<- do.call(cbind,diversity_by_year_list) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+    #  an alternative tidyverse way x<- diversity_by_year(diversity_by_year_list)
+
+    ## optional step!
+    return(x)
+}
+
+comp$cover <- as.numeric(comp$cover)
+
+# use the one function above to both matrify and calculate Shannon diversity index per year
+diversity_by_year_kbs  <- diversity_by_year(comp, site = "kbs", div_index = "shannon")
+diversity_by_year_umbs <- diversity_by_year(comp, site = "umbs", div_index = "shannon")
+
+# this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
+library(reshape2)
+diversity_by_plot_year_kbs <- reshape2::melt(diversity_by_year_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
+diversity_by_plot_year_umbs <- reshape2::melt(diversity_by_year_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
+
+# To do just August (peak_comp):
+
+peak_comp <- dplyr::filter(comp, month == 8)
+
+peak_shannon_by_year_kbs  <- diversity_by_year(peak_comp, site = "kbs", div_index = "shannon")
+peak_shannon_by_year_umbs  <- diversity_by_year(peak_comp, site = "umbs", div_index = "shannon")
+
+peak_simpson_by_year_kbs <- diversity_by_year(peak_comp, site = "kbs", div_index = "simpson")
+peak_simpson_by_year_umbs <- diversity_by_year(peak_comp, site = "umbs", div_index = "simpson")
+
+# this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
+peak_shannon_by_plot_year_kbs <- reshape2::melt(peak_shannon_by_year_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
+peak_shannon_by_plot_year_umbs <- reshape2::melt(peak_shannon_by_year_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
+
+# this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
+peak_simpson_by_plot_year_kbs <- reshape2::melt(peak_simpson_by_year_kbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
+peak_simpson_by_plot_year_umbs <- reshape2::melt(peak_simpson_by_year_umbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
+
+diversity_kbs <- left_join(peak_shannon_by_plot_year_kbs, peak_simpson_by_plot_year_kbs)
+diversity_kbs$site <- "kbs" #add site column
+
+diversity_umbs <- left_join(peak_shannon_by_plot_year_umbs, peak_simpson_by_plot_year_umbs)
+diversity_umbs$site <- "umbs" #add site column
+```
+
+Calculating Diversity Indices
+```{r}
+# species richness
+sppr <- specnumber(comp1_wide)
+
+sppr_aov <- aov(sppr ~ state, data = meta)
+summary(sppr_aov)
+```
