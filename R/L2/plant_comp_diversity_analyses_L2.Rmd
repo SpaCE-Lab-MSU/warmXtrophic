@@ -1,6 +1,6 @@
 ---
 title: "warmXtrophic Project: Plant Composition Diversity Data Analyses"
-author: "Kara Dobson, Moriah Young, Pat Bills"
+author: "Moriah Young, Pat Bills"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---

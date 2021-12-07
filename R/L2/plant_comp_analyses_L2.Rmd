@@ -20,6 +20,7 @@ rm(list=ls())
 library(tidyverse)
 library(ggplot2)
 library(lme4)
+library(lmerTest)
 library(olsrr)
 library(predictmeans)
 library(car)
@@ -33,6 +34,13 @@ library(effects)
 library(glmmTMB)
 library(labdsv) # used with Vegan package, the matrify() and matrify2() functions
 library(agricolae) # HSD.test() function
+library(emmeans)
+library(scales)
+library(fitdistrplus)
+library(moments)# for calculating skewness of data
+library(jtools) # summ() function
+library(GGally) # ggpairs() function
+library(bbmle) # AICtab() function
 
 # Set working directory
 Sys.getenv("L1DIR")
@@ -60,6 +68,8 @@ comp$year_factor[comp$year == 2019] <- 5
 comp$year_factor[comp$year == 2020] <- 6
 comp$year_factor[comp$year == 2021] <- 7
 
+#comp$year_factor <- as.factor(as.character(comp$year_factor))
+
 # Remove non-plant data
 comp <- comp[!(comp$species=="Bare_Ground" | 
                        comp$species=="Unknown" | 
@@ -67,6 +77,14 @@ comp <- comp[!(comp$species=="Bare_Ground" |
                        comp$species=="Litter" | 
                        comp$species=="Vert_Litter" | 
                        comp$species=="Animal_Disturbance"), ]
+
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+comp$state <- as.factor(comp$state)
+levels(comp$state)
+# [1] "ambient" "warmed" 
+comp$state <- factor(comp$state, levels(comp$state)[c(2,1)])
+levels(comp$state)
+# [1] "warmed"  "ambient"
 
 ```
 
@@ -78,19 +96,19 @@ Calculating Absolute Abundance
 #         summarize(comp_sum = sum(cover, na.rm = T))
 
 comp1 <- comp %>% 
-        select(species, site, year_factor, plot, cover, state, insecticide, growth_habit, origin)
+        select(species, site, year_factor, plot, cover, state, insecticide)
 comp1$cover <- as.numeric(as.character(comp1$cover))
 
-# calculate plot cover mean by species-plot per year
-plot_mean <- aggregate(cover ~ plot*species*year_factor*site*state*insecticide*growth_habit*origin, data = comp1, FUN = mean, na.rm = T)
+# calculate plot cover mean by species-plot per year - this gives the average percent cover of a species in a plot for each year
+plot_mean <- aggregate(cover ~ plot*species*year_factor*site*state*insecticide, data = comp1, FUN = mean, na.rm = T)
 names(plot_mean)[names(plot_mean) == "cover"] <- "plot_mean" # change "cover" column name to "plot_mean"
 View(plot_mean)
 
 # first get summed cover for all plants per plot
-plot_cover_total = aggregate(plot_mean ~ plot*year_factor*site*state*insecticide*growth_habit*origin, data = plot_mean, FUN = sum, na.rm = T)
+plot_cover_total = aggregate(plot_mean ~ plot*year_factor*site*state*insecticide, data = plot_mean, FUN = sum, na.rm = T)
 names(plot_cover_total)[names(plot_cover_total) == "plot_mean"] <- "plot_cover_total"
 View(plot_cover_total)
-comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year_factor","site", "state", "insecticide", "growth_habit", "origin"))
+comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year_factor","site", "state", "insecticide"))
 
 #calculate absolute percent cover per species in each quadrat (="relative abundance")
 comp2$absolute <- comp2$plot_mean/100
@@ -101,14 +119,199 @@ Calculating Relative Abundance
 ```{r}
 #calculate relative percent cover per species in each quadrat (="relative abundance")
 comp2$relabun <- comp2$plot_mean/comp2$plot_cover_total
-summary(comp2)
 
 # create dataframes for kbs and umbs - remember that these contain species within plots
-comp_kbs <- subset(comp2, site == "kbs")
-comp_umbs <- subset(comp2, site == "umbs")
+comp_kbs_spp <- subset(comp2, site == "kbs")
+comp_umbs_spp <- subset(comp2, site == "umbs")
+```
+
+Plot Level Composition
+```{r}
+comp$date <- as.Date(as.character(comp$date))
+comp$cover <- as.numeric(as.character(comp$cover))
+
+# calculate plot cover totals for each date that data was collected 
+plot_total <- aggregate(cover ~ plot*date*year_factor*site*state*insecticide, data = comp, FUN = sum, na.rm = T)
+names(plot_total)[names(plot_total) == "cover"] <- "plot_total_cover" # change "cover" column name to "plot_total_cover"
+View(plot_total)
+
+# calculate plot cover total averages across each year using the data frame created above
+plot_total_avg <- aggregate(plot_total_cover ~ plot*year_factor*site*state*insecticide, data = plot_total, FUN = mean, na.rm = T)
+names(plot_total_avg)[names(plot_total_avg) == "plot_total_cover"] <- "plot_cover_avg" # change "cover" column name to "plot_total_avg"
+View(plot_total_avg)
+
+# create dataframes for kbs and umbs
+comp_kbs_plot <- subset(plot_total_avg, site == "kbs")
+comp_umbs_plot <- subset(plot_total_avg, site == "umbs")
+```
+
+# KBS SPECIES LEVEL - Looking at RELATIVE ABUNDANCE
+```{r, warning=F}
+### KBS ###
+hist(comp_kbs_spp$relabun)
+qqnorm(comp_kbs_spp$relabun)
+shapiro.test(comp_kbs_spp$relabun) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(comp_kbs_spp, aes(relabun, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(comp_kbs_spp, aes(relabun, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(comp_kbs_spp, aes(relabun, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year)
+#
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(comp_kbs_spp$relabun, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(comp_kbs_spp$relabun, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(comp_kbs_spp$relabun, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(comp_kbs_spp$relabun, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Lognormal and gamma are very close, gamma slightly better, but going to go with log transforming
+```
+
+# KBS PLOT LEVEL - Looking at PLOT AVG TOTALS 
+```{r, warning=F}
+### KBS ###
+hist(comp_kbs_plot$plot_cover_avg)
+qqnorm(comp_kbs_plot$plot_cover_avg)
+shapiro.test(comp_kbs_plot$plot_cover_avg) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(comp_kbs_plot, aes(plot_cover_avg, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(comp_kbs_plot, aes(plot_cover_avg, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(comp_kbs_plot, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year)
+#
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(comp_kbs_plot$plot_cover_avg, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(comp_kbs_plot$plot_cover_avg, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(comp_kbs_plot$plot_cover_avg, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(comp_kbs_plot$plot_cover_avg, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Log Normal the best...
+```
+
+# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
+# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
+```{r}
+# species level data
+# KBS State-only model
+fit_spp_state_kbs <- lm(log(relabun) ~ state, data = comp_kbs_spp)
+outlierTest(fit_spp_state_kbs) # outliers - row 449
+comp_kbs_spp_no_outliers <- comp_kbs_spp[-449,] # remove outliers
+qqPlot(fit_spp_state_kbs, main="QQ Plot") 
+hist(fit_spp_state_kbs$residuals)
+leveragePlots(fit_spp_state_kbs)
+ols_test_normality(fit_spp_state_kbs)
+
+# UMBS State and year model
+fit_spp_stateyear_kbs <- lm(log(relabun) ~ state + year_factor, data = comp_kbs_spp)
+outlierTest(fit_spp_stateyear_kbs) # no outliers
+qqPlot(fit_spp_stateyear_kbs, main="QQ Plot") 
+hist(fit_spp_stateyear_kbs$residuals)
+leveragePlots(fit_spp_stateyear_kbs)
+ols_test_normality(fit_spp_stateyear_kbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(log(relabun) ~ state + year_factor + species, data = comp_kbs_spp)
+interact_plot(fit3, pred = year_factor, modx = state)
+fit4 <- lm(log(relabun) ~ state * year_factor + species, data = comp_kbs_spp)
+interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
+```
+```{r}
+# Plot level data
+# KBS State-only model
+fit_plot_state_kbs <- lm(log(plot_cover_avg) ~ state, data = comp_kbs_plot)
+outlierTest(fit_plot_state_kbs) # outlier - row 252
+comp_kbs_plot_no_outliers <- comp_kbs_plot[-252,] # remove outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs)
+
+# KBS State and year model
+fit_plot_stateyear_kbs <- lm(log(plot_cover_avg) ~ state + year_factor, data = comp_kbs_plot)
+outlierTest(fit_plot_stateyear_kbs) # outlier - row 190
+comp_kbs_plot_no_outliers <- comp_kbs_plot[-190,] # remove outliers
+qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs$residuals)
+leveragePlots(fit_plot_stateyear_kbs) 
+ols_test_normality(fit_plot_stateyear_kbs) # not all are under 0.05 but I think we can move forward with assumptions of normality here after log transformation
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(log(julian_median) ~ state * year_factor, data = comp_kbs_plot)
+interact_plot(fit3, pred = year_factor, modx = state)
 ```
 
 
+
+
+
+
+# Old code below
 KBS relative abundance data analyses 
 ```{r}
 # checking for normality in raw data
