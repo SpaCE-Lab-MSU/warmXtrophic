@@ -802,7 +802,7 @@ dev.off()
 
 Fig1.2 <- ggarrange(Fig1_soil_moist_kbs, Fig1_soil_moist_umbs, ncol = 2, common.legend = T, legend = "right")
 png("Fig_S3.png", units="in", width=8, height=5, res=300)
-annotate_figure(Fig1.1,
+annotate_figure(Fig1.2,
                 left = text_grob("Average Soil Moisture 5cm (%)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
 dev.off()
