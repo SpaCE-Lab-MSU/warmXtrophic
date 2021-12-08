@@ -49,101 +49,47 @@ L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
 list.files(L1_dir)
 
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
 # read in plant comp data
-comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
-comp <- comp %>% select(-X) # get rid of "X" column that shows up
+comp_species <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
+comp_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"))
+
+comp_species <- comp_species %>% select(-X) # get rid of "X" column that shows up
+comp_plot <- comp_plot %>% select(-X) # get rid of "X" column that shows up
+
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+comp_species$state <- as.factor(comp_species$state)
+levels(comp_species$state)
+# [1] "ambient" "warmed" 
+comp_species$state <- factor(comp_species$state, levels(comp_species$state)[c(2,1)])
+levels(comp_species$state)
+# [1] "warmed"  "ambient"
+
+comp_plot$state <- as.factor(comp_plot$state)
+levels(comp_plot$state)
+# [1] "ambient" "warmed" 
+comp_plot$state <- factor(comp_plot$state, levels(comp_plot$state)[c(2,1)])
+levels(comp_plot$state)
+# [1] "warmed"  "ambient"
+
+# create dataframes for kbs and umbs - remember that these contain species within plots
+comp_kbs_spp <- subset(comp_species, site == "kbs")
+comp_umbs_spp <- subset(comp_species, site == "umbs")
+
+# create dataframes for kbs and umbs
+comp_kbs_plot <- subset(comp_plot, site == "kbs")
+comp_umbs_plot <- subset(comp_plot, site == "umbs")
 
 # read in meta data
 meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
 ```
-
-
-```{r}
-# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
-comp$year_factor[comp$year == 2015] <- 1
-comp$year_factor[comp$year == 2016] <- 2
-comp$year_factor[comp$year == 2017] <- 3
-comp$year_factor[comp$year == 2018] <- 4
-comp$year_factor[comp$year == 2019] <- 5
-comp$year_factor[comp$year == 2020] <- 6
-comp$year_factor[comp$year == 2021] <- 7
-
-#comp$year_factor <- as.factor(as.character(comp$year_factor))
-
-# Remove non-plant data
-comp <- comp[!(comp$species=="Bare_Ground" | 
-                       comp$species=="Unknown" | 
-                       comp$species=="Brown" | 
-                       comp$species=="Litter" | 
-                       comp$species=="Vert_Litter" | 
-                       comp$species=="Animal_Disturbance"), ]
-
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
-comp$state <- as.factor(comp$state)
-levels(comp$state)
-# [1] "ambient" "warmed" 
-comp$state <- factor(comp$state, levels(comp$state)[c(2,1)])
-levels(comp$state)
-# [1] "warmed"  "ambient"
-
-```
-
-Calculating Absolute Abundance
-```{r}
-# calculating total composition sums - proxy for most common species
-# comp_yearly_totals <- comp %>%
-#         group_by(site, year, plot, species) %>%
-#         summarize(comp_sum = sum(cover, na.rm = T))
-
-comp1 <- comp %>% 
-        select(species, site, year_factor, plot, cover, state, insecticide)
-comp1$cover <- as.numeric(as.character(comp1$cover))
-
-# calculate plot cover mean by species-plot per year - this gives the average percent cover of a species in a plot for each year
-plot_mean <- aggregate(cover ~ plot*species*year_factor*site*state*insecticide, data = comp1, FUN = mean, na.rm = T)
-names(plot_mean)[names(plot_mean) == "cover"] <- "plot_mean" # change "cover" column name to "plot_mean"
-View(plot_mean)
-
-# first get summed cover for all plants per plot
-plot_cover_total = aggregate(plot_mean ~ plot*year_factor*site*state*insecticide, data = plot_mean, FUN = sum, na.rm = T)
-names(plot_cover_total)[names(plot_cover_total) == "plot_mean"] <- "plot_cover_total"
-View(plot_cover_total)
-comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year_factor","site", "state", "insecticide"))
-
-#calculate absolute percent cover per species in each quadrat (="relative abundance")
-comp2$absolute <- comp2$plot_mean/100
-
-```
-
-Calculating Relative Abundance
-```{r}
-#calculate relative percent cover per species in each quadrat (="relative abundance")
-comp2$relabun <- comp2$plot_mean/comp2$plot_cover_total
-
-# create dataframes for kbs and umbs - remember that these contain species within plots
-comp_kbs_spp <- subset(comp2, site == "kbs")
-comp_umbs_spp <- subset(comp2, site == "umbs")
-```
-
-Plot Level Composition
-```{r}
-comp$date <- as.Date(as.character(comp$date))
-comp$cover <- as.numeric(as.character(comp$cover))
-
-# calculate plot cover totals for each date that data was collected 
-plot_total <- aggregate(cover ~ plot*date*year_factor*site*state*insecticide, data = comp, FUN = sum, na.rm = T)
-names(plot_total)[names(plot_total) == "cover"] <- "plot_total_cover" # change "cover" column name to "plot_total_cover"
-View(plot_total)
-
-# calculate plot cover total averages across each year using the data frame created above
-plot_total_avg <- aggregate(plot_total_cover ~ plot*year_factor*site*state*insecticide, data = plot_total, FUN = mean, na.rm = T)
-names(plot_total_avg)[names(plot_total_avg) == "plot_total_cover"] <- "plot_cover_avg" # change "cover" column name to "plot_total_avg"
-View(plot_total_avg)
-
-# create dataframes for kbs and umbs
-comp_kbs_plot <- subset(plot_total_avg, site == "kbs")
-comp_umbs_plot <- subset(plot_total_avg, site == "umbs")
-```
+# Data exploration - some different ways of visualizing these data
 
 # KBS SPECIES LEVEL - Looking at RELATIVE ABUNDANCE
 ```{r, warning=F}
@@ -182,20 +128,28 @@ plot(fit.gamma)
 fit.weibull  <- fitdist(comp_kbs_spp$relabun, "weibull")
 plot(fit.weibull)
 
+fit.beta <- fitdist(comp_kbs_spp$relabun, "beta")
+plot(fit.beta)
+
 # Lognormal distribution 
 fit.ln <- fitdist(comp_kbs_spp$relabun, "lnorm")
 plot(fit.ln)
 
+# Exponential distribution is another option
+fit.exp <- fitdist(comp_kbs_spp$relabun, "exp")
+plot(fit.exp)
+
+
 par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal")
-denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential", "Beta")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
-gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# Lognormal and gamma are very close, gamma slightly better, but going to go with log transforming
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp", "Beta"))
+# Beta distribution looks to be the best based on AIC and BIC values
 ```
 
 # KBS PLOT LEVEL - Looking at PLOT AVG TOTALS 
@@ -259,13 +213,21 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 # KBS State-only model
 fit_spp_state_kbs <- lm(log(relabun) ~ state, data = comp_kbs_spp)
 outlierTest(fit_spp_state_kbs) # outliers - row 449
-comp_kbs_spp_no_outliers <- comp_kbs_spp[-449,] # remove outliers
 qqPlot(fit_spp_state_kbs, main="QQ Plot") 
 hist(fit_spp_state_kbs$residuals)
 leveragePlots(fit_spp_state_kbs)
 ols_test_normality(fit_spp_state_kbs)
 
-# UMBS State and year model
+comp_kbs_spp_no_outliers <- comp_kbs_spp[-449,] # remove outliers
+fit_spp_state_kbs1 <- lm(log(relabun) ~ state, data = comp_kbs_spp_no_outliers)
+outlierTest(fit_spp_state_kbs1) # outliers - row 449
+qqPlot(fit_spp_state_kbs1, main="QQ Plot") 
+hist(fit_spp_state_kbs1$residuals)
+leveragePlots(fit_spp_state_kbs1)
+ols_test_normality(fit_spp_state_kbs1)
+
+
+# KBS State and year model
 fit_spp_stateyear_kbs <- lm(log(relabun) ~ state + year_factor, data = comp_kbs_spp)
 outlierTest(fit_spp_stateyear_kbs) # no outliers
 qqPlot(fit_spp_stateyear_kbs, main="QQ Plot") 
@@ -279,6 +241,7 @@ fit3 <- lm(log(relabun) ~ state + year_factor + species, data = comp_kbs_spp)
 interact_plot(fit3, pred = year_factor, modx = state)
 fit4 <- lm(log(relabun) ~ state * year_factor + species, data = comp_kbs_spp)
 interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
+
 ```
 ```{r}
 # Plot level data
@@ -306,42 +269,208 @@ fit3 <- lm(log(julian_median) ~ state * year_factor, data = comp_kbs_plot)
 interact_plot(fit3, pred = year_factor, modx = state)
 ```
 
-
-
-
-
-
-# Old code below
-KBS relative abundance data analyses 
-```{r}
-# checking for normality in raw data
-hist(log(comp_kbs$relabun))
-qqnorm(log(comp_kbs$relabun))
-shapiro.test(log(comp_kbs$relabun))
-
-hist(comp_kbs$relabun[comp_kbs$state == "ambient"])
-hist(comp_kbs$relabun[comp_kbs$state == "warmed"])
-```
+MIXED EFFECT MODELS
 
 ```{r}
-# Assumption checking
-m1 <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), data = comp_kbs, REML=FALSE)
+# KBS SPECIES LEVEL - Looking at RELATIVE ABUNDANCE
+mod1 <- lmer(log(relabun) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), comp_kbs_spp, REML = FALSE)
+ggplot(comp_kbs_spp,aes(x=plot,y=relabun,col=species)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
+
 # Check Assumptions:
-# (1) Linearity: if covariates are not categorical
+# (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-plot(m1, main = "Relative Abundance")
+par(mfrow=c(1,2))
+plot(mod1)
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
-leveneTest(residuals(m1) ~ comp_kbs$state)
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(mod1) ~ comp_kbs_spp$state)
 # Assumption met
-leveneTest(residuals(m1) ~ comp_kbs$year_factor)
-# Assumption not met
-leveneTest(residuals(m1) ~ comp_kbs$insecticide)
+leveneTest(residuals(mod1) ~ comp_kbs_spp$species)
 # Assumption met
+leveneTest(residuals(mod1) ~ comp_kbs_spp$insecticide) 
+# Assumption not met - this seems weird
+leveneTest(residuals(mod1) ~ comp_kbs_spp$plot)
+# Assumption met
+
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
-qqPlot(resid(m1), main = "Relative Abundance")
-hist(residuals(m1), main = "Relative Abundance")
-shapiro.test(resid(m1)) # Not normal
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
+outlierTest(mod1) # no outliers
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int<- ranef(mod1)$plot$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+shapiro.test(r_int) 
+# Not normally distributed random effect - p-value = 0.001565
 ```
+
+```{r}
+# Do we need to include plot as a random effect with the UMBS models?   
+mod1 <- lmer(log(relabun) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), comp_kbs_spp, REML = FALSE)
+mod2 <- lmer(log(relabun) ~ state*year_factor + insecticide*year_factor + (1|species), comp_kbs_spp, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1)
+anova(mod2)
+
+anova(mod1, mod2) # Go with model 2 since pvalue >0.05, aka more complex model does not have something in it that matters (the two models are essentially the same so go w model with fewer parameters)
+summary(mod1) 
+summary(mod2)
+AICctab(mod1, mod2, weights=T)
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod1)
+plot_model(mod2, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod2, type = "pred", terms = c("year_factor", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod2, type = "re", terms = c("species"))
+
+# Do we need to include insecticide? (dropping insecticide from the model)
+mod3 <- lmer(log(relabun) ~ state*year_factor + (1|species), comp_kbs_spp, REML=FALSE)
+anova(mod2, mod3)
+
+AICctab(mod2, mod3, weights=T)
+# Looks like no pvalue > 0.05, so insecticide does not improve model fit so we will go with mod 3
+
+# Does year need to be interactive with insecticide? - already removed insecticide
+# mod4 <- lmer(log(julian_median) ~ state*year_factor + insecticide + (1|species) + (1|plot), umbs_flwr_spp, REML=FALSE)
+
+# Does year need to be interactive with state?
+mod5 <- lmer(log(relabun) ~ state + year_factor + (1|species), comp_kbs_spp, REML=FALSE)
+anova(mod3, mod5)
+# No, P>0.05 so state*year_factor doesn't strongly improve model fit so we will shift to mod5, but AIC values are super close!!
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod5, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod5, type = "pred", terms = c("year_factor", "state"))
+# these are the random effects estimates
+plot_model(mod5, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+mod6 <- lmer(log(relabun) ~ state + year_factor + (1|species) + (1 + year_factor|plot), comp_kbs_spp, REML=FALSE)
+anova(mod5, mod6)
+anova(mod5)
+
+# mod4 (and mod5) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+mod7 <- lmer(log(relabun) ~ state + species + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod7a <- lmer(log(relabun)  ~ state + species + factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
+mod7b <- lmer(log(relabun)  ~ state * factor(year_factor) + species + (1|plot), comp_kbs_spp, REML=FALSE)
+mod7c <- lmer(log(relabun)  ~ state + species + factor(year_factor) + insecticide + (1|plot), comp_kbs_spp, REML=FALSE)
+anova(mod5, mod7) # model 7 is a better fit to data
+anova(mod7, mod7a) #mod 7a
+anova(mod7a, mod7b) #mod 7a - interaction between state and year does not improve model go with simpler model (mod7a)
+anova(mod7b, mod7c) #models are not different than one another, go with simpler model = mod7a
+summary(mod7a)
+anova(mod7a) # investigates whether at least one of the levels within each factor is significantly different.
+# Yes, at least one of the species is different (they do not all have the median first flwr dates). 
+emmeans(mod7c, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod7c, list(pairwise ~ year_factor), adjust = "tukey")
+emmeans(mod7c, list(pairwise ~ species), adjust = "tukey")
+emmeans(mod7c, list(pairwise ~ insecticide), adjust = "tukey")
+
+
+# Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
+plot_model(mod7a, sort.est = TRUE)
+# if you want to standardize the estimates:
+plot_model(mod7a, sort.est = TRUE, type="std") 
+# these are the fixed predicted values: - note this is a new plot
+plot_model(mod7a, type = "pred", terms = c("species", "state", "year_factor"))
+# these are the random effects estimates
+plot_model(mod7a, type = "re")
+
+# including native vs. exotic
+comp_kbs_spp <- within(comp_kbs_spp, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+mod8 <- lmer(log(relabun) ~ state * origin + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod9 <- lmer(log(relabun) ~ state + origin + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod9a <- lmer(log(relabun) ~ state + origin + factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
+anova(mod8, mod9) # model 8 is a better fit to data
+anova(mod8, mod9a) # mod 8
+summary(mod8)
+anova(mod8)
+emmeans(mod8, list(pairwise ~ state * origin), adjust = "tukey")
+
+# including growth form - first with interaction term
+comp_kbs_spp <- within(comp_kbs_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+mod10 <- lmer(log(relabun) ~ state * growth_habit + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod11 <- lmer(log(relabun) ~ state + growth_habit + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod11a <- lmer(log(relabun) ~ state + growth_habit + factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
+anova(mod10, mod11) # model 10 is a better fit to data
+anova(mod10, mod11a) # model 10 is still a better fit to data
+summary(mod10)
+anova(mod10)
+emmeans(mod10, list(pairwise ~ factor(year_factor) * growth_habit), adjust = "tukey")
+
+# New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
+# updated mod4
+mod12 <- lmer(log(relabun) ~ state * factor(year_factor) + (1+factor(year_factor)|species), comp_kbs_spp)
+
+# So another version of this model would include the interaction but not include the nesting (and thus would assume that species aren't observed ea yr)
+# updated mod5
+mod13 <- lmer(log(relabun) ~ state * factor(year_factor) + (1|species), comp_kbs_spp)
+
+# All the models ran:
+mod1 <- lmer(log(relabun) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), comp_kbs_spp, REML=FALSE)
+mod2 <- lmer(log(relabun) ~ state*year_factor + insecticide*year_factor + (1|species), comp_kbs_spp, REML=FALSE)
+mod3 <- lmer(log(relabun) ~ state*year_factor + (1|species), comp_kbs_spp, REML=FALSE)
+mod4 <- lmer(log(relabun) ~ state*year_factor + insecticide + (1|species) + (1|plot), comp_kbs_spp, REML=FALSE)
+mod5 <- lmer(log(relabun) ~ state + year_factor + (1|species), comp_kbs_spp, REML=FALSE)
+mod6 <- lmer(log(relabun) ~ state + year_factor + (1|species) + (1 + year|plot), comp_kbs_spp, REML=FALSE)
+mod7 <- lmer(log(relabun) ~ state + species + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod7a <- lmer(log(relabun) ~ state + species + factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
+mod7b <- lmer(log(relabun) ~ state * factor(year_factor) + species + (1|plot), comp_kbs_spp, REML=FALSE)
+mod7c <- lmer(log(relabun) ~ state + species + factor(year_factor) + insecticide + (1|plot), comp_kbs_spp, REML=FALSE)
+mod8 <- lmer(log(relabun) ~ state * origin + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod9 <- lmer(log(relabun) ~ state + origin + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod9a <- lmer(log(relabun) ~ state + origin + factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
+mod10 <- lmer(log(relabun) ~ state * growth_habit + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod11 <- lmer(log(relabun) ~ state + growth_habit + (1+factor(year_factor)|plot), comp_kbs_spp, REML=FALSE)
+mod11a <- lmer(log(relabun) ~ state + growth_habit + factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
+mod12 <- lmer(log(relabun) ~ state * factor(year_factor) + (1+factor(year_factor)|species), comp_kbs_spp)
+mod13 <- lmer(log(relabun) ~ state * factor(year_factor) + (1|species), comp_kbs_spp)
+AICctab(mod1, mod2, mod3, mod5, mod6, mod7, mod7a, mod7b, mod7c, mod8, mod9, mod9a, mod10, mod11, mod11a, mod13, weights=T) #mod7a is the best fitting model (took out mod12 bc it wouldn't run)
+summary(mod7a)
+anova(mod7a)
+```
+
+# KBS Plot-level Mixed Effects Models:
+```{r}
+hist(comp_kbs_plot$plot_cover_avg) # skewed to the right - positive skew
+qqnorm(comp_kbs_plot$plot_cover_avg) # this doesn't look good
+shapiro.test(comp_kbs_plot$plot_cover_avg) # not normal
+
+# Exploring distributions for these right-skewed data:
+descdist(comp_kbs_plot$plot_cover_avg, discrete = FALSE)
+
+mod1p <- lmer(log(plot_cover_avg) ~ state + (1|plot), comp_kbs_plot, REML=FALSE)
+mod2p <- lmer(plot_cover_avg ~ insecticide + (1|plot), comp_kbs_plot, REML=FALSE)
+mod3p <- lmer(plot_cover_avg ~ insecticide + state + (1|plot), comp_kbs_plot, REML=FALSE)
+mod4p <- lmer(plot_cover_avg ~ insecticide * state + (1|plot), comp_kbs_plot, REML=FALSE)
+mod5p <- lmer(plot_cover_avg ~ state + year_factor + (1|plot), comp_kbs_plot, REML=FALSE)
+mod6p <- lmer(plot_cover_avg ~ state + year_factor + insecticide + (1|plot), comp_kbs_plot, REML=FALSE)
+mod7p <- lmer(plot_cover_avg ~ state * year_factor + (1|plot), comp_kbs_plot, REML=FALSE)
+mod8p <- lmer(plot_cover_avg ~ state * year_factor + insecticide + (1|plot), comp_kbs_plot, REML=FALSE)
+mod9p <- lmer(plot_cover_avg ~ state * insecticide + year_factor + (1|plot), comp_kbs_plot, REML=FALSE)
+mod10p <- lmer(plot_cover_avg ~ state + insecticide * year_factor + (1|plot), comp_kbs_plot, REML=FALSE)
+mod11p <- lmer(plot_cover_avg ~ state * year_factor * insecticide + (1|plot), comp_kbs_plot, REML=FALSE)
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 11p and 10p the same
+anova(mod10p, mod11p) #11p just barely better, going with 10p because is simpler
+
+summary(mod10p)
+emmeans(mod10p, list(pairwise ~ state+insecticide*year_factor), adjust = "tukey")
+```
+
+
+
+
+
+
+
 
