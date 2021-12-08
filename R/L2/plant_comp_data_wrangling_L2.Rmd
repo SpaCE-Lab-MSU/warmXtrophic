@@ -1,0 +1,120 @@
+---
+title: "warmXtrophic Project: Plant Composition Data Wrangling"
+author: "Kara Dobson, Moriah Young, Pat Bills"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+```{r}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+
+# Set working directory
+Sys.getenv("L1DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+list.files(L1_dir)
+
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
+# read in plant comp data
+comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
+comp <- comp %>% select(-X) # get rid of "X" column that shows up
+
+# read in meta data
+meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
+```
+
+```{r}
+# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
+comp$year_factor[comp$year == 2015] <- 1
+comp$year_factor[comp$year == 2016] <- 2
+comp$year_factor[comp$year == 2017] <- 3
+comp$year_factor[comp$year == 2018] <- 4
+comp$year_factor[comp$year == 2019] <- 5
+comp$year_factor[comp$year == 2020] <- 6
+comp$year_factor[comp$year == 2021] <- 7
+
+#comp$year_factor <- as.factor(as.character(comp$year_factor))
+
+# Remove non-plant data
+comp <- comp[!(comp$species=="Bare_Ground" | 
+                       comp$species=="Unknown" | 
+                       comp$species=="Brown" | 
+                       comp$species=="Litter" | 
+                       comp$species=="Vert_Litter" | 
+                       comp$species=="Animal_Disturbance"), ]
+
+```
+
+Calculating Absolute Abundance
+```{r}
+# calculating total composition sums - proxy for most common species
+# comp_yearly_totals <- comp %>%
+#         group_by(site, year, plot, species) %>%
+#         summarize(comp_sum = sum(cover, na.rm = T))
+
+comp1 <- comp %>% 
+        select(species, site, year_factor, plot, cover, state, insecticide)
+comp1$cover <- as.numeric(as.character(comp1$cover))
+
+# calculate plot cover mean by species-plot per year - this gives the average percent cover of a species in a plot for each year
+plot_mean <- aggregate(cover ~ plot*species*year_factor*site*state*insecticide, data = comp1, FUN = mean, na.rm = T)
+names(plot_mean)[names(plot_mean) == "cover"] <- "plot_mean" # change "cover" column name to "plot_mean"
+View(plot_mean)
+
+# first get summed cover for all plants per plot
+plot_cover_total = aggregate(plot_mean ~ plot*year_factor*site*state*insecticide, data = plot_mean, FUN = sum, na.rm = T)
+names(plot_cover_total)[names(plot_cover_total) == "plot_mean"] <- "plot_cover_total"
+View(plot_cover_total)
+comp2 <- merge(plot_mean, plot_cover_total, by = c("plot","year_factor","site", "state", "insecticide"))
+
+#calculate absolute percent cover per species in each quadrat (="relative abundance")
+comp2$absolute <- comp2$plot_mean/100
+
+```
+
+Calculating Relative Abundance
+```{r}
+#calculate relative percent cover per species in each quadrat (="relative abundance")
+comp2$relabun <- comp2$plot_mean/comp2$plot_cover_total
+
+# write a new csv with relative and absolute abundance values at the SPECIES LEVEL and upload to the shared google drive for both sites
+write.csv(comp2, file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
+```
+
+Plot Level Composition
+```{r}
+comp$date <- as.Date(as.character(comp$date))
+comp$cover <- as.numeric(as.character(comp$cover))
+
+# calculate plot cover totals for each date that data was collected 
+plot_total <- aggregate(cover ~ plot*date*year_factor*site*state*insecticide, data = comp, FUN = sum, na.rm = T)
+names(plot_total)[names(plot_total) == "cover"] <- "plot_total_cover" # change "cover" column name to "plot_total_cover"
+View(plot_total)
+
+# calculate plot cover total averages across each year using the data frame created above
+plot_total_avg <- aggregate(plot_total_cover ~ plot*year_factor*site*state*insecticide, data = plot_total, FUN = mean, na.rm = T)
+names(plot_total_avg)[names(plot_total_avg) == "plot_total_cover"] <- "plot_cover_avg" # change "cover" column name to "plot_total_avg"
+View(plot_total_avg)
+
+# write a new csv with avg total plant comp values at the PLOT LEVEL and upload to the shared google drive for both sites
+write.csv(plot_total_avg, file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"))
+```
+
