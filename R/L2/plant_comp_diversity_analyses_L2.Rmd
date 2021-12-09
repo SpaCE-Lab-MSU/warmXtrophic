@@ -70,9 +70,9 @@ comp <- comp[!(comp$species=="Bare_Ground" |
 ```
 
 ```{r}
-# Getting data in wide format to work in Vegan package
-
+# Function to get data in wide format to work in Vegan package - taken from link below
 # https://stackoverflow.com/questions/50691393/transform-community-data-into-wide-format-for-vegan-package
+
 matrify2 <-  function(data) {
     #Data must have columns: plot, SPEC, abundance measure,Year
     if (ncol(data) != 4)
@@ -109,54 +109,47 @@ matrify2 <-  function(data) {
 comp_kbs <- subset(comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
 comp_umbs <- subset(comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
 
-    # remove non-species using "not in"
-    #obs_to_exclude = c("Bare_Ground", "Unknown","Brown","Litter", "Vert_Litter", "Animal_Disturbance")
-    #comp_site <-dplyr::filter(comp_site, !(species %in% obs_to_exclude))
 
-    # convert the abundance data to abundance for each species in columns for the vegan package
+# convert the abundance data to abundance for each species in columns for the vegan package
 comp_kbs$cover <- as.numeric(comp_kbs$cover)
 comp_wide_kbs <- matrify2(comp_kbs)
 comp_umbs$cover <- as.numeric(comp_umbs$cover)
 comp_wide_umbs <- matrify2(comp_umbs)
 
-    # comp_wide_data is assumes to have columns Year, Plot, and columns for each species found, e.g. for Vegan
+# comp_wide_data is assumes to have columns Year, Plot, and columns for each species found, e.g. for Vegan
 
-    # first, split up the wide data into a list of years.  Each list item is a year of data
+# first, split up the wide data into a list of years.  Each list item is a year of data
 comp_wide_by_year_kbs <- dplyr::group_by(comp_wide_kbs, Year) %>% dplyr::group_split()
 comp_wide_by_year_umbs <- dplyr::group_by(comp_wide_umbs, Year) %>% dplyr::group_split()
 
-    # we need to add plot names.  Get those Plot names by taking a column from any one of the years
-    # since we are assuming the Plot column is the exact same across years and IN THE SAME ORDER
+# we need to add plot names.  Get those Plot names by taking a column from any one of the years
+# since we are assuming the Plot column is the exact same across years and IN THE SAME ORDER
 plot_names <- comp_wide_by_year_kbs[[1]]$Plot
 plot_names <- comp_wide_by_year_umbs[[1]]$Plot
 
-    # remove the plot and year columns from each item in the list so that Vegan will work.
-    # This assumes row order is the exact same for all years (each row a plot)
+# remove the plot and year columns from each item in the list so that Vegan will work.
+# This assumes row order is the exact same for all years (each row a plot)
 comp_wide_by_year_kbs <- lapply(comp_wide_by_year_kbs, dplyr::select, c(-Year, -Plot))
 comp_wide_by_year_umbs <- lapply(comp_wide_by_year_umbs, dplyr::select, c(-Year, -Plot))
 
-    #  apply  the diversity function to each year  - in this case the main index is plot, each year considered separately
+#  apply  the diversity function to each year  - in this case the main index is plot, each year considered separately
 diversity_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "shannon")
 diversity_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "shannon")
 
-    # each item in the list is a year of diversity, so name those with the years we know we have
+# each item in the list is a year of diversity, so name those with the years we know we have
 names(diversity_by_year_list_kbs) <- as.character(2015:2021)
 names(diversity_by_year_list_umbs) <- as.character(2015:2021)
 
-    # "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
+# "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
 x_kbs <- do.call(cbind,diversity_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
 x_umbs <- do.call(cbind,diversity_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
-    #  an alternative tidyverse way x<- diversity_by_year(diversity_by_year_list)
+#  an alternative tidyverse way x<- diversity_by_year(diversity_by_year_list)
 
-    ## optional step!
+## optional step!
 x_kbs
 x_umbs
 
 # comp$cover <- as.numeric(comp$cover)
-
-# use the one function above to both matrify and calculate Shannon diversity index per year
-# diversity_by_year_kbs  <- diversity_by_year(comp, site = "kbs", div_index = "shannon")
-# diversity_by_year_umbs <- diversity_by_year(comp, site = "umbs", div_index = "shannon")
 
 # this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
 library(reshape2)
@@ -173,13 +166,93 @@ simpson_by_plot_year_kbs$site <- "kbs" # adding site column
 simpson_by_plot_year_umbs <- reshape2::melt(x_umbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
 simpson_by_plot_year_umbs$site <- "umbs" # adding site column
 
+#combine umbs and kbs shannon diversity measures into 1 dataframe
 shannon_diversity <- full_join(shannon_by_plot_year_kbs, shannon_by_plot_year_umbs, by = c("Plot", "Year", "shannon", "site"))
 
+#combine umbs and kbs simpson diversity measures into 1 dataframe
 simpson_diversity <- full_join(simpson_by_plot_year_kbs, simpson_by_plot_year_umbs, by = c("Plot", "Year", "simpson", "site"))
 
+# combine simpson and shannon diversity data frames into 1
 comp_diversity <- full_join(simpson_diversity, shannon_diversity, by = c("Plot", "Year", "site"))
 # Looks like diversity and simpson diveristy measures are the same?? Need to look into this
 ```
+
+KBS Simpson's Index
+```{r}
+#Data exploration
+names(simpson_by_plot_year_kbs) <- tolower(names(simpson_by_plot_year_kbs)) # column names to lower case so I can combine this data frame with the meta data
+simpson_by_plot_year_kbs <- full_join(simpson_by_plot_year_kbs, meta, by = c("plot")) # combine meta data with diversity data frame
+simpson_by_plot_year_kbs$simpson <- as.numeric(simpson_by_plot_year_kbs$simpson)
+
+hist(simpson_by_plot_year_kbs$simpson)
+qqnorm(simpson_by_plot_year_kbs$simpson) # this looks good
+shapiro.test(simpson_by_plot_year_kbs$simpson) # not normal 
+
+# Exploring distributions for these slightly left-skewed data:
+descdist(simpson_by_plot_year_kbs$simpson, discrete = FALSE) # log normal looks like a good fit
+```
+```{r}
+# KBS State-only model
+simpson_by_plot_year_kbs <- simpson_by_plot_year_kbs[-167,] # remove row with zero - won't be able to take the log of the simpson column if there is a zero in the column - this zero is from their not being any data in this plot due to a large ground hog hole
+fit_state_kbs <- lm(log(simpson) ~ state, data = simpson_by_plot_year_kbs)
+outlierTest(fit_state_kbs) 
+qqPlot(fit_state_kbs, main="QQ Plot") 
+hist(fit_state_kbs$residuals)
+leveragePlots(fit_state_kbs)
+ols_test_normality(fit_state_kbs)
+
+# KBS State and year model
+fit_stateyear_kbs <- lm(log(simpson) ~ state + year, data = simpson_by_plot_year_kbs)
+outlierTest(fit_stateyear_kbs) # no outliers
+qqPlot(fit_stateyear_kbs, main="QQ Plot") 
+hist(fit_stateyear_kbs$residuals)
+leveragePlots(fit_stateyear_kbs)
+ols_test_normality(fit_stateyear_kbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+#fit3 <- lm(log(simpson) ~ state + year, data = simpson_by_plot_year_kbs)
+#interact_plot(fit3, pred = year, modx = state)
+#fit4 <- lm(log(simpson) ~ state * year, data = simpson_by_plot_year_kbs)
+#interact_plot(fit4, pred = year, modx = state, mod2 = species)
+```
+
+```{r}
+mod1 <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), simpson_by_plot_year_kbs, REML = FALSE)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(mod1)
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(mod1) ~ simpson_by_plot_year_kbs$state)
+# Assumption not met
+leveneTest(residuals(mod1) ~ simpson_by_plot_year_kbs$insecticide) 
+# Assumption not met 
+leveneTest(residuals(mod1) ~ simpson_by_plot_year_kbs$plot)
+# Assumption not met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
+outlierTest(mod1) # no outliers
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int<- ranef(mod1)$plot$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+shapiro.test(r_int) 
+# Normally distributed random effect pvalue > 0.05
+```
+
 
 
 
