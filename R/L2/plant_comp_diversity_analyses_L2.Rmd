@@ -69,20 +69,8 @@ comp <- comp[!(comp$species=="Bare_Ground" |
 
 ```
 
-Calculating Diversity Indices
 ```{r}
 # Getting data in wide format to work in Vegan package
-
-#comp1 <- comp %>% 
-#        select(plot, species, cover, year, site)
-#
-#comp_kbs <- subset(comp1, site == "kbs")
-#comp_kbs <- comp_kbs %>% 
-#        select(plot, species, cover, year)
-#
-#comp_umbs <- subset(comp1, site == "umbs")
-#comp_umbs <- comp_umbs %>% 
-#        select(plot, species, cover, year)
 
 # https://stackoverflow.com/questions/50691393/transform-community-data-into-wide-format-for-vegan-package
 matrify2 <-  function(data) {
@@ -113,7 +101,94 @@ matrify2 <-  function(data) {
     names(taxa) <- c('Year','Plot',spc.codes)
     taxa
 }
+```
 
+
+```{r}
+#diversity_by_year <- function(comp, site, div_index = "shannon"){
+comp_kbs <- subset(comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
+comp_umbs <- subset(comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
+
+    # remove non-species using "not in"
+    #obs_to_exclude = c("Bare_Ground", "Unknown","Brown","Litter", "Vert_Litter", "Animal_Disturbance")
+    #comp_site <-dplyr::filter(comp_site, !(species %in% obs_to_exclude))
+
+    # convert the abundance data to abundance for each species in columns for the vegan package
+comp_kbs$cover <- as.numeric(comp_kbs$cover)
+comp_wide_kbs <- matrify2(comp_kbs)
+comp_umbs$cover <- as.numeric(comp_umbs$cover)
+comp_wide_umbs <- matrify2(comp_umbs)
+
+    # comp_wide_data is assumes to have columns Year, Plot, and columns for each species found, e.g. for Vegan
+
+    # first, split up the wide data into a list of years.  Each list item is a year of data
+comp_wide_by_year_kbs <- dplyr::group_by(comp_wide_kbs, Year) %>% dplyr::group_split()
+comp_wide_by_year_umbs <- dplyr::group_by(comp_wide_umbs, Year) %>% dplyr::group_split()
+
+    # we need to add plot names.  Get those Plot names by taking a column from any one of the years
+    # since we are assuming the Plot column is the exact same across years and IN THE SAME ORDER
+plot_names <- comp_wide_by_year_kbs[[1]]$Plot
+plot_names <- comp_wide_by_year_umbs[[1]]$Plot
+
+    # remove the plot and year columns from each item in the list so that Vegan will work.
+    # This assumes row order is the exact same for all years (each row a plot)
+comp_wide_by_year_kbs <- lapply(comp_wide_by_year_kbs, dplyr::select, c(-Year, -Plot))
+comp_wide_by_year_umbs <- lapply(comp_wide_by_year_umbs, dplyr::select, c(-Year, -Plot))
+
+    #  apply  the diversity function to each year  - in this case the main index is plot, each year considered separately
+diversity_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "shannon")
+diversity_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "shannon")
+
+    # each item in the list is a year of diversity, so name those with the years we know we have
+names(diversity_by_year_list_kbs) <- as.character(2015:2021)
+names(diversity_by_year_list_umbs) <- as.character(2015:2021)
+
+    # "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
+x_kbs <- do.call(cbind,diversity_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+x_umbs <- do.call(cbind,diversity_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+    #  an alternative tidyverse way x<- diversity_by_year(diversity_by_year_list)
+
+    ## optional step!
+x_kbs
+x_umbs
+
+# comp$cover <- as.numeric(comp$cover)
+
+# use the one function above to both matrify and calculate Shannon diversity index per year
+# diversity_by_year_kbs  <- diversity_by_year(comp, site = "kbs", div_index = "shannon")
+# diversity_by_year_umbs <- diversity_by_year(comp, site = "umbs", div_index = "shannon")
+
+# this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
+library(reshape2)
+
+#calculate shannon diversity
+shannon_by_plot_year_kbs <- reshape2::melt(x_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon")
+shannon_by_plot_year_kbs$site <- "kbs" # adding site column
+shannon_by_plot_year_umbs <- reshape2::melt(x_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
+shannon_by_plot_year_umbs$site <- "umbs" # adding site column
+
+#calculate simpson diversity
+simpson_by_plot_year_kbs <- reshape2::melt(x_kbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
+simpson_by_plot_year_kbs$site <- "kbs" # adding site column
+simpson_by_plot_year_umbs <- reshape2::melt(x_umbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
+simpson_by_plot_year_umbs$site <- "umbs" # adding site column
+
+shannon_diversity <- full_join(shannon_by_plot_year_kbs, shannon_by_plot_year_umbs, by = c("Plot", "Year", "shannon", "site"))
+
+simpson_diversity <- full_join(simpson_by_plot_year_kbs, simpson_by_plot_year_umbs, by = c("Plot", "Year", "simpson", "site"))
+
+comp_diversity <- full_join(simpson_diversity, shannon_diversity, by = c("Plot", "Year", "site"))
+# Looks like diversity and simpson diveristy measures are the same?? Need to look into this
+```
+
+
+
+
+
+
+
+Code below is a function written by Pat but unsuccessfully subsets sites so you get the same values for both kbs and umbs - above is a clumsy fix by Moriah (no function)
+```{r}
 #' function to calculate annual diversity index for a specific site
 #'
 #' after reading a comp file, this function should do all that's needed to prep it and
