@@ -27,7 +27,7 @@ str(herb)
 
 
 
-#### Total herb by site and species with insecticide treatment####
+#### Total herb by site and species w/o insecticide treatment####
 sum_herb_in <- herb %>%
   group_by(site, state, insecticide, year) %>%
   summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
@@ -101,7 +101,7 @@ annotate_figure(final_herb_org,
 
 
 
-#### Total damage by site and species with insecticide treatment####
+#### Total damage by site and species w/o insecticide treatment####
 sum_dam_in <- herb %>%
   group_by(site, state, insecticide, year) %>%
   summarize(avg_dam = mean(p_damage, na.rm = TRUE),
