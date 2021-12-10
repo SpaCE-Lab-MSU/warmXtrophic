@@ -25,6 +25,7 @@ rm(list=ls())
 library(plotrix)
 library(tidyverse)
 library(ggpubr)
+library(hrbrthemes)
 
 # Set working directory
 #Sys.getenv("L1DIR")
@@ -196,7 +197,6 @@ annotate_figure(spp_level_overall,
 ```
 
 ## Combining greenup, flower, and seed into one figure - plot level
-## Note: half/median date used for greenup and flower, but min date used for seed set (need to fix this)
 ```{r, echo=F}
 # green-up plots
 greenup_overall_plot2 <- function(loc) { 
@@ -262,6 +262,142 @@ phen_overall <- ggarrange(plot_overall_kbs2, plot_overall_umbs2,
 annotate_figure(phen_overall,
                 left = text_grob("Phenological event", color = "black", rot = 90),
                 bottom = text_grob("Treatment", color = "black"))
+#dev.off()
+```
+
+## Combining greenup, flower, and seed into one figure - plot level
+## Swapping axis
+```{r, echo=F}
+# green-up plots
+greenup_overall_plot3 <- function(loc) { 
+  greenup_plot <- subset(gr_plot, site == loc)
+  return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date, fill=state)) +
+           facet_wrap(~insecticide,ncol=1) +
+           geom_boxplot(color = "black") +
+           labs(x = "Green-up", y = NULL, title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+                 ylim(50,300) +
+           theme_classic() +
+          coord_flip())
+}
+plot_overall_kbs3 <- greenup_overall_plot3("kbs")
+plot_overall_umbs3 <- greenup_overall_plot3("umbs")
+
+# flower plots
+flwr_overall_plot2 <- function(loc) { 
+  flower_plot <- subset(flwr_plot, site == loc)
+  return(ggplot(flower_plot, aes(x = state, y = julian_median, fill=state)) +
+           facet_wrap(~insecticide, ncol=1) +
+           geom_boxplot(color = "black") +
+           labs(x = "Flower", y = NULL) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+                 ylim(50,300) +
+          theme_classic() +
+          coord_flip())
+}
+flwr_overall_kbs2 <- flwr_overall_plot2("kbs")
+flwr_overall_umbs2 <- flwr_overall_plot2("umbs")
+
+# flower duration plots - not including this in final plot for now since idk if its in our analyses
+flwr_dur_plot2 <- function(loc) { 
+  flower_plot <- subset(flwr_plot, site == loc)
+  return(ggplot(flower_plot, aes(x = state, y = flwr_duration, fill=state)) +
+           facet_wrap(~insecticide, ncol=1) +
+           geom_boxplot(color = "black") +
+           labs(x = "Flower duration", y = NULL) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+          theme_classic() +
+          coord_flip())
+}
+flwr_dur_kbs2 <- flwr_dur_plot2("kbs")
+flwr_dur_umbs2 <- flwr_dur_plot2("umbs")
+
+# seed set plots - using min date here bc can't calculate median date for seed
+sd_overall_plot2 <- function(loc) { 
+  seed_plot <- subset(sd_plot, site == loc)
+  return(ggplot(seed_plot, aes(x = state, y = julian_min, fill=state)) +
+           facet_wrap(~insecticide, ncol=1) +
+           geom_boxplot(color = "black") +
+           labs(x = "Seed set", y = NULL) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) + 
+                 ylim(50,300) +
+          theme_classic() +
+          coord_flip())
+}
+sd_overall_kbs2 <- sd_overall_plot2("kbs")
+sd_overall_umbs2 <- sd_overall_plot2("umbs")
+
+phen_overall2 <- ggarrange(plot_overall_kbs3, plot_overall_umbs3,
+                          flwr_overall_kbs2, flwr_overall_umbs2,
+                          sd_overall_kbs2, sd_overall_umbs2,
+                          nrow = 3, ncol = 2, common.legend = T, legend="right")
+png("All_phenology2.png", units="in", width=8, height=8, res=300)
+annotate_figure(phen_overall2,
+                left = text_grob("Phenological event", color = "black", rot = 90),
+                bottom = text_grob("Julian date", color = "black"))
+dev.off()
+```
+
+## Combining greenup, flower, and seed into one figure - plot level
+## Violin plot
+```{r, echo=F, warning=F, message=F}
+# green-up plots
+greenup_violin <- function(loc) { 
+  greenup_plot <- subset(gr_plot, site == loc)
+  return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date, fill=state)) +
+           facet_wrap(~insecticide,ncol=1) +
+           geom_violin(width=2, size=0.1) +
+           labs(x = "Green-up", y = NULL, title = loc) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+           theme_classic() +
+          coord_flip())
+}
+green_violin_plot_k <- greenup_violin("kbs")
+green_violin_plot_u <- greenup_violin("umbs")
+
+# flower plots
+flower_violin <- function(loc) { 
+  flower_plot <- subset(flwr_plot, site == loc)
+  return(ggplot(flwr_plot, aes(x = state, y = julian_median, fill=state)) +
+           facet_wrap(~insecticide, ncol=1) +
+           geom_violin(width=2, size=0.1) +
+           labs(x = "Flower", y = NULL) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+           theme_classic() +
+          coord_flip())
+}
+flwr_violin_plot_k <- flower_violin("kbs")
+flwr_violin_plot_u <- flower_violin("umbs")
+
+# seed plots
+seed_violin <- function(loc) { 
+  seed_plot <- subset(sd_plot, site == loc)
+  return(ggplot(seed_plot, aes(x = state, y = julian_min, fill=state)) +
+           facet_wrap(~insecticide, ncol=1) +
+           geom_violin(width=2, size=0.1) +
+           labs(x = "Seed set", y = NULL) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+           theme_classic() +
+          coord_flip())
+}
+seed_violin_plot_k <- seed_violin("kbs")
+seed_violin_plot_u <- seed_violin("umbs")
+
+phen_violin <- ggarrange(green_violin_plot_k, green_violin_plot_u,
+                          flwr_violin_plot_k, flwr_violin_plot_u,
+                          seed_violin_plot_k, seed_violin_plot_u,
+                          nrow = 3, ncol = 2, common.legend = T, legend="right")
+#png("All_phenology3.png", units="in", width=8, height=8, res=300)
+annotate_figure(phen_violin,
+                left = text_grob("Phenological event", color = "black", rot = 90),
+                bottom = text_grob("Julian date", color = "black"))
 #dev.off()
 ```
 
