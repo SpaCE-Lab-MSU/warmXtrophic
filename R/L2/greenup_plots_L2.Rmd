@@ -240,7 +240,7 @@ flwr_dur_plot <- function(loc) {
 flwr_dur_kbs <- flwr_dur_plot("kbs")
 flwr_dur_umbs <- flwr_dur_plot("umbs")
 
-# seed set plots - need to get median date for this, using min date for now
+# seed set plots - using min date here bc can't calculate median date for seed
 sd_overall_plot <- function(loc) { 
   seed_plot <- subset(sd_plot, site == loc)
   return(ggplot(seed_plot, aes(x = state, y = julian_min)) +
