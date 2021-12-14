@@ -241,7 +241,7 @@ leveneTest(residuals(mod1) ~ simpson_by_plot_year_kbs$plot)
 # Check for normal residuals
 qqPlot(resid(mod1))
 hist(residuals(mod1))
-shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
+shapiro.test(resid(mod1)) # ormally distributed resids bc p>0.05
 outlierTest(mod1) # no outliers
 
 # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
@@ -253,6 +253,56 @@ shapiro.test(r_int)
 # Normally distributed random effect pvalue > 0.05
 ```
 
+```{r}
+# Do we need to include plot as a random effect with the UMBS models?   
+mod1 <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), simpson_by_plot_year_kbs, REML = FALSE)
+mod2 <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), simpson_by_plot_year_kbs, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1)
+anova(mod2)
+
+anova(mod1, mod2) # Go with model 2 since pvalue >0.05, aka more complex model does not have something in it that matters (the two models are essentially the same so go w model with fewer parameters)
+summary(mod1) 
+summary(mod2)
+AICctab(mod1, mod2, weights=T)
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod1)
+plot_model(mod2, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod2, type = "pred", terms = c("year_factor", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod2, type = "re", terms = c("species"))
+
+# Do we need to include insecticide? (dropping insecticide from the model)
+mod3 <- lmer(log(relabun) ~ state*year_factor + (1|species), comp_kbs_spp, REML=FALSE)
+anova(mod2, mod3)
+
+AICctab(mod2, mod3, weights=T)
+# Looks like no pvalue > 0.05, so insecticide does not improve model fit so we will go with mod 3
+
+# Does year need to be interactive with insecticide? - already removed insecticide
+# mod4 <- lmer(log(julian_median) ~ state*year_factor + insecticide + (1|species) + (1|plot), umbs_flwr_spp, REML=FALSE)
+
+# Does year need to be interactive with state?
+mod5 <- lmer(log(relabun) ~ state + year_factor + (1|species), comp_kbs_spp, REML=FALSE)
+anova(mod3, mod5)
+# No, P>0.05 so state*year_factor doesn't strongly improve model fit so we will shift to mod5, but AIC values are super close!!
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod5, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod5, type = "pred", terms = c("year_factor", "state"))
+# these are the random effects estimates
+plot_model(mod5, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+mod6 <- lmer(log(relabun) ~ state + year_factor + (1|species) + (1 + year_factor|plot), comp_kbs_spp, REML=FALSE)
+anova(mod5, mod6)
+anova(mod5)
+```
+
 
 
 
@@ -261,7 +311,7 @@ shapiro.test(r_int)
 
 
 Code below is a function written by Pat but unsuccessfully subsets sites so you get the same values for both kbs and umbs - above is a clumsy fix by Moriah (no function)
-```{r}
+```{r, eval=FALSE}
 #' function to calculate annual diversity index for a specific site
 #'
 #' after reading a comp file, this function should do all that's needed to prep it and
@@ -348,7 +398,7 @@ diversity_umbs$site <- "umbs" #add site column
 ```
 
 Calculating Diversity Indices
-```{r}
+```{r, eval=FALSE}
 # species richness
 sppr <- specnumber(comp1_wide)
 
