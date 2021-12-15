@@ -55,6 +55,45 @@ annotate_figure(final_herb,
                 bottom = text_grob("State", color = "black"))
 
 
+### Overall averages btwn treatments - boxplot
+herb_overall <- function(loc) { 
+        herb_plot <- subset(herb, site == loc)
+        return(ggplot(herb_plot, aes(x = state, y = p_eaten, fill=state)) +
+                       facet_wrap(~insecticide,nrow=1) +
+                       geom_boxplot(color = "black") +
+                       labs(x = NULL, y = NULL, title = loc) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+                       ylim(0,10) +
+                       theme_classic())
+}
+herb_overall("kbs")
+herb_overall("umbs")
+
+
+### Overall averages - violin plot
+herb_violin <- function(loc) { 
+        herb_plot <- subset(herb, site == loc)
+        return(ggplot(herb_plot, aes(x = state, y = p_eaten, fill=state)) +
+                       facet_wrap(~insecticide,ncol=1) +
+                       geom_violin(width=2, size=0.1) +
+                       labs(x = NULL, y = NULL, title = loc) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+                       theme_classic() +
+                       coord_flip())
+}
+herb_violin_kbs <- herb_violin("kbs")
+herb_violin_umbs <- herb_violin("umbs")
+herb_violin <- ggarrange(herb_violin_kbs, herb_violin_umbs,
+                         ncol = 2, common.legend = T, legend="right")
+#png("Herbivory_violin.png", units="in", width=8, height=8, res=300)
+annotate_figure(herb_violin,
+                left = text_grob("Treatment", color = "black", rot = 90),
+                bottom = text_grob("Percent of leaf eaten", color = "black"))
+#dev.off()
+
+
 ### Overall average ###
 sum_herb_overall <- herb %>%
         group_by(site, state, insecticide) %>%
