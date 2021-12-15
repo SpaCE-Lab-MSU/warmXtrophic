@@ -1,0 +1,271 @@
+---
+title: "warmXtrophic Project: Flowering Duration Phenology Analyses"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+# Load in packages & data
+```{r, message = F}
+# clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(vegan)
+library(car)
+library(rstatix)
+library(scales)
+library(fitdistrplus)
+library(moments)# for calculating skewness of data
+library(ggpubr)
+library(jtools) # summ() function
+library(predictmeans)
+library(olsrr)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(GGally) # ggpairs() function
+library(bbmle) # AICtab() function
+
+# Set working directory
+Sys.getenv("L1DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
+# Read in data
+flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) # species level data
+flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
+
+# get rid of "X" column that shows up
+flwr_species$X <- NULL
+flwr_plot$X <- NULL
+# take a look at the data to see if looks good
+View(flwr_species) 
+View(flwr_plot) 
+
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+flwr_species$state <- as.factor(flwr_species$state)
+levels(flwr_species$state)
+# [1] "ambient" "warmed" 
+flwr_species$state <- factor(flwr_species$state, levels(flwr_species$state)[c(2,1)])
+levels(flwr_species$state)
+# [1] "warmed"  "ambient"
+
+# again for plot level data
+flwr_plot$state <- as.factor(flwr_plot$state)
+levels(flwr_plot$state)
+# [1] "ambient" "warmed" 
+flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
+levels(flwr_plot$state)
+# [1] "warmed"  "ambient"
+
+flwr_species$flwr_duration <- as.numeric(as.character(flwr_species$flwr_duration))
+flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
+
+umbs_flwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
+# delete 2021 data from umbs dataframe (doesn't make sense to have bc we can't get min flower/sd, median flower, or flower duration from 2021 UMBS)
+umbs_flwr_plot <- subset(umbs_flwr_plot, year!="2021")
+umbs_flwr_spp <- subset(flwr_species, site == "umbs") # pull out umbs only data at species level
+umbs_flwr_spp <- subset(umbs_flwr_spp, year!="2021") # delete 2021 data
+kbs_flwr_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
+kbs_flwr_spp <- subset(flwr_species, site == "kbs") # pull out kbs only data at species level
+```
+
+# KBS SPECIES LEVEL - Looking at DURATION of flowering
+```{r, warning=F}
+### KBS ###
+hist(kbs_flwr_spp$flwr_duration)
+qqnorm(kbs_flwr_spp$flwr_duration)
+shapiro.test(kbs_flwr_spp$flwr_duration) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(kbs_flwr_spp, aes(flwr_duration, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_spp, aes(flwr_duration, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_spp, aes(flwr_duration, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_flwr_spp, aes(flwr_duration, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(kbs_flwr_spp, aes(flwr_duration, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(kbs_flwr_spp$flwr_duration, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_flwr_spp$flwr_duration, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_flwr_spp$flwr_duration, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_flwr_spp$flwr_duration, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Lognormal is the best so going to log transform response variable julian_median
+```
+# KBS PLOT LEVEL - Looking at DURATION of flowering
+```{r, warning=F}
+### UMBS ###
+hist(kbs_flwr_plot$flwr_duration)
+qqnorm(kbs_flwr_plot$flwr_duration)
+shapiro.test(kbs_flwr_plot$flwr_duration) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(kbs_flwr_plot, aes(flwr_duration, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_plot, aes(flwr_duration, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_plot, aes(flwr_duration, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year)
+#
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(kbs_flwr_plot$flwr_duration, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_flwr_plot$flwr_duration, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_flwr_plot$flwr_duration, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_flwr_plot$flwr_duration, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Log normal is the best first so going to log transform response variable julian_median
+```
+
+# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
+# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
+```{r}
+# species level data
+# KBS State-only model
+fit_spp_state_kbs <- lm(flwr_duration ~ state, data = kbs_flwr_spp)
+outlierTest(fit_spp_state_kbs) # no outliers
+qqPlot(fit_spp_state_kbs, main="QQ Plot") 
+hist(fit_spp_state_kbs$residuals)
+leveragePlots(fit_spp_state_kbs)
+ols_test_normality(fit_spp_state_kbs)
+
+# KBS State and year model
+fit_spp_stateyear_kbs <- lm(flwr_duration ~ state + year_factor, data = kbs_flwr_spp)
+outlierTest(fit_spp_stateyear_kbs) # no outliers
+qqPlot(fit_spp_stateyear_kbs, main="QQ Plot") 
+hist(fit_spp_stateyear_kbs$residuals)
+leveragePlots(fit_spp_stateyear_kbs)
+ols_test_normality(fit_spp_stateyear_kbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(flwr_duration ~ state + year_factor + species, data = kbs_flwr_spp)
+interact_plot(fit3, pred = year_factor, modx = state)
+fit4 <- lm(flwr_duration ~ state * year_factor + species, data = kbs_flwr_spp)
+interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
+```
+MIXED EFFECT MODELS
+
+KBS
+```{r}
+# KBS SPECIES LEVEL - Looking at DURATION of flowering
+mod1 <- lmer(flwr_duration ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), kbs_flwr_spp, REML = FALSE)
+ggplot(kbs_flwr_spp,aes(x=plot,y=flwr_duration,col=species)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(mod1)
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(mod1) ~ kbs_flwr_spp$state)
+# Assumption met
+leveneTest(residuals(mod1) ~ kbs_flwr_spp$species)
+# Assumption met
+leveneTest(residuals(mod1) ~ kbs_flwr_spp$insecticide) 
+# Assumption not met - this seems weird
+leveneTest(residuals(mod1) ~ kbs_flwr_spp$plot)
+# Assumption met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
+outlierTest(mod1) # no outliers
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int<- ranef(mod1)$plot$`(Intercept)`
+qqnorm(r_int)
+# qqline(r_int) doesn't work
+shapiro.test(r_int) 
+# Not normally distributed random effect - p-value = 0.0015
+```
+
+
