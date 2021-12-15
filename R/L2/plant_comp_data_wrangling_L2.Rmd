@@ -39,6 +39,9 @@ comp <- comp %>% select(-X) # get rid of "X" column that shows up
 
 # read in meta data
 meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
+taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
+taxon <- taxon %>% select(-c(X, X.1, site)) # get rid of "X" column that shows up
+names(taxon)[names(taxon) == "code"] <- "species" # change "code" column name to "species" so this can be merged with another dateframe below
 ```
 
 ```{r}
@@ -65,11 +68,6 @@ comp <- comp[!(comp$species=="Bare_Ground" |
 
 Calculating Absolute Abundance
 ```{r}
-# calculating total composition sums - proxy for most common species
-# comp_yearly_totals <- comp %>%
-#         group_by(site, year, plot, species) %>%
-#         summarize(comp_sum = sum(cover, na.rm = T))
-
 comp1 <- comp %>% 
         select(species, site, year_factor, plot, cover, state, insecticide)
 comp1$cover <- as.numeric(as.character(comp1$cover))
@@ -95,8 +93,13 @@ Calculating Relative Abundance
 #calculate relative percent cover per species in each quadrat (="relative abundance")
 comp2$relabun <- comp2$plot_mean/comp2$plot_cover_total
 
+# add meta data, need "growth_habit" and "origin" info
+comp3 <- merge(comp2, taxon, by = c("species"))
+comp4 <- comp3 %>% 
+        select(species, site, year_factor, plot, state, insecticide, growth_habit, origin, plot_mean, plot_cover_total, absolute, relabun)
+
 # write a new csv with relative and absolute abundance values at the SPECIES LEVEL and upload to the shared google drive for both sites
-write.csv(comp2, file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
+write.csv(comp4, file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
 ```
 
 Plot Level Composition
@@ -118,3 +121,34 @@ View(plot_total_avg)
 write.csv(plot_total_avg, file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"))
 ```
 
+Plot Level Composition for Native and Exotic
+```{r}
+# calculate plot cover totals for each date that data was collected 
+plot_total_origin <- aggregate(cover ~ plot*date*year_factor*site*state*insecticide*origin, data = comp, FUN = sum, na.rm = T)
+names(plot_total_origin)[names(plot_total_origin) == "cover"] <- "plot_total_cover" # change "cover" column name to "plot_total_cover"
+View(plot_total_origin)
+
+# calculate plot cover total averages across each year using the data frame created above
+plot_total_avg_origin <- aggregate(plot_total_cover ~ plot*year_factor*site*state*insecticide*origin, data = plot_total_origin, FUN = mean, na.rm = T)
+names(plot_total_avg_origin)[names(plot_total_avg_origin) == "plot_total_cover"] <- "plot_cover_avg" # change "cover" column name to "plot_total_avg"
+View(plot_total_avg_origin)
+
+# write a new csv with avg total plant comp values at the PLOT LEVEL and upload to the shared google drive for both sites
+write.csv(plot_total_avg_origin, file.path(L2_dir, "plant_composition/final_plant_comp_plot_origin_L2.csv"))
+```
+
+Plot Level Composition for Growth Habit
+```{r}
+# calculate plot cover totals for each date that data was collected 
+plot_total_growth <- aggregate(cover ~ plot*date*year_factor*site*state*insecticide*growth_habit, data = comp, FUN = sum, na.rm = T)
+names(plot_total_growth)[names(plot_total_growth) == "cover"] <- "plot_total_cover" # change "cover" column name to "plot_total_cover"
+View(plot_total_growth)
+
+# calculate plot cover total averages across each year using the data frame created above
+plot_total_avg_growth <- aggregate(plot_total_cover ~ plot*year_factor*site*state*insecticide*growth_habit, data = plot_total_growth, FUN = mean, na.rm = T)
+names(plot_total_avg_growth)[names(plot_total_avg_growth) == "plot_total_cover"] <- "plot_cover_avg" # change "cover" column name to "plot_total_avg"
+View(plot_total_avg_growth)
+
+# write a new csv with avg total plant comp values at the PLOT LEVEL and upload to the shared google drive for both sites
+write.csv(plot_total_avg_growth, file.path(L2_dir, "plant_composition/final_plant_comp_plot_growthhabit_L2.csv"))
+```
