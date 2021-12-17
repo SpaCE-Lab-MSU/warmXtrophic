@@ -41,7 +41,8 @@ plot_info <- read.csv(file.path(L0_dir, "plot.csv"))
 
 # read in meta taxon list
 taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
-taxon <- taxon %>% select(-c(X, X.1)) # get rid of "X" column that shows up
+taxon$X <- NULL # get rid of "X" column that shows up
+taxon$X.1 <- NULL # get rid of "X.1" column that shows up
 # change column name for from "code" to "Species" to match cleaned plant comp data
 colnames(taxon) <- sub("code", "species", colnames(taxon))
 
@@ -505,73 +506,73 @@ write.csv(phen_flwr_spp, file.path(L2_dir, "phenology/final_flwr_species_L2.csv"
 
 ### Create a data frame at the PLOT LEVEL that includes median date of flower, first flower date, and duration
 
-# First Flower Date by PLOT LEVEL
-FirstFlwr_plot <- phen_flwr %>%
+# Average first Flower Date by PLOT LEVEL
+FirstFlwr_plot <- phen_flwr_spp %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
-  summarize(julian_min = min(julian, na.rm=T))
+  summarize(julian_min = mean(julian_min, na.rm=T))
 
-# Median Flower Date by PLOT LEVEL
-MedianFlwr_plot <- phen_flwr %>%
+# Average median Flower Date by PLOT LEVEL
+MedianFlwr_plot <- phen_flwr_spp %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
-  summarize(julian_median = median(julian, na.rm=T))
+  summarize(julian_median = mean(julian_median, na.rm=T))
 
 # Duration of flowering time for at the PLOT level
-flwr_dur_p <- phen_flwr %>% 
+flwr_dur_plot <- phen_flwr_spp %>% 
   group_by(site, plot, year, state, action, insecticide, treatment_key, year_factor) %>%
-  summarise(flwr_duration = max(julian) - min(julian)) 
+  summarise(flwr_duration = mean(flwr_duration)) 
 
 # Merge the data frames above so that you have one data frame that includes median date of flower, first date
 # of flower, and duration of flowering at PLOT LEVEL
 phen_flwr_plot <- merge(FirstFlwr_plot, MedianFlwr_plot)
-phen_flwr_plot <- merge(phen_flwr_plot, flwr_dur_p)
+phen_flwr_plot <- merge(phen_flwr_plot, flwr_dur_plot)
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
 write.csv(phen_flwr_plot, file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
 
 
-# First Flower Date by PLOT LEVEL by ORIGIN
-FirstFlwr_plot_origin <- phen_flwr %>%
+# Average first Flower Date by PLOT LEVEL by ORIGIN
+FirstFlwr_plot_origin <- phen_flwr_spp %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor, origin) %>%
-  summarize(julian_min = min(julian, na.rm=T))
+  summarize(julian_min = mean(julian_min, na.rm=T))
 
-# Median Flower Date by PLOT LEVEL
-MedianFlwr_plot_origin <- phen_flwr %>%
+# Median Flower Date by PLOT LEVEL by ORIGIN
+MedianFlwr_plot_origin <- phen_flwr_spp %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor, origin) %>%
-  summarize(julian_median = median(julian, na.rm=T))
+  summarize(julian_median = mean(julian_median, na.rm=T))
 
-# Duration of flowering time for at the PLOT level
-flwr_dur_p_origin <- phen_flwr %>% 
+# Duration of flowering time by PLOT LEVEL by ORIGIN
+flwr_dur_plot_origin <- phen_flwr_spp %>% 
   group_by(site, plot, year, state, action, insecticide, treatment_key, year_factor, origin) %>%
-  summarise(flwr_duration = max(julian) - min(julian)) 
+  summarise(flwr_duration = mean(flwr_duration)) 
 
 # Merge the data frames above so that you have one data frame that includes median date of flower, first date
 # of flower, and duration of flowering at PLOT LEVEL
 phen_flwr_plot_origin <- merge(FirstFlwr_plot_origin, MedianFlwr_plot_origin)
-phen_flwr_plot_origin <- merge(phen_flwr_plot_origin, flwr_dur_p_origin)
+phen_flwr_plot_origin <- merge(phen_flwr_plot_origin, flwr_dur_plot_origin)
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
 write.csv(phen_flwr_plot_origin, file.path(L2_dir, "phenology/final_flwr_plot_origin_L2.csv"))
 
 
-# First Flower Date by PLOT LEVEL by GROWTH HABIT
-FirstFlwr_plot_growthhabit <- phen_flwr %>%
+# Average first Flower Date by PLOT LEVEL by GROWTH HABIT
+FirstFlwr_plot_growthhabit <- phen_flwr_spp %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor, growth_habit) %>%
-  summarize(julian_min = min(julian, na.rm=T))
+  summarize(julian_min = mean(julian_min, na.rm=T))
 
-# Median Flower Date by PLOT LEVEL
-MedianFlwr_plot_growthhabit <- phen_flwr %>%
+# Average median Flower Date by PLOT LEVEL by GROWTH HABIT
+MedianFlwr_plot_growthhabit <- phen_flwr_spp %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor, growth_habit) %>%
-  summarize(julian_median = median(julian, na.rm=T))
+  summarize(julian_median = mean(julian_median, na.rm=T))
 
-# Duration of flowering time for at the PLOT level
-flwr_dur_p_growthhabit <- phen_flwr %>% 
+# Average duration of flowering time by PLOT LEVEL by GROWTH HABIT
+flwr_dur_plot_growthhabit <- phen_flwr_spp %>% 
   group_by(site, plot, year, state, action, insecticide, treatment_key, year_factor, growth_habit) %>%
-  summarise(flwr_duration = max(julian) - min(julian)) 
+  summarise(flwr_duration = mean(flwr_duration)) 
 
 # Merge the data frames above so that you have one data frame that includes median date of flower, first date
 # of flower, and duration of flowering at PLOT LEVEL
 phen_flwr_plot_growthhabit <- merge(FirstFlwr_plot_growthhabit, MedianFlwr_plot_growthhabit)
-phen_flwr_plot_growthhabit <- merge(phen_flwr_plot_growthhabit, flwr_dur_p_growthhabit)
+phen_flwr_plot_growthhabit <- merge(phen_flwr_plot_growthhabit, flwr_dur_plot_growthhabit)
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
 write.csv(phen_flwr_plot_growthhabit, file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv"))
