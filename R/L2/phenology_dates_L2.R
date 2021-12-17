@@ -614,19 +614,19 @@ FirstSd_spp <- phen_sd %>%
 
 ### Create a data frame at the PLOT LEVEL that includes first date of seed
 # First Seed Date by PLOT LEVEL
-FirstSd_plot <- phen_sd %>%
+FirstSd_plot <- FirstSd_spp  %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
-  summarize(julian_min = min(julian, na.rm=T))
+  summarize(julian_min = mean(julian_min, na.rm=T))
 
 # First Seed Date by PLOT LEVEL for ORIGIN
-FirstSd_plot_origin <- phen_sd %>%
+FirstSd_plot_origin <- FirstSd_spp  %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor, origin) %>%
-  summarize(julian_min = min(julian, na.rm=T))
+  summarize(julian_min = mean(julian_min, na.rm=T))
 
 # First Seed Date by PLOT LEVEL for GROWTH HABIT
-FirstSd_plot_growthhabit <- phen_sd %>%
+FirstSd_plot_growthhabit <- FirstSd_spp  %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor, growth_habit) %>%
-  summarize(julian_min = min(julian, na.rm=T))
+  summarize(julian_min = mean(julian_min, na.rm=T))
 
 # write a new csv with first seed date at the SPECIES LEVEL and upload to the shared google drive
 write.csv(FirstSd_spp, file.path(L2_dir, "phenology/final_sd_species_L2.csv"))
