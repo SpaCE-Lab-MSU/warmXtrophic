@@ -106,6 +106,7 @@ greenup$year_factor[greenup$year == 2018] <- 3
 greenup$year_factor[greenup$year == 2019] <- 4
 greenup$year_factor[greenup$year == 2020] <- 5
 greenup$year_factor[greenup$year == 2021] <- 6
+greenup$year_factor <- as.factor(greenup$year_factor) # having year as numerical was messing with some analyses below (namely emmeans post-hoc analyses), so converted it to a factor
 
 greenupp$year_factor[greenupp$year == 2016] <- 1
 greenupp$year_factor[greenupp$year == 2017] <- 2
@@ -113,6 +114,7 @@ greenupp$year_factor[greenupp$year == 2018] <- 3
 greenupp$year_factor[greenupp$year == 2019] <- 4
 greenupp$year_factor[greenupp$year == 2020] <- 5
 greenupp$year_factor[greenupp$year == 2021] <- 6
+greenupp$year_factor <- as.factor(greenupp$year_factor)
 
 # create dataframes for kbs and umbs - remember that these contain species within plots
 green_kbs <- subset(greenup, site == "kbs")
@@ -399,7 +401,7 @@ emmeans(mod7a, list(pairwise ~ state+year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
 
-# using model 7a for overall greenup model #
+# using model 7a for overall species - level greenup model #
 
 # Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
 plot_model(mod7a, sort.est = TRUE)
@@ -411,7 +413,7 @@ plot_model(mod7a, type = "pred", terms = c("species", "state", "year_factor"))
 plot_model(mod7a, type = "re")
 
 
-# Start KD models - listed out possible models all at once, then compared:
+# Start KD models - listed out possible models all at once, then compared (some of these are duplicates of models above):
 mod_kd1 <- lmer(spp_half_cover_date ~ state + (1|plot), green_kbs, REML=FALSE)
 mod_kd2 <- lmer(spp_half_cover_date ~ state + (1|year_factor), green_kbs, REML=FALSE)
 mod_kd3 <- lmer(spp_half_cover_date ~ state + (1+year_factor|plot), green_kbs, REML=FALSE)
