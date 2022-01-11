@@ -76,20 +76,47 @@ sla21k <- read.csv(file.path(L0_dir, "./KBS/2021/KBS_WarmX_SLA_2021.csv"))
 #       Other sheets (Cest and Solidago) have mass only
 #       Leave 2017 off for now until we can confirm these data.
 
+# KBS
+# SOCA - 3 different plates ran in the combustion analysis instrument for this species
+# No "meta" data file existed for the 2017 data - Mark essentially cleaned this data in excel and the result of that cleaning
+# are the files being uploaded below
+# These are in TRIPLICATES (we decided to do singlets for years after 2017)
+cn17k_soca_1 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate1_2017.csv"))
+cn17k_soca_2 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate2_2017.csv"))
+cn17k_soca_3 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate3_2017.csv"))
+
+# UMBS
+# CEST - not yet analyzed
+# CEST basal sheets 1 and 2
+# CEST stem sheets 1 and 2
+
 ## 2018 ##
-# KBS - but this doesn't contain data; however the "CN_Inventory.xlsx" file in /CD_data suggests these exist
-cn18k <- read.csv(file.path(L0_dir, "./KBS/2018/kbs_CN_2018.csv"))
+# ***This data is currently being ground and prepped to be analyzed***
+# KBS - but this doesn't contain data; however the "CN_Inventory.xlsx" file in /CD_data suggests these exist - MY: yes these
+# exist, the file below acts like a meta data file for all the existing samples
+cn18k_meta <- read.csv(file.path(L0_dir, "./KBS/2018/kbs_CN_2018.csv")) # meta data file
 # UMBS
 # ***   Where are these data? the "CN_Inventory.xlsx" file in /CD_data suggests these exist.
+cn18u_meta <- read.csv(file.path(L0_dir, "./UMBS/2018/umbs_CN_2018.csv"))
 
 ## 2019 ##
 # These data were originally in 4 files at L0_dir, "./CN_data/2019/CN_WeighSheet_1_2019.csv"... "_2_", "_3_", "_4_"))
 # KD manually separated files into appropriate site-level files
 # KBS
-cn19k <- read.csv(file.path(L0_dir, "./KBS/2019/kbs_CN_2019.csv"))
+cn19k_meta <- read.csv(file.path(L0_dir, "./KBS/2019/kbs_CN_2019.csv")) # this is basically a meta data file for the
+# samples that were analyzed - the "unique_number" in this file should correspond with the "sample" column in the files
+# below
+cn19k_samples_1 <- read.csv(file.path(L0_dir, "./KBS/2019/kbs_CN_weighsheet_1_2019.csv")) # this has some umbs samples in it
+# that will need to be deleted when cleaned (they were ran on the same plate for combustion analysis)
+cn19k_samples_2 <- read.csv(file.path(L0_dir, "./KBS/2019/kbs_CN_weighsheet_2_2019.csv"))
 # UMBS
-cn19u <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_2019.csv"))
-
+cn19u_meta <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_2019.csv")) # this is basically a meta data file for the
+# samples that were analyzed - the "unique_number" in this file should correspond with the "sample" column in the files
+# below
+cn19u_samples_1 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_1_2019.csv"))
+cn19u_samples_2 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_2_2019.csv"))
+cn19u_samples_3 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_3_2019.csv")) # this has some kbs samples in it
+# that will need to be deleted when cleaned
 
 #### Create L1 SLA data ####
 names(sla18u)
