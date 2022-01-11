@@ -437,7 +437,7 @@ KBS Species-level Mixed Effects Models
 ```{r, error=TRUE}
 # Start by replicating (almost) what we did in the Oecologia 2018 paper. The only difference here is that we have multiple years, so we are also including year as a fixed effect and as an interactive term. Our goal here is to find a model that is the best fit to the data. We also want to find a model that is the most parsimonious (one that has the fewest parameters).
 
-# Do we need to include plot as a random effect with the UMBS models?   
+# Do we need to include plot as a random effect with the KBS models?   
 mod1 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
 mod2 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|species), kbs_sd_spp, REML=FALSE)
 # Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
@@ -503,7 +503,7 @@ anova(mod7a, mod7b) #mod 7a
 anova(mod7a, mod7c) #mod7a
 summary(mod7a)
 anova(mod7a) # investigates whether at least one of the levels within each factor is significantly different.
-# Yes, at least one of the species is different (they do not all have the median first flwr dates). 
+# Yes, at least one of the species is different (they do not all have the min first seed dates). 
 emmeans(mod7a, list(pairwise ~ state + year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
@@ -530,7 +530,7 @@ anova(mod8)
 emmeans(mod8, list(pairwise ~ state * origin), adjust = "tukey")
 
 # including growth form - first with interaction term
-kbs_flwr_spp <- within(kbs_flwr_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+kbs_sd_spp <- within(kbs_flwr_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 mod10 <- lmer(log(julian_min) ~ state * growth_habit + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
 mod11 <- lmer(log(julian_min) ~ state + growth_habit + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
 mod11a <- lmer(log(julian_min) ~ state + growth_habit + year_factor + (1|plot), kbs_sd_spp, REML=FALSE)
@@ -635,7 +635,7 @@ anova(mod7au, mod7bu) #mod 7bu
 anova(mod7au, mod7cu) #mod7bu
 summary(mod7bu)
 anova(mod7bu) # investigates whether at least one of the levels within each factor is significantly different.
-# Yes, at least one of the species is different (they do not all have the median first flwr dates). 
+# Yes, at least one of the species is different (they do not all have the min first seed dates). 
 emmeans(mod7bu, list(pairwise ~ state + year_factor), adjust = "tukey")
 emmeans(mod7bu, list(pairwise ~ year_factor), adjust = "tukey")
 emmeans(mod7bu, list(pairwise ~ species), adjust = "tukey")
