@@ -36,7 +36,17 @@ UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
 KBS_pend$Date_Time <- as.POSIXct(KBS_pend$Date_Time, format = "%Y-%m-%d %H:%M")
 UMBS_pend$Date_Time <- as.POSIXct(UMBS_pend$Date_Time, format = "%Y-%m-%d %H:%M")
 
-
+# remove sensor 1 from 2021 KBS because it failed
+# remove sensor 1 from 2021 for July-Nov at UMBS because of a wasp nest
+KBS$year <- format(KBS$Date_Time,format="%Y")
+UMBS$year <- format(UMBS$Date_Time,format="%Y")
+UMBS$month <- format(UMBS$Date_Time,format="%m")
+KBS <- KBS[!(KBS$sensor == 1 & KBS$year =="2021" ),] 
+UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "07"),] 
+UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "08"),]
+UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "09"),]
+UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "10"),]
+UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "11"),]
 
 #########################################
               # KBS #

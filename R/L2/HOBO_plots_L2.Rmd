@@ -13,8 +13,7 @@ COLLABORATORS: Phoebe Zarnetske, Nina Lany, Kathryn Schmidt, Mark Hammond, Pat B
 DATA INPUT: CSV files are located in the L1 hobo folder in the shared Google drive   
 DATA OUTPUT: Relevant plots for the HOBO data, other plots located in HOBO_plots_L2.R script
 NOTES: Figures marked with (older) are plots generated in the past and may not be relevant/useful for the paper  
-A cleaner & easier to understand version of this code is in the .R script  
-Note: the bad sensor data for 2021 was not removed at KBS, nor was the wasp sensor data removed at UMBS  
+A cleaner & more up-to-date version of this code is in the .R script  
 
 
 ```{r, include = FALSE, message = FALSE}
