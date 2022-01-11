@@ -47,7 +47,6 @@ KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
 KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
 
 # remove sensor 1 from 2021 KBS because it failed
-str(KBS_season)
 KBS_season1 <- KBS_season[!(KBS_season$sensor == 1 & KBS_season$year =="2021" ),] 
 
 # 1m
@@ -169,6 +168,13 @@ UMBS_season1 <- UMBS
 UMBS_season1$month <- format(UMBS_season1$Date_Time,format="%m")
 UMBS_season1$year <- format(UMBS_season1$Date_Time,format="%Y")
 UMBS_season1$hour <- format(UMBS_season1$Date_Time, format="%H")
+
+# remove sensor 1 from 2021 for July-Nov at UMBS because of a wasp nest
+UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "07"),] 
+UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "08"),]
+UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "09"),]
+UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "10"),]
+UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "11"),]
 
 # 1m
 UMBS_season <- UMBS_season1 %>%
