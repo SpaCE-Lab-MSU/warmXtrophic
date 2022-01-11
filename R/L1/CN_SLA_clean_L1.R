@@ -81,9 +81,12 @@ sla21k <- read.csv(file.path(L0_dir, "./KBS/2021/KBS_WarmX_SLA_2021.csv"))
 # No "meta" data file existed for the 2017 data - Mark essentially cleaned this data in excel and the result of that cleaning
 # are the files being uploaded below
 # These are in TRIPLICATES (we decided to do singlets for years after 2017)
+# SOCA
 cn17k_soca_1 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate1_2017.csv"))
 cn17k_soca_2 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate2_2017.csv"))
 cn17k_soca_3 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate3_2017.csv"))
+# ACMI
+cn17k_acmi_1 <- read.csv(file.path(L0_dir, "./KBS/2017/CN_Acmi_2017_final.csv"))
 
 # UMBS
 # CEST - not yet analyzed
