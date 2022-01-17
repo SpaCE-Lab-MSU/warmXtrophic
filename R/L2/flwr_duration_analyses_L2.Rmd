@@ -90,8 +90,7 @@ flwr_species$flwr_duration <- as.numeric(as.character(flwr_species$flwr_duration
 flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
 
 umbs_flwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
-# delete 2021 data from umbs dataframe (doesn't make sense to have bc we can't get min flower/sd, median flower, or flower duration from 2021 UMBS)
-umbs_flwr_plot <- subset(umbs_flwr_plot, year!="2021")
+umbs_flwr_plot <- subset(umbs_flwr_plot, year!="2021") # delete 2021 data from umbs dataframe (doesn't make sense to have bc we can't get min flower/sd, median flower, or flower duration from 2021 UMBS)
 umbs_flwr_spp <- subset(flwr_species, site == "umbs") # pull out umbs only data at species level
 umbs_flwr_spp <- subset(umbs_flwr_spp, year!="2021") # delete 2021 data
 kbs_flwr_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
@@ -99,7 +98,9 @@ kbs_flwr_spp <- subset(flwr_species, site == "kbs") # pull out kbs only data at 
 kbs_flwr_plot_origin <- subset(flwr_plot_origin, site == "kbs")
 kbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "kbs")
 umbs_flwr_plot_origin <- subset(flwr_plot_origin, site == "umbs")
+umbs_flwr_plot_origin <- subset(flwr_plot_origin, year != "2021") # delete 2021 data
 umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "umbs")
+umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, year != "2021") # delete 2021 data
 
 ```
 
@@ -134,26 +135,26 @@ descdist(kbs_flwr_spp$flwr_duration, discrete = FALSE)
 
 # none of these work below and idk why
 # Gamma distribution 
-fit.gamma <- fitdist(kbs_flwr_spp$flwr_duration, "gamma")
-plot(fit.gamma)
-
-# Weibull distribution
-fit.weibull  <- fitdist(kbs_flwr_spp$flwr_duration, "weibull")
-plot(fit.weibull)
-
-# Lognormal distribution 
-fit.ln <- fitdist(kbs_flwr_spp$flwr_duration, "lnorm")
-plot(fit.ln)
-
-par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal")
-denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-
-# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
-gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+#fit.gamma <- fitdist(kbs_flwr_spp$flwr_duration, "gamma")
+#plot(fit.gamma)
+#
+## Weibull distribution
+#fit.weibull  <- fitdist(kbs_flwr_spp$flwr_duration, "weibull")
+#plot(fit.weibull)
+#
+## Lognormal distribution 
+#fit.ln <- fitdist(kbs_flwr_spp$flwr_duration, "lnorm")
+#plot(fit.ln)
+#
+#par(mfrow=c(2,2))
+#plot.legend <- c("Gamma", "Weibull", "Log Normal")
+#denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#
+## Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+#gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
 
 ```
 # KBS PLOT LEVEL - Looking at DURATION of flowering
@@ -187,27 +188,134 @@ descdist(kbs_flwr_plot$flwr_duration, discrete = FALSE)
 
 # none of these work below and idk why
 # Gamma distribution 
-fit.gamma <- fitdist(kbs_flwr_plot$flwr_duration, "gamma")
-plot(fit.gamma)
+#fit.gamma <- fitdist(kbs_flwr_plot$flwr_duration, "gamma")
+#plot(fit.gamma)
+#
+## Weibull distribution
+#fit.weibull  <- fitdist(kbs_flwr_plot$flwr_duration, "weibull")
+#plot(fit.weibull)
+#
+## Lognormal distribution 
+#fit.ln <- fitdist(kbs_flwr_plot$flwr_duration, "lnorm")
+#plot(fit.ln)
+#
+#par(mfrow=c(2,2))
+#plot.legend <- c("Gamma", "Weibull", "Log Normal")
+#denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#
+## Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+#gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
 
-# Weibull distribution
-fit.weibull  <- fitdist(kbs_flwr_plot$flwr_duration, "weibull")
-plot(fit.weibull)
+```
 
-# Lognormal distribution 
-fit.ln <- fitdist(kbs_flwr_plot$flwr_duration, "lnorm")
-plot(fit.ln)
+# KBS PLOT LEVEL ORIGIN - Looking at DURATION of flowering
+```{r, warning=F, error=TRUE}
+### KBS ###
+hist(kbs_flwr_plot_origin$flwr_duration)
+qqnorm(kbs_flwr_plot_origin$flwr_duration)
+shapiro.test(kbs_flwr_plot_origin$flwr_duration) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
 
-par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal")
-denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(kbs_flwr_plot_origin, aes(flwr_duration, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
 
-# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
-gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+ggplot(kbs_flwr_plot_origin, aes(flwr_duration, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
 
+ggplot(kbs_flwr_plot_origin, aes(flwr_duration, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year)
+#
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(kbs_flwr_plot_origin$flwr_duration, discrete = FALSE)
+
+## none of these work below and idk why
+## Gamma distribution 
+#fit.gamma <- fitdist(kbs_flwr_plot_origin$flwr_duration, "gamma")
+#plot(fit.gamma)
+#
+## Weibull distribution
+#fit.weibull  <- fitdist(kbs_flwr_plot_origin$flwr_duration, "weibull")
+#plot(fit.weibull)
+#
+## Lognormal distribution 
+#fit.ln <- fitdist(kbs_flwr_plot_origin$flwr_duration, "lnorm")
+#plot(fit.ln)
+#
+#par(mfrow=c(2,2))
+#plot.legend <- c("Gamma", "Weibull", "Log Normal")
+#denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#
+## Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+#gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+
+```
+
+# KBS PLOT LEVEL GROWTH HABIT - Looking at DURATION of flowering
+```{r, warning=F, error=TRUE}
+### KBS ###
+hist(kbs_flwr_plot_growthhabit$flwr_duration)
+qqnorm(kbs_flwr_plot_growthhabit$flwr_duration)
+shapiro.test(kbs_flwr_plot_growthhabit$flwr_duration) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(kbs_flwr_plot_growthhabit, aes(flwr_duration, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_plot_growthhabit, aes(flwr_duration, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_plot_growthhabit, aes(flwr_duration, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+#ggplot(kbs_flwr_plot, aes(flwr_duration, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year)
+#
+#ggplot(kbs_flwr_plot, aes(flwr_duration, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(kbs_flwr_plot_growthhabit$flwr_duration, discrete = FALSE)
+
+## none of these work below and idk why
+## Gamma distribution 
+#fit.gamma <- fitdist(kbs_flwr_plot_growthhabit$flwr_duration, "gamma")
+#plot(fit.gamma)
+#
+## Weibull distribution
+#fit.weibull  <- fitdist(kbs_flwr_plot_growthhabit$flwr_duration, "weibull")
+#plot(fit.weibull)
+#
+## Lognormal distribution 
+#fit.ln <- fitdist(kbs_flwr_plot_growthhabit$flwr_duration, "lnorm")
+#plot(fit.ln)
+#
+#par(mfrow=c(2,2))
+#plot.legend <- c("Gamma", "Weibull", "Log Normal")
+#denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#
+## Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+#gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
 ```
 
 # UMBS SPECIES LEVEL - Looking at DURATION of flowering
@@ -241,26 +349,26 @@ descdist(umbs_flwr_spp$flwr_duration, discrete = FALSE)
 
 # none of these work below and idk why
 # Gamma distribution 
-fit.gamma <- fitdist(umbs_flwr_spp$flwr_duration, "gamma")
-plot(fit.gamma)
-
-# Weibull distribution
-fit.weibull  <- fitdist(umbs_flwr_spp$flwr_duration, "weibull")
-plot(fit.weibull)
-
-# Lognormal distribution 
-fit.ln <- fitdist(umbs_flwr_spp$flwr_duration, "lnorm")
-plot(fit.ln)
-
-par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal")
-denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
-
-# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
-gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+#fit.gamma <- fitdist(umbs_flwr_spp$flwr_duration, "gamma")
+#plot(fit.gamma)
+#
+## Weibull distribution
+#fit.weibull  <- fitdist(umbs_flwr_spp$flwr_duration, "weibull")
+#plot(fit.weibull)
+#
+## Lognormal distribution 
+#fit.ln <- fitdist(umbs_flwr_spp$flwr_duration, "lnorm")
+#plot(fit.ln)
+#
+#par(mfrow=c(2,2))
+#plot.legend <- c("Gamma", "Weibull", "Log Normal")
+#denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#
+## Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+#gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
 
 ```
 
@@ -317,12 +425,119 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 # Weibull is the best fit according to this comparison
 ```
 
+# UMBS PLOT LEVEL ORIGIN - Looking at DURATION of flowering
+```{r, warning=F, error=TRUE}
+### KBS ###
+hist(umbs_flwr_plot_origin$flwr_duration)
+qqnorm(umbs_flwr_plot_origin$flwr_duration)
+shapiro.test(kbs_flwr_plot_origin$flwr_duration) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(umbs_flwr_plot_origin, aes(flwr_duration, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot_origin, aes(flwr_duration, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot_origin, aes(flwr_duration, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year)
+#
+#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(umbs_flwr_plot_origin$flwr_duration, discrete = FALSE)
+
+## none of these work below and idk why
+## Gamma distribution 
+#fit.gamma <- fitdist(kbs_flwr_plot_origin$flwr_duration, "gamma")
+#plot(fit.gamma)
+#
+## Weibull distribution
+#fit.weibull  <- fitdist(kbs_flwr_plot_origin$flwr_duration, "weibull")
+#plot(fit.weibull)
+#
+## Lognormal distribution 
+#fit.ln <- fitdist(kbs_flwr_plot_origin$flwr_duration, "lnorm")
+#plot(fit.ln)
+#
+#par(mfrow=c(2,2))
+#plot.legend <- c("Gamma", "Weibull", "Log Normal")
+#denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#
+## Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+#gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+
+```
+
+# UMBS PLOT LEVEL GROWTH HABIT - Looking at DURATION of flowering
+```{r, warning=F, error=TRUE}
+### KBS ###
+hist(umbs_flwr_plot_growthhabit$flwr_duration)
+qqnorm(umbs_flwr_plot_growthhabit$flwr_duration)
+shapiro.test(umbs_flwr_plot_growthhabit$flwr_duration) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(umbs_flwr_plot_growthhabit, aes(flwr_duration, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot_growthhabit, aes(flwr_duration, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot_growthhabit, aes(flwr_duration, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+#ggplot(umbs_flwr_plot, aes(flwr_duration, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year)
+#
+#ggplot(umbs_flwr_plot, aes(flwr_duration, fill = plot, color=plot)) +
+#        geom_density(alpha = 0.1) +
+#        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(umbs_flwr_plot_growthhabit$flwr_duration, discrete = FALSE)
+
+## none of these work below and idk why
+## Gamma distribution 
+#fit.gamma <- fitdist(umbs_flwr_plot_growthhabit$flwr_duration, "gamma")
+#plot(fit.gamma)
+#
+## Weibull distribution
+#fit.weibull  <- fitdist(umbs_flwr_plot_growthhabit$flwr_duration, "weibull")
+#plot(fit.weibull)
+#
+## Lognormal distribution 
+#fit.ln <- fitdist(umbs_flwr_plot_growthhabit$flwr_duration, "lnorm")
+#plot(fit.ln)
+#
+#par(mfrow=c(2,2))
+#plot.legend <- c("Gamma", "Weibull", "Log Normal")
+#denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+#
+## Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+#gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+```
+
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
 # These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
 
 # KBS
 ```{r}
-# log transformation wont worke because we have zeros in the data so I'm going to square root the response variable since the data is skewed to the right.
+# log transformation wont work because we have zeros in the data so I'm going to square root the response variable since the data is skewed to the right.
 # species level data
 # KBS State-only model
 fit_spp_state_kbs <- lm(sqrt(flwr_duration) ~ state, data = kbs_flwr_spp)
@@ -350,16 +565,16 @@ interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(flwr_duration ~ state, data = kbs_flwr_plot)
-outlierTest(fit_plot_state_kbs) # no outliers
+fit_plot_state_kbs <- lm(sqrt(flwr_duration) ~ state, data = kbs_flwr_plot)
+outlierTest(fit_plot_state_kbs) # outliers
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
 leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(flwr_duration ~ state + year_factor, data = kbs_flwr_plot)
-outlierTest(fit_plot_stateyear_kbs) # no outliers
+fit_plot_stateyear_kbs <- lm(sqrt(flwr_duration) ~ state + year_factor, data = kbs_flwr_plot)
+outlierTest(fit_plot_stateyear_kbs) # outliers
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
 leveragePlots(fit_plot_stateyear_kbs)
@@ -368,6 +583,53 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 fit3 <- lm(flwr_duration ~ state * year_factor, data = kbs_flwr_plot)
+interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+```
+
+```{r}
+# Plot level ORIGIN data
+# KBS State-only model
+fit_plot_state_kbs_origin <- lm(flwr_duration ~ state, data = kbs_flwr_plot_origin)
+outlierTest(fit_plot_state_kbs_origin) # no outliers
+qqPlot(fit_plot_state_kbs_origin, main="QQ Plot") 
+hist(fit_plot_state_kbs_origin$residuals)
+leveragePlots(fit_plot_state_kbs_origin)
+ols_test_normality(fit_plot_state_kbs_origin) # looks ok besides Kolmogorov-Smirnov test
+
+# KBS State and year model
+fit_plot_stateyear_kbs_origin <- lm(flwr_duration ~ state + year_factor, data = kbs_flwr_plot_origin)
+outlierTest(fit_plot_stateyear_kbs_origin) # no outliers
+qqPlot(fit_plot_stateyear_kbs_origin, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs_origin$residuals)
+leveragePlots(fit_plot_stateyear_kbs_origin)
+ols_test_normality(fit_plot_stateyear_kbs_origin) # a couple tests say not normal 
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(flwr_duration ~ state * year_factor, data = kbs_flwr_plot_origin)
+interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+```
+```{r}
+# Plot level GROWTH HABIT data
+# KBS State-only model
+fit_plot_state_kbs_gh <- lm(flwr_duration ~ state, data = kbs_flwr_plot_growthhabit)
+outlierTest(fit_plot_state_kbs_gh) # no outliers
+qqPlot(fit_plot_state_kbs_gh, main="QQ Plot") 
+hist(fit_plot_state_kbs_gh$residuals)
+leveragePlots(fit_plot_state_kbs_gh)
+ols_test_normality(fit_plot_state_kbs_gh) # looks ok besides Kolmogorov-Smirnov test
+
+# KBS State and year model
+fit_plot_stateyear_kbs_gh <- lm(flwr_duration ~ state + year_factor, data = kbs_flwr_plot_growthhabit)
+outlierTest(fit_plot_stateyear_kbs_gh) # no outliers
+qqPlot(fit_plot_stateyear_kbs_gh, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs_gh$residuals)
+leveragePlots(fit_plot_stateyear_kbs_gh)
+ols_test_normality(fit_plot_stateyear_kbs_gh) # a couple tests say not normal 
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(flwr_duration ~ state * year_factor, data = kbs_flwr_plot_growthhabit)
 interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
 ```
 
@@ -422,11 +684,59 @@ ols_test_normality(fit_plot_stateyear_umbs) # these don't look great either
 fit3 <- lm(flwr_duration ~ state * year_factor, data = umbs_flwr_plot)
 interact_plot(fit3, pred = year_factor, modx = state)
 ```
+```{r}
+# Plot level ORIGIN data
+# UMBS State-only model
+fit_plot_state_umbs_origin <- lm(flwr_duration ~ state, data = umbs_flwr_plot_origin)
+outlierTest(fit_plot_state_umbs_origin) # no outliers
+qqPlot(fit_plot_state_umbs_origin, main="QQ Plot") 
+hist(fit_plot_state_umbs_origin$residuals)
+leveragePlots(fit_plot_state_umbs_origin)
+ols_test_normality(fit_plot_state_umbs_origin) # these don't look great...
+
+# UMBS State and year model
+fit_plot_stateyear_umbs_origin <- lm(flwr_duration ~ state + year_factor, data = umbs_flwr_plot_origin)
+outlierTest(fit_plot_stateyear_umbs_origin) # no outliers
+qqPlot(fit_plot_stateyear_umbs_origin, main="QQ Plot") 
+hist(fit_plot_stateyear_umbs_origin$residuals)
+leveragePlots(fit_plot_stateyear_umbs_origin)
+ols_test_normality(fit_plot_stateyear_umbs_origin) # these don't look great either
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(flwr_duration ~ state * year_factor, data = umbs_flwr_plot_origin)
+interact_plot(fit3, pred = year_factor, modx = state)
+```
+
+```{r}
+# Plot level GROWTH HABIT data
+# UMBS State-only model
+fit_plot_state_umbs_gh <- lm(flwr_duration ~ state, data = umbs_flwr_plot_growthhabit)
+outlierTest(fit_plot_state_umbs_gh) # no outliers
+qqPlot(fit_plot_state_umbs_gh, main="QQ Plot") 
+hist(fit_plot_state_umbs_gh$residuals)
+leveragePlots(fit_plot_state_umbs_gh)
+ols_test_normality(fit_plot_state_umbs_gh) # these don't look great...
+
+# UMBS State and year model
+fit_plot_stateyear_umbs_gh <- lm(flwr_duration ~ state + year_factor, data = umbs_flwr_plot_growthhabit)
+outlierTest(fit_plot_stateyear_umbs_gh) # no outliers
+qqPlot(fit_plot_stateyear_umbs_gh, main="QQ Plot") 
+hist(fit_plot_stateyear_umbs_gh$residuals)
+leveragePlots(fit_plot_stateyear_umbs_gh)
+ols_test_normality(fit_plot_stateyear_umbs_gh) # these don't look great either
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(flwr_duration ~ state * year_factor, data = umbs_flwr_plot_growthhabit)
+interact_plot(fit3, pred = year_factor, modx = state)
+```
+
 
 MIXED EFFECT MODELS
 
 KBS
-```{r}
+```{r, error=TRUE}
 # KBS SPECIES LEVEL - Looking at DURATION of flowering
 mod1 <- lmer(sqrt(flwr_duration) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), kbs_flwr_spp, REML = FALSE)
 ggplot(kbs_flwr_spp,aes(x=plot,y=flwr_duration,col=species)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
@@ -436,7 +746,7 @@ ggplot(kbs_flwr_spp,aes(x=plot,y=flwr_duration,col=species)) + geom_jitter() + g
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
 par(mfrow=c(1,2))
 plot(mod1) # the zeros in the data are making this look weird
-# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Homogeneity of variance looks weird here 
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
@@ -512,11 +822,12 @@ plot_model(mod5, type = "re", terms = c("species"))
 
 # If we wanted to include plots nested within year it would look like this:
 mod6 <- lmer(sqrt(flwr_duration) ~ state + year_factor + (1|species) + (1 + year_factor|plot), kbs_flwr_spp, REML=FALSE)
-# Model failed to converge with 1 negative eigenvalue: -1.9e+00
 anova(mod5, mod6)
+AICctab(mod5, mod6, weights=T)
 anova(mod5)
 
-# mod4 (and mod5) are pretty complex in terms of interpretation (they actually don't have many parameters though). We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+
+# We can consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
 mod7 <- lmer(sqrt(flwr_duration) ~ state + species + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
 mod7a <- lmer(sqrt(flwr_duration)  ~ state + species + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
 mod7b <- lmer(sqrt(flwr_duration)  ~ state * factor(year_factor) + species + (1|plot), kbs_flwr_spp, REML=FALSE)
@@ -554,7 +865,7 @@ anova(mod9a)
 emmeans(mod9a, list(pairwise ~ state + origin + year_factor), adjust = "tukey")
 
 # including growth form - first with interaction term
-kbs_flwr_spp <- within(comp_kbs_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+kbs_flwr_spp <- within(kbs_flwr_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 mod10 <- lmer(sqrt(flwr_duration) ~ state * growth_habit + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
 mod11 <- lmer(sqrt(flwr_duration) ~ state + growth_habit + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
 mod11a <- lmer(sqrt(flwr_duration) ~ state + growth_habit + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
@@ -591,13 +902,14 @@ mod11 <- lmer(sqrt(flwr_duration) ~ state + growth_habit + (1+factor(year_factor
 mod11a <- lmer(sqrt(flwr_duration) ~ state + growth_habit + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
 mod12 <- lmer(sqrt(flwr_duration) ~ state * factor(year_factor) + (1+factor(year_factor)|species), kbs_flwr_spp, REML=FALSE)
 mod13 <- lmer(sqrt(flwr_duration) ~ state * factor(year_factor) + (1|species), kbs_flwr_spp, REML=FALSE)
-AICctab(mod1, mod2, mod3, mod5, mod6, mod7, mod7a, mod7b, mod7c, mod8, mod9, mod9a, mod10, mod11, mod11a, mod13, weights=T) # mod7a is the best fitting model (took out mod12 bc it wouldn't run)
+# AICctab(mod1, mod2, mod3, mod5, mod7, mod7a, mod7b, mod7c, mod8, mod9, mod9a, mod10, mod11, mod11a, mod13, weights=T) # mod7a is the best fitting model (took out mod12 bc it wouldn't run)
+# not sure why the above code wont workd - all the data looks identical to me despite what error says??
 summary(mod7a)
 anova(mod7a)
 ```
 
 # KBS Plot-level Mixed Effects Models:
-```{r}
+```{r, error=TRUE}
 mod1p <- lmer(flwr_duration ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
 mod2p <- lmer(flwr_duration ~ insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
 mod3p <- lmer(flwr_duration ~ insecticide + state + (1|plot), kbs_flwr_plot, REML=FALSE)
@@ -609,13 +921,21 @@ mod8p <- lmer(flwr_duration ~ state * year_factor + insecticide + (1|plot), kbs_
 mod9p <- lmer(flwr_duration ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
 mod10p <- lmer(flwr_duration ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
 mod11p <- lmer(flwr_duration ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod8p, weights=T) # model 5p and 7p are the top models
+# AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
 anova(mod5p, mod7p) # go with simpler model 5p
 AICctab(mod5p, mod7p, weights=T)
-
 summ(mod5p)
 summary(mod5p)
 emmeans(mod5p, list(pairwise ~ state+year_factor), adjust = "tukey")
+```
+KBS origin plot level
+```{r}
+
+```
+
+KBS growth habit plot level
+```{r}
+
 ```
 
 UMBS
@@ -654,7 +974,7 @@ require(lme4)
 r_int <- ranef(mod1u)$plot$`(Intercept)`
 qqnorm(r_int)
 # qqline(r_int) doesn't work
-shapiro.test(r_int)  # this doesnt work
+# shapiro.test(r_int)  # this doesnt work
 ```
 
 ```{r, error=TRUE}
@@ -834,32 +1154,32 @@ plot(mod1u_or) # the zeros in the data are making this look weird
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-leveneTest(residuals(mod1u_or) ~ umbs_flwr_spp$state)
-# Assumption met
-leveneTest(residuals(mod1u_or) ~ umbs_flwr_spp$species)
-# Assumption met
-leveneTest(residuals(mod1u_or) ~ umbs_flwr_spp$insecticide) 
-# Assumption not met - this seems weird
-leveneTest(residuals(mod1u_or) ~ umbs_flwr_spp$plot)
-# Assumption not met
+# leveneTest(residuals(mod1u_or) ~ umbs_flwr_spp$state)
+# # Assumption met
+# leveneTest(residuals(mod1u_or) ~ umbs_flwr_spp$species)
+# # Assumption met
+# leveneTest(residuals(mod1u_or) ~ umbs_flwr_spp$insecticide) 
+# # Assumption not met - this seems weird
+# leveneTest(residuals(mod1u_or) ~ umbs_flwr_spp$plot)
+# # Assumption not met
+# 
+# # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# # Check for normal residuals
+# qqPlot(resid(mod1u_or))
+# hist(residuals(mod1u_or))
+# shapiro.test(resid(mod1u_or)) # not normally distributed resids bc p<0.05
+# outlierTest(mod1u_or) # outliers row 1259, value = 0 
+# 
+# # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would # check the residual. 
+# require(lme4)
+# r_int <- ranef(mod1u)$plot$`(Intercept)`
+# qqnorm(r_int)
+# # qqline(r_int) doesn't work
+# shapiro.test(r_int)  # this doesnt work
 
-# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
-# Check for normal residuals
-qqPlot(resid(mod1u_or))
-hist(residuals(mod1u_or))
-shapiro.test(resid(mod1u_or)) # not normally distributed resids bc p<0.05
-outlierTest(mod1u_or) # outliers row 1259, value = 0 
-
-# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
-require(lme4)
-r_int <- ranef(mod1u)$plot$`(Intercept)`
-qqnorm(r_int)
-# qqline(r_int) doesn't work
-shapiro.test(r_int)  # this doesnt work
-
-mod8u <- lmer(flwr_duration ~ state * origin + (1+factor(year_factor)|plot), umbs_flwr_plot_origin, REML=FALSE)
-mod9u <- lmer(flwr_duration ~ state + origin + (1+factor(year_factor)|plot), umbs_flwr_plot_origin, REML=FALSE)
-mod9au <- lmer(flwr_duration ~ state + origin + factor(year_factor) + (1|plot), umbs_flwr_plot_origin, REML=FALSE)
+umod1p_origin <- lmer(flwr_duration ~ state * origin + (1+factor(year_factor)|plot), umbs_flwr_plot_origin, REML=FALSE)
+umod2p_origin <- lmer(flwr_duration ~ state + origin + (1+factor(year_factor)|plot), umbs_flwr_plot_origin, REML=FALSE)
+umod3p_origin <- lmer(flwr_duration ~ state + origin + factor(year_factor) + (1|plot), umbs_flwr_plot_origin, REML=FALSE)
 
 ```
 UMBS growth habit plot level

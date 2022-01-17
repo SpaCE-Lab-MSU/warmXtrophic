@@ -58,10 +58,14 @@ theme_update(axis.text.x = element_text(size = 12, angle = 90),
 # Read in data
 flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) # species level data
 flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
+flwr_plot_origin <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_origin_L2.csv")) # plot level data for origin
+flwr_plot_growthhabit <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv")) # plot level data for growth habit
 
 # get rid of "X" column that shows up
 flwr_species$X <- NULL
 flwr_plot$X <- NULL
+flwr_plot_origin$X <- NULL
+flwr_plot_growthhabit$X <- NULL
 # take a look at the data to see if looks good
 View(flwr_species) 
 View(flwr_plot) 
@@ -89,6 +93,12 @@ umbs_flwr_spp <- subset(flwr_species, site == "umbs") # pull out umbs only data 
 umbs_flwr_spp <- subset(umbs_flwr_spp, year!="2021") # delete 2021 data
 kbs_flwr_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
 kbs_flwr_spp <- subset(flwr_species, site == "kbs") # pull out kbs only data at species level
+kbs_flwr_plot_origin <- subset(flwr_plot_origin, site == "kbs")
+kbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "kbs")
+umbs_flwr_plot_origin <- subset(flwr_plot_origin, site == "umbs")
+umbs_flwr_plot_origin <- subset(flwr_plot_origin, year != "2021") # delete 2021 data
+umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "umbs")
+umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, year != "2021") # delete 2021 data
 ```
 
 # Data exploration for minimum (first) Julian date of flowering at the PLOT for both sites
@@ -173,7 +183,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 ### UMBS ###
 hist(umbs_flwr_plot$julian_median)
 qqnorm(umbs_flwr_plot$julian_median)
-shapiro.test(umbs_flwr_plot$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+shapiro.test(umbs_flwr_plot$julian_median) # pvalue is > 0.05 so we accept the null hypothesis that the data is normal (aka not normally distributed)
 
 # Visualizing median Julian date for umbs at the PLOT LEVEL
 ggplot(umbs_flwr_plot, aes(julian_median, fill = plot)) + 
@@ -186,14 +196,13 @@ ggplot(umbs_flwr_plot, aes(julian_median, fill = as.factor(plot))) + geom_histog
 ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
         geom_density(alpha = 0.1)
 
+ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
 
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year)
-#
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year + plot)
+ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
 
 # Exploring distributions for these right-skewed data:
 descdist(umbs_flwr_plot$julian_median, discrete = FALSE)
@@ -219,7 +228,113 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# Weibull is the best...
+# Log normal is the best fit based on this function or we could go with normal distribution
+```
+
+# UMBS PLOT LEVEL ORIGIN - Looking at MEDIAN JULIAN DAY
+```{r, warning=F, error=TRUE}
+### UMBS ###
+hist(umbs_flwr_plot_origin$julian_median)
+qqnorm(umbs_flwr_plot_origin$julian_median)
+shapiro.test(umbs_flwr_plot_origin$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(umbs_flwr_plot_origin, aes(julian_median, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot_origin, aes(julian_median, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot_origin, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_flwr_plot_origin, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(umbs_flwr_plot_origin, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(umbs_flwr_plot_origin$julian_median, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_flwr_plot_origin$julian_median, "gamma")
+plot(fit.gamma)
+#
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_flwr_plot_origin$julian_median, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_flwr_plot_origin$julian_median, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# log normal looks like it's the best fit
+```
+
+# UMBS PLOT LEVEL GROWTH HABIT - Looking at MEDIAN JULIAN DAY
+```{r, warning=F, error=TRUE}
+### UMBS ###
+hist(umbs_flwr_plot_growthhabit$julian_median)
+qqnorm(umbs_flwr_plot_growthhabit$julian_median)
+shapiro.test(umbs_flwr_plot_growthhabit$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing median Julian date for umbs at the PLOT LEVEL
+ggplot(umbs_flwr_plot_growthhabit, aes(julian_median, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot_growthhabit, aes(julian_median, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(umbs_flwr_plot_growthhabit, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_flwr_plot_growthhabit, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(umbs_flwr_plot_growthhabit, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(umbs_flwr_plot_growthhabit$julian_median, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_flwr_plot_growthhabit$julian_median, "gamma")
+plot(fit.gamma)
+#
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_flwr_plot_growthhabit$julian_median, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_flwr_plot_growthhabit$julian_median, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Log normal looks like it's the best fit
 ```
 
 # KBS SPECIES LEVEL - Looking at MEDIAN JULIAN DAY
@@ -229,7 +344,7 @@ hist(kbs_flwr_spp$julian_median)
 qqnorm(kbs_flwr_spp$julian_median)
 shapiro.test(kbs_flwr_spp$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Visualizing median Julian date for umbs at the PLOT LEVEL
+# Visualizing median Julian date for kbs at the SPECIES LEVEL
 ggplot(kbs_flwr_spp, aes(julian_median, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year ~ site, margins = TRUE, scales = "free")
@@ -282,7 +397,7 @@ hist(kbs_flwr_plot$julian_median)
 qqnorm(kbs_flwr_plot$julian_median)
 shapiro.test(kbs_flwr_plot$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Visualizing median Julian date for umbs at the PLOT LEVEL
+# Visualizing median Julian date for kbs at the PLOT LEVEL
 ggplot(kbs_flwr_plot, aes(julian_median, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year ~ site, margins = TRUE, scales = "free")
@@ -327,12 +442,111 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
 # Log normal is the best first so going to log transform response variable julian_median
 ```
+# KBS PLOT LEVEL ORIGIN - Looking at MEDIAN JULIAN DAY
+```{r, warning=F, error=TRUE}
+### KBS ###
+hist(kbs_flwr_plot_origin$julian_median)
+qqnorm(kbs_flwr_plot_origin$julian_median)
+shapiro.test(umbs_flwr_plot_origin$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
 
-# Centering and transforming data - Ignore right now!!
-```{r, eval=F}
-#umbs_flwr_plot$julianMin_centered = umbs_flwr_plot$julian_min - mean(umbs_flwr_plot$log_julian_min)
-#hist(umbs_flwr_plot$julianMin_centered)
+# Visualizing median Julian date for kbs at the PLOT LEVEL
+ggplot(kbs_flwr_plot_origin, aes(julian_median, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_plot_origin, aes(julian_median, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_plot_origin, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_flwr_plot_origin, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(kbs_flwr_plot_origin, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(kbs_flwr_plot_origin$julian_median, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_flwr_plot_origin$julian_median, "gamma")
+plot(fit.gamma)
+#
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_flwr_plot_origin$julian_median, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_flwr_plot_origin$julian_median, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# log normal looks like it's the best fit
 ```
+# KBS PLOT LEVEL GROWTH HABIT - Looking at MEDIAN JULIAN DAY
+```{r, warning=F, error=TRUE}
+### KBS ###
+hist(kbs_flwr_plot_growthhabit$julian_median)
+qqnorm(kbs_flwr_plot_growthhabit$julian_median)
+shapiro.test(kbs_flwr_plot_growthhabit$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing median Julian date for kbs at the PLOT LEVEL
+ggplot(kbs_flwr_plot_growthhabit, aes(julian_median, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_plot_growthhabit, aes(julian_median, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(kbs_flwr_plot_growthhabit, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_flwr_plot_growthhabit, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(kbs_flwr_plot_growthhabit, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(kbs_flwr_plot_growthhabit$julian_median, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_flwr_plot_growthhabit$julian_median, "gamma")
+plot(fit.gamma)
+#
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_flwr_plot_growthhabit$julian_median, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_flwr_plot_growthhabit$julian_median, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# Log normal looks like it's the best fit
+```
+
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
 # These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
 ```{r}
@@ -433,7 +647,6 @@ ols_test_normality(fit_plot_stateyear_kbs)
 fit3_plot_kbs <- lm(log(julian_median) ~ state * year_factor, data = kbs_flwr_plot)
 interact_plot(fit3_plot_kbs, pred = year_factor, modx = state)
 ```
-
 MIXED EFFECT MODELS
 
 UMBS Species-level Mixed Effects Models
@@ -593,69 +806,213 @@ mod11p <- lmer(log(julian_median) ~ state * year_factor * insecticide + (1|plot)
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
 anova(mod5p, mod7p) # go with simpler model 5p
 AICctab(mod5p, mod7p, weights=T)
-
 summ(mod5p)
 summary(mod5p)
 emmeans(mod5p, list(pairwise ~ state+year_factor), adjust = "tukey")
+
+# including native vs. exotic
+umbs_flwr_plot_origin <- within(umbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+mod12p <- lmer(log(julian_median) ~ state * origin + (1+year_factor|plot), umbs_flwr_plot_origin, REML=FALSE)
+mod13p <- lmer(log(julian_median) ~ state + origin + (1+year_factor|plot), umbs_flwr_plot_origin, REML=FALSE)
+mod14p <- lmer(log(julian_median) ~ state + origin + year_factor + (1|plot), umbs_flwr_plot_origin, REML=FALSE)
+anova(mod12p, mod13p) # go with model 13p
+anova(mod13p, mod14p) # mod 14p
+summary(mod14p)
+anova(mod14p)
+emmeans(mod14p, list(pairwise ~ state + origin + year_factor), adjust = "tukey")
+
+# including growth form - first with interaction term
+umbs_flwr_plot_growthhabit <- within(umbs_flwr_plot_growthhabit, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+mod15p <- lmer(log(julian_median) ~ state * growth_habit + (1+year_factor|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
+mod16p <- lmer(log(julian_median) ~ state + growth_habit + (1+year_factor|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
+mod17p <- lmer(log(julian_median) ~ state + growth_habit + year_factor + (1|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
+anova(mod15p, mod16p) # go with model 16pu 
+anova(mod16p, mod17p) # mod 17pu
+summary(mod17p)
+anova(mod17p)
+emmeans(mod17p, list(pairwise ~ state + growth_habit + year_factor), adjust = "tukey")
 ```
 
-# KBS Species-level Mixed Effects Models
-```{r}
-kmod7 <- lmer(log(julian_median) ~ state + species + (1 + factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
-kmod7a <- lmer(log(julian_median) ~ state + species + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
-kmod7b <- lmer(log(julian_median) ~ state * factor(year_factor) + species + (1|plot), kbs_flwr_spp, REML=FALSE)
-kmod7c <- lmer(log(julian_median) ~ state + species + factor(year_factor) + insecticide + (1|plot), kbs_flwr_spp, REML=FALSE)
-anova(kmod7, kmod7a) #kmod 7a
-anova(kmod7a, kmod7b) #kmod 7a but only slightly so (pvalue = 0.058), im going to go with 7b
-anova(kmod7b, kmod7c) #kmod 7b
-summary(kmod7b)
-anova(kmod7b) # investigates whether at least one of the levels within each factor is significantly different. 
-# Yes, at least one of the species is different (they do not all have the same half cover dates). 
-emmeans(kmod7b, list(pairwise ~ year_factor), adjust = "tukey")
-emmeans(kmod7b, list(pairwise ~ species), adjust = "tukey")
+KBS Species-level Mixed Effects Models
+```{r, error=TRUE}
+# Do we need to include plot as a random effect with the KBS models?   
+mod1k <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod2k <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species), kbs_flwr_spp, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anova on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1k)
+anova(mod2k)
 
+# Run an ANOVA to test the 2 models to test whether the more complex model is significantly better at capturing the data than the simpler model. If the resulting p-value is sufficiently low (usually less than 0.05), we conclude that the more complex model is significantly better than the simpler model, and thus favor the more complex model. If the p-value is not sufficiently low (usually greater than 0.05), we should favor the simpler model. https://bookdown.org/ndphillips/YaRrr/comparing-regression-models-with-anova.html
+anova(mod1k, mod2k) # models are not that different from each other so go with simpler model = model 2
+summary(mod1k) 
+summary(mod2k)
 
-# including native vs. exotic - first with interaction term
+# Next, plot the model. There are multiple variables but here's one way to do it based on this package sjPlot:
+# https://strengejacke.github.io/sjPlot/articles/plot_model_estimates.html
+# Annoyingly, this package somehow overwrites the factor order in its plotting so we will have to modify the code to get warmed = red. I haven't figured this out yet. It does seem to work on some of the plots. hmm.
+#?plot_model
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates 
+plot_model(mod2k, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod2k, type = "pred", terms = c("year_factor", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod2k, type = "re", terms = c("species"))
+
+# Do we need to include insecticide? 
+mod3k <- lmer(log(julian_median) ~ state*year_factor + (1|species), kbs_flwr_spp, REML=FALSE)
+anova(mod2k, mod3k) # Don't need insecticide, continue with mod3 - the simpler model
+
+# Does year need to be interactive with insecticide? - already removed insecticide
+# mod4k <- lmer(log(julian_median) ~ state*year_factor + insecticide + (1|species) + (1|plot), kbs_flwr_spp, REML=FALSE)
+
+# Does year need to be interactive with state?
+mod5k <- lmer(log(julian_median) ~ state + year_factor + (1|species) + (1|plot), kbs_flwr_spp, REML=FALSE)
+anova(mod3k, mod5k) # models are pretty similar
+AICctab(mod3k, mod5k, weights=T) # go with mod3k
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod3k)
+plot_model(mod3k, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod3k, type = "pred", terms = c("year_factor", "state"))
+# these are the random effects estimates
+plot_model(mod3k, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+mod6k <- lmer(log(julian_median) ~ state + year_factor + (1|species) + (1 + year|plot), kbs_flwr_spp, REML=FALSE)
+anova(mod3k, mod6k) #stick with mod3k
+anova(mod3k)
+
+# We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
+mod7k <- lmer(log(julian_median) ~ state + species + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+mod7ak <- lmer(log(julian_median)  ~ state + species + year_factor + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod7bk <- lmer(log(julian_median)  ~ state * year_factor + species + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod7ck <- lmer(log(julian_median)  ~ state + species + year_factor + insecticide + (1|plot), kbs_flwr_spp, REML=FALSE)
+anova(mod5k, mod7k) # model 7k is a better fit to data
+anova(mod7k, mod7ak) #mod 7ak
+anova(mod7ak, mod7bk) #mod 7ak
+anova(mod7ak, mod7ck) #mod7ak
+summary(mod7ak)
+anova(mod7ak) # investigates whether at least one of the levels within each factor is significantly different.
+# Yes, at least one of the species is different (they do not all have the min first seed dates). 
+emmeans(mod7ak, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod7ak, list(pairwise ~ year_factor), adjust = "tukey")
+emmeans(mod7ak, list(pairwise ~ species), adjust = "tukey")
+emmeans(mod7ak, list(pairwise ~ insecticide), adjust = "tukey")
+
+# Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
+plot_model(mod7ak, sort.est = TRUE)
+# if you want to standardize the estimates:
+plot_model(mod7ak, sort.est = TRUE, type="std") 
+# these are the fixed predicted values: - note this is a new plot
+plot_model(mod7ak, type = "pred", terms = c("species", "state", "year_factor"))
+# these are the random effects estimates
+plot_model(mod7ak, type = "re")
+
+AICctab(mod3k, mod7ak, weights=T)
+
+# including native vs. exotic
 kbs_flwr_spp <- within(kbs_flwr_spp, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
-kmod8 <- lmer(log(julian_median) ~ state * origin + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
-kmod9 <- lmer(log(julian_median) ~ state + origin + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
-kmod9a <- lmer(log(julian_median) ~ state + origin + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
-kmod9b <- lmer(log(julian_median) ~ state + origin + factor(year_factor) + insecticide + (1|plot), kbs_flwr_spp, REML=FALSE)
-anova(kmod8, kmod9) # kmod 9 is a better fit to data
-anova(kmod9, kmod9a) # kmod 9a
-anova(kmod9a, kmod9b) # kmod 9a
-summary(kmod9a)
-anova(kmod9)
-emmeans(kmod9a, list(pairwise ~ state + origin), adjust = "tukey")
+mod8k <- lmer(log(julian_median) ~ state * origin + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+mod9k <- lmer(log(julian_median) ~ state + origin + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+mod9ak <- lmer(log(julian_median) ~ state + origin + year_factor + (1|plot), kbs_flwr_spp, REML=FALSE)
+anova(mod8k, mod9k) # model 9k is a better fit to data
+anova(mod9k, mod9ak) # mod 9ak
+AICctab(mod8k, mod9k, mod9ak, weights=T)
+summary(mod9ak)
+anova(mod9ak)
+emmeans(mod9ak, list(pairwise ~ state * origin), adjust = "tukey")
 
 # including growth form - first with interaction term
 kbs_flwr_spp <- within(kbs_flwr_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
-kmod10 <- lmer(log(julian_median) ~ state * growth_habit + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
-kmod11 <- lmer(log(julian_median)  ~ state + growth_habit + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
-kmod11a <- lmer(log(julian_median)  ~ state + growth_habit + year_factor + (1|plot), kbs_flwr_spp, REML=FALSE)
-kmod11b <- lmer(log(julian_median)  ~ state + growth_habit + year_factor + insecticide + (1|plot), kbs_flwr_spp, REML=FALSE)
-anova(kmod10, kmod11) # kmodel 11 is a better fit to data
-anova(kmod11, kmod11a) # kmod 11a
-anova(kmod11a, kmod11b) # kmod 11a
-summary(kmod11a)
-anova(kmod11a)
-emmeans(kmod11a, list(pairwise ~ state + growth_habit), adjust = "tukey")
+mod10k <- lmer(log(julian_median) ~ state * growth_habit + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+mod11k <- lmer(log(julian_median) ~ state + growth_habit + (1+year_factor|plot), kbs_flwr_spp, REML=FALSE)
+mod11ak <- lmer(log(julian_median) ~ state + growth_habit + year_factor + (1|plot), kbs_flwr_spp, REML=FALSE)
+anova(mod10k, mod11k) # model 11k is a better fit to data
+anova(mod11k, mod11ak) # model 11ak is a better fit to data
+AICctab(mod10k, mod11k, mod11ak, weights=T)
+summary(mod11ak)
+anova(mod11ak)
+emmeans(mod11ak, list(pairwise ~ factor(year_factor) * growth_habit), adjust = "tukey")
+
+# New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
+# updated mod4
+mod12k <- lmer(log(julian_median) ~ state * factor(year_factor) + (1+factor(year_factor)|species), kbs_flwr_spp)
+
+# So another version of this model would include the interaction but not include the nesting (and thus would assume that species aren't observed ea yr)
+# updated mod5
+mod13k <- lmer(log(julian_median) ~ state * factor(year_factor) + (1|species), kbs_flwr_spp)
+
+# All the models ran:
+mod1k <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod2k <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species), kbs_flwr_spp, REML=FALSE)
+mod3k <- lmer(log(julian_median) ~ state*year_factor + (1|species), kbs_flwr_spp, REML=FALSE)
+mod4k <- lmer(log(julian_median) ~ state*year_factor + insecticide + (1|species) + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod5k <- lmer(log(julian_median) ~ state + year_factor + (1|species), kbs_flwr_spp, REML=FALSE)
+mod6k <- lmer(log(julian_median) ~ state + year_factor + (1|species) + (1 + year|plot), kbs_flwr_spp, REML=FALSE)
+mod7k <- lmer(log(julian_median) ~ state + species + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
+mod7ak <- lmer(log(julian_median) ~ state + species + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod7bk <- lmer(log(julian_median) ~ state * factor(year_factor) + species + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod7ck <- lmer(log(julian_median) ~ state + species + factor(year_factor) + insecticide + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod8k <- lmer(log(julian_median) ~ state * origin + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
+mod9k <- lmer(log(julian_median) ~ state + origin + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
+mod9ak <- lmer(log(julian_median) ~ state + origin + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod10k <- lmer(log(julian_median) ~ state * growth_habit + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
+mod11k <- lmer(log(julian_median) ~ state + growth_habit + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
+mod11ak <- lmer(log(julian_median) ~ state + growth_habit + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
+mod12k <- lmer(log(julian_median) ~ state * factor(year_factor) + (1+factor(year_factor)|species), kbs_flwr_spp)
+mod13k <- lmer(log(julian_median) ~ state * factor(year_factor) + (1|species), kbs_flwr_spp)
+AICctab(mod1k, mod2k, mod3k, mod5k, mod6k, mod7k, mod7ak, mod7bk, mod7ck, mod8k, mod9k, mod9ak, mod10k, mod11k, mod11ak, mod13k, weights=T) #mod7a is the best fitting model (took out mod12 bc it wouldn't run)
+summary(mod7ak)
+summ(mod7ak)
+anova(mod7ak)
 ```
 
 # KBS Plot-level Mixed Effects Models:
 ```{r, error=TRUE}
 mod1pk <- lmer(log(julian_median) ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod2pk <- lmer(log(julian_median) ~ state + factor(year_factor) + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod3pk <- lmer(log(julian_median) ~ state * factor(year_factor) + (1|plot), kbs_flwr_plot, REML=FALSE)
-anova(mod1pk, mod2pk) # this wont work for some reason
-anova(mod2pk, mod3pk) #mod2pk
-summary(mod2pk)
+mod2pk <- lmer(log(julian_median) ~ insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod3pk <- lmer(log(julian_median) ~ insecticide + state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod4pk <- lmer(log(julian_median) ~ insecticide * state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod5pk <- lmer(log(julian_median) ~ state + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod6pk <- lmer(log(julian_median) ~ state + year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod7pk <- lmer(log(julian_median) ~ state * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod8pk <- lmer(log(julian_median) ~ state * year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod9pk <- lmer(log(julian_median) ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod10pk <- lmer(log(julian_median) ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod11pk <- lmer(log(julian_median) ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+AICctab(mod1pk, mod2pk, mod3pk, mod4pk, mod5pk, mod6pk, mod7pk, mod8pk, mod9pk, mod10pk, mod11pk, weights=T)
+anova(mod5pk, mod7pk) # go with more complex model mod7pk
+AICctab(mod5pk, mod7pk, weights=T)
+summ(mod5pk)
+summary(mod5pk)
+emmeans(mod5pk, list(pairwise ~ state+year_factor), adjust = "tukey")
 
-emmeans(mod2p, list(pairwise ~ state + factor(year_factor)), adjust = "tukey")
+# including native vs. exotic
+kbs_flwr_plot_origin <- within(kbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+mod12pk <- lmer(log(julian_median) ~ state * origin + (1+year_factor|plot), kbs_flwr_plot_origin, REML=FALSE)
+mod13pk <- lmer(log(julian_median) ~ state + origin + (1+year_factor|plot), kbs_flwr_plot_origin, REML=FALSE)
+mod14pk <- lmer(log(julian_median) ~ state + origin + year_factor + (1|plot), kbs_flwr_plot_origin, REML=FALSE)
+anova(mod12pk, mod13pk) # go with model 12pk
+anova(mod12pk, mod14pk) # mod 14pk
+AICctab(mod12pk, mod13pk, mod14pk, weights=T)
+summary(mod14pk)
+summ(mod14pk)
+anova(mod14pk)
+emmeans(mod14pk, list(pairwise ~ state + origin + year_factor), adjust = "tukey")
 
-mod2pk.2 <- lmer(log(julian_median) ~ state + factor(year_factor) + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-anova(mod2pk, mod2pk.2) #mod2p
-summary(mod2pk)
-
+# including growth form - first with interaction term
+kbs_flwr_plot_growthhabit <- within(kbs_flwr_plot_growthhabit, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+mod15pk <- lmer(log(julian_median) ~ state * growth_habit + (1+year_factor|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
+mod16pk <- lmer(log(julian_median) ~ state + growth_habit + (1+year_factor|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
+mod17pk <- lmer(log(julian_median) ~ state + growth_habit + year_factor + (1|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
+anova(mod15pk, mod16pk) # go with model 16pk
+anova(mod16pk, mod17pk) # mod 17pk
+AICctab(mod15pk, mod16pk, mod17pk, weights=T)
+summary(mod17pk)
+summ(mod17pk)
+anova(mod17pk)
+emmeans(mod17pk, list(pairwise ~ state + growth_habit + year_factor), adjust = "tukey")
 ```
 
