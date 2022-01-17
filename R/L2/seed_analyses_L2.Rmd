@@ -263,7 +263,6 @@ ggplot(kbs_sd_plot_origin, aes(julian_min, fill = plot, color=plot)) +
 # Exploring distributions for these data:
 descdist(kbs_sd_plot_origin$julian_min, discrete = FALSE)
 
-# none of these work below and idk why
 # Gamma distribution 
 fit.gamma <- fitdist(kbs_sd_plot_origin$julian_min, "gamma")
 plot(fit.gamma)
@@ -316,7 +315,6 @@ ggplot(kbs_sd_plot_growthhabit, aes(julian_min, fill = plot, color=plot)) +
 # Exploring distributions for these data:
 descdist(kbs_sd_plot_growthhabit$julian_min, discrete = FALSE)
 
-# none of these work below and idk why
 # Gamma distribution 
 fit.gamma <- fitdist(kbs_sd_plot_growthhabit$julian_min, "gamma")
 plot(fit.gamma)
@@ -452,7 +450,7 @@ hist(umbs_sd_plot_origin$julian_min)
 qqnorm(umbs_sd_plot_origin$julian_min)
 shapiro.test(umbs_sd_plot_origin$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
 
-# Visualizing median Julian date for umbs at the PLOT LEVEL
+# Visualizing minimum Julian date for umbs at the PLOT LEVEL
 ggplot(umbs_sd_plot_origin, aes(julian_min, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year ~ site, margins = TRUE, scales = "free")
@@ -474,7 +472,6 @@ ggplot(umbs_sd_plot_origin, aes(julian_min, fill = plot, color=plot)) +
 # Exploring distributions for these data:
 descdist(umbs_sd_plot_origin$julian_min, discrete = FALSE)
 
-# none of these work below and idk why
 # Gamma distribution 
 fit.gamma <- fitdist(umbs_sd_plot_origin$julian_min, "gamma")
 plot(fit.gamma)
@@ -499,9 +496,6 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 # log normal looks like it's the best fit
 ```
 
-
-# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
-# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
 
 # UMBS PLOT LEVEL GROWTH HABIT - Looking at MINIMUM JULIAN DAY (aka date of observed first seed set)
 ```{r, warning=F, error=TRUE}
@@ -532,7 +526,6 @@ ggplot(umbs_sd_plot_growthhabit, aes(julian_min, fill = plot, color=plot)) +
 # Exploring distributions for these data:
 descdist(umbs_sd_plot_growthhabit$julian_min, discrete = FALSE)
 
-# none of these work below and idk why
 # Gamma distribution 
 fit.gamma <- fitdist(umbs_sd_plot_growthhabit$julian_min, "gamma")
 plot(fit.gamma)
@@ -556,6 +549,9 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
 # Log normal looks like it's the best fit
 ```
+
+# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
+# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
 
 ```{r, error=TRUE}
 # KBS species level data
@@ -690,7 +686,7 @@ plot_model(mod2, type = "re", terms = c("species"))
 
 # Do we need to include insecticide? 
 mod3 <- lmer(log(julian_min) ~ state*year_factor + (1|species), kbs_sd_spp, REML=FALSE)
-anova(mod1, mod3) # Don't need insecticide, continue with mod3
+anova(mod2, mod3) # Don't need insecticide, continue with mod3
 
 # Does year need to be interactive with insecticide? - already removed insecticide
 # mod4 <- lmer(log(julian_min) ~ state*year_factor + insecticide + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
@@ -757,7 +753,7 @@ anova(mod8)
 emmeans(mod8, list(pairwise ~ state * origin), adjust = "tukey")
 
 # including growth form - first with interaction term
-kbs_sd_spp <- within(kbs_flwr_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+kbs_sd_spp <- within(kbs_sd_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 mod10 <- lmer(log(julian_min) ~ state * growth_habit + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
 mod11 <- lmer(log(julian_min) ~ state + growth_habit + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
 mod11a <- lmer(log(julian_min) ~ state + growth_habit + year_factor + (1|plot), kbs_sd_spp, REML=FALSE)
@@ -780,7 +776,7 @@ mod1 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|
 mod2 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|species), kbs_sd_spp, REML=FALSE)
 mod3 <- lmer(log(julian_min) ~ state*year_factor + (1|species), kbs_sd_spp, REML=FALSE)
 mod4 <- lmer(log(julian_min) ~ state*year_factor + insecticide + (1|species) + (1|plot), kbs_sd_spp, REML=FALSE)
-mod5 <- lmer(log(julian_min) ~ state + year_factor + (1|species), kbs_flwr_spp, REML=FALSE)
+mod5 <- lmer(log(julian_min) ~ state + year_factor + (1|species), kbs_sd_spp, REML=FALSE)
 mod6 <- lmer(log(julian_min) ~ state + year_factor + (1|species) + (1 + year|plot), kbs_sd_spp, REML=FALSE)
 mod7 <- lmer(log(julian_min) ~ state + species + (1+factor(year_factor)|plot), kbs_sd_spp, REML=FALSE)
 mod7a <- lmer(log(julian_min) ~ state + species + factor(year_factor) + (1|plot), kbs_sd_spp, REML=FALSE)
