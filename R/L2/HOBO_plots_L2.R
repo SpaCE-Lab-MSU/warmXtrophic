@@ -35,6 +35,8 @@ KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d %H:%M")
 UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
 KBS_pend$Date_Time <- as.POSIXct(KBS_pend$Date_Time, format = "%Y-%m-%d %H:%M")
 UMBS_pend$Date_Time <- as.POSIXct(UMBS_pend$Date_Time, format = "%Y-%m-%d %H:%M")
+KBS_par$Date_Time <- as.POSIXct(KBS_par$Date_Time, format = "%Y-%m-%d")
+UMBS_par$Date_Time <- as.POSIXct(UMBS_par$Date_Time, format = "%Y-%m-%d")
 
 # remove sensor 1 from 2021 KBS because it failed
 # remove sensor 1 from 2021 for July-Nov at UMBS because of a wasp nest
@@ -797,21 +799,21 @@ annotate_figure(final_month,
 #                top = text_grob("Year"))
 
 Fig1 <- ggarrange(Fig1_kbs, Fig1_umbs, ncol = 2, common.legend = T, legend = "right")
-png("Fig_S1.png", units="in", width=8, height=5, res=300)
+png("HOBO_plots_L2_air_temps.png", units="in", width=8, height=5, res=300)
 annotate_figure(Fig1,
                 left = text_grob("Average Air Temperature (°C)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
 dev.off()
 
 Fig1.1 <- ggarrange(Fig1_soil_kbs, Fig1_soil_umbs, ncol = 2, common.legend = T, legend = "right")
-png("Fig_S2.png", units="in", width=8, height=5, res=300)
+png("HOBO_plots_L2_soil_temps.png", units="in", width=8, height=5, res=300)
 annotate_figure(Fig1.1,
                 left = text_grob("Average Soil Temperature 5cm (°C)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
 dev.off()
 
 Fig1.2 <- ggarrange(Fig1_soil_moist_kbs, Fig1_soil_moist_umbs, ncol = 2, common.legend = T, legend = "right")
-png("Fig_S3.png", units="in", width=8, height=5, res=300)
+png("HOBO_plots_L2_soil_moisture.png", units="in", width=8, height=5, res=300)
 annotate_figure(Fig1.2,
                 left = text_grob("Average Soil Moisture 5cm (%)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
