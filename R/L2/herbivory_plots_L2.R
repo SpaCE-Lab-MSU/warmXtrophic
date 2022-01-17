@@ -87,7 +87,7 @@ herb_violin_kbs <- herb_violin("kbs")
 herb_violin_umbs <- herb_violin("umbs")
 herb_violin <- ggarrange(herb_violin_kbs, herb_violin_umbs,
                          ncol = 2, common.legend = T, legend="right")
-#png("Herbivory_violin.png", units="in", width=8, height=8, res=300)
+#png("herbivory_plots_L2_violin.png", units="in", width=8, height=8, res=300)
 annotate_figure(herb_violin,
                 left = text_grob("Treatment", color = "black", rot = 90),
                 bottom = text_grob("Percent of leaf eaten", color = "black"))
@@ -100,6 +100,7 @@ sum_herb_overall <- herb %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 sum_herb_overall <- subset(sum_herb_overall, insecticide == "insects")
+#png("herbivory_plots_L2_boxplot.png", units="in", width=8, height=8, res=300)
 ggplot(sum_herb_overall, aes(x = state, y = avg_eaten, fill = state)) +
         facet_grid(.~site) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
@@ -109,7 +110,7 @@ ggplot(sum_herb_overall, aes(x = state, y = avg_eaten, fill = state)) +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
-
+#dev.off()
 
 ### Total herb by origin (native/exotic)
 sum_herb_org <- herb %>%
@@ -134,10 +135,11 @@ sum_plot_org <- function(loc) {
 herb_org_u <- sum_plot_org("umbs")
 herb_org_k <- sum_plot_org("kbs")
 final_herb_org <- ggarrange(herb_org_k, herb_org_u, nrow = 2, legend = "none")
+#png("herbivory_plots_L2_origin.png", units="in", width=8, height=8, res=300)
 annotate_figure(final_herb_org,
                 left = text_grob("Average Percent of Leaf Eaten", color = "black", rot = 90),
                 bottom = text_grob("Origin", color = "black"))
-
+#dev.off()
 
 
 #### Total damage by site and species w/o insecticide treatment####
