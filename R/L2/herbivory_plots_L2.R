@@ -100,7 +100,7 @@ sum_herb_overall <- herb %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 sum_herb_overall <- subset(sum_herb_overall, insecticide == "insects")
-#png("herbivory_plots_L2_boxplot.png", units="in", width=8, height=8, res=300)
+#png("herbivory_plots_L2_barplot.png", units="in", width=8, height=8, res=300)
 ggplot(sum_herb_overall, aes(x = state, y = avg_eaten, fill = state)) +
         facet_grid(.~site) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
@@ -111,6 +111,33 @@ ggplot(sum_herb_overall, aes(x = state, y = avg_eaten, fill = state)) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
 #dev.off()
+
+### Overall average - boxplot ###
+herb2 <- subset(herb2, insecticide == "insects")
+#png("herbivory_plots_L2_boxplot.png", units="in", width=8, height=8, res=300)
+ggplot(herb2, aes(x = state, y = p_eaten, fill = state)) +
+        facet_grid(.~site) +
+        geom_boxplot(col = "black") +
+        labs(x = "State", y = "Average Percent of Leaf Eaten") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        theme_classic()
+#dev.off()
+
+### Overall yearly averages - boxplot ###
+herb_boxplot <- function(loc) { 
+        herb_site <- subset(herb, site == loc)
+        return(ggplot(herb_site, aes(x = state, y = p_eaten, fill = state)) +
+                       facet_grid(.~year) +
+                       geom_boxplot(color = "black") +
+                       labs(x = NULL, y = NULL, title = loc) +
+                       scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+                       scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+                       theme(legend.position = "none") +
+                       theme_classic())
+}
+herb_box_umbs <- herb_boxplot("umbs")
+dam_box_k <- dam_plot_box("kbs")
 
 ### Total herb by origin (native/exotic)
 sum_herb_org <- herb %>%
