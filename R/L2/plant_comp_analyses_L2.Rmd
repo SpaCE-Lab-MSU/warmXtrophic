@@ -59,9 +59,13 @@ theme_update(axis.text.x = element_text(size = 12, angle = 90),
 # read in plant comp data
 comp_species <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
 comp_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"))
+comp_plot_origin <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_origin_L2.csv")) # plot level data for origin
+comp_plot_growthhabit <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_growthhabit_L2.csv")) # plot level data for growth habit
 
 comp_species <- comp_species %>% select(-X) # get rid of "X" column that shows up
 comp_plot <- comp_plot %>% select(-X) # get rid of "X" column that shows up
+comp_plot_origin <- comp_plot_origin %>% select(-X)
+comp_plot_growthhabit <- comp_plot_growthhabit %>% select(-X)
 
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 comp_species$state <- as.factor(comp_species$state)
@@ -81,24 +85,32 @@ levels(comp_plot$state)
 # create dataframes for kbs and umbs - remember that these contain species within plots
 comp_kbs_spp <- subset(comp_species, site == "kbs")
 comp_umbs_spp <- subset(comp_species, site == "umbs")
+comp_umbs_spp <- subset(comp_umbs_spp, year_factor!="7") # delete 2021 data from umbs dataframe (doesn't make sense to have bc data was not collect at same frequency as previous years)
+
 
 # create dataframes for kbs and umbs
 comp_kbs_plot <- subset(comp_plot, site == "kbs")
 comp_umbs_plot <- subset(comp_plot, site == "umbs")
+comp_umbs_plot <- subset(comp_umbs_plot, year_factor!="7") # delete 2021 data from umbs dataframe (doesn't make sense to have bc data was not collect at same frequency as previous years)
 
-# read in meta data
-meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
+kbs_comp_plot_origin <- subset(comp_plot_origin , site == "kbs")
+kbs_comp_plot_growthhabit <- subset(comp_plot_growthhabit, site == "kbs")
+umbs_comp_plot_origin <- subset(comp_plot_origin, site == "umbs")
+umbs_comp_plot_origin <- subset(umbs_comp_plot_origin, year_factor!="7") # delete 2021 data
+umbs_comp_plot_growthhabit <- subset(comp_plot_growthhabit, site == "umbs")
+umbs_comp_plot_growthhabit <- subset(umbs_comp_plot_growthhabit, year_factor!="7") # delete 2021 data
+
 ```
-# Data exploration - some different ways of visualizing these data
 
+# Data exploration - some different ways of visualizing these data
 # KBS SPECIES LEVEL - Looking at RELATIVE ABUNDANCE
 ```{r, warning=F}
 ### KBS ###
-hist(comp_kbs_spp$relabun)
+hist(comp_kbs_spp$relabun) # very skewed to the right
 qqnorm(comp_kbs_spp$relabun)
 shapiro.test(comp_kbs_spp$relabun) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Visualizing median Julian date for umbs at the PLOT LEVEL
+# Visualizing relative abundance for kbs at the PLOT LEVEL
 ggplot(comp_kbs_spp, aes(relabun, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
@@ -109,13 +121,13 @@ ggplot(comp_kbs_spp, aes(relabun, fill = as.factor(plot))) + geom_histogram(binw
 ggplot(comp_kbs_spp, aes(relabun, fill = plot, color=plot)) +
         geom_density(alpha = 0.1)
 
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year)
-#
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year + plot)
+ggplot(comp_kbs_spp, aes(relabun, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(comp_kbs_spp, aes(relabun, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
 
 # Exploring distributions for these right-skewed data:
 descdist(comp_kbs_spp$relabun, discrete = FALSE)
@@ -128,6 +140,7 @@ plot(fit.gamma)
 fit.weibull  <- fitdist(comp_kbs_spp$relabun, "weibull")
 plot(fit.weibull)
 
+# Beta distribution
 fit.beta <- fitdist(comp_kbs_spp$relabun, "beta")
 plot(fit.beta)
 
@@ -139,7 +152,6 @@ plot(fit.ln)
 fit.exp <- fitdist(comp_kbs_spp$relabun, "exp")
 plot(fit.exp)
 
-
 par(mfrow=c(2,2))
 plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential", "Beta")
 denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), legendtext = plot.legend)
@@ -149,17 +161,17 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), legendtext = p
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp", "Beta"))
-# Beta distribution looks to be the best based on AIC and BIC values
+# Beta and exp distributions look to be the best based on AIC and BIC values
 ```
 
 # KBS PLOT LEVEL - Looking at PLOT AVG TOTALS 
 ```{r, warning=F}
 ### KBS ###
-hist(comp_kbs_plot$plot_cover_avg)
+hist(comp_kbs_plot$plot_cover_avg) # skewed to the right
 qqnorm(comp_kbs_plot$plot_cover_avg)
 shapiro.test(comp_kbs_plot$plot_cover_avg) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Visualizing median Julian date for umbs at the PLOT LEVEL
+# Visualizing plot average totals for kbs at the PLOT LEVEL
 ggplot(comp_kbs_plot, aes(plot_cover_avg, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
@@ -170,14 +182,13 @@ ggplot(comp_kbs_plot, aes(plot_cover_avg, fill = as.factor(plot))) + geom_histog
 ggplot(comp_kbs_plot, aes(plot_cover_avg, fill = plot, color=plot)) +
         geom_density(alpha = 0.1)
 
+ggplot(comp_kbs_plot, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
 
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year)
-#
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year + plot)
+ggplot(comp_kbs_plot, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
 
 # Exploring distributions for these right-skewed data:
 descdist(comp_kbs_plot$plot_cover_avg, discrete = FALSE)
@@ -194,6 +205,115 @@ plot(fit.weibull)
 fit.ln <- fitdist(comp_kbs_plot$plot_cover_avg, "lnorm")
 plot(fit.ln)
 
+# Exponential distribution is another option
+fit.exp <- fitdist(comp_kbs_plot$plot_cover_avg, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values
+```
+# KBS PLOT LEVEL ORIGIN - Looking at PLOT AVG TOTALS
+```{r, warning=F, error=TRUE}
+### KBS ###
+hist(kbs_comp_plot_origin$plot_cover_avg) # skewed to the right
+qqnorm(kbs_comp_plot_origin$plot_cover_avg)
+shapiro.test(kbs_comp_plot_origin$plot_cover_avg) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing plot average totals for kbs at the PLOT LEVEL
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these data:
+descdist(kbs_comp_plot_origin$plot_cover_avg, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_comp_plot_origin$plot_cover_avg, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_comp_plot_origin$plot_cover_avg, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_comp_plot_origin$plot_cover_avg, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# log normal looks like it's the best fit
+```
+
+# KBS PLOT LEVEL GROWTH HABIT - Looking at PLOT AVG TOTALS
+```{r, warning=F, error=TRUE}
+### KBS ###
+hist(kbs_comp_plot_growthhabit$plot_cover_avg) # skewed to the right
+qqnorm(kbs_comp_plot_growthhabit$plot_cover_avg)
+shapiro.test(kbs_comp_plot_growthhabit$plot_cover_avg) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing plot average totals for kbs at the PLOT LEVEL
+ggplot(kbs_comp_plot_growthhabit, aes(plot_cover_avg, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(kbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these data:
+descdist(kbs_comp_plot_origin$plot_cover_avg, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_comp_plot_origin$plot_cover_avg, "gamma")
+plot(fit.gamma)
+#
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_comp_plot_origin$plot_cover_avg, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_comp_plot_origin$plot_cover_avg, "lnorm")
+plot(fit.ln)
+
 par(mfrow=c(2,2))
 plot.legend <- c("Gamma", "Weibull", "Log Normal")
 denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
@@ -203,13 +323,13 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# Log Normal the best...
+# log normal looks like it's the best fit
 ```
 
 # UMBS SPECIES LEVEL - Looking at RELATIVE ABUNDANCE
 ```{r, warning=F}
 ### UMBS ###
-hist(comp_umbs_spp$relabun)
+hist(comp_umbs_spp$relabun) # skewed to the right
 qqnorm(comp_umbs_spp$relabun)
 shapiro.test(comp_umbs_spp$relabun) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
@@ -224,13 +344,13 @@ ggplot(comp_umbs_spp, aes(relabun, fill = as.factor(plot))) + geom_histogram(bin
 ggplot(comp_umbs_spp, aes(relabun, fill = plot, color=plot)) +
         geom_density(alpha = 0.1)
 
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year)
-#
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year + plot)
+ggplot(comp_umbs_spp, aes(relabun, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(comp_umbs_spp, aes(relabun, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
 
 # Exploring distributions for these right-skewed data:
 descdist(comp_umbs_spp$relabun, discrete = FALSE)
@@ -243,6 +363,7 @@ plot(fit.gamma)
 fit.weibull  <- fitdist(comp_umbs_spp$relabun, "weibull")
 plot(fit.weibull)
 
+# Beta
 fit.beta <- fitdist(comp_umbs_spp$relabun, "beta")
 plot(fit.beta)
 
@@ -254,7 +375,6 @@ plot(fit.ln)
 fit.exp <- fitdist(comp_umbs_spp$relabun, "exp")
 plot(fit.exp)
 
-
 par(mfrow=c(2,2))
 plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential", "Beta")
 denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), legendtext = plot.legend)
@@ -264,13 +384,13 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), legendtext = p
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp, fit.beta), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp", "Beta"))
-# Beta distribution looks to be the best based on AIC and BIC values
+# Beta and exp distributions look to be the best based on AIC and BIC values
 ```
 
 # UMBS PLOT LEVEL - Looking at PLOT AVG TOTALS 
 ```{r, warning=F}
 ### UMBS ###
-hist(comp_umbs_plot$plot_cover_avg)
+hist(comp_umbs_plot$plot_cover_avg) # skewed to the right
 qqnorm(comp_umbs_plot$plot_cover_avg)
 shapiro.test(comp_umbs_plot$plot_cover_avg) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
@@ -286,13 +406,13 @@ ggplot(comp_umbs_plot, aes(plot_cover_avg, fill = plot, color=plot)) +
         geom_density(alpha = 0.1)
 
 
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year)
-#
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year + plot)
+ggplot(comp_umbs_plot, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(comp_umbs_plot, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
 
 # Exploring distributions for these right-skewed data:
 descdist(comp_umbs_plot$plot_cover_avg, discrete = FALSE)
@@ -309,6 +429,116 @@ plot(fit.weibull)
 fit.ln <- fitdist(comp_umbs_plot$plot_cover_avg, "lnorm")
 plot(fit.ln)
 
+# Exponential distribution is another option
+fit.exp <- fitdist(comp_umbs_plot$plot_cover_avg, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values
+```
+
+# UMBS PLOT LEVEL ORIGIN - Looking at PLOT AVG TOTALS
+```{r, warning=F, error=TRUE}
+### UMBS ###
+hist(umbs_comp_plot_origin$plot_cover_avg) # skewed to the right
+qqnorm(umbs_comp_plot_origin$plot_cover_avg)
+shapiro.test(umbs_comp_plot_origin$plot_cover_avg) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing plot average totals for umbs at the PLOT LEVEL
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these data:
+descdist(umbs_comp_plot_origin$plot_cover_avg, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_comp_plot_origin$plot_cover_avg, "gamma")
+plot(fit.gamma)
+#
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_comp_plot_origin$plot_cover_avg, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_comp_plot_origin$plot_cover_avg, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# log normal looks like it's the best fit
+```
+
+# UMBS PLOT LEVEL GROWTH HABIT - Looking at PLOT AVG TOTALS
+```{r, warning=F, error=TRUE}
+### UMBS ###
+hist(umbs_comp_plot_growthhabit$plot_cover_avg)
+qqnorm(umbs_comp_plot_growthhabit$plot_cover_avg)
+shapiro.test(umbs_comp_plot_growthhabit$plot_cover_avg) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Visualizing plot average totals for umbs at the PLOT LEVEL
+ggplot(umbs_comp_plot_growthhabit, aes(plot_cover_avg, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(umbs_comp_plot_origin, aes(plot_cover_avg, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these data:
+descdist(umbs_comp_plot_origin$plot_cover_avg, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_comp_plot_origin$plot_cover_avg, "gamma")
+plot(fit.gamma)
+#
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_comp_plot_origin$plot_cover_avg, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_comp_plot_origin$plot_cover_avg, "lnorm")
+plot(fit.ln)
+
 par(mfrow=c(2,2))
 plot.legend <- c("Gamma", "Weibull", "Log Normal")
 denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
@@ -318,7 +548,7 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# Log Normal the best based on AIC and BIC values
+# log normal looks like it's the best fit
 ```
 
 
@@ -344,7 +574,6 @@ hist(fit_spp_state_kbs1$residuals)
 leveragePlots(fit_spp_state_kbs1)
 ols_test_normality(fit_spp_state_kbs1)
 
-
 # KBS State and year model
 fit_spp_stateyear_kbs <- lm(log(relabun) ~ state + year_factor, data = comp_kbs_spp)
 outlierTest(fit_spp_stateyear_kbs) # no outliers
@@ -359,7 +588,6 @@ fit3 <- lm(log(relabun) ~ state + year_factor + species, data = comp_kbs_spp)
 interact_plot(fit3, pred = year_factor, modx = state)
 fit4 <- lm(log(relabun) ~ state * year_factor + species, data = comp_kbs_spp)
 interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
-
 ```
 ```{r}
 # Plot level data
@@ -411,7 +639,6 @@ fit3 <- lm(log(relabun) ~ state + year_factor + species, data = comp_umbs_spp)
 interact_plot(fit3, pred = year_factor, modx = state)
 fit4 <- lm(log(relabun) ~ state * year_factor + species, data = comp_umbs_spp)
 interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
-
 ```
 ```{r}
 # Plot level data
@@ -439,8 +666,6 @@ ols_test_normality(fit_plot_stateyear_umbs) # not all are under 0.05 but I think
 fit3 <- lm(log(plot_cover_avg) ~ state * year_factor, data = comp_umbs_plot)
 interact_plot(fit3, pred = year_factor, modx = state)
 ```
-
-
 
 MIXED EFFECT MODELS
 
@@ -514,7 +739,7 @@ AICctab(mod2, mod3, weights=T)
 # Looks like no, pvalue > 0.05, so insecticide does not improve model fit so we will go with mod 3
 
 # Does year need to be interactive with insecticide? - already removed insecticide
-# mod4 <- lmer(log(julian_median) ~ state*year_factor + insecticide + (1|species) + (1|plot), umbs_flwr_spp, REML=FALSE)
+# mod4 <- lmer(log(relabun) ~ state*year_factor + insecticide + (1|species) + (1|plot), comp_kbs_spp, REML=FALSE)
 
 # Does year need to be interactive with state?
 mod5 <- lmer(log(relabun) ~ state + year_factor + (1|species), comp_kbs_spp, REML=FALSE)
@@ -551,7 +776,6 @@ emmeans(mod7c, list(pairwise ~ state + year_factor), adjust = "tukey")
 emmeans(mod7c, list(pairwise ~ year_factor), adjust = "tukey")
 emmeans(mod7c, list(pairwise ~ species), adjust = "tukey")
 emmeans(mod7c, list(pairwise ~ insecticide), adjust = "tukey")
-
 
 # Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
 plot_model(mod7a, sort.est = TRUE)
@@ -617,14 +841,7 @@ anova(mod7a)
 ```
 
 # KBS Plot-level Mixed Effects Models:
-```{r}
-hist(comp_kbs_plot$plot_cover_avg) # skewed to the right - positive skew
-qqnorm(comp_kbs_plot$plot_cover_avg) # this doesn't look good
-shapiro.test(comp_kbs_plot$plot_cover_avg) # not normal
-
-# Exploring distributions for these right-skewed data:
-descdist(comp_kbs_plot$plot_cover_avg, discrete = FALSE)
-
+```{r, error=TRUE}
 mod1p <- lmer(log(plot_cover_avg) ~ state + (1|plot), comp_kbs_plot, REML=FALSE)
 mod2p <- lmer(log(plot_cover_avg) ~ insecticide + (1|plot), comp_kbs_plot, REML=FALSE)
 mod3p <- lmer(log(plot_cover_avg) ~ insecticide + state + (1|plot), comp_kbs_plot, REML=FALSE)
@@ -638,13 +855,34 @@ mod10p <- lmer(log(plot_cover_avg) ~ state + insecticide * year_factor + (1|plot
 mod11p <- lmer(log(plot_cover_avg) ~ state * year_factor * insecticide + (1|plot), comp_kbs_plot, REML=FALSE)
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 11p and 10p the same
 anova(mod7p, mod5p) #7p just barely better
-
 summ(mod7p)
 emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
+
+# including native vs. exotic
+kbs_comp_plot_origin <- within(kbs_comp_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+mod12p <- lmer(log(plot_cover_avg) ~ state * origin + (1+year_factor|plot), kbs_comp_plot_origin, REML=FALSE)
+mod13p <- lmer(log(plot_cover_avg) ~ state + origin + (1+year_factor|plot), kbs_comp_plot_origin, REML=FALSE)
+mod14p <- lmer(log(plot_cover_avg) ~ state + origin + year_factor + (1|plot), kbs_comp_plot_origin, REML=FALSE)
+anova(mod12p, mod13p) # go with model 12pu 
+anova(mod12p, mod14p) # mod 14pu
+summ(mod14p)
+anova(mod14p)
+emmeans(mod14p, list(pairwise ~ state + origin + year_factor), adjust = "tukey")
+
+# including growth form - first with interaction term
+kbs_comp_plot_growthhabit <- within(kbs_comp_plot_growthhabit, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+mod15p <- lmer(log(plot_cover_avg) ~ state * growth_habit + (1+year_factor|plot), kbs_comp_plot_growthhabit, REML=FALSE)
+mod16p <- lmer(log(plot_cover_avg) ~ state + growth_habit + (1+year_factor|plot), kbs_comp_plot_growthhabit, REML=FALSE)
+mod17p <- lmer(log(plot_cover_avg) ~ state + growth_habit + year_factor + (1|plot), kbs_comp_plot_growthhabit, REML=FALSE)
+anova(mod15p, mod16p) # go with model 15pu 
+anova(mod15p, mod17p) # mod 17pu
+summ(mod17p)
+anova(mod17p)
+emmeans(mod17p, list(pairwise ~ state + growth_habit + year_factor), adjust = "tukey")
 ```
 
 UMBS species level mixed effects models
-```{r}
+```{r, error=TRUE}
 # UMBS SPECIES LEVEL - Looking at RELATIVE ABUNDANCE
 mod1u <- lmer(log(relabun) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), comp_umbs_spp, REML = FALSE)
 ggplot(comp_umbs_spp,aes(x=plot,y=relabun,col=species)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
@@ -816,7 +1054,47 @@ AICctab(mod1u, mod2u, mod3u, mod5u, mod6u, mod7u, mod7au, mod7bu, mod7cu, mod8u,
 summary(mod7au)
 anova(mod7au)
 ```
+# UBS Plot-level Mixed Effects Models:
+```{r, error=TRUE}
+mod1pu <- lmer(log(plot_cover_avg) ~ state + (1|plot), comp_umbs_plot, REML=FALSE)
+mod2pu <- lmer(log(plot_cover_avg) ~ insecticide + (1|plot), comp_umbs_plot, REML=FALSE)
+mod3pu <- lmer(log(plot_cover_avg) ~ insecticide + state + (1|plot), comp_umbs_plot, REML=FALSE)
+mod4pu <- lmer(log(plot_cover_avg) ~ insecticide * state + (1|plot), comp_umbs_plot, REML=FALSE)
+mod5pu <- lmer(log(plot_cover_avg) ~ state + year_factor + (1|plot), comp_umbs_plot, REML=FALSE)
+mod6pu <- lmer(log(plot_cover_avg) ~ state + year_factor + insecticide + (1|plot), comp_umbs_plot, REML=FALSE)
+mod7pu <- lmer(log(plot_cover_avg) ~ state * year_factor + (1|plot), comp_umbs_plot, REML=FALSE)
+mod8pu <- lmer(log(plot_cover_avg) ~ state * year_factor + insecticide + (1|plot), comp_umbs_plot, REML=FALSE)
+mod9pu <- lmer(log(plot_cover_avg) ~ state * insecticide + year_factor + (1|plot), comp_umbs_plot, REML=FALSE)
+mod10pu <- lmer(log(plot_cover_avg) ~ state + insecticide * year_factor + (1|plot), comp_umbs_plot, REML=FALSE)
+mod11pu <- lmer(log(plot_cover_avg) ~ state * year_factor * insecticide + (1|plot), comp_umbs_plot, REML=FALSE)
+AICctab(mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T) # model 11p and 10p the same
+anova(mod7pu, mod8pu) #7p just barely better
+summ(mod7pu)
+summ(mod8pu)
+emmeans(mod8pu, list(pairwise ~ state*year_factor), adjust = "tukey")
 
+# including native vs. exotic
+umbs_comp_plot_origin <- within(umbs_comp_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+mod12pu <- lmer(log(plot_cover_avg) ~ state * origin + (1+year_factor|plot), umbs_comp_plot_origin, REML=FALSE)
+mod13pu <- lmer(log(plot_cover_avg) ~ state + origin + (1+year_factor|plot), umbs_comp_plot_origin, REML=FALSE)
+mod14pu <- lmer(log(plot_cover_avg) ~ state + origin + year_factor + (1|plot), umbs_comp_plot_origin, REML=FALSE)
+anova(mod12pu, mod13pu) # go with model 13pu 
+anova(mod13pu, mod14pu) # mod 14pu
+summary(mod14pu)
+summ(mod14pu)
+anova(mod14pu)
+emmeans(mod14pu, list(pairwise ~ state + origin + year_factor), adjust = "tukey")
 
-
+# including growth form - first with interaction term
+umbs_comp_plot_growthhabit <- within(umbs_comp_plot_growthhabit, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+mod15pu <- lmer(log(plot_cover_avg) ~ state * growth_habit + (1+year_factor|plot), umbs_comp_plot_growthhabit, REML=FALSE)
+mod16pu <- lmer(log(plot_cover_avg) ~ state + growth_habit + (1+year_factor|plot), umbs_comp_plot_growthhabit, REML=FALSE)
+mod17pu <- lmer(log(plot_cover_avg) ~ state + growth_habit + year_factor + (1|plot), umbs_comp_plot_growthhabit, REML=FALSE)
+anova(mod15pu, mod16pu) # go with model 16pu 
+anova(mod16pu, mod17pu) # mod 17pu
+summary(mod17pu)
+summ(mod17pu)
+anova(mod17pu)
+emmeans(mod17pu, list(pairwise ~ state + growth_habit + year_factor), adjust = "tukey")
+```
 
