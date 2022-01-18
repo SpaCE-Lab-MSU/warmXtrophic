@@ -129,6 +129,9 @@ KBS_avg_year_air <- KBS_season_air2 %>%  # by year
                   average_temp = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
 
+KBS_avg_air <- KBS_season_air2 %>%  # overall
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+
 KBS_avg_year_soil <- KBS_season_soil %>%  # by year
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
         group_by(year, treatment) %>%
@@ -180,7 +183,7 @@ k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)
 #  theme_classic() +
 #  labs(title = "KBS — July", x=NULL, y = NULL, fill = "Treatment")
 
-# Manuscript Fig 1 - OTC air and soil temps
+# OTC air and soil temps
 Fig1_kbs <- ggplot(KBS_avg_year_air, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
   geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
   scale_fill_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
@@ -188,6 +191,20 @@ Fig1_kbs <- ggplot(KBS_avg_year_air, aes(x=year, y=average_temp, fill=treatment,
   labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
   theme(legend.position="bottom") +
   theme_classic()
+
+Fig1_overall_air_kbs <- ggplot(KBS_avg_air, aes(x=treatment, y=temp)) +
+        geom_boxplot(color="black") +
+        labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
+        theme(legend.position="bottom") +
+        theme_classic()
+
+# tried a different violin plot below
+with(KBS_avg_air, vioplot( 
+        temp[treatment=="XH_warmed_air_1m"] , temp[treatment=="XH_ambient_air_1m"],
+        temp[treatment=="XU_warmed_air_10cm"], temp[treatment=="XU_ambient_air_10cm"],
+        col=rgb(0.1,0.4,0.7,0.7) , names=c("Warmed 1m","Ambient 1m", "Warmed 10cm", "Ambient 10cm"),
+        ylim=c(10,45)
+))
 
 Fig1_soil_kbs <- ggplot(KBS_avg_year_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
@@ -217,7 +234,13 @@ Fig1_soil_kbs_dualy <- ggplot(KBS_soil_merged, aes(x=year, fill=treatment, shape
         theme(legend.position="bottom") +
         theme_classic()
 
-
+ggplot(KBS_season_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
+        scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
+        labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
+        theme(legend.position="bottom") +
+        theme_classic()
 
 ###### par data ######
 # old attempts at seeing how PAR and temp are correlated - not enough data to show a trend
@@ -442,6 +465,7 @@ lm_kbs2
 
 
 ###### soil moisture ######
+# alt plots to the one named "Fig 1" above
 # create a new data frame
 KBS_season_moist <- KBS
 KBS_season_moist$month <- format(KBS_season_moist$Date_Time,format="%m")
