@@ -101,9 +101,9 @@ kbs_sd_spp <- subset(sd_species, site == "kbs") # pull out kbs only data at spec
 kbs_sd_plot_origin <- subset(sd_plot_origin, site == "kbs")
 kbs_sd_plot_growthhabit <- subset(sd_plot_growthhabit, site == "kbs")
 umbs_sd_plot_origin <- subset(sd_plot_origin, site == "umbs")
-umbs_sd_plot_origin <- subset(sd_plot_origin, year != "2021") # delete 2021 data
+umbs_sd_plot_origin <- subset(umbs_sd_plot_origin, year != "2021") # delete 2021 data
 umbs_sd_plot_growthhabit <- subset(sd_plot_growthhabit, site == "umbs")
-umbs_sd_plot_growthhabit <- subset(sd_plot_growthhabit, year != "2021") # delete 2021 data
+umbs_sd_plot_growthhabit <- subset(umbs_sd_plot_growthhabit, year != "2021") # delete 2021 data
 ```
 
 # Data exploration for minimum (first) Julian date of seed set at the PLOT for both sites
