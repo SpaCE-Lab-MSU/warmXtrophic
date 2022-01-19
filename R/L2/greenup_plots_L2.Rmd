@@ -50,6 +50,9 @@ gr_plot$X <- NULL
 gr_growth$X <- NULL
 gr_origin$X <- NULL
 
+# creating a vector with cleaned up insecticide labels for plotting
+insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
+
 # filter data to contain the averages and std error for each site & species
 sum_green_spp <- gr_species %>%
   group_by(site, state, species, year) %>%
@@ -154,23 +157,24 @@ annotate_figure(plot_level,
 ```{r, echo=F}
 greenup_overall_plot <- function(loc) { 
   greenup_plot <- subset(gr_plot, site == loc)
-  return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date)) +
-           facet_grid(.~insecticide) +
-           geom_boxplot(color = "black") +
-           labs(x = NULL, y = NULL, title = loc) +
-           #scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic())
+  return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date, fill = state)) +
+           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
+           geom_boxplot() +
+           labs(x = NULL, y = NULL, title = loc, fill="Treatment") +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+           theme_classic()) +
+          theme(text = element_text(family="AvantGarde")) # doesn't work
 }
 plot_overall_kbs <- greenup_overall_plot("kbs")
 plot_overall_umbs <- greenup_overall_plot("umbs")
 
-plot_level_overall <- ggarrange(plot_overall_kbs, plot_overall_umbs, nrow = 2, common.legend = T, legend="right")
-#png("greenup_plots_L2_plot_greenup_overall.png", units="in", width=8, height=8, res=300)
+plot_level_overall <- ggarrange(plot_overall_kbs, plot_overall_umbs, nrow = 2, legend="none")
+png("greenup_plots_L2_plot_greenup_overall.png", units="in", width=8, height=8, res=300)
 annotate_figure(plot_level_overall,
                 left = text_grob("Julian date of plot-level green-up", color = "black", rot = 90),
-                bottom = text_grob("Year", color = "black"))
-#dev.off()
+                bottom = text_grob("Treatment", color = "black"))
+dev.off()
 ```
 
 ## Averaging greenup over all years - species level
@@ -201,13 +205,14 @@ annotate_figure(spp_level_overall,
 # green-up plots
 greenup_overall_plot2 <- function(loc) { 
   greenup_plot <- subset(gr_plot, site == loc)
-  return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date)) +
-           facet_grid(.~insecticide) +
-           geom_boxplot(color = "black") +
+  return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date, fill=state)) +
+           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
+           geom_boxplot() +
            labs(x = NULL, y = "Green-up", title = loc) +
-           #scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic())
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+           theme_classic()) +
+          theme(text = element_text(family="AvantGarde")) # doesn't work
 }
 plot_overall_kbs2 <- greenup_overall_plot2("kbs")
 plot_overall_umbs2 <- greenup_overall_plot2("umbs")
@@ -215,13 +220,14 @@ plot_overall_umbs2 <- greenup_overall_plot2("umbs")
 # flower plots
 flwr_overall_plot <- function(loc) { 
   flower_plot <- subset(flwr_plot, site == loc)
-  return(ggplot(flower_plot, aes(x = state, y = julian_median)) +
-           facet_grid(.~insecticide) +
-           geom_boxplot(color = "black") +
+  return(ggplot(flower_plot, aes(x = state, y = julian_median, fill=state)) +
+           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
+           geom_boxplot() +
            labs(x = NULL, y = "Flower") +
-           #scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic())
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+           theme_classic()) +
+          theme(text = element_text(family="AvantGarde")) # doesn't work
 }
 flwr_overall_kbs <- flwr_overall_plot("kbs")
 flwr_overall_umbs <- flwr_overall_plot("umbs")
@@ -229,13 +235,14 @@ flwr_overall_umbs <- flwr_overall_plot("umbs")
 # flower duration plots - not including this in final plot for now since idk if its in our analyses
 flwr_dur_plot <- function(loc) { 
   flower_plot <- subset(flwr_plot, site == loc)
-  return(ggplot(flower_plot, aes(x = state, y = flwr_duration)) +
-           facet_grid(.~insecticide) +
+  return(ggplot(flower_plot, aes(x = state, y = flwr_duration, fill=state)) +
+           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
            geom_boxplot(color = "black") +
            labs(x = NULL, y = "Flower duration") +
-           #scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic())
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+           theme_classic()) +
+          theme(text = element_text(family="AvantGarde")) # doesn't work
 }
 flwr_dur_kbs <- flwr_dur_plot("kbs")
 flwr_dur_umbs <- flwr_dur_plot("umbs")
@@ -243,13 +250,14 @@ flwr_dur_umbs <- flwr_dur_plot("umbs")
 # seed set plots - using min date here bc can't calculate median date for seed
 sd_overall_plot <- function(loc) { 
   seed_plot <- subset(sd_plot, site == loc)
-  return(ggplot(seed_plot, aes(x = state, y = julian_min)) +
-           facet_grid(.~insecticide) +
+  return(ggplot(seed_plot, aes(x = state, y = julian_min, fill=state)) +
+           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
            geom_boxplot(color = "black") +
            labs(x = NULL, y = "Seed set") +
-           #scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic())
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+           theme_classic()) +
+          theme(text = element_text(family="AvantGarde")) # doesn't work
 }
 sd_overall_kbs <- sd_overall_plot("kbs")
 sd_overall_umbs <- sd_overall_plot("umbs")
@@ -257,12 +265,12 @@ sd_overall_umbs <- sd_overall_plot("umbs")
 phen_overall <- ggarrange(plot_overall_kbs2, plot_overall_umbs2,
                           flwr_overall_kbs, flwr_overall_umbs,
                           sd_overall_kbs, sd_overall_umbs,
-                          nrow = 3, ncol = 2, common.legend = T, legend="right")
-#png("greenup_plots_L2_all_phenology.png", units="in", width=8, height=8, res=300)
+                          nrow = 3, ncol = 2, legend="none")
+png("greenup_plots_L2_all_phenology.png", units="in", width=8, height=8, res=300)
 annotate_figure(phen_overall,
                 left = text_grob("Phenological event", color = "black", rot = 90),
                 bottom = text_grob("Treatment", color = "black"))
-#dev.off()
+dev.off()
 ```
 
 ## Combining greenup, flower, and seed into one figure - plot level
