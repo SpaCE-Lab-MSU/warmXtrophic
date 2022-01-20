@@ -85,6 +85,11 @@ sla21k <- read.csv(file.path(L0_dir, "./KBS/2021/KBS_WarmX_SLA_2021.csv"))
 cn17k_soca_1 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate1_2017.csv"))
 cn17k_soca_2 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate2_2017.csv"))
 cn17k_soca_3 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate3_2017.csv"))
+
+# merge above 3 data frames into one
+CN_2017_soca <- merge(cn17k_soca_1, cn17k_soca_2, all = TRUE)
+CN_2017_soca <- merge(CN_2017_soca, cn17k_soca_3, all = TRUE)
+
 # ACMI
 cn17k_acmi_1 <- read.csv(file.path(L0_dir, "./KBS/2017/CN_Acmi_2017_final.csv"))
 
@@ -92,6 +97,41 @@ cn17k_acmi_1 <- read.csv(file.path(L0_dir, "./KBS/2017/CN_Acmi_2017_final.csv"))
 # CEST - not yet analyzed
 # CEST basal sheets 1 and 2
 # CEST stem sheets 1 and 2
+
+# Cleaning KBS 2017 CN data
+# soca samples
+CN_2017_soca_edited <- CN_2017_soca[,-c(3, 4, 9, 10, 11, 13, 14, 15)] # delete unneeded columns
+names(CN_2017_soca_edited)[1] <- "Site" #changing column name
+names(CN_2017_soca_edited)[2] <- "Year" #changing column name
+names(CN_2017_soca_edited)[8] <- "Nitrogen" #changing column name
+names(CN_2017_soca_edited)[9] <- "Carbon" #changing column name
+names(CN_2017_soca_edited)[4] <- "Plot" #changing column name
+CN_2017_soca_edited$Site <- "kbs" #change site name to lowercase to match majority of other dataframes
+names(CN_2017_soca_edited) <- tolower(names(CN_2017_soca_edited)) # column names to lower case
+CN_2017_soca_edited <- merge(CN_2017_soca_edited, meta, all = TRUE)
+CN_2017_soca_edited <- na.omit(CN_2017_soca_edited)
+
+# acmi samples
+CN_2017_acmi_edited <- cn17k_acmi_1[,-c(4, 8, 10, 11)] # delete unneeded columns
+names(CN_2017_acmi_edited)[7] <- "Year" #changing column name
+CN_2017_acmi_edited$Year <- "2017"
+names(CN_2017_acmi_edited)[4] <- "Weight_mg" #changing column name
+names(CN_2017_acmi_edited)[2] <- "Plant_number" #changing column name
+names(CN_2017_acmi_edited)[5] <- "Nitrogen" #changing column name
+names(CN_2017_acmi_edited)[6] <- "Carbon" #changing column name
+CN_2017_acmi_edited$Site <- "kbs" # add site column
+CN_2017_acmi_edited$Species <- "Acmi" # add site column
+CN_2017_acmi_edited <- na.omit(CN_2017_acmi_edited)
+names(CN_2017_acmi_edited) <- tolower(names(CN_2017_acmi_edited)) # column names to lower case
+CN_2017_acmi_edited_1 <- merge(CN_2017_acmi_edited, meta, all = TRUE)
+CN_2017_acmi_edited_1 <- na.omit(CN_2017_acmi_edited_1)
+CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="A"]<- 1
+CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="B"]<- 2
+CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="C"]<- 3
+names(CN_2017_acmi_edited_1)[3] <- "subsample_number" #changing column name to match 2017 soca data
+# ***should double check that "replicate" and "subsample_number" mean the same thing***
+
+CN_2017 <- merge(CN_2017_acmi_edited_1, CN_2017_soca_edited, all = TRUE)
 
 ## 2018 ##
 # ***This data is currently being ground and prepped to be analyzed***
@@ -120,6 +160,60 @@ cn19u_samples_1 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_1_
 cn19u_samples_2 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_2_2019.csv"))
 cn19u_samples_3 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_3_2019.csv")) # this has some kbs samples in it
 # that will need to be deleted when cleaned
+
+# create function to clean CN data files - this function can be used for data still in the "weighsheets" format
+CN_csvdata_initial_prep <- function(cn_data){
+        cn_data <- cn_data[-(1:2),] #get rid of the first 2 rows because it's not data
+        names(cn_data) <- cn_data[1,] #make the first row the column names
+        cn_data <- cn_data[-1,] #get rid of the first row because it's now the column names
+        cn_data <- cn_data[-(1:7),] #get rid of first 7 rows because these are the "standards" data
+        cn_data <- cn_data[c(3, 4, 10, 11)] #get rid of unwanted columns that don't have data
+        return(cn_data[!apply(is.na(cn_data) | cn_data == "", 1, all),])
+}
+
+# Cleaning KBS CN 2019 samples
+cn19k_samples_1_edited <- CN_csvdata_initial_prep(cn19k_samples_1)
+cn19k_samples_1_edited <- cn19k_samples_1_edited[-(1:21),] # delete umbs samples in data
+cn19k_samples_1_edited <- cn19k_samples_1_edited[!(cn19k_samples_1_edited$Sample=="Blind Standard"),] # delete blind standards in data
+cn19k_samples_1_edited <- cn19k_samples_1_edited[-c(1,6),] # delete empty rows
+
+cn19k_samples_2_edited <- CN_csvdata_initial_prep(cn19k_samples_2)
+cn19k_samples_2_edited <- cn19k_samples_2_edited[!(cn19k_samples_2_edited$Sample=="Blind Standard"),] # delete blind standards in data
+
+CN_kbs_2019 <- merge(cn19k_samples_1_edited, cn19k_samples_2_edited, all = TRUE) # merge kbs 2019 cn data into one dataframe
+names(CN_kbs_2019)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
+CN_kbs_2019 <- merge(CN_kbs_2019, cn19k_meta, all = TRUE)
+CN_kbs_2019 <- CN_kbs_2019[,-c(7, 12, 13)] # delete unneeded columns
+CN_kbs_2019 <- na.omit(CN_kbs_2019) # get rid of NAs
+
+# Cleaning UMBS 2019 CN samples
+cn19u_samples_1_edited <- CN_csvdata_initial_prep(cn19u_samples_1)
+cn19u_samples_1_edited <- cn19u_samples_1_edited[!(cn19u_samples_1_edited$Sample=="Blind Standard"),] # delete blind standards in data
+
+cn19u_samples_2_edited <- CN_csvdata_initial_prep(cn19u_samples_2)
+cn19u_samples_2_edited <- cn19u_samples_2_edited[!(cn19u_samples_2_edited$Sample=="Blind Standard"),] # delete blind standards in data
+
+cn19u_samples_3_edited <- CN_csvdata_initial_prep(cn19u_samples_3)
+cn19u_samples_3_edited <- cn19u_samples_3_edited[!(cn19u_samples_3_edited$Sample=="Blind Standard"),] # delete blind standards in data
+cn19u_samples_3_edited <- cn19u_samples_3_edited[c(1:20),] # only keep umbs data
+
+CN_umbs_2019 <- merge(cn19u_samples_1_edited, cn19u_samples_2_edited, all = TRUE) # merge umbs 2019 cn data into one dataframe
+CN_umbs_2019 <- merge(CN_umbs_2019, cn19u_samples_3_edited, all = TRUE) # merge umbs 2019 cn data into one dataframe
+CN_umbs_2019 <- merge(CN_umbs_2019, cn19u_samples_3_edited, all = TRUE)
+names(CN_umbs_2019)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
+CN_umbs_2019 <- merge(CN_umbs_2019, cn19u_meta, all = TRUE)
+CN_umbs_2019 <- CN_umbs_2019[,-c(7, 12, 13)] # delete unneeded columns
+CN_umbs_2019 <- na.omit(CN_umbs_2019) # get rid of NAs
+
+CN_2019 <- merge(CN_umbs_2019, CN_kbs_2019, all = TRUE)
+names(CN_2019)[2] <- "Weight_mg" #changing column name so that I merge this with the meta data
+names(CN_2019) <- tolower(names(CN_2019)) # column names to lower case
+CN_2019 <- CN_2019[,-c(1,6,8)] # delete unneeded columns
+CN_2019$year <- 2019
+CN_2019 <- merge(CN_2019, meta, all = TRUE) #merge with meta data
+
+# Merge each years cleaned CN data - right now only have 2017 and 2019 cleaned CN data
+CN_data_cleaned <- merge(CN_2019, CN_2017, all = TRUE)
 
 #### Create L1 SLA data ####
 names(sla18u)
