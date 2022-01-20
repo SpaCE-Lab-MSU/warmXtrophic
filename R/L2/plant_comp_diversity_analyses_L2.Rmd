@@ -47,20 +47,6 @@ list.files(L1_dir)
 comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
 comp <- comp %>% select(-X) # get rid of "X" column that shows up
 
-# read in meta data
-meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
-```
-
-```{r}
-# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
-comp$year_factor[comp$year == 2015] <- 1
-comp$year_factor[comp$year == 2016] <- 2
-comp$year_factor[comp$year == 2017] <- 3
-comp$year_factor[comp$year == 2018] <- 4
-comp$year_factor[comp$year == 2019] <- 5
-comp$year_factor[comp$year == 2020] <- 6
-comp$year_factor[comp$year == 2021] <- 7
-
 # Remove non-plant data
 comp <- comp[!(comp$species=="Bare_Ground" | 
                        comp$species=="Unknown" | 
@@ -69,8 +55,11 @@ comp <- comp[!(comp$species=="Bare_Ground" |
                        comp$species=="Vert_Litter" | 
                        comp$species=="Animal_Disturbance"), ]
 
+# read in meta data
+meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
 ```
 
+Function to get data into wide format in order to work in the Vegan package
 ```{r}
 # Function to get data in wide format to work in Vegan package - taken from link below
 # https://stackoverflow.com/questions/50691393/transform-community-data-into-wide-format-for-vegan-package
@@ -108,17 +97,20 @@ matrify2 <-  function(data) {
 
 ```{r}
 #diversity_by_year <- function(comp, site, div_index = "shannon"){
+# subset comp data by site
 comp_kbs <- subset(comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
 comp_umbs <- subset(comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
 
 
 # convert the abundance (cover) data to wide format for each species in columns for the vegan package
-comp_kbs$cover <- as.numeric(comp_kbs$cover)
-comp_wide_kbs <- matrify2(comp_kbs)
-comp_umbs$cover <- as.numeric(comp_umbs$cover)
-comp_wide_umbs <- matrify2(comp_umbs)
+#kbs
+comp_kbs$cover <- as.numeric(comp_kbs$cover) # change cover data to numeric
+comp_wide_kbs <- matrify2(comp_kbs) # use matrify2 function
+#umbs
+comp_umbs$cover <- as.numeric(comp_umbs$cover) # change cover data to numeric
+comp_wide_umbs <- matrify2(comp_umbs) # use matrify2 function
 
-# comp_wide_data is assumes to have columns Year, Plot, and columns for each species found, e.g. for Vegan
+# comp_wide_data assumes to have columns Year, Plot, and columns for each species found, e.g. for Vegan
 
 # first, split up the wide data into a list of years.  Each list item is a year of data
 comp_wide_by_year_kbs <- dplyr::group_by(comp_wide_kbs, Year) %>% dplyr::group_split()
@@ -126,6 +118,7 @@ comp_wide_by_year_umbs <- dplyr::group_by(comp_wide_umbs, Year) %>% dplyr::group
 
 # we need to add plot names.  Get those Plot names by taking a column from any one of the years
 # since we are assuming the Plot column is the exact same across years and IN THE SAME ORDER
+# Moriah - this might be a problem bc I know at kbs some data wasn't taken for one of plots in later years due to a groundhog hole in the plot
 plot_names <- comp_wide_by_year_kbs[[1]]$Plot
 plot_names <- comp_wide_by_year_umbs[[1]]$Plot
 
@@ -135,37 +128,43 @@ comp_wide_by_year_kbs <- lapply(comp_wide_by_year_kbs, dplyr::select, c(-Year, -
 comp_wide_by_year_umbs <- lapply(comp_wide_by_year_umbs, dplyr::select, c(-Year, -Plot))
 
 #  apply  the diversity function to each year  - in this case the main index is plot, each year considered separately
-diversity_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "shannon")
-diversity_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "shannon")
+shannon_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "shannon")
+shannon_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "shannon")
+simpson_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "simpson")
+simpson_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "simpson")
 
 # each item in the list is a year of diversity, so name those with the years we know we have
-names(diversity_by_year_list_kbs) <- as.character(2015:2021)
-names(diversity_by_year_list_umbs) <- as.character(2015:2021)
+names(shannon_by_year_list_kbs) <- as.character(2015:2021)
+names(shannon_by_year_list_umbs) <- as.character(2015:2021)
+names(simpson_by_year_list_kbs) <- as.character(2015:2021)
+names(simpson_by_year_list_umbs) <- as.character(2015:2021)
 
 # "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
-x_kbs <- do.call(cbind,diversity_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
-x_umbs <- do.call(cbind,diversity_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+shannon_kbs <- do.call(cbind,shannon_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+shannon_umbs <- do.call(cbind,shannon_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+simpson_kbs <- do.call(cbind,simpson_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+simpson_umbs <- do.call(cbind,simpson_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
 #  an alternative tidyverse way x<- diversity_by_year(diversity_by_year_list)
 
 ## optional step!
-x_kbs
-x_umbs
-
-# comp$cover <- as.numeric(comp$cover)
+shannon_kbs
+shannon_umbs
+simpson_kbs
+simpson_umbs
 
 # this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
 library(reshape2)
 
 #calculate shannon diversity
-shannon_by_plot_year_kbs <- reshape2::melt(x_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon")
+shannon_by_plot_year_kbs <- reshape2::melt(shannon_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon")
 shannon_by_plot_year_kbs$site <- "kbs" # adding site column
-shannon_by_plot_year_umbs <- reshape2::melt(x_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
+shannon_by_plot_year_umbs <- reshape2::melt(shannon_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
 shannon_by_plot_year_umbs$site <- "umbs" # adding site column
 
 #calculate simpson diversity
-simpson_by_plot_year_kbs <- reshape2::melt(x_kbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
+simpson_by_plot_year_kbs <- reshape2::melt(simpson_kbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
 simpson_by_plot_year_kbs$site <- "kbs" # adding site column
-simpson_by_plot_year_umbs <- reshape2::melt(x_umbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
+simpson_by_plot_year_umbs <- reshape2::melt(simpson_umbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
 simpson_by_plot_year_umbs$site <- "umbs" # adding site column
 
 #combine umbs and kbs shannon diversity measures into 1 dataframe
@@ -186,24 +185,256 @@ comp_diversity <- full_join(comp_diversity, meta, by = "plot")
 comp_diversity$simpson <- as.numeric(comp_diversity$simpson)
 comp_diversity$shannon <- as.numeric(comp_diversity$shannon)
 
+# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
+comp_diversity$year_factor[comp_diversity$year == 2015] <- 1
+comp_diversity$year_factor[comp_diversity$year == 2016] <- 2
+comp_diversity$year_factor[comp_diversity$year == 2017] <- 3
+comp_diversity$year_factor[comp_diversity$year == 2018] <- 4
+comp_diversity$year_factor[comp_diversity$year == 2019] <- 5
+comp_diversity$year_factor[comp_diversity$year == 2020] <- 6
+comp_diversity$year_factor[comp_diversity$year == 2021] <- 7
+
+comp_diversity <- comp_diversity[,c("site", "plot", "year", "year_factor", "treatment_key", "state", "insecticide", "simpson", "shannon")] #reorder columns
+
 # write a new csv with diversity indices and upload to the shared google drive L2 data folder
 write.csv(comp_diversity, file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"))
 
-# create separate data frames for kbs and umbs
+# create separate data frames for kbs and umbs sites
 kbs_diversity <- subset(comp_diversity, site == "kbs")
 umbs_diversity <- subset(comp_diversity, site == "umbs")
 ```
 
-KBS Simpson's Index
-```{r}
-#Data exploration
-hist(kbs_diversity$simpson)
-qqnorm(kbs_diversity$simpson) # this looks good
-shapiro.test(kbs_diversity$simpson) # not normal 
+Simpson's Index
+KBS
+```{r, warning=F}
+### KBS ###
+hist(kbs_diversity$simpson) # skewed to the left
+qqnorm(kbs_diversity$simpson)
+shapiro.test(kbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Exploring distributions for these slightly left-skewed data:
-descdist(kbs_diversity$simpson, discrete = FALSE) # log normal looks like a good fit
+# Visualizing plot average totals for kbs at the PLOT LEVEL
+ggplot(kbs_diversity, aes(simpson, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_diversity, aes(simpson, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(kbs_diversity, aes(simpson, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_diversity, aes(simpson, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(kbs_diversity, aes(simpson, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(kbs_diversity$simpson, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_diversity$simpson, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_diversity$simpson, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_diversity$simpson, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(kbs_diversity$simpson, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values
 ```
+UMBS
+```{r, warning=F}
+### UMBS ###
+hist(umbs_diversity$simpson) # skewed to the left
+qqnorm(umbs_diversity$simpson)
+shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing plot average totals for kbs at the PLOT LEVEL
+ggplot(umbs_diversity, aes(simpson, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_diversity, aes(simpson, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+       facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(umbs_diversity, aes(simpson, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_diversity, aes(simpson, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(umbs_diversity, aes(simpson, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(umbs_diversity$simpson, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_diversity$simpson, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_diversity$simpson, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_diversity$simpson, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(umbs_diversity$simpson, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values
+```
+
+Shannon Index
+KBS
+```{r, warning=F}
+### KBS ###
+hist(kbs_diversity$shannon) # skewed to the left
+qqnorm(kbs_diversity$shannon)
+shapiro.test(kbs_diversity$shannon) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing plot average totals for kbs at the PLOT LEVEL
+ggplot(kbs_diversity, aes(shannon, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_diversity, aes(shannon, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(kbs_diversity, aes(shannon, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_diversity, aes(shannon, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(kbs_diversity, aes(shannon, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(kbs_diversity$shannon, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_diversity$shannon, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_diversity$shannon, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_diversity$shannon, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(kbs_diversity$simpson, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values
+```
+
+UMBS
+```{r, warning=F}
+### UMBS ###
+hist(umbs_diversity$shannon) # skewed to the left
+qqnorm(umbs_diversity$shannon)
+shapiro.test(umbs_diversity$shannon) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing plot average totals for kbs at the PLOT LEVEL
+ggplot(umbs_diversity, aes(shannon, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_diversity, aes(shannon, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+       facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(umbs_diversity, aes(shannon, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_diversity, aes(shannon, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(umbs_diversity, aes(shannon, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(umbs_diversity$shannon, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_diversity$shannon, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_diversity$shannon, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_diversity$shannon, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(umbs_diversity$shannon, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values
+```
+
+# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
+# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
 
 ```{r}
 # KBS State-only model
@@ -229,7 +460,10 @@ ols_test_normality(fit_stateyear_kbs)
 #fit3 <- lm(log(simpson) ~ state + year, data = kbs_diversity)
 #interact_plot(fit3, pred = year, modx = state)
 ```
+MIXED EFFECT MODELS
 
+Simpson Index
+KBS
 ```{r}
 mod1 <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
 
@@ -316,7 +550,7 @@ plot_model(mod3, type = "re", terms = c("species"))
 summ(mod3)
 ```
 
-UMBS Simpson's Index
+UMBS
 ```{r}
 #Data exploration
 hist(umbs_diversity$simpson)
@@ -437,7 +671,7 @@ plot_model(mod5u, type = "re", terms = c("species"))
 summ(mod5u)
 ```
 
-
+Shannon Index
 
 
 
