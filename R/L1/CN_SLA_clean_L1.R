@@ -214,6 +214,8 @@ CN_2019 <- merge(CN_2019, meta, all = TRUE) #merge with meta data
 
 # Merge each years cleaned CN data - right now only have 2017 and 2019 cleaned CN data
 CN_data_cleaned <- merge(CN_2019, CN_2017, all = TRUE)
+# write a new cvs with the cleaned and merge data and upload to the shared google drive L1 folder
+write.csv(CN_data_cleaned, file.path(L1_dir, "./CN/final_CN_L1.csv"))
 
 #### Create L1 SLA data ####
 names(sla18u)
