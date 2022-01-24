@@ -28,6 +28,7 @@ library(ggpubr)
 library(rstatix)
 library(vegan)
 library(interactions)
+library(emmeans)
 library(sjPlot)
 library(effects)
 library(glmmTMB)
@@ -94,7 +95,7 @@ matrify2 <-  function(data) {
 }
 ```
 
-
+Calculating Shannon and Simpsons Diversity and Species Richness
 ```{r}
 #diversity_by_year <- function(comp, site, div_index = "shannon"){
 # subset comp data by site
@@ -127,23 +128,31 @@ plot_names <- comp_wide_by_year_umbs[[1]]$Plot
 comp_wide_by_year_kbs <- lapply(comp_wide_by_year_kbs, dplyr::select, c(-Year, -Plot))
 comp_wide_by_year_umbs <- lapply(comp_wide_by_year_umbs, dplyr::select, c(-Year, -Plot))
 
-#  apply  the diversity function to each year  - in this case the main index is plot, each year considered separately
+#  apply the diversity function to each year  - in this case the main index is plot, each year considered separately
 shannon_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "shannon")
 shannon_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "shannon")
+
 simpson_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "simpson")
 simpson_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "simpson")
+
+richness_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::specnumber) # species richness
+richness_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::specnumber) # species richness
 
 # each item in the list is a year of diversity, so name those with the years we know we have
 names(shannon_by_year_list_kbs) <- as.character(2015:2021)
 names(shannon_by_year_list_umbs) <- as.character(2015:2021)
 names(simpson_by_year_list_kbs) <- as.character(2015:2021)
 names(simpson_by_year_list_umbs) <- as.character(2015:2021)
+names(richness_by_year_list_kbs) <- as.character(2015:2021)
+names(richness_by_year_list_umbs) <- as.character(2015:2021)
 
 # "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
 shannon_kbs <- do.call(cbind,shannon_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
 shannon_umbs <- do.call(cbind,shannon_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
 simpson_kbs <- do.call(cbind,simpson_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
 simpson_umbs <- do.call(cbind,simpson_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+richness_kbs <- do.call(cbind,richness_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
+richness_umbs <- do.call(cbind,richness_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
 #  an alternative tidyverse way x<- diversity_by_year(diversity_by_year_list)
 
 ## optional step!
@@ -151,6 +160,8 @@ shannon_kbs
 shannon_umbs
 simpson_kbs
 simpson_umbs
+richness_kbs
+richness_umbs
 
 # this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
 library(reshape2)
@@ -167,15 +178,25 @@ simpson_by_plot_year_kbs$site <- "kbs" # adding site column
 simpson_by_plot_year_umbs <- reshape2::melt(simpson_umbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
 simpson_by_plot_year_umbs$site <- "umbs" # adding site column
 
+#calculate species richness
+richness_by_plot_year_kbs <- reshape2::melt(richness_kbs, id =  "Plot", variable.name = c("Year"), value.name = "richness") 
+richness_by_plot_year_kbs$site <- "kbs" # adding site column
+richness_by_plot_year_umbs <- reshape2::melt(richness_umbs, id =  "Plot", variable.name = c("Year"), value.name = "richness")
+richness_by_plot_year_umbs$site <- "umbs" # adding site column
+
 #combine umbs and kbs shannon diversity measures into 1 dataframe
 shannon_diversity <- full_join(shannon_by_plot_year_kbs, shannon_by_plot_year_umbs, by = c("Plot", "Year", "shannon", "site"))
 
 #combine umbs and kbs simpson diversity measures into 1 dataframe
 simpson_diversity <- full_join(simpson_by_plot_year_kbs, simpson_by_plot_year_umbs, by = c("Plot", "Year", "simpson", "site"))
 
+#combine umbs and kbs richness measures into 1 dataframe
+richness <- full_join(richness_by_plot_year_kbs, richness_by_plot_year_umbs, by = c("Plot", "Year", "richness", "site"))
+
 # combine simpson and shannon diversity data frames into 1
 comp_diversity <- full_join(simpson_diversity, shannon_diversity, by = c("Plot", "Year", "site"))
 # Looks like diversity and simpson diveristy measures are the same?? Need to look into this
+comp_diversity <- full_join(comp_diversity, richness, by = c("Plot", "Year", "site"))
 
 names(comp_diversity) <- tolower(names(comp_diversity)) # column names to lower case so I can combine this data frame with the meta data
 
@@ -184,6 +205,7 @@ comp_diversity <- full_join(comp_diversity, meta, by = "plot")
 
 comp_diversity$simpson <- as.numeric(comp_diversity$simpson)
 comp_diversity$shannon <- as.numeric(comp_diversity$shannon)
+comp_diversity$richness <- as.numeric(comp_diversity$richness)
 
 # adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
 comp_diversity$year_factor[comp_diversity$year == 2015] <- 1
@@ -194,13 +216,14 @@ comp_diversity$year_factor[comp_diversity$year == 2019] <- 5
 comp_diversity$year_factor[comp_diversity$year == 2020] <- 6
 comp_diversity$year_factor[comp_diversity$year == 2021] <- 7
 
-comp_diversity <- comp_diversity[,c("site", "plot", "year", "year_factor", "treatment_key", "state", "insecticide", "simpson", "shannon")] #reorder columns
+comp_diversity <- comp_diversity[,c("site", "plot", "year", "year_factor", "treatment_key", "state", "insecticide", "simpson", "shannon", "richness")] #reorder columns
 
 # write a new csv with diversity indices and upload to the shared google drive L2 data folder
 write.csv(comp_diversity, file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"))
 
 # create separate data frames for kbs and umbs sites
 kbs_diversity <- subset(comp_diversity, site == "kbs")
+kbs_diversity <- kbs_diversity[-167,] # remove this row with zero values for shannon diversity and species richness - this zero is from there not being any data in plot D5 in 2021 due to a large ground hog hole
 umbs_diversity <- subset(comp_diversity, site == "umbs")
 ```
 
@@ -268,7 +291,7 @@ hist(umbs_diversity$simpson) # skewed to the left
 qqnorm(umbs_diversity$simpson)
 shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Visualizing plot average totals for kbs at the PLOT LEVEL
+# Visualizing plot average totals for umbs at the PLOT LEVEL
 ggplot(umbs_diversity, aes(simpson, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
@@ -361,7 +384,7 @@ fit.ln <- fitdist(kbs_diversity$shannon, "lnorm")
 plot(fit.ln)
 
 # Exponential distribution is another option
-fit.exp <- fitdist(kbs_diversity$simpson, "exp")
+fit.exp <- fitdist(kbs_diversity$shannon, "exp")
 plot(fit.exp)
 
 par(mfrow=c(2,2))
@@ -373,17 +396,17 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend
 
 # Goodness of fit comparisons across fits
 gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
-# log normal distribution looks to be the best based on AIC and BIC values
+# weibull distribution looks to be the best based on AIC and BIC values
 ```
 
 UMBS
 ```{r, warning=F}
 ### UMBS ###
-hist(umbs_diversity$shannon) # skewed to the left
+hist(umbs_diversity$shannon) 
 qqnorm(umbs_diversity$shannon)
-shapiro.test(umbs_diversity$shannon) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+shapiro.test(umbs_diversity$shannon) # pvalue is > 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
 
-# Visualizing plot average totals for kbs at the PLOT LEVEL
+# Visualizing plot average totals for umbs at the PLOT LEVEL
 ggplot(umbs_diversity, aes(shannon, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
@@ -430,17 +453,132 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend
 
 # Goodness of fit comparisons across fits
 gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# weibull best distributions based on AIC and BIC values
+```
+
+Species Richness
+KBS
+```{r, warning=F}
+### KBS ###
+hist(kbs_diversity$richness) # looks pretty good
+qqnorm(kbs_diversity$richness)
+shapiro.test(kbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing plot average totals for kbs at the PLOT LEVEL
+ggplot(kbs_diversity, aes(richness, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_diversity, aes(richness, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(kbs_diversity, aes(richness, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_diversity, aes(richness, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(kbs_diversity, aes(richness, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(kbs_diversity$richness, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_diversity$richness, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_diversity$richness, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_diversity$richness, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(kbs_diversity$richness, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# weibull distribution looks to be the best based on AIC and BIC values
+```
+
+UMBS
+```{r, warning=F}
+### UMBS ###
+hist(umbs_diversity$richness) # skewed to the right
+qqnorm(umbs_diversity$richness)
+shapiro.test(umbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Visualizing plot average totals for umbs at the PLOT LEVEL
+ggplot(umbs_diversity, aes(richness, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
+
+ggplot(umbs_diversity, aes(richness, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+       facet_grid(state~year_factor, margins = TRUE, scales = "free")
+
+ggplot(umbs_diversity, aes(richness, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(umbs_diversity, aes(richness, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor)
+
+ggplot(umbs_diversity, aes(richness, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year_factor + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(umbs_diversity$richness, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_diversity$richness, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_diversity$richness, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_diversity$richness, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(umbs_diversity$richness, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
 # log normal distribution looks to be the best based on AIC and BIC values
 ```
 
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
 # These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
 
+SIMPSON
 ```{r}
 # KBS State-only model
-kbs_diversity <- kbs_diversity[-167,] # remove row with zero - won't be able to take the log of the simpson column if there is a zero in the column - this zero is from their not being any data in this plot due to a large ground hog hole
 fit_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity)
-outlierTest(fit_state_kbs) # yes row 148
+outlierTest(fit_state_kbs) # yes row 148, 145
 qqPlot(fit_state_kbs, main="QQ Plot") 
 hist(fit_state_kbs$residuals)
 leveragePlots(fit_state_kbs)
@@ -448,7 +586,7 @@ ols_test_normality(fit_state_kbs)
 
 # KBS State and year model
 fit_stateyear_kbs <- lm(log(simpson) ~ state + year, data = kbs_diversity)
-outlierTest(fit_stateyear_kbs) # no outliers
+outlierTest(fit_stateyear_kbs) # yes, row 148
 qqPlot(fit_stateyear_kbs, main="QQ Plot") 
 hist(fit_stateyear_kbs$residuals)
 leveragePlots(fit_stateyear_kbs)
@@ -456,14 +594,134 @@ ols_test_normality(fit_stateyear_kbs)
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-# I can't get these to work
-#fit3 <- lm(log(simpson) ~ state + year, data = kbs_diversity)
-#interact_plot(fit3, pred = year, modx = state)
-```
-MIXED EFFECT MODELS
+fit3 <- lm(log(simpson) ~ state + year_factor, data = kbs_diversity)
+interact_plot(fit3, pred = year_factor, modx = state)
 
-Simpson Index
-KBS
+```
+```{r}
+# UMBS State-only model
+fit_state_umbs <- lm(log(simpson) ~ state, data = umbs_diversity)
+outlierTest(fit_state_umbs) # yes, row 202
+qqPlot(fit_state_umbs, main="QQ Plot") 
+hist(fit_state_umbs$residuals)
+leveragePlots(fit_state_umbs)
+ols_test_normality(fit_state_umbs)
+
+# UMBS State and year model
+fit_stateyear_umbs <- lm(log(simpson) ~ state + year, data = umbs_diversity)
+outlierTest(fit_stateyear_kbs) # row 48
+qqPlot(fit_stateyear_umbs, main="QQ Plot") 
+hist(fit_stateyear_umbs$residuals)
+leveragePlots(fit_stateyear_umbs)
+ols_test_normality(fit_stateyear_umbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(log(simpson) ~ state + year, data = umbs_diversity)
+#interact_plot(fit3, pred = year_factor, modx = state)
+```
+
+SHANNON
+```{r}
+# KBS State-only model
+fit_state_kbs_shannon <- lm(log(shannon) ~ state, data = kbs_diversity)
+outlierTest(fit_state_kbs_shannon) # yes row 148
+qqPlot(fit_state_kbs_shannon, main="QQ Plot") 
+hist(fit_state_kbs_shannon$residuals)
+leveragePlots(fit_state_kbs_shannon)
+ols_test_normality(fit_state_kbs_shannon)
+
+# KBS State and year model
+fit_stateyear_kbs_shannon <- lm(log(shannon) ~ state + year, data = kbs_diversity)
+outlierTest(fit_stateyear_kbs_shannon) # no outliers
+qqPlot(fit_stateyear_kbs_shannon, main="QQ Plot") 
+hist(fit_stateyear_kbs_shannon$residuals)
+leveragePlots(fit_stateyear_kbs_shannon)
+ols_test_normality(fit_stateyear_kbs_shannon)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(log(shannon) ~ state + year_factor, data = kbs_diversity)
+interact_plot(fit3, pred = year_factor, modx = state)
+```
+
+```{r}
+# UMBS State-only model
+fit_state_umbs_shannon <- lm(shannon ~ state, data = umbs_diversity)
+outlierTest(fit_state_umbs_shannon) # no outliers
+qqPlot(fit_state_umbs_shannon, main="QQ Plot") 
+hist(fit_state_umbs_shannon$residuals)
+leveragePlots(fit_state_umbs_shannon)
+ols_test_normality(fit_state_umbs_shannon)
+
+# UMBS State and year model
+fit_stateyear_umbs_shannon <- lm(shannon ~ state + year, data = umbs_diversity)
+outlierTest(fit_stateyear_umbs_shannon) # no outliers
+qqPlot(fit_stateyear_umbs_shannon, main="QQ Plot") 
+hist(fit_stateyear_umbs_shannon$residuals)
+leveragePlots(fit_stateyear_umbs_shannon)
+ols_test_normality(fit_stateyear_umbs_shannon)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(shannon ~ state + year_factor, data = umbs_diversity)
+interact_plot(fit3, pred = year_factor, modx = state)
+```
+RICHNESS
+```{r}
+# KBS State-only model
+fit_state_kbs_richness <- lm(log(richness) ~ state, data = kbs_diversity)
+outlierTest(fit_state_kbs_richness) # yes row 67
+qqPlot(fit_state_kbs_richness, main="QQ Plot") 
+hist(fit_state_kbs_richness$residuals)
+leveragePlots(fit_state_kbs_richness)
+ols_test_normality(fit_state_kbs_richness)
+
+# KBS State and year model
+fit_stateyear_kbs_richness <- lm(log(richness) ~ state + year, data = kbs_diversity)
+outlierTest(fit_stateyear_kbs_richness) # no outliers
+qqPlot(fit_stateyear_kbs_richness, main="QQ Plot") 
+hist(fit_stateyear_kbs_richness$residuals)
+leveragePlots(fit_stateyear_kbs_richness)
+ols_test_normality(fit_stateyear_kbs_richness)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(log(shannon) ~ state + year_factor, data = kbs_diversity)
+interact_plot(fit3, pred = year_factor, modx = state)
+```
+
+```{r}
+# UMBS State-only model
+fit_state_umbs_richness <- lm(log(richness) ~ state, data = umbs_diversity)
+outlierTest(fit_state_umbs_richness) # no outliers
+qqPlot(fit_state_umbs_richness, main="QQ Plot") 
+hist(fit_state_umbs_richness$residuals)
+leveragePlots(fit_state_umbs_richness)
+ols_test_normality(fit_state_umbs_richness)
+
+# UMBS State and year model
+fit_stateyear_umbs_richness <- lm(log(richness) ~ state + year, data = umbs_diversity)
+outlierTest(fit_stateyear_umbs_richness) # no outliers
+qqPlot(fit_stateyear_umbs_richness, main="QQ Plot") 
+hist(fit_stateyear_umbs_richness$residuals)
+leveragePlots(fit_stateyear_umbs_richness)
+ols_test_normality(fit_stateyear_umbs_richness)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(log(richness) ~ state + year_factor, data = umbs_diversity)
+interact_plot(fit3, pred = year_factor, modx = state)
+```
+
+MIXED EFFECT MODELS
+SIMPSON
+KBS 
 ```{r}
 mod1 <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
 
@@ -479,7 +737,7 @@ plot(mod1)
 leveneTest(residuals(mod1) ~ kbs_diversity$state)
 # Assumption not met
 leveneTest(residuals(mod1) ~ kbs_diversity$insecticide) 
-# Assumption not met 
+# Assumption met 
 leveneTest(residuals(mod1) ~ kbs_diversity$plot)
 # Assumption not met
 
@@ -487,8 +745,8 @@ leveneTest(residuals(mod1) ~ kbs_diversity$plot)
 # Check for normal residuals
 qqPlot(resid(mod1))
 hist(residuals(mod1))
-shapiro.test(resid(mod1)) # ormally distributed resids bc p>0.05
-outlierTest(mod1) # no outliers
+shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
+outlierTest(mod1) # row 148
 
 # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
 require(lme4)
@@ -500,7 +758,7 @@ shapiro.test(r_int)
 ```
 
 ```{r}
-# Do we need to include plot as a random effect with the UMBS models?   
+# Do we need to include plot as a random effect with the KBS models?   
 mod1 <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
 mod2 <- lmer(log(simpson) ~ state*year + insecticide + year + (1|plot), kbs_diversity, REML=FALSE)
 # Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
@@ -539,52 +797,13 @@ plot_model(mod3, type = "pred", terms = c("year", "state"))
 # these are the random effects estimates
 plot_model(mod3, type = "re", terms = c("species"))
 
-# If we wanted to include plots nested within year it would look like this:
-# mod6 <- lmer(log(simpson) ~ state + year + insecticide*year + (1 + year|plot), kbs_diversity, REML=FALSE)
-# anova(mod5, mod6)
-# anova(mod5)
-# cant get mod6 to work
-
 # the best model fit appears to be = 
 # mod3 <- lmer(log(simpson) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
 summ(mod3)
+emmeans(mod3, list(pairwise ~ state + year + insecticide*year), adjust = "tukey")
 ```
 
 UMBS
-```{r}
-#Data exploration
-hist(umbs_diversity$simpson)
-qqnorm(umbs_diversity$simpson) # this looks good
-shapiro.test(umbs_diversity$simpson) # not normal 
-
-# Exploring distributions for these slightly left-skewed data:
-descdist(umbs_diversity$simpson, discrete = FALSE) # i think we can assume normality with umbs_diversity
-```
-
-```{r}
-# UMBS State-only model
-fit_state_umbs <- lm(log(simpson) ~ state, data = umbs_diversity)
-outlierTest(fit_state_umbs) # no outliers
-qqPlot(fit_state_umbs, main="QQ Plot") 
-hist(fit_state_umbs$residuals)
-leveragePlots(fit_state_umbs)
-ols_test_normality(fit_state_umbs)
-
-# UMBS State and year model
-fit_stateyear_umbs <- lm(log(simpson) ~ state + year, data = umbs_diversity)
-outlierTest(fit_stateyear_kbs) # no outliers
-qqPlot(fit_stateyear_umbs, main="QQ Plot") 
-hist(fit_stateyear_umbs$residuals)
-leveragePlots(fit_stateyear_umbs)
-ols_test_normality(fit_stateyear_umbs)
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-# I can't get these to work
-fit3 <- lm(log(simpson) ~ state + year, data = umbs_diversity)
-# interact_plot(fit3, pred = year, modx = state)
-```
-
 ```{r}
 mod1u <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
 
@@ -598,7 +817,7 @@ plot(mod1u)
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
 leveneTest(residuals(mod1u) ~ umbs_diversity$state)
-# Assumption
+# Assumption met
 leveneTest(residuals(mod1u) ~ umbs_diversity$insecticide) 
 # Assumption not met 
 leveneTest(residuals(mod1u) ~ umbs_diversity$plot)
@@ -609,7 +828,7 @@ leveneTest(residuals(mod1u) ~ umbs_diversity$plot)
 qqPlot(resid(mod1u))
 hist(residuals(mod1u))
 shapiro.test(resid(mod1u)) # not normally distributed resids bc p<0.05
-outlierTest(mod1u) # no outliers
+outlierTest(mod1u) # row 202
 
 # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
 require(lme4)
@@ -619,7 +838,7 @@ qqline(r_int_u)
 shapiro.test(r_int_u) 
 # Normally distributed random effect pvalue > 0.05
 ```
-
+UMBS
 ```{r}
 # Do we need to include plot as a random effect with the UMBS models?   
 mod1u <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
@@ -642,9 +861,8 @@ plot_model(mod2u, type = "pred", terms = c("year", "state", "insecticide"))
 plot_model(mod2u, type = "re", terms = c("species"))
 
 # Does year need to be interactive with state?
-mod3u <- lmer(log(simpson) ~ state + year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
+mod3u <- lmer(log(simpson) ~ state + insecticide + year + (1|plot), umbs_diversity, REML = FALSE)
 anova(mod2u, mod3u)
-
 AICctab(mod1u, mod3u, weights=T) # going with mod3u
 
 # Do we need to include insecticide? (dropping insecticide from the model)
@@ -667,11 +885,221 @@ plot_model(mod5u, type = "re", terms = c("species"))
 # cant get mod6 to work
 
 # the best model fit appears to be = 
-# mod5u <- lmer(log(simpson) ~ state + year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
+# mod5u <- lmer(log(simpson) ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
 summ(mod5u)
+emmeans(mod5u, list(pairwise ~ state + year), adjust = "tukey")
 ```
 
-Shannon Index
+SHANNON
+KBS 
+```{r}
+# Do we need to include plot as a random effect with the KBS models?   
+mod1ks <- lmer(log(shannon) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
+mod2ks <- lmer(log(shannon) ~ state*year + insecticide + year + (1|plot), kbs_diversity, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anova on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1ks)
+anova(mod2ks)
+
+anova(mod1ks, mod2ks) # Go with model 1 since pvalue <0.05, aka more complex model does have something in it that matters
+summary(mod1ks)
+summary(mod2ks)
+AICctab(mod1ks, mod2ks, weights=T) # model 1
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod1)
+plot_model(mod1ks, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod1ks, type = "pred", terms = c("year", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod1ks, type = "re", terms = c("species"))
+
+# Does year need to be interactive with state?
+mod3ks <- lmer(log(shannon) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
+anova(mod2ks, mod3ks)
+
+AICctab(mod1ks, mod3ks, weights=T) # going with mod3
+
+# Do we need to include insecticide? (dropping insecticide from the model)
+mod5ks <- lmer(log(shannon) ~ state + year + (1|plot), kbs_diversity, REML = FALSE)
+anova(mod3ks, mod5ks)
+# Yes, p<0.05 so insecticide*year does strongly improve model fit so we will stick with the more complex mod3
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod3ks, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod3ks, type = "pred", terms = c("year", "state"))
+# these are the random effects estimates
+plot_model(mod3ks, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+# mod6ks <- lmer(log(shannon) ~ state + year + insecticide*year + (1 + year|plot), kbs_diversity, REML=FALSE)
+# anova(mod5ks, mod6ks)
+# anova(mod5ks)
+# cant get mod6 to work
+
+# the best model fit appears to be = 
+# mod3ks <- lmer(log(shannon) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
+summ(mod3ks)
+emmeans(mod3ks, list(pairwise ~ state + year + insecticide*year), adjust = "tukey")
+```
+
+UMBS
+```{r}
+# Do we need to include plot as a random effect with the UMBS models?   
+mod1us <- lmer(shannon ~ state*year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
+mod2us <- lmer(shannon ~ state*year + insecticide + year + (1|plot), umbs_diversity, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1us)
+anova(mod2us)
+anova(mod1us, mod2us) # Go with model 2 since pvalue >0.05, aka more complex model does not have something in it that matters
+summary(mod1us)
+summary(mod2us)
+AICctab(mod1us, mod2us, weights=T) # model 1
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod1)
+plot_model(mod2us, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod2us, type = "pred", terms = c("year", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod2us, type = "re", terms = c("species"))
+
+# Does year need to be interactive with state?
+mod3us <- lmer(shannon ~ state + year + insecticide + (1|plot), umbs_diversity, REML = FALSE)
+anova(mod2us, mod3us)
+
+AICctab(mod1us, mod3us, weights=T) # going with mod3
+
+# Do we need to include insecticide? (dropping insecticide from the model)
+mod5us <- lmer(shannon ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
+anova(mod3us, mod5us)
+# No p>0.05 so insecticide does not strongly improve model fit so we will go with model 5
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod5us, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod5us, type = "pred", terms = c("year", "state"))
+# these are the random effects estimates
+plot_model(mod5us, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+# mod6us <- lmer(log(shannon) ~ state + year + insecticide*year + (1 + year|plot), umbs_diversity, REML=FALSE)
+# anova(mod5us, mod6us)
+# anova(mod5us)
+# cant get mod6 to work
+
+# the best model fit appears to be = 
+# mod5us <- lmer(shannon ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
+summ(mod5us)
+emmeans(mod5us, list(pairwise ~ state + year), adjust = "tukey")
+```
+
+RICHNESS
+KBS 
+```{r}
+# Do we need to include plot as a random effect with the UMBS models?   
+mod1kr <- lmer(log(richness) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
+mod2kr <- lmer(log(richness) ~ state*year + insecticide + year + (1|plot), kbs_diversity, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1kr)
+anova(mod2kr)
+anova(mod1kr, mod2kr) # Go with model 1 since pvalue <0.05, aka more complex model does have something in it that matters
+summary(mod1kr)
+summary(mod2kr)
+AICctab(mod1kr, mod2kr, weights=T) # model 1
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod1)
+plot_model(mod1kr, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod1kr, type = "pred", terms = c("year", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod1kr, type = "re", terms = c("species"))
+
+# Does year need to be interactive with state?
+mod3kr <- lmer(log(richness) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
+anova(mod1kr, mod3kr) # go with less complex model
+AICctab(mod1kr, mod3kr, weights=T) # going with mod3
+
+# Do we need to include insecticide? (dropping insecticide from the model)
+mod5kr <- lmer(log(richness) ~ state + year + (1|plot), kbs_diversity, REML = FALSE)
+anova(mod3kr, mod5kr)
+# Yes, p<0.05 so insecticide*year does strongly improve model fit so we will stick with the more complex mod3
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod3kr, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod3kr, type = "pred", terms = c("year", "state"))
+# these are the random effects estimates
+plot_model(mod3kr, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+# mod6ks <- lmer(log(richness) ~ state + year + insecticide*year + (1 + year|plot), kbs_diversity, REML=FALSE)
+# anova(mod5kr, mod6kr)
+# anova(mod5kr)
+# cant get mod6 to work
+
+# the best model fit appears to be = 
+# mod3kr <- lmer(log(richness) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
+summ(mod3kr)
+emmeans(mod3kr, list(pairwise ~ state + year + insecticide*year), adjust = "tukey")
+```
+
+UMBS 
+```{r}
+# Do we need to include plot as a random effect with the UMBS models?   
+mod1ur <- lmer(log(richness) ~ state*year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
+mod2ur <- lmer(log(richness) ~ state*year + insecticide + year + (1|plot), umbs_diversity, REML=FALSE)
+# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
+anova(mod1ur)
+anova(mod2ur)
+anova(mod1ur, mod2ur) # Go with model 2 since pvalue >0.05, aka more complex model does not have something in it that matters
+summary(mod1ur)
+summary(mod2ur)
+AICctab(mod1ur, mod2ur, weights=T) # model 2
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod1)
+plot_model(mod2ur, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod2ur, type = "pred", terms = c("year", "state", "insecticide"))
+# these are the random effects estimates
+plot_model(mod2ur, type = "re", terms = c("species"))
+
+# Does year need to be interactive with state?
+mod3ur <- lmer(log(richness) ~ state + year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
+anova(mod2ur, mod3ur)
+AICctab(mod1ur, mod3ur, weights=T) # going with mod3
+
+# Do we need to include insecticide? (dropping insecticide from the model)
+mod5ur <- lmer(log(richness) ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
+anova(mod3ur, mod5ur)
+# p>0.05 so insecticide*year does not strongly improve model fit so we will go with mod5
+
+# Plot the fixed effects estimates for different models
+# these are the fixed effects estimates from summary(mod5)
+plot_model(mod5ur, sort.est = TRUE)
+# these are the fixed predicted values:
+plot_model(mod5ur, type = "pred", terms = c("year", "state"))
+# these are the random effects estimates
+plot_model(mod5ur, type = "re", terms = c("species"))
+
+# If we wanted to include plots nested within year it would look like this:
+# mod6us <- lmer(log(richness) ~ state + year + insecticide*year + (1 + year|plot), umbs_diversity, REML=FALSE)
+# anova(mod5ur, mod6ur)
+# anova(mod5ur)
+# cant get mod6 to work
+
+# the best model fit appears to be = 
+# mod5ur <- lmer(log(richness) ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
+summ(mod5ur)
+emmeans(mod5ur, list(pairwise ~ state + year), adjust = "tukey")
+```
+
+
 
 
 
@@ -760,13 +1188,4 @@ diversity_kbs$site <- "kbs" #add site column
 
 diversity_umbs <- left_join(peak_shannon_by_plot_year_umbs, peak_simpson_by_plot_year_umbs)
 diversity_umbs$site <- "umbs" #add site column
-```
-
-Calculating Diversity Indices
-```{r, eval=FALSE}
-# species richness
-sppr <- specnumber(comp1_wide)
-
-sppr_aov <- aov(sppr ~ state, data = meta)
-summary(sppr_aov)
 ```

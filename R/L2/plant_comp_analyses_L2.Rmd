@@ -87,7 +87,6 @@ comp_kbs_spp <- subset(comp_species, site == "kbs")
 comp_umbs_spp <- subset(comp_species, site == "umbs")
 comp_umbs_spp <- subset(comp_umbs_spp, year_factor!="7") # delete 2021 data from umbs dataframe (doesn't make sense to have bc data was not collect at same frequency as previous years)
 
-
 # create dataframes for kbs and umbs
 comp_kbs_plot <- subset(comp_plot, site == "kbs")
 comp_umbs_plot <- subset(comp_plot, site == "umbs")
@@ -881,7 +880,7 @@ anova(mod17p)
 emmeans(mod17p, list(pairwise ~ state + growth_habit + year_factor), adjust = "tukey")
 ```
 
-UMBS species level mixed effects models
+UMBS Species Level Mixed Effects Models
 ```{r, error=TRUE}
 # UMBS SPECIES LEVEL - Looking at RELATIVE ABUNDANCE
 mod1u <- lmer(log(relabun) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), comp_umbs_spp, REML = FALSE)
@@ -1054,7 +1053,7 @@ AICctab(mod1u, mod2u, mod3u, mod5u, mod6u, mod7u, mod7au, mod7bu, mod7cu, mod8u,
 summary(mod7au)
 anova(mod7au)
 ```
-# UBS Plot-level Mixed Effects Models:
+# UMBS Plot-level Mixed Effects Models:
 ```{r, error=TRUE}
 mod1pu <- lmer(log(plot_cover_avg) ~ state + (1|plot), comp_umbs_plot, REML=FALSE)
 mod2pu <- lmer(log(plot_cover_avg) ~ insecticide + (1|plot), comp_umbs_plot, REML=FALSE)
