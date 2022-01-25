@@ -25,9 +25,19 @@ str(herb) # for some reason, date column converted back to character
 herb$date <- as.Date(herb$date,format="%Y-%m-%d")
 str(herb)
 
+# making site names capital for cleaner plots
+change_site <- function(df){
+        df$site[df$site == "umbs"] <- "UMBS"
+        df$site[df$site == "kbs"] <- "KBS"
+        return(df)
+}
+herb <- change_site(herb)
+
+# clean insecticide labels for plotting
+insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 
 
-#### Total herb by site and species w/o insecticide treatment####
+#### Total herb by site and year w/o insecticide treatment####
 sum_herb_in <- herb %>%
   group_by(site, state, insecticide, year) %>%
   summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
@@ -46,14 +56,15 @@ herb_plot_in <- function(loc) {
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-herb_u <- herb_plot_in("umbs")
-herb_k <- herb_plot_in("kbs")
+herb_u <- herb_plot_in("UMBS")
+herb_k <- herb_plot_in("KBS")
 
-final_herb <- ggarrange(herb_k, herb_u, nrow = 2, common.legend = T, legend = "right")
+final_herb <- ggarrange(herb_k, herb_u, nrow = 2,legend = "none")
+png("herbivory_plots_L2_yearly_barplot.png", units="in", width=8, height=8, res=300)
 annotate_figure(final_herb,
-                left = text_grob("Average Percent of Leaf Eaten", color = "black", rot = 90),
-                bottom = text_grob("State", color = "black"))
-
+                left = text_grob("Amount of leaf eaten (%)", color = "black", rot = 90),
+                bottom = text_grob("Treatment", color = "black"))
+dev.off()
 
 ### Overall averages btwn treatments - boxplot
 herb_overall <- function(loc) { 
@@ -111,6 +122,34 @@ ggplot(sum_herb_overall, aes(x = state, y = avg_eaten, fill = state)) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
 #dev.off()
+
+
+### Overall average - with insecticide ###
+sum_herb_overall2 <- herb %>%
+        group_by(site, state, insecticide) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+herb_insect_overall <- function(loc) { 
+        herb_plot <- subset(sum_herb_overall2, site == loc)
+        return(ggplot(herb_plot, aes(x = state, y = avg_eaten, fill = state)) +
+        facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = NULL, y = NULL, title=loc) +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        theme_classic())
+}
+herb_insect_overall_umbs <- herb_insect_overall("UMBS")
+herb_insect_overall_kbs <- herb_insect_overall("KBS")
+herb_insect_overall_comb<- ggarrange(herb_insect_overall_kbs, herb_insect_overall_umbs,
+                         nrow = 2, common.legend = T, legend="none")
+png("herbivory_plots_L2_overall.png", units="in", width=8, height=8, res=300)
+annotate_figure(herb_insect_overall_comb,
+                left = text_grob("Amount of leaf eaten (%)", color = "black", rot = 90),
+                bottom = text_grob("Treatment", color = "black"))
+dev.off()
 
 ### Overall average - boxplot ###
 herb2 <- subset(herb2, insecticide == "insects")
