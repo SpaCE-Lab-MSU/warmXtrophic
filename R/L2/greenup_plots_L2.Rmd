@@ -218,7 +218,7 @@ greenup_overall_plot2 <- function(loc) {
   return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date, fill=state)) +
            facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
            geom_boxplot(outlier.shape=NA, alpha=0.7) +
-           geom_jitter(aes(alpha=0.8, color=state, fill=state)) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
            labs(x = NULL, y = "Green-up median julian date", title = loc) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
@@ -237,7 +237,7 @@ flwr_overall_plot <- function(loc) {
   return(ggplot(flower_plot, aes(x = state, y = julian_median, fill=state)) +
            facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
            geom_boxplot(outlier.shape=NA, alpha=0.7) +
-           geom_jitter(aes(alpha=0.8, color=state, fill=state)) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
            labs(x = NULL, y = "Flower median julian date") +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
@@ -271,7 +271,7 @@ sd_overall_plot <- function(loc) {
   return(ggplot(seed_plot, aes(x = state, y = julian_min, fill=state)) +
            facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
            geom_boxplot(outlier.shape=NA, alpha=0.7) +
-           geom_jitter(aes(alpha=0.8, color=state, fill=state)) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
            labs(x = NULL, y = "Seed set minimum julian date") +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
@@ -287,11 +287,11 @@ phen_overall <- ggpubr::ggarrange(plot_overall_kbs2, plot_overall_umbs2,
                           flwr_overall_kbs, flwr_overall_umbs,
                           sd_overall_kbs, sd_overall_umbs,
                           nrow = 3, ncol = 2, legend="none")
-#png("greenup_plots_L2_all_phenology.png", units="in", width=8, height=8, res=300)
+png("greenup_plots_L2_all_phenology.png", units="in", width=8, height=8, res=300)
 annotate_figure(phen_overall,
                 left = text_grob("Phenological event", color = "black", rot = 90),
                 bottom = text_grob("Treatment", color = "black"))
-#dev.off()
+dev.off()
 ```
 
 ## Combining greenup, flower, and seed into one figure - plot level
