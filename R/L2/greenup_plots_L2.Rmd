@@ -217,30 +217,38 @@ greenup_overall_plot2 <- function(loc) {
   greenup_plot <- subset(gr_plot, site == loc)
   return(ggplot(greenup_plot, aes(x = state, y = plot_half_cover_date, fill=state)) +
            facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
-           geom_boxplot() +
+           geom_boxplot(outlier.shape=NA, alpha=0.7) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state)) +
            labs(x = NULL, y = "Green-up median julian date", title = loc) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
            theme_classic()) +
           theme(text = element_text(family="AvantGarde")) # doesn't work
 }
 plot_overall_kbs2 <- greenup_overall_plot2("KBS")
+plot_overall_kbs2 <- plot_overall_kbs2 + theme(axis.text.x=element_blank())
 plot_overall_umbs2 <- greenup_overall_plot2("UMBS")
+plot_overall_umbs2 <- plot_overall_umbs2 + labs(y=NULL) + theme(axis.text.x=element_blank())
 
 # flower plots
 flwr_overall_plot <- function(loc) { 
   flower_plot <- subset(flwr_plot, site == loc)
   return(ggplot(flower_plot, aes(x = state, y = julian_median, fill=state)) +
            facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
-           geom_boxplot() +
+           geom_boxplot(outlier.shape=NA, alpha=0.7) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state)) +
            labs(x = NULL, y = "Flower median julian date") +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
            theme_classic()) +
           theme(text = element_text(family="AvantGarde")) # doesn't work
 }
 flwr_overall_kbs <- flwr_overall_plot("KBS")
+flwr_overall_kbs <- flwr_overall_kbs + theme(axis.text.x=element_blank())
 flwr_overall_umbs <- flwr_overall_plot("UMBS")
+flwr_overall_umbs <- flwr_overall_umbs + labs(y=NULL) + theme(axis.text.x=element_blank())
 
 # flower duration plots - not including this in final plot for now since idk if its in our analyses
 flwr_dur_plot <- function(loc) { 
@@ -262,8 +270,10 @@ sd_overall_plot <- function(loc) {
   seed_plot <- subset(sd_plot, site == loc)
   return(ggplot(seed_plot, aes(x = state, y = julian_min, fill=state)) +
            facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
-           geom_boxplot(color = "black") +
+           geom_boxplot(outlier.shape=NA, alpha=0.7) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state)) +
            labs(x = NULL, y = "Seed set minimum julian date") +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
            theme_classic()) +
@@ -271,8 +281,9 @@ sd_overall_plot <- function(loc) {
 }
 sd_overall_kbs <- sd_overall_plot("KBS")
 sd_overall_umbs <- sd_overall_plot("UMBS")
+sd_overall_umbs <- sd_overall_umbs + labs(y=NULL)
 
-phen_overall <- ggarrange(plot_overall_kbs2, plot_overall_umbs2,
+phen_overall <- ggpubr::ggarrange(plot_overall_kbs2, plot_overall_umbs2,
                           flwr_overall_kbs, flwr_overall_umbs,
                           sd_overall_kbs, sd_overall_umbs,
                           nrow = 3, ncol = 2, legend="none")
