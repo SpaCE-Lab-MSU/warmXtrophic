@@ -8,7 +8,7 @@ editor_options:
 ---
 
 COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills, Kara Dobson  
-DATA INPUT: Plant composition diversity from warmX Google drive L2 folder
+DATA INPUT: Plant composition diversity measures from warmX Google drive L2 folder
 DATA OUTPUT: Plots of Plant composition diversity at KBS and UMBS - Rmd and PDF located in Github folder
 PROJECT: warmXtrophic
 
@@ -93,6 +93,14 @@ diversity <- change_site(diversity)
 sum_shannon <- change_site(sum_shannon)
 sum_simpson <- change_site(sum_simpson)
 sum_richness <- change_site(sum_richness)
+
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 13),
+             axis.text.y = element_text(size = 16),
+             axis.title = element_text(size=16,face="bold"))
 ```
 
 ```{r, echo=F}
@@ -104,12 +112,11 @@ shannon_overall_plot <- function(loc) {
                  facet_grid(.~year) +
            geom_boxplot(outlier.shape=NA, alpha=0.7) +
            geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
-           labs(x = NULL, y = "Shannon Diversity", title = loc) +
+           labs(x = NULL, y = "Shannon", title = loc) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic()) +
-          theme(text = element_text(family="AvantGarde")) # doesn't work
+            theme_classic())
 }
 
 shannon_overall_kbs <- shannon_overall_plot("KBS")
@@ -125,12 +132,11 @@ simpson_overall_plot <- function(loc) {
                  facet_grid(.~year) +
            geom_boxplot(outlier.shape=NA, alpha=0.7) +
            geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
-           labs(x = NULL, y = "Simpson Diversity", title = loc) +
+           labs(x = NULL, y = "Simpson", title = loc) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic()) +
-          theme(text = element_text(family="AvantGarde")) # doesn't work
+           theme_classic())
 }
 
 simpson_overall_kbs <- simpson_overall_plot("KBS")
@@ -150,8 +156,7 @@ richness_overall_plot <- function(loc) {
            scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic()) +
-          theme(text = element_text(family="AvantGarde")) # doesn't work
+            theme_classic())
 }
 
 richness_overall_kbs <- richness_overall_plot("KBS")
@@ -164,10 +169,10 @@ diversity_overall_boxplot <- ggpubr::ggarrange(shannon_overall_kbs, shannon_over
                           richness_overall_kbs, richness_overall_umbs,
                           nrow = 3, ncol = 2, legend="none")
 diversity_overall_boxplot
-png("diversity_plots_L2_all_diversity_measures_boxplot.png", units="in", width=8, height=8, res=300)
+png("plant_comp_diversity_plots_L2_all_diversity_boxplot.png", units="in", width=8, height=8, res=300)
 annotate_figure(diversity_overall_boxplot,
-                left = text_grob("Diversity", color = "black", rot = 90),
-                bottom = text_grob("Treatment", color = "black"))
+                left = text_grob("Ecological Diversity Indices", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
 dev.off()
 ```
 
@@ -183,8 +188,7 @@ shannon_overall_plot <- function(loc) {
                  geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
-           labs(x = NULL, y = "Shannon Diversity", title = loc) +
-           theme_classic())
+           labs(x = NULL, y = "Shannon", title = loc))
 }
 
 shannon_overall_kbs <- shannon_overall_plot("KBS")
@@ -200,8 +204,7 @@ simpson_overall_plot <- function(loc) {
                  geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
-           labs(x = NULL, y = "Simpson's Diversity", title = loc) +
-           theme_classic())
+           labs(x = NULL, y = "Simpson", title = loc))
 }
 
 simpson_overall_kbs <- simpson_overall_plot("KBS")
@@ -217,8 +220,7 @@ richness_overall_plot <- function(loc) {
                  geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
-           labs(x = NULL, y = "Species Richness", title = loc) +
-           theme_classic())
+           labs(x = NULL, y = "Species Richness", title = loc))
 }
 
 richness_overall_kbs <- richness_overall_plot("KBS")
@@ -231,10 +233,10 @@ diversity_overall_line <- ggpubr::ggarrange(shannon_overall_kbs, shannon_overall
                           richness_overall_kbs, richness_overall_umbs,
                           nrow = 3, ncol = 2, legend="none")
 diversity_overall_line
-png("diversity_plots_L2_all_diversity_measures_lineplot.png", units="in", width=8, height=8, res=300)
+png("plant_comp_diversity_plots_L2_all_diversity_lineplot.png", units="in", width=10, height=10, res=300)
 annotate_figure(diversity_overall_line,
-                left = text_grob("Diversity", color = "black", rot = 90),
-                bottom = text_grob("Treatment", color = "black"))
+                left = text_grob("Ecological Diversity Indices", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
 dev.off()
 ```
 
