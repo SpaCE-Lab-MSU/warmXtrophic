@@ -60,26 +60,35 @@ herb_u <- herb_plot_in("UMBS")
 herb_k <- herb_plot_in("KBS")
 
 final_herb <- ggarrange(herb_k, herb_u, nrow = 2,legend = "none")
-png("herbivory_plots_L2_yearly_barplot.png", units="in", width=8, height=8, res=300)
+#png("herbivory_plots_L2_yearly_barplot.png", units="in", width=8, height=8, res=300)
 annotate_figure(final_herb,
                 left = text_grob("Amount of leaf eaten (%)", color = "black", rot = 90),
                 bottom = text_grob("Treatment", color = "black"))
-dev.off()
+#dev.off()
 
 ### Overall averages btwn treatments - boxplot
 herb_overall <- function(loc) { 
         herb_plot <- subset(herb, site == loc)
         return(ggplot(herb_plot, aes(x = state, y = p_eaten, fill=state)) +
-                       facet_wrap(~insecticide,nrow=1) +
-                       geom_boxplot(color = "black") +
+                       facet_wrap(~insecticide, labeller = as_labeller(insect_labels)) +
+                       geom_boxplot(outlier.shape=NA, alpha=0.7) +
+                       geom_jitter(aes(alpha=0.6, color=state, fill=state), shape=16, size=2) +
                        labs(x = NULL, y = NULL, title = loc) +
+                       scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
                        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-                       scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        ylim(0,10) +
                        theme_classic())
 }
-herb_overall("kbs")
-herb_overall("umbs")
+herb_overall_kbs <- herb_overall("KBS")
+herb_overall_umbs <- herb_overall("UMBS")
+herb_overall_comb <- ggpubr::ggarrange(herb_overall_kbs, herb_overall_umbs,
+                                     nrow = 2, common.legend = T, legend="none")
+png("herbivory_plots_L2_boxplot_overall.png", units="in", width=8, height=8, res=300)
+annotate_figure(herb_overall_comb,
+                left = text_grob("Amount of leaf eaten (%)", color = "black", rot = 90),
+                bottom = text_grob("Treatment", color = "black"))
+dev.off()
 
 
 ### Overall averages - violin plot
@@ -94,8 +103,8 @@ herb_violin <- function(loc) {
                        theme_classic() +
                        coord_flip())
 }
-herb_violin_kbs <- herb_violin("kbs")
-herb_violin_umbs <- herb_violin("umbs")
+herb_violin_kbs <- herb_violin("KBS")
+herb_violin_umbs <- herb_violin("UMBS")
 herb_violin <- ggarrange(herb_violin_kbs, herb_violin_umbs,
                          ncol = 2, common.legend = T, legend="right")
 #png("herbivory_plots_L2_violin.png", units="in", width=8, height=8, res=300)
@@ -145,11 +154,11 @@ herb_insect_overall_umbs <- herb_insect_overall("UMBS")
 herb_insect_overall_kbs <- herb_insect_overall("KBS")
 herb_insect_overall_comb<- ggarrange(herb_insect_overall_kbs, herb_insect_overall_umbs,
                          nrow = 2, common.legend = T, legend="none")
-png("herbivory_plots_L2_overall.png", units="in", width=8, height=8, res=300)
+#png("herbivory_plots_L2_overall.png", units="in", width=8, height=8, res=300)
 annotate_figure(herb_insect_overall_comb,
                 left = text_grob("Amount of leaf eaten (%)", color = "black", rot = 90),
                 bottom = text_grob("Treatment", color = "black"))
-dev.off()
+#dev.off()
 
 ### Overall average - boxplot ###
 herb2 <- subset(herb2, insecticide == "insects")
