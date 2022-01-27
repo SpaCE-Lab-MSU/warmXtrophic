@@ -167,7 +167,7 @@ richness_overall_umbs <- richness_overall_umbs + labs(y = NULL, title = NULL)
 diversity_overall_boxplot <- ggpubr::ggarrange(shannon_overall_kbs, shannon_overall_umbs,
                           simpson_overall_kbs, simpson_overall_umbs,
                           richness_overall_kbs, richness_overall_umbs,
-                          nrow = 3, ncol = 2, legend="none")
+                          nrow = 3, ncol = 2, legend = "none")
 diversity_overall_boxplot
 png("plant_comp_diversity_plots_L2_all_diversity_boxplot.png", units="in", width=8, height=8, res=300)
 annotate_figure(diversity_overall_boxplot,
@@ -177,7 +177,7 @@ dev.off()
 ```
 
 ```{r, echo=F}
-# how to make the desired plot:
+# how to make the desired plots below:
 # http://www.sthda.com/english/wiki/ggplot2-line-plot-quick-start-guide-r-software-and-data-visualization
 
 # shannon plot
@@ -231,7 +231,7 @@ richness_overall_umbs <- richness_overall_umbs + labs(y = NULL, title = NULL)
 diversity_overall_line <- ggpubr::ggarrange(shannon_overall_kbs, shannon_overall_umbs,
                           simpson_overall_kbs, simpson_overall_umbs,
                           richness_overall_kbs, richness_overall_umbs,
-                          nrow = 3, ncol = 2, legend="none")
+                          nrow = 3, ncol = 2, legend = "none")
 diversity_overall_line
 png("plant_comp_diversity_plots_L2_all_diversity_lineplot.png", units="in", width=10, height=10, res=300)
 annotate_figure(diversity_overall_line,
