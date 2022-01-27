@@ -241,7 +241,7 @@ hist(kbs_sd_plot_origin$julian_min)
 qqnorm(kbs_sd_plot_origin$julian_min)
 shapiro.test(kbs_sd_plot_origin$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
 
-# Visualizing median Julian date for umbs at the PLOT LEVEL
+# Visualizing median Julian date for kbs at the PLOT LEVEL
 ggplot(kbs_sd_plot_origin, aes(julian_min, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year ~ site, margins = TRUE, scales = "free")
@@ -293,7 +293,7 @@ hist(kbs_sd_plot_growthhabit$julian_min)
 qqnorm(kbs_sd_plot_growthhabit$julian_min)
 shapiro.test(kbs_sd_plot_growthhabit$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
 
-# Visualizing median Julian date for umbs at the PLOT LEVEL
+# Visualizing median Julian date for kbs at the PLOT LEVEL
 ggplot(kbs_sd_plot_growthhabit, aes(julian_min, fill = plot)) + 
         geom_histogram(binwidth = 0.5) + 
         facet_grid(year ~ site, margins = TRUE, scales = "free")
@@ -369,15 +369,15 @@ ggplot(umbs_sd_spp, aes(julian_min, fill = plot, color=plot)) +
 descdist(umbs_sd_spp$julian_min, discrete = FALSE) # normal!
 
 # Gamma distribution 
-fit.gamma <- fitdist(kbs_sd_spp$julian_min, "gamma")
+fit.gamma <- fitdist(umbs_sd_spp$julian_min, "gamma")
 plot(fit.gamma)
 
 # Weibull distribution
-fit.weibull  <- fitdist(kbs_sd_spp$julian_min, "weibull")
+fit.weibull  <- fitdist(umbs_sd_spp$julian_min, "weibull")
 plot(fit.weibull)
 
 # Lognormal distribution 
-fit.ln <- fitdist(kbs_sd_spp$julian_min, "lnorm")
+fit.ln <- fitdist(umbs_sd_spp$julian_min, "lnorm")
 plot(fit.ln)
 
 par(mfrow=c(2,2))
@@ -730,7 +730,6 @@ anova(mod7a) # investigates whether at least one of the levels within each facto
 emmeans(mod7a, list(pairwise ~ state + year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
-emmeans(mod7a, list(pairwise ~ insecticide), adjust = "tukey")
 
 # Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
 plot_model(mod7a, sort.est = TRUE)
@@ -746,22 +745,24 @@ kbs_sd_spp <- within(kbs_sd_spp, origin <- relevel(factor(origin), ref = "Native
 mod8 <- lmer(log(julian_min) ~ state * origin + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
 mod9 <- lmer(log(julian_min) ~ state + origin + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
 mod9a <- lmer(log(julian_min) ~ state + origin + year_factor + (1|plot), kbs_sd_spp, REML=FALSE)
-anova(mod8, mod9) # model 8 is a better fit to data
-anova(mod8, mod9a) # mod 8
-summary(mod8)
-anova(mod8)
-emmeans(mod8, list(pairwise ~ state * origin), adjust = "tukey")
+anova(mod8, mod9) # go with model 9
+anova(mod9, mod9a) # mod 9a
+summary(mod9a)
+anova(mod9a)
+emmeans(mod9a, list(pairwise ~ state), adjust = "tukey")
+emmeans(mod9a, list(pairwise ~ origin), adjust = "tukey")
+emmeans(mod9a, list(pairwise ~ state + origin), adjust = "tukey")
 
 # including growth form - first with interaction term
 kbs_sd_spp <- within(kbs_sd_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 mod10 <- lmer(log(julian_min) ~ state * growth_habit + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
 mod11 <- lmer(log(julian_min) ~ state + growth_habit + (1+year_factor|plot), kbs_sd_spp, REML=FALSE)
 mod11a <- lmer(log(julian_min) ~ state + growth_habit + year_factor + (1|plot), kbs_sd_spp, REML=FALSE)
-anova(mod10, mod11) # model 10 is a better fit to data
-anova(mod10, mod11a) # model 10 is still a better fit to data
-summary(mod10)
-anova(mod10)
-emmeans(mod10, list(pairwise ~ factor(year_factor) * growth_habit), adjust = "tukey")
+anova(mod10, mod11) # model 11 
+anova(mod11, mod11a) # model 11a
+summary(mod11a)
+anova(mod11a)
+emmeans(mod11a, list(pairwise ~ factor(year_factor) * growth_habit), adjust = "tukey")
 
 # New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
 # updated mod4
@@ -811,6 +812,7 @@ mod11p <- lmer(log(julian_min) ~ state * year_factor * insecticide + (1|plot), k
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 11p and 10p the same
 anova(mod5p, mod6p) #6p just barely better, going with 5p because it's simpler though
 summary(mod5p)
+anova(mod5p)
 emmeans(mod5p, list(pairwise ~ state+year_factor), adjust = "tukey")
 
 # including native vs. exotic
@@ -823,17 +825,20 @@ anova(mod13p, mod14p) # mod 14pu
 summary(mod14p)
 anova(mod14p)
 emmeans(mod14p, list(pairwise ~ state + origin + year_factor), adjust = "tukey")
+emmeans(mod14p, list(pairwise ~ state), adjust = "tukey")
+emmeans(mod14p, list(pairwise ~ origin), adjust = "tukey")
 
 # including growth form - first with interaction term
 kbs_sd_plot_growthhabit <- within(kbs_sd_plot_growthhabit, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 mod15p <- lmer(log(julian_min) ~ state * growth_habit + (1+year_factor|plot), kbs_sd_plot_growthhabit, REML=FALSE)
 mod16p <- lmer(log(julian_min) ~ state + growth_habit + (1+year_factor|plot), kbs_sd_plot_growthhabit, REML=FALSE)
 mod17p <- lmer(log(julian_min) ~ state + growth_habit + year_factor + (1|plot), kbs_sd_plot_growthhabit, REML=FALSE)
-anova(mod15p, mod16p) # go with model 16pu 
-anova(mod16p, mod17p) # mod 17pu
+anova(mod15p, mod16p) # go with model 16p
+anova(mod16p, mod17p) # mod 17p
 summary(mod17p)
 anova(mod17p)
 emmeans(mod17p, list(pairwise ~ state + growth_habit + year_factor), adjust = "tukey")
+emmeans(mod17p, list(pairwise ~ growth_habit), adjust = "tukey")
 ```
 
 UMBS Species-level Mixed Effects Models
@@ -891,28 +896,27 @@ anova(mod3u)
 # We could consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
 mod7u <- lmer(log(julian_min) ~ state + species + (1+year_factor|plot), umbs_sd_spp, REML=FALSE)
 mod7au <- lmer(log(julian_min)  ~ state + species + year_factor + (1|plot), umbs_sd_spp, REML=FALSE)
-mod7bu <- lmer(log(julian_min)  ~ state * year_factor + species + (1|plot), umbs_sd_spp, REML=FALSE)
+mod7bu <- lmer(log(julian_min)  ~ state * species + year_factor + (1|plot), umbs_sd_spp, REML=FALSE)
 mod7cu <- lmer(log(julian_min)  ~ state + species + year_factor + insecticide + (1|plot), umbs_sd_spp, REML=FALSE)
-anova(mod3u, mod7u) # model 3u is a better fit to data
-anova(mod3u, mod7au) #mod 7au
-anova(mod7au, mod7bu) #mod 7bu 
-anova(mod7au, mod7cu) #mod7bu
-summary(mod7bu)
-anova(mod7bu) # investigates whether at least one of the levels within each factor is significantly different.
+anova(mod3u, mod7u) # model 7u is a better fit to data
+anova(mod7u, mod7au) #mod 7au
+anova(mod7au, mod7bu) #mod 7au 
+anova(mod7au, mod7cu) #mod7au
+summary(mod7au)
+anova(mod7au) # investigates whether at least one of the levels within each factor is significantly different.
 # Yes, at least one of the species is different (they do not all have the min first seed dates). 
-emmeans(mod7bu, list(pairwise ~ state + year_factor), adjust = "tukey")
-emmeans(mod7bu, list(pairwise ~ year_factor), adjust = "tukey")
-emmeans(mod7bu, list(pairwise ~ species), adjust = "tukey")
-emmeans(mod7bu, list(pairwise ~ insecticide), adjust = "tukey")
+emmeans(mod7au, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod7au, list(pairwise ~ year_factor), adjust = "tukey")
+emmeans(mod7au, list(pairwise ~ species), adjust = "tukey")
 
 # Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
-plot_model(mod7bu, sort.est = TRUE)
+plot_model(mod7au, sort.est = TRUE)
 # if you want to standardize the estimates:
-plot_model(mod7bu, sort.est = TRUE, type="std") 
+plot_model(mod7au, sort.est = TRUE, type="std") 
 # these are the fixed predicted values: - note this is a new plot
-plot_model(mod7bu, type = "pred", terms = c("species", "state", "year_factor"))
+plot_model(mod7au, type = "pred", terms = c("species", "state", "year_factor"))
 # these are the random effects estimates
-plot_model(mod7bu, type = "re")
+plot_model(mod7au, type = "re")
 
 # including native vs. exotic
 umbs_sd_spp <- within(kbs_sd_spp, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
@@ -924,17 +928,18 @@ anova(mod9u, mod9au) # mod 9au
 summary(mod9au)
 anova(mod9au)
 emmeans(mod9au, list(pairwise ~ state + origin), adjust = "tukey")
+emmeans(mod9au, list(pairwise ~ origin), adjust = "tukey")
 
 # including growth form - first with interaction term
 umbs_sd_spp <- within(umbs_sd_spp, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 mod10u <- lmer(log(julian_min) ~ state * growth_habit + (1+year_factor|plot), umbs_sd_spp, REML=FALSE)
 mod11u <- lmer(log(julian_min) ~ state + growth_habit + (1+year_factor|plot), umbs_sd_spp, REML=FALSE)
 mod11au <- lmer(log(julian_min) ~ state + growth_habit + year_factor + (1|plot), umbs_sd_spp, REML=FALSE)
-anova(mod10u, mod11u) # model 11u is a better fit to data
-anova(mod11u, mod11au) # model 11u is still a better fit to data
-summary(mod11u)
-anova(mod11u)
-emmeans(mod11u, list(pairwise ~ growth_habit), adjust = "tukey")
+anova(mod10u, mod11u) # model 11u 
+anova(mod11u, mod11au) # model 11au
+summary(mod11au)
+anova(mod11au)
+emmeans(mod11au, list(pairwise ~ growth_habit), adjust = "tukey")
 
 # New version of our model incorporating interaction term and species within year so that there is a separate intercept and slope for each species. The issue here is that there are some species that are not found each year. Easiest to remove those from another version of this dataframe before running below. Otherwise, it's not a balanced design.
 # updated mod4
@@ -984,6 +989,7 @@ mod11pu <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_
 AICctab(mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T) # model 11p and 10p the same
 anova(mod5pu, mod6pu) #5pu just barely better, going with 5pu because it's simpler though
 summary(mod5pu)
+anova(mod5pu)
 emmeans(mod5pu, list(pairwise ~ state+year_factor), adjust = "tukey")
 
 # including native vs. exotic
@@ -995,7 +1001,8 @@ anova(mod12pu, mod13pu) # go with model 13pu
 anova(mod13pu, mod14pu) # mod 14pu
 summary(mod14pu)
 anova(mod14pu)
-emmeans(mod14pu, list(pairwise ~ state + origin + year_factor), adjust = "tukey")
+emmeans(mod14pu, list(pairwise ~ state + origin), adjust = "tukey")
+emmeans(mod14pu, list(pairwise ~ origin), adjust = "tukey")
 
 # including growth form - first with interaction term
 umbs_sd_plot_growthhabit <- within(umbs_sd_plot_growthhabit, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
@@ -1006,6 +1013,7 @@ anova(mod15pu, mod16pu) # go with model 16pu
 anova(mod16pu, mod17pu) # mod 17pu
 summary(mod17pu)
 anova(mod17pu)
-emmeans(mod17pu, list(pairwise ~ state + growth_habit + year_factor), adjust = "tukey")
+emmeans(mod17pu, list(pairwise ~ state + growth_habit), adjust = "tukey")
+emmeans(mod17pu, list(pairwise ~ growth_habit), adjust = "tukey")
 ```
 
