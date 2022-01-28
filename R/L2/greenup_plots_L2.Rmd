@@ -604,11 +604,11 @@ phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                           flwr_line_i_kbs, flwr_line_i_umbs,
                           sd_line_i_kbs, sd_line_i_umbs,
                           nrow = 3, ncol = 2, common.legend = T, legend="right")
-#png("greenup_plots_L2_all_phenology_line_insect.png", units="in", width=9, height=8, res=300)
+png("greenup_plots_L2_all_phenology_line_insect.png", units="in", width=10, height=8, res=300)
 annotate_figure(phen_line_i,
                 left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
                 bottom = text_grob("Year", color = "black", size=15))
-#dev.off()
+dev.off()
 ```
 
 ## Bar plot for greenup for KBS and UMBS - Species min cover date
