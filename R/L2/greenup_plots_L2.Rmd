@@ -60,6 +60,10 @@ gr_plot <- change_site(gr_plot)
 sd_plot <- change_site(sd_plot)
 flwr_plot <- change_site(flwr_plot)
 
+# fixing "21" year for flwr and seed plot data
+flwr_plot$year[flwr_plot$year == 21] <- 2021
+sd_plot$year[sd_plot$year == 21] <- 2021
+
 # creating a vector with cleaned up insecticide labels for plotting
 insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 
@@ -68,6 +72,34 @@ sum_green_spp <- gr_species %>%
   group_by(site, state, species, year) %>%
   summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
             se = std.error(spp_half_cover_date, na.rm = TRUE))
+
+# averages + std error for plot level data
+sum_green_plot <- gr_plot %>%
+  group_by(site, state, year) %>%
+  summarize(avg_julian = mean(plot_half_cover_date, na.rm = TRUE),
+            se = std.error(plot_half_cover_date, na.rm = TRUE))
+sum_flwr_plot <- flwr_plot %>%
+  group_by(site, state, year) %>%
+  summarize(avg_julian = mean(julian_median, na.rm = TRUE),
+            se = std.error(julian_median, na.rm = TRUE))
+sum_sd_plot <- sd_plot %>%
+  group_by(site, state, year) %>%
+  summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+            se = std.error(julian_min, na.rm = TRUE))
+
+# averages + std error for plot level data + insecticide treatment
+sum_green_plot_i <- gr_plot %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_julian = mean(plot_half_cover_date, na.rm = TRUE),
+            se = std.error(plot_half_cover_date, na.rm = TRUE))
+sum_flwr_plot_i <- flwr_plot %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_julian = mean(julian_median, na.rm = TRUE),
+            se = std.error(julian_median, na.rm = TRUE))
+sum_sd_plot_i <- sd_plot %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+            se = std.error(julian_min, na.rm = TRUE))
 
 # filter data to contain the averages and std error for each site - half cover
 sum_green_site <- gr_species %>%
@@ -427,6 +459,155 @@ phen_violin <- ggarrange(green_violin_plot_k, green_violin_plot_u,
 annotate_figure(phen_violin,
                 left = text_grob("Phenological event", color = "black", rot = 90),
                 bottom = text_grob("Julian date", color = "black"))
+#dev.off()
+```
+
+## Combining greenup, flower, and seed into one figure - plot level
+## Line plot - code from Moriah
+```{r}
+# greenup
+sum_green_plot$year <- as.factor(sum_green_plot$year)
+gr_line <- function(loc) { 
+  gr_plot <- subset(sum_green_plot, site == loc)
+  return(ggplot(gr_plot, aes(x = year, y = avg_julian, group = state)) +
+                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Green-up", title = loc, color="Treatment") +
+           theme_bw(14))
+}
+gr_line_kbs <- gr_line("KBS")
+gr_line_kbs <- gr_line_kbs + theme(axis.text.x=element_blank())
+gr_line_umbs <- gr_line("UMBS")
+gr_line_umbs <- gr_line_umbs + labs(y=NULL) + theme(axis.text.x=element_blank())
+
+#flower
+sum_flwr_plot$year <- as.factor(sum_flwr_plot$year)
+flwr_line <- function(loc) { 
+  flwr_plot <- subset(sum_flwr_plot, site == loc)
+  return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group = state)) +
+                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Flowering", title=loc, color="Treatment") +
+           theme_bw(14))
+}
+flwr_line_kbs <- flwr_line("KBS")
+flwr_line_kbs <- flwr_line_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
+flwr_line_umbs <- flwr_line("UMBS")
+flwr_line_umbs <- flwr_line_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank())
+
+#seed
+sum_sd_plot$year <- as.factor(sum_sd_plot$year)
+sd_line <- function(loc) { 
+  sd_plot <- subset(sum_sd_plot, site == loc)
+  return(ggplot(sd_plot, aes(x = year, y = avg_julian, group = state)) +
+                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"),labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Seed set", title=loc, color="Treatment") +
+           theme_bw(14))
+}
+sd_line_kbs <- sd_line("KBS")
+sd_line_kbs <- sd_line_kbs + labs(title=NULL)
+sd_line_umbs <- sd_line("UMBS")
+sd_line_umbs <- sd_line_umbs + labs(y=NULL, title=NULL)
+
+phen_line <- ggpubr::ggarrange(gr_line_kbs, gr_line_umbs,
+                          flwr_line_kbs, flwr_line_umbs,
+                          sd_line_kbs, sd_line_umbs,
+                          nrow = 3, ncol = 2, common.legend = T, legend="right")
+png("greenup_plots_L2_all_phenology_line.png", units="in", width=9, height=8, res=300)
+annotate_figure(phen_line,
+                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
+                bottom = text_grob("Year", color = "black", size=15))
+dev.off()
+```
+
+## Combining greenup, flower, and seed into one figure - plot level
+## Line plot with insecticide - code from Moriah
+### note to self: left off here, go back up & re-summarize data with insecticide included
+```{r}
+# greenup
+sum_green_plot_i$year <- as.factor(sum_green_plot_i$year)
+sum_green_plot_i$full_treat <- paste(sum_green_plot_i$state, sum_green_plot_i$insecticide, sep="_")
+gr_line_i <- function(loc) { 
+        gr_plot <- subset(sum_green_plot_i, site == loc)
+        return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat)) +
+                       geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+                       geom_line(size = 1) +
+                       geom_point(size = 2) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dashed", "solid", "dashed"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Green-up", title = loc) +
+                       theme_bw(14))
+}
+gr_line_i_kbs <- gr_line_i("KBS")
+gr_line_i_kbs <- gr_line_i_kbs + theme(axis.text.x=element_blank())
+gr_line_i_umbs <- gr_line_i("UMBS")
+gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + theme(axis.text.x=element_blank())
+
+#flower
+sum_flwr_plot_i$year <- as.factor(sum_flwr_plot_i$year)
+sum_flwr_plot_i$full_treat <- paste(sum_flwr_plot_i$state, sum_flwr_plot_i$insecticide, sep="_")
+flwr_line_i <- function(loc) { 
+        flwr_plot <- subset(sum_flwr_plot_i, site == loc)
+        return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat)) +
+                       geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+                       geom_line(size = 1) +
+                       geom_point(size = 2) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dashed", "solid", "dashed"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Flowering", title = loc) +
+                       theme_bw(14))
+}
+flwr_line_i_kbs <- flwr_line_i("KBS")
+flwr_line_i_kbs <- flwr_line_i_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
+flwr_line_i_umbs <- flwr_line_i("UMBS")
+flwr_line_i_umbs <- flwr_line_i_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank())
+
+#seed
+sum_sd_plot_i$year <- as.factor(sum_sd_plot_i$year)
+sum_sd_plot_i$full_treat <- paste(sum_sd_plot_i$state, sum_sd_plot_i$insecticide, sep="_")
+sd_line_i <- function(loc) { 
+        sd_plot <- subset(sum_sd_plot_i, site == loc)
+        return(ggplot(sd_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat)) +
+                       geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+                       geom_line(size = 1) +
+                       geom_point(size = 2) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dashed", "solid", "dashed"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Flowering", title = loc) +
+                       theme_bw(14))
+}
+sd_line_i_kbs <- sd_line_i("KBS")
+sd_line_i_kbs <- sd_line_i_kbs + labs(title=NULL)
+sd_line_i_umbs <- sd_line_i("UMBS")
+sd_line_i_umbs <- sd_line_i_umbs + labs(y=NULL, title=NULL)
+
+phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
+                          flwr_line_i_kbs, flwr_line_i_umbs,
+                          sd_line_i_kbs, sd_line_i_umbs,
+                          nrow = 3, ncol = 2, common.legend = T, legend="right")
+#png("greenup_plots_L2_all_phenology_line_insect.png", units="in", width=9, height=8, res=300)
+annotate_figure(phen_line_i,
+                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
+                bottom = text_grob("Year", color = "black", size=15))
 #dev.off()
 ```
 
