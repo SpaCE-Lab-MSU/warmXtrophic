@@ -50,18 +50,24 @@ colnames(taxon) <- sub("code", "species", colnames(taxon))
 plantcomp <- read.csv(file.path(L1_dir,"/plant_composition/final_plantcomp_L1.csv"))
 plantcomp <- plantcomp %>% select(-X) # get rid of "X" column that shows up
 str(plantcomp)
+# delete 2021 data from dataframe -doesn't make sense to have bc 2021 UMBS data was not collected at the same frequency as previous years
+plantcomp <- plantcomp[-which(plantcomp$year == "2021" & plantcomp$site == "umbs"),]
 
 # read in flower and seed set data
 flwr_sd <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
 flwr_sd <- flwr_sd %>% select(-X) # get rid of "X" column that shows up
 str(flwr_sd)
 
+# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
+flwr_sd <- flwr_sd[-which(flwr_sd$year == "2021" & flwr_sd$site == "umbs"),]
+
 #### **** JULIAN DATE **** #### 
 # Computing various Julian dates of importance by species and plot
 # For greenup: Julian date of first % cover and Julian days until 50% percent cover is reached by species and by 
 # by plot
 # For flowering: first Julian date of flower, median Julian date of flower, and duration of flowering
-# For seed set: first Julian date of seed set, median Julian date of seed set, and duration (?) of seed set
+# For seed set: first Julian date of seed set
 
 # GREENUP
 # Greenup can be computed in a few ways by extracting information from % cover data:

@@ -168,6 +168,7 @@ change_date <- function(df){
         df$Date[df$Date == "6/23/3017"] <- "6/23/2017"
         df$Date[df$Date == "6/30/3017"] <- "6/30/2017"
         df$Date[df$Date == "7/23/3017"] <- "7/23/2017"
+        df$Date[df$Date == "6/15/21"] <- "6/15/2021"
         return(df)
 }
 #change_date <- function(df){
