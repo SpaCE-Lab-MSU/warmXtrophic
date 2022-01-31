@@ -44,12 +44,6 @@ flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
 sd_spp <- read.csv(file.path(L2_dir, "phenology/final_sd_species_L2.csv"))
 sd_plot <- read.csv(file.path(L2_dir, "phenology/final_sd_plot_L2.csv"))
 
-# remove uneeded X column
-gr_species$X <- NULL
-gr_plot$X <- NULL
-gr_growth$X <- NULL
-gr_origin$X <- NULL
-
 # making site names capital for cleaner plots
 change_site <- function(df){
   df$site[df$site == "umbs"] <- "UMBS"
@@ -59,10 +53,6 @@ change_site <- function(df){
 gr_plot <- change_site(gr_plot)
 sd_plot <- change_site(sd_plot)
 flwr_plot <- change_site(flwr_plot)
-
-# fixing "21" year for flwr and seed plot data
-flwr_plot$year[flwr_plot$year == 21] <- 2021
-sd_plot$year[sd_plot$year == 21] <- 2021
 
 # creating a vector with cleaned up insecticide labels for plotting
 insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
@@ -126,6 +116,20 @@ sum_green_habit <- gr_species %>%
   summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
             se = std.error(spp_half_cover_date, na.rm = TRUE))
 sum_green_habit <- subset(sum_green_habit, growth_habit == "Forb" | growth_habit == "Graminoid" | growth_habit == "Shrub")
+
+# trying to add empty values for 2015 to kbs greenup so the x-axis matches the other plots
+gr_plot2 <- gr_plot
+de<-data.frame(NA,"KBS",NA,"2015",NA,"ambient","insects",NA,NA)
+names(de)<-c("X","site","plot","year","treatment_key","state","insecticide","plot_half_cover_date","min_green_date")
+gr_plot3 <- rbind(gr_plot2, de)
+sum_green_plot2 <- gr_plot3 %>%
+  group_by(site, state, year) %>%
+  summarize(avg_julian = mean(plot_half_cover_date, na.rm = TRUE),
+            se = std.error(plot_half_cover_date, na.rm = TRUE))
+sum_green_plot_i2 <- gr_plot3 %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_julian = mean(plot_half_cover_date, na.rm = TRUE),
+            se = std.error(plot_half_cover_date, na.rm = TRUE))
 ```
 
 ## Bar plot for greenup for KBS and UMBS - Species half cover date
@@ -212,11 +216,11 @@ plot_overall_kbs <- greenup_overall_plot("KBS")
 plot_overall_umbs <- greenup_overall_plot("UMBS")
 
 plot_level_overall <- ggarrange(plot_overall_kbs, plot_overall_umbs, nrow = 2, legend="none")
-png("greenup_plots_L2_plot_greenup_overall.png", units="in", width=8, height=8, res=300)
+#png("greenup_plots_L2_plot_greenup_overall.png", units="in", width=8, height=8, res=300)
 annotate_figure(plot_level_overall,
                 left = text_grob("Julian date of plot-level green-up", color = "black", rot = 90),
                 bottom = text_grob("Treatment", color = "black"))
-dev.off()
+#dev.off()
 ```
 
 ## Averaging greenup over all years - species level
@@ -319,11 +323,11 @@ phen_overall <- ggpubr::ggarrange(plot_overall_kbs2, plot_overall_umbs2,
                           flwr_overall_kbs, flwr_overall_umbs,
                           sd_overall_kbs, sd_overall_umbs,
                           nrow = 3, ncol = 2, legend="none")
-png("greenup_plots_L2_all_phenology.png", units="in", width=8, height=8, res=300)
+#png("greenup_plots_L2_all_phenology.png", units="in", width=8, height=8, res=300)
 annotate_figure(phen_overall,
                 left = text_grob("Phenological event", color = "black", rot = 90),
                 bottom = text_grob("Treatment", color = "black"))
-dev.off()
+#dev.off()
 ```
 
 ## Combining greenup, flower, and seed into one figure - plot level
@@ -466,9 +470,9 @@ annotate_figure(phen_violin,
 ## Line plot - code from Moriah
 ```{r}
 # greenup
-sum_green_plot$year <- as.factor(sum_green_plot$year)
+sum_green_plot2$year <- as.factor(sum_green_plot2$year)
 gr_line <- function(loc) { 
-  gr_plot <- subset(sum_green_plot, site == loc)
+  gr_plot <- subset(sum_green_plot2, site == loc)
   return(ggplot(gr_plot, aes(x = year, y = avg_julian, group = state)) +
                  geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
            geom_line(aes(color=state), size = 1) +
@@ -520,22 +524,21 @@ phen_line <- ggpubr::ggarrange(gr_line_kbs, gr_line_umbs,
                           flwr_line_kbs, flwr_line_umbs,
                           sd_line_kbs, sd_line_umbs,
                           nrow = 3, ncol = 2, common.legend = T, legend="right")
-png("greenup_plots_L2_all_phenology_line.png", units="in", width=9, height=8, res=300)
+#png("greenup_plots_L2_all_phenology_line.png", units="in", width=9, height=8, res=300)
 annotate_figure(phen_line,
                 left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
                 bottom = text_grob("Year", color = "black", size=15))
-dev.off()
+#dev.off()
 ```
 
 ## Combining greenup, flower, and seed into one figure - plot level
 ## Line plot with insecticide - code from Moriah
-### note to self: left off here, go back up & re-summarize data with insecticide included
 ```{r}
 # greenup
-sum_green_plot_i$year <- as.factor(sum_green_plot_i$year)
-sum_green_plot_i$full_treat <- paste(sum_green_plot_i$state, sum_green_plot_i$insecticide, sep="_")
+sum_green_plot_i2$year <- as.factor(sum_green_plot_i2$year)
+sum_green_plot_i2$full_treat <- paste(sum_green_plot_i2$state, sum_green_plot_i2$insecticide, sep="_")
 gr_line_i <- function(loc) { 
-        gr_plot <- subset(sum_green_plot_i, site == loc)
+        gr_plot <- subset(sum_green_plot_i2, site == loc)
         return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat)) +
                        geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
                        geom_line(size = 1) +
@@ -604,11 +607,11 @@ phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                           flwr_line_i_kbs, flwr_line_i_umbs,
                           sd_line_i_kbs, sd_line_i_umbs,
                           nrow = 3, ncol = 2, common.legend = T, legend="right")
-png("greenup_plots_L2_all_phenology_line_insect.png", units="in", width=11, height=8, res=300)
+#png("greenup_plots_L2_all_phenology_line_insect.png", units="in", width=11, height=8, res=300)
 annotate_figure(phen_line_i,
                 left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
                 bottom = text_grob("Year", color = "black", size=15))
-dev.off()
+#dev.off()
 ```
 
 ## Bar plot for greenup for KBS and UMBS - Species min cover date
