@@ -66,9 +66,6 @@ flwr_species$X <- NULL
 flwr_plot$X <- NULL
 flwr_plot_origin$X <- NULL
 flwr_plot_growthhabit$X <- NULL
-# take a look at the data to see if looks good
-View(flwr_species) 
-View(flwr_plot) 
 
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 flwr_species$state <- as.factor(flwr_species$state)
@@ -89,18 +86,24 @@ levels(flwr_plot$state)
 flwr_species$flwr_duration <- as.numeric(as.character(flwr_species$flwr_duration))
 flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
 
+# changing zeros in data to be 1s - some species were only recorded on a single data collection event (aka date)
+# which comes out to be 0 days of flwr duration. Having zeros in the data makes it harder to work with so changing
+# the 0s to one is more reflective of the flwr duration
+flwr_species[flwr_species$flwr_duration == 0] <- 1
+flwr_plot[flwr_plot$flwr_duration == 0] <- 1
+
 umbs_flwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
-umbs_flwr_plot <- subset(umbs_flwr_plot, year!="2021") # delete 2021 data from umbs dataframe (doesn't make sense to have bc we can't get min flower/sd, median flower, or flower duration from 2021 UMBS)
+#umbs_flwr_plot <- subset(umbs_flwr_plot, year!="2021") # delete 2021 data from umbs dataframe (doesn't make sense to have bc we can't get min flower/sd, median flower, or flower duration from 2021 UMBS)
 umbs_flwr_spp <- subset(flwr_species, site == "umbs") # pull out umbs only data at species level
-umbs_flwr_spp <- subset(umbs_flwr_spp, year!="2021") # delete 2021 data
+#umbs_flwr_spp <- subset(umbs_flwr_spp, year!="2021") # delete 2021 data
 kbs_flwr_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
 kbs_flwr_spp <- subset(flwr_species, site == "kbs") # pull out kbs only data at species level
 kbs_flwr_plot_origin <- subset(flwr_plot_origin, site == "kbs")
 kbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "kbs")
 umbs_flwr_plot_origin <- subset(flwr_plot_origin, site == "umbs")
-umbs_flwr_plot_origin <- subset(flwr_plot_origin, year != "2021") # delete 2021 data
+#umbs_flwr_plot_origin <- subset(flwr_plot_origin, year != "2021") # delete 2021 data
 umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "umbs")
-umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, year != "2021") # delete 2021 data
+#umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, year != "2021") # delete 2021 data
 
 ```
 
