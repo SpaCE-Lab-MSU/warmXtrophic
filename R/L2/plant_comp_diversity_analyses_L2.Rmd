@@ -56,6 +56,9 @@ comp <- comp[!(comp$species=="Bare_Ground" |
                        comp$species=="Vert_Litter" | 
                        comp$species=="Animal_Disturbance"), ]
 
+# select peak biomass dates - for this I'm choosing August % cover date
+peak_comp <- dplyr::filter(comp, month %in% c(8))
+
 # read in meta data
 meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
 ```
@@ -99,8 +102,8 @@ Calculating Shannon and Simpsons Diversity and Species Richness
 ```{r}
 #diversity_by_year <- function(comp, site, div_index = "shannon"){
 # subset comp data by site
-comp_kbs <- subset(comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
-comp_umbs <- subset(comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
+comp_kbs <- subset(peak_comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
+comp_umbs <- subset(peak_comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
 
 
 # convert the abundance (cover) data to wide format for each species in columns for the vegan package
@@ -140,11 +143,11 @@ richness_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::specnumber) #
 
 # each item in the list is a year of diversity, so name those with the years we know we have
 names(shannon_by_year_list_kbs) <- as.character(2015:2021)
-names(shannon_by_year_list_umbs) <- as.character(2015:2021)
+names(shannon_by_year_list_umbs) <- as.character(2016:2021)
 names(simpson_by_year_list_kbs) <- as.character(2015:2021)
-names(simpson_by_year_list_umbs) <- as.character(2015:2021)
+names(simpson_by_year_list_umbs) <- as.character(2016:2021)
 names(richness_by_year_list_kbs) <- as.character(2015:2021)
-names(richness_by_year_list_umbs) <- as.character(2015:2021)
+names(richness_by_year_list_umbs) <- as.character(2016:2021)
 
 # "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
 shannon_kbs <- do.call(cbind,shannon_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
@@ -218,12 +221,13 @@ comp_diversity$year_factor[comp_diversity$year == 2021] <- 7
 
 comp_diversity <- comp_diversity[,c("site", "plot", "year", "year_factor", "treatment_key", "state", "insecticide", "simpson", "shannon", "richness")] #reorder columns
 
+comp_diversity <- comp_diversity[-c(135, 140, 142),] # remove this row with zero values for shannon diversity and species richness - this zero is from there not being any data in plot D5 in 2021 due to a large ground hog hole
+
 # write a new csv with diversity indices and upload to the shared google drive L2 data folder
 write.csv(comp_diversity, file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"))
 
 # create separate data frames for kbs and umbs sites
 kbs_diversity <- subset(comp_diversity, site == "kbs")
-kbs_diversity <- kbs_diversity[-167,] # remove this row with zero values for shannon diversity and species richness - this zero is from there not being any data in plot D5 in 2021 due to a large ground hog hole
 umbs_diversity <- subset(comp_diversity, site == "umbs")
 ```
 
@@ -345,9 +349,9 @@ Shannon Index
 KBS
 ```{r, warning=F}
 ### KBS ###
-hist(kbs_diversity$shannon) # skewed to the left
+hist(kbs_diversity$shannon) 
 qqnorm(kbs_diversity$shannon)
-shapiro.test(kbs_diversity$shannon) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+shapiro.test(kbs_diversity$shannon) # pvalue is > 0.05 so we do not reject the null hypothesis that the data is normal (aka not normally distributed)
 
 # Visualizing plot average totals for kbs at the PLOT LEVEL
 ggplot(kbs_diversity, aes(shannon, fill = plot)) + 
@@ -404,7 +408,7 @@ UMBS
 ### UMBS ###
 hist(umbs_diversity$shannon) 
 qqnorm(umbs_diversity$shannon)
-shapiro.test(umbs_diversity$shannon) # pvalue is > 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
+shapiro.test(umbs_diversity$shannon) # pvalue is close to > 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
 
 # Visualizing plot average totals for umbs at the PLOT LEVEL
 ggplot(umbs_diversity, aes(shannon, fill = plot)) + 
@@ -737,7 +741,7 @@ plot(mod1)
 leveneTest(residuals(mod1) ~ kbs_diversity$state)
 # Assumption not met
 leveneTest(residuals(mod1) ~ kbs_diversity$insecticide) 
-# Assumption met 
+# Assumption not met 
 leveneTest(residuals(mod1) ~ kbs_diversity$plot)
 # Assumption not met
 
