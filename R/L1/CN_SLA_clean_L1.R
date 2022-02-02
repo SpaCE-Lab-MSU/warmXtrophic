@@ -94,9 +94,11 @@ CN_2017_soca <- merge(CN_2017_soca, cn17k_soca_3, all = TRUE)
 cn17k_acmi_1 <- read.csv(file.path(L0_dir, "./KBS/2017/CN_Acmi_2017_final.csv"))
 
 # UMBS
-# CEST - not yet analyzed
-# CEST basal sheets 1 and 2
-# CEST stem sheets 1 and 2
+# CEST
+# CEST basal
+cn17u_cest_basal_1 <- read.csv(file.path(L0_dir, "./UMBS/2017/umbs_CN_Cest_2017_basal_leaves_plate_1A.csv"))
+# CEST stem
+cn17u_cest_stem_1 <- read.csv(file.path(L0_dir, "./UMBS/2017/umbs_CN_Cest_2017_stem_leaves_plate_1a.csv"))
 
 # Cleaning KBS 2017 CN data
 # soca samples
@@ -131,7 +133,44 @@ CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="C"]<- 3
 names(CN_2017_acmi_edited_1)[3] <- "subsample_number" #changing column name to match 2017 soca data
 # ***should double check that "replicate" and "subsample_number" mean the same thing***
 
-CN_2017 <- merge(CN_2017_acmi_edited_1, CN_2017_soca_edited, all = TRUE)
+CN_kbs_2017 <- merge(CN_2017_acmi_edited_1, CN_2017_soca_edited, all = TRUE) # merge edited kbs soca and acmi into one dataframe
+
+# Cleaning UMBS 2017 CN data
+# basal
+CN_2017_cest_basal_edited <- cn17u_cest_basal_1[,-c(2, 3, 4, 10, 11, 12, 13, 14)] # delete unneeded columns
+names(CN_2017_cest_basal_edited)[1] <- "Year" #changing column name
+names(CN_2017_cest_basal_edited)[2] <- "Plot" #changing column name
+names(CN_2017_cest_basal_edited)[4] <- "Species" #changing column name
+names(CN_2017_cest_basal_edited)[6] <- "weight_mg" #changing column name
+names(CN_2017_cest_basal_edited)[7] <- "nitrogen" #changing column name
+names(CN_2017_cest_basal_edited)[8] <- "carbon" #changing column name
+CN_2017_cest_basal_edited$Site <- "umbs" # add site column
+CN_2017_cest_basal_edited <- na.omit(CN_2017_cest_basal_edited) # remove NAs
+names(CN_2017_cest_basal_edited) <- tolower(names(CN_2017_cest_basal_edited)) # column names to lower case
+CN_2017_cest_basal_edited_1 <- merge(CN_2017_cest_basal_edited, meta, all = TRUE)
+CN_2017_cest_basal_edited_1 <- na.omit(CN_2017_cest_basal_edited_1) # remove NAs 
+
+# stem
+CN_2017_cest_stem_edited <- cn17u_cest_stem_1[,-c(3, 4, 5, 11, 12, 13, 14, 15)] # delete unneeded columns
+names(CN_2017_cest_stem_edited)[1] <- "site" #changing column name
+CN_2017_cest_stem_edited$site <- "umbs" #change site name to lowercase to match majority of other dataframes
+names(CN_2017_cest_stem_edited)[2] <- "year" #changing column name
+names(CN_2017_cest_stem_edited)[3] <- "plot" #changing column name
+names(CN_2017_cest_stem_edited)[5] <- "species" #changing column name
+names(CN_2017_cest_stem_edited)[7] <- "weight_mg" #changing column name
+names(CN_2017_cest_stem_edited)[8] <- "nitrogen" #changing column name
+names(CN_2017_cest_stem_edited)[9] <- "carbon" #changing column name
+CN_2017_cest_stem_edited <- na.omit(CN_2017_cest_stem_edited) # remove NAs
+names(CN_2017_cest_stem_edited) <- tolower(names(CN_2017_cest_stem_edited)) # column names to lower case
+CN_2017_cest_stem_edited_1 <- merge(CN_2017_cest_stem_edited, meta, all = TRUE)
+CN_2017_cest_stem_edited_1 <- na.omit(CN_2017_cest_stem_edited_1) # remove NAs 
+
+CN_umbs_2017 <- merge(CN_2017_cest_stem_edited_1, CN_2017_cest_basal_edited_1, all = TRUE) # merge edited cest basal and stem into one dataframe
+
+
+# Merge all 2017 CN data together
+CN_2017 <- merge(CN_umbs_2017, CN_kbs_2017, all = TRUE)
+# reminder that kbs samples were analyzed in triplicate, umbs samples were analyzed in singlets
 
 ## 2018 ##
 # ***This data is currently being ground and prepped to be analyzed***
