@@ -3,6 +3,8 @@ title: "PAR Plots"
 author: "Kara Dobson"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -30,6 +32,28 @@ UMBS <- read.csv(file.path(L1_dir,"PAR/UMBS_PAR_L1.csv"))
 # convert date column back to date
 KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d")
 UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d")
+
+# pulling out month/year info
+KBS_season <- KBS
+KBS_season$month <- format(KBS_season$Date_Time,format="%m")
+KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
+
+UMBS_season <- UMBS
+UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
+UMBS_season$year <- format(UMBS_season$Date_Time,format="%Y")
+
+# making a column for both over and understory PAR
+KBS_gather <- KBS_season %>%  # by month and year
+  gather(key = "par_location", value = "PAR", -X, -Plot, -state, -treatment_key,-insecticide,-Site,-Date_Time,-Understory_1,-Understory_2,-Percent_Sunlight,-month,-year) %>%
+  group_by(state, year, par_location) %>%
+  summarize(average_par = mean(PAR, na.rm = TRUE),
+            se = std.error(PAR, na.rm = TRUE))
+
+UMBS_gather <- UMBS_season %>%  # by month and year
+  gather(key = "par_location", value = "PAR", -X, -Plot, -state, -treatment_key,-insecticide,-Site,-Date_Time,-Understory_1,-Understory_2,-Percent_Sunlight,-month,-year) %>%
+  group_by(state, year, par_location) %>%
+  summarize(average_par = mean(PAR, na.rm = TRUE),
+            se = std.error(PAR, na.rm = TRUE))
 ```
 \pagebreak
 
@@ -69,5 +93,40 @@ ggplot(UMBS, aes(x=state, y=Average_Ground, fill=state)) +
         theme_classic() +
         theme(legend.position = "none")
 ```
+```{r}
+KBS_gather$full_treat <- paste(KBS_gather$state, KBS_gather$par_location, sep="_")
+KBS_line<-ggplot(KBS_gather, aes(x = year, y = average_par, group=full_treat, color = full_treat, linetype=full_treat)) +
+        geom_errorbar(aes(ymin=average_par-se, ymax=average_par+se), width=.1,color="black",linetype="solid") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                           labels=c("Ambient - Understory","Ambient - Overstory","Warmed - Understory", "Warmed - Overstory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("dotdash", "solid", "dotdash", "solid"),
+                              labels=c("Ambient - Understory","Ambient - Overstory","Warmed - Understory", "Warmed - Overstory")) +
+        labs(title="KBS",y=NULL, x=NULL) +
+        theme_bw(14)
 
+UMBS_gather$full_treat <- paste(UMBS_gather$state, UMBS_gather$par_location, sep="_")
+UMBS_line<-ggplot(UMBS_gather, aes(x = year, y = average_par, group=full_treat, color = full_treat, linetype=full_treat)) +
+        geom_errorbar(aes(ymin=average_par-se, ymax=average_par+se), width=.1,color="black",linetype="solid") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                           labels=c("Ambient - Understory","Ambient - Overstory","Warmed - Understory", "Warmed - Overstory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("dotdash", "solid", "dotdash", "solid"),
+                              labels=c("Ambient - Understory","Ambient - Overstory","Warmed - Understory", "Warmed - Overstory")) +
+        labs(title="UMBS",y=NULL, x=NULL) +
+        theme_bw(14)
+
+line_comb <- ggarrange(KBS_line, UMBS_line, ncol = 2, common.legend = T, legend = "right")
+png("PAR_plots_L2_PAR_line.png", units="in", width=9, height=5, res=300)
+annotate_figure(line_comb,
+                left = text_grob("PAR", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
+dev.off()
+```
 

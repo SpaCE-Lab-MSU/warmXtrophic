@@ -199,12 +199,12 @@ Fig1_overall_air_kbs <- ggplot(KBS_avg_air, aes(x=treatment, y=temp)) +
         theme_classic()
 
 # tried a different violin plot below
-with(KBS_avg_air, vioplot( 
-        temp[treatment=="XH_warmed_air_1m"] , temp[treatment=="XH_ambient_air_1m"],
-        temp[treatment=="XU_warmed_air_10cm"], temp[treatment=="XU_ambient_air_10cm"],
-        col=rgb(0.1,0.4,0.7,0.7) , names=c("Warmed 1m","Ambient 1m", "Warmed 10cm", "Ambient 10cm"),
-        ylim=c(10,45)
-))
+#with(KBS_avg_air, vioplot( 
+#        temp[treatment=="XH_warmed_air_1m"] , temp[treatment=="XH_ambient_air_1m"],
+#        temp[treatment=="XU_warmed_air_10cm"], temp[treatment=="XU_ambient_air_10cm"],
+#        col=rgb(0.1,0.4,0.7,0.7) , names=c("Warmed 1m","Ambient 1m", "Warmed 10cm", "Ambient 10cm"),
+#        ylim=c(10,45)
+#))
 
 Fig1_soil_kbs <- ggplot(KBS_avg_year_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
@@ -234,13 +234,26 @@ Fig1_soil_kbs_dualy <- ggplot(KBS_soil_merged, aes(x=year, fill=treatment, shape
         theme(legend.position="bottom") +
         theme_classic()
 
-ggplot(KBS_season_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
-        geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
-        scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
-        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
-        labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
-        theme(legend.position="bottom") +
-        theme_classic()
+#ggplot(KBS_season_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
+#        geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
+#        scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
+#        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
+#        labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
+#        theme(legend.position="bottom") +
+#        theme_classic()
+
+Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air, aes(x = year, y = average_temp, group=treatment, color = treatment, linetype=treatment)) +
+        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#fb6a4a", "#a6bddb", "#fb6a4a"),
+                           labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "solid", "dotdash", "dotdash"),
+                              labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+        labs(title="KBS",y=NULL, x=NULL) +
+        theme_bw(14)
 
 ###### par data ######
 # old attempts at seeing how PAR and temp are correlated - not enough data to show a trend
@@ -690,6 +703,19 @@ Fig1_soil_umbs_dualy <- ggplot(UMBS_soil_merged, aes(x=year, fill=treatment, sha
         theme(legend.position="bottom") +
         theme_classic()
 
+Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air, aes(x = year, y = average_temp, group=treatment, color = treatment, linetype=treatment)) +
+        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#fb6a4a", "#a6bddb", "#fb6a4a"),
+                           labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "solid", "dotdash", "dotdash"),
+                              labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+        labs(title="UMBS",y=NULL, x=NULL) +
+        theme_bw(14)
+
 
 ###### par data ######
 # format the hobo data to match the dates for the par data
@@ -854,4 +880,11 @@ Fig1.4 <- ggarrange(Fig1_soil_kbs_dualy, Fig1_soil_umbs_dualy, ncol = 2, common.
 annotate_figure(Fig1.2,
                 left = text_grob("Soil Temperature (°C)", color = "black", rot = 90),
                 right = text_grob("Soil Moisture", color = "black", rot = 270))
+
+Fig1.5 <- ggarrange(Fig1_temp_line_kbs, Fig1_temp_line_umbs, ncol = 2, common.legend = T, legend = "right")
+png("HOBO_plots_L2_air_temps_line.png", units="in", width=10, height=5, res=300)
+annotate_figure(Fig1.5,
+                left = text_grob("Average Air Temperature (°C)", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
+dev.off()
 
