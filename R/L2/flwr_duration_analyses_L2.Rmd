@@ -3,6 +3,8 @@ title: "warmXtrophic Project: Flowering Duration Phenology Analyses"
 author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -89,8 +91,13 @@ flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
 # changing zeros in data to be 1s - some species were only recorded on a single data collection event (aka date)
 # which comes out to be 0 days of flwr duration. Having zeros in the data makes it harder to work with so changing
 # the 0s to one is more reflective of the flwr duration
-flwr_species[flwr_species$flwr_duration == 0] <- 1
-flwr_plot[flwr_plot$flwr_duration == 0] <- 1
+#flwr_species[flwr_species$flwr_duration == 0] <- 1
+#flwr_plot[flwr_plot$flwr_duration == 0] <- 1
+
+# Kara's edits:
+# adding 1 to each occurrence in the flwr_duration column so everything is scaled up the same & removes 0's
+flwr_plot$flwr_duration_scaled <- flwr_plot$flwr_duration+1
+flwr_species$flwr_duration_scaled <- flwr_species$flwr_duration+1
 
 umbs_flwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
 #umbs_flwr_plot <- subset(umbs_flwr_plot, year!="2021") # delete 2021 data from umbs dataframe (doesn't make sense to have bc we can't get min flower/sd, median flower, or flower duration from 2021 UMBS)
@@ -110,9 +117,16 @@ umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "umbs")
 # KBS SPECIES LEVEL - Looking at DURATION of flowering
 ```{r, warning=F, error=TRUE}
 ### KBS ###
+# Kara editing: I didn't change these below to the flwr_duration_scaled column, but they'd probably look about the same
 hist(kbs_flwr_spp$flwr_duration)
 qqnorm(kbs_flwr_spp$flwr_duration)
 shapiro.test(kbs_flwr_spp$flwr_duration) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Kara editing: maybe log transforming or sqrt transforming the data could help here since its right skewed
+kbs_flwr_spp$flwr_log <- log(kbs_flwr_spp$flwr_duration_scaled)
+hist(kbs_flwr_spp$flwr_log)
+qqnorm(kbs_flwr_spp$flwr_log)
+shapiro.test(kbs_flwr_spp$flwr_log) #eh, not great
 
 # Visualizing median Julian date for umbs at the PLOT LEVEL
 ggplot(kbs_flwr_spp, aes(flwr_duration, fill = plot)) + 
@@ -134,21 +148,23 @@ ggplot(kbs_flwr_spp, aes(flwr_duration, fill = plot, color=plot)) +
         facet_wrap(~year + plot)
 
 # Exploring distributions for these right-skewed data:
-descdist(kbs_flwr_spp$flwr_duration, discrete = FALSE)
+descdist(kbs_flwr_spp$flwr_duration_scaled, discrete = FALSE)
 
 # none of these work below and idk why
+# Kara edits: likely because some of these can't deal w/ 0's in data, they work with the flwr_duration_scaled 
+
 # Gamma distribution 
-#fit.gamma <- fitdist(kbs_flwr_spp$flwr_duration, "gamma")
-#plot(fit.gamma)
-#
-## Weibull distribution
-#fit.weibull  <- fitdist(kbs_flwr_spp$flwr_duration, "weibull")
-#plot(fit.weibull)
-#
-## Lognormal distribution 
-#fit.ln <- fitdist(kbs_flwr_spp$flwr_duration, "lnorm")
-#plot(fit.ln)
-#
+fit.gamma <- fitdist(kbs_flwr_spp$flwr_duration_scaled, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_flwr_spp$flwr_duration_scaled, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_flwr_spp$flwr_duration_scaled, "lnorm")
+plot(fit.ln)
+
 #par(mfrow=c(2,2))
 #plot.legend <- c("Gamma", "Weibull", "Log Normal")
 #denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
@@ -190,18 +206,19 @@ ggplot(kbs_flwr_plot, aes(flwr_duration, fill = plot, color=plot)) +
 descdist(kbs_flwr_plot$flwr_duration, discrete = FALSE)
 
 # none of these work below and idk why
+# Kara's edits: added the scaled column here to get these to work
 # Gamma distribution 
-#fit.gamma <- fitdist(kbs_flwr_plot$flwr_duration, "gamma")
-#plot(fit.gamma)
-#
-## Weibull distribution
-#fit.weibull  <- fitdist(kbs_flwr_plot$flwr_duration, "weibull")
-#plot(fit.weibull)
-#
-## Lognormal distribution 
-#fit.ln <- fitdist(kbs_flwr_plot$flwr_duration, "lnorm")
-#plot(fit.ln)
-#
+fit.gamma <- fitdist(kbs_flwr_plot$flwr_duration_scaled, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_flwr_plot$flwr_duration_scaled, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_flwr_plot$flwr_duration_scaled, "lnorm")
+plot(fit.ln)
+
 #par(mfrow=c(2,2))
 #plot.legend <- c("Gamma", "Weibull", "Log Normal")
 #denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
