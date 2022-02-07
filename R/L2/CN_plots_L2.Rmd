@@ -1,6 +1,6 @@
 ---
 title: 'warmXtrophic Project: CN Plots'
-author: "Kara Dobson"
+author: "Kara Dobson, Phoebe Zarnetske"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
@@ -22,10 +22,15 @@ library(plotrix)
 setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in data
-cn <- read.csv("L1/CN/final_CN_L1.csv")
+cn <- read.csv("L1/CN/CN_L1.csv")
+
+# Summary of data
+with(cn,table(cn$site,cn$species)) 
+with(cn,table(cn$year,cn$species)) 
+with(cn,table(cn$year,cn$site)) 
 ```
 
-# Carbon data
+# Carbon data: all yrs, sites
 ## Cest and Popr = UMBS, Soca = KBS (working on faceting this)
 ```{r}
 ggplot(cn, aes(x = species, y = carbon, fill = state)) +
@@ -40,7 +45,7 @@ ggplot(cn, aes(x = species, y = carbon, fill = state)) +
         theme_classic()
 ```
 
-# Nitrogen data
+# Nitrogen data: all yrs, sites
 ```{r}
 ggplot(cn, aes(x = species, y = nitrogen, fill = state)) +
         #facet_grid(.~site) +
@@ -50,5 +55,19 @@ ggplot(cn, aes(x = species, y = nitrogen, fill = state)) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        theme_classic()
+```
+
+# Nitrogen data: all yrs, by species - ignore the single boxplots where there should be 1 per yr (not sure why this is happening)
+```{r}
+ggplot(cn, aes(x = year, y = nitrogen, fill = state)) +
+        geom_boxplot(color = "black", outlier.shape = NA) +
+        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
+        facet_grid(.~species) +
+        labs(x = "Year", y = "Average Nitrogen Content") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        facet_grid(.~species) +
         theme_classic()
 ```
