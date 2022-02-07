@@ -1004,9 +1004,9 @@ emmeans(mod14pk, list(pairwise ~ state + origin + year_factor), adjust = "tukey"
 
 # including growth form - first with interaction term
 kbs_flwr_plot_growthhabit <- within(kbs_flwr_plot_growthhabit, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
-mod15pk <- lmer(log(julian_median) ~ state * growth_habit + (1+year_factor|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
-mod16pk <- lmer(log(julian_median) ~ state + growth_habit + (1+year_factor|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
-mod17pk <- lmer(log(julian_median) ~ state + growth_habit + year_factor + (1|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
+mod15pk <- lmer(log(julian_median) ~ state * growth_habit + (1+year_factor|plot), kbs_flwr_plot_growthhabit, REML=FALSE)
+mod16pk <- lmer(log(julian_median) ~ state + growth_habit + (1+year_factor|plot), kbs_flwr_plot_growthhabit, REML=FALSE)
+mod17pk <- lmer(log(julian_median) ~ state + growth_habit + year_factor + (1|plot), kbs_flwr_plot_growthhabit, REML=FALSE)
 anova(mod15pk, mod16pk) # go with model 16pk
 anova(mod16pk, mod17pk) # mod 17pk
 AICctab(mod15pk, mod16pk, mod17pk, weights=T)
