@@ -1,0 +1,95 @@
+---
+title: "warmXtrophic Project: Flowering Duration Plots"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Clear all existing data
+rm(list=ls())
+
+# Load packages
+library(plotrix)
+library(tidyverse)
+library(ggpubr)
+library(hrbrthemes)
+
+# Set working directory
+#Sys.getenv("L1DIR")
+L1_dir<-Sys.getenv("L1DIR")
+L2_dir<-Sys.getenv("L2DIR")
+#list.files(L1_dir)
+
+# Read in data
+# Set ggplot2 plotting
+# This code for ggplot2 sets the theme to mostly black and white 
+# (Arial font, and large font, base size=24)
+theme_set(theme_bw(14))
+theme_update(axis.text.x = element_text(size = 12, angle = 90),
+             axis.text.y = element_text(size = 12))
+
+# Read in data
+flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) # species level data
+flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
+flwr_plot_origin <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_origin_L2.csv")) # plot level data for origin
+flwr_plot_growthhabit <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv")) # plot level data for growth habit
+
+# get rid of "X" column that shows up
+flwr_species$X <- NULL
+flwr_plot$X <- NULL
+flwr_plot_origin$X <- NULL
+flwr_plot_growthhabit$X <- NULL
+
+# making site names capital for cleaner plots - from Kara
+change_site <- function(df){
+  df$site[df$site == "umbs"] <- "UMBS"
+  df$site[df$site == "kbs"] <- "KBS"
+  return(df)
+}
+
+flwr_species <- change_site(flwr_species) # using function from above
+flwr_plot <- change_site(flwr_plot) # using function from above
+
+# creating a vector with cleaned up insecticide labels for plotting - from Kara
+insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
+
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+flwr_species$state <- as.factor(flwr_species$state)
+levels(flwr_species$state)
+# [1] "ambient" "warmed" 
+flwr_species$state <- factor(flwr_species$state, levels(flwr_species$state)[c(2,1)])
+levels(flwr_species$state)
+# [1] "warmed"  "ambient"
+
+# again for plot level data
+flwr_plot$state <- as.factor(flwr_plot$state)
+levels(flwr_plot$state)
+# [1] "ambient" "warmed" 
+flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
+levels(flwr_plot$state)
+# [1] "warmed"  "ambient"
+
+flwr_species$flwr_duration <- as.numeric(as.character(flwr_species$flwr_duration))
+flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
+flwr_plot_origin$flwr_duration <- as.numeric(as.character(flwr_plot_origin$flwr_duration))
+flwr_plot_growthhabit$flwr_duration <- as.numeric(as.character(flwr_plot_growthhabit$flwr_duration))
+
+# Kara's edits:
+# adding 1 to each occurrence in the flwr_duration column so everything is scaled up the same & removes 0's
+flwr_plot$flwr_duration_scaled <- flwr_plot$flwr_duration+1
+flwr_species$flwr_duration_scaled <- flwr_species$flwr_duration+1
+flwr_plot_origin$flwr_duration_scaled <- flwr_plot_origin$flwr_duration+1
+flwr_plot_growthhabit$flwr_duration_scaled <- flwr_plot_growthhabit$flwr_duration+1
+
+
+```
+
