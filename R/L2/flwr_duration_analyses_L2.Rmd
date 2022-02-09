@@ -847,10 +847,9 @@ anova(mod7a, mod7c) #models are not different than one another, go with simpler 
 summary(mod7a)
 anova(mod7a) # investigates whether at least one of the levels within each factor is significantly different.
 # Yes, at least one of the species is different (they do not all have the same relative abundances). 
-emmeans(mod7c, list(pairwise ~ state + year_factor), adjust = "tukey")
-emmeans(mod7c, list(pairwise ~ year_factor), adjust = "tukey")
-emmeans(mod7c, list(pairwise ~ species), adjust = "tukey")
-emmeans(mod7c, list(pairwise ~ insecticide), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ year_factor), adjust = "tukey")
+emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
 
 # Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
 plot_model(mod7a, sort.est = TRUE)
