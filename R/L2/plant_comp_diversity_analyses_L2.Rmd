@@ -1051,6 +1051,7 @@ plot_model(mod3kr, type = "re", terms = c("species"))
 # the best model fit appears to be = 
 # mod3kr <- lmer(log(richness) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
 summ(mod3kr)
+summary(mod3kr)
 emmeans(mod3kr, list(pairwise ~ state + year + insecticide*year), adjust = "tukey")
 ```
 

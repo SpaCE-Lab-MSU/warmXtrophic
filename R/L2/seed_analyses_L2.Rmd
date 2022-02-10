@@ -49,7 +49,7 @@ L2_dir <- Sys.getenv("L2DIR")
 
 # Set ggplot2 plotting
 # This code for ggplot2 sets the theme to mostly black and white 
-# (Arial font, and large font, base size=24)
+# (Ariel font, and large font, base size=24)
 theme_set(theme_bw(14))
 theme_update(axis.text.x = element_text(size = 12, angle = 90),
              axis.text.y = element_text(size = 12))
@@ -65,9 +65,6 @@ sd_species$X <- NULL
 sd_plot$X <- NULL
 sd_plot_origin$X <- NULL
 sd_plot_growthhabit$X <- NULL
-# take a look at the data to see if looks good
-View(sd_species) 
-View(sd_plot) 
 
 sd_species$julian_min <- as.numeric(as.integer(sd_species$julian_min))
 sd_plot$julian_min <- as.numeric(as.integer(sd_plot$julian_min))
@@ -93,17 +90,13 @@ sd_plot$year_factor <- as.factor(sd_plot$year_factor)
 sd_species$year_factor <- as.factor(sd_species$year_factor)
 
 umbs_sd_plot <- subset(sd_plot, site == "umbs") # pull out umbs only data at plot level
-umbs_sd_plot <- subset(umbs_sd_plot, year!="2021") # delete 2021 data from umbs dataframe (doesn't make sense to have bc data was not collect at same frequency as previous years)
 umbs_sd_spp <- subset(sd_species, site == "umbs") # pull out umbs only data at species level
-umbs_sd_spp <- subset(umbs_sd_spp, year!="2021") # delete 2021 data from umbs dataframe (doesn't make sense to have bc data was not collect at same frequency as previous years)
 kbs_sd_plot <- subset(sd_plot, site == "kbs") # pull out kbs only data at plot level
 kbs_sd_spp <- subset(sd_species, site == "kbs") # pull out kbs only data at species level
 kbs_sd_plot_origin <- subset(sd_plot_origin, site == "kbs")
 kbs_sd_plot_growthhabit <- subset(sd_plot_growthhabit, site == "kbs")
 umbs_sd_plot_origin <- subset(sd_plot_origin, site == "umbs")
-umbs_sd_plot_origin <- subset(umbs_sd_plot_origin, year != "2021") # delete 2021 data
 umbs_sd_plot_growthhabit <- subset(sd_plot_growthhabit, site == "umbs")
-umbs_sd_plot_growthhabit <- subset(umbs_sd_plot_growthhabit, year != "2021") # delete 2021 data
 ```
 
 # Data exploration for minimum (first) Julian date of seed set at the PLOT for both sites
