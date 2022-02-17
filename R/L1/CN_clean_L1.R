@@ -34,6 +34,16 @@ L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1"
 #### PLOT ID INFO ####
 meta <- read.csv(file.path(L0_dir, "plot.csv"))
 
+# create function to clean CN data files - this function can be used for data still in the "weighsheets" format
+CN_csvdata_initial_prep <- function(cn_data){
+        cn_data <- cn_data[-(1:2),] #get rid of the first 2 rows because it's not data
+        names(cn_data) <- cn_data[1,] #make the first row the column names
+        cn_data <- cn_data[-1,] #get rid of the first row because it's now the column names
+        cn_data <- cn_data[-(1:7),] #get rid of first 7 rows because these are the "standards" data
+        cn_data <- cn_data[c(3, 4, 10, 11)] #get rid of unwanted columns that don't have data
+        return(cn_data[!apply(is.na(cn_data) | cn_data == "", 1, all),])
+}
+
 #### CN ####
 ## 2017 ##
 # KBS & UMBS 
@@ -147,13 +157,45 @@ CN_2017 <- merge(CN_umbs_2017, CN_kbs_2017, all = TRUE)
 # reminder that kbs samples were analyzed in triplicate, umbs samples were analyzed in singlets
 
 ## 2018 ##
-# ***This data is currently being ground and prepped to be analyzed***
-# KBS - but this doesn't contain data; however the "CN_Inventory.xlsx" file in /CD_data suggests these exist - MY: yes these
-# exist, the file below acts like a meta data file for all the existing samples
-cn18k_meta <- read.csv(file.path(L0_dir, "./KBS/2018/kbs_CN_2018.csv")) # meta data file
+# KBS
+cn18k_meta <- read.csv(file.path(L0_dir, "./KBS/2018/kbs_CN_UniqueID_2018.csv")) # meta data file
+kbs_2018_1 <- read.csv(file.path(L0_dir, "./KBS/2018/kbs_CN_weightsheet_1_2018.csv")) # Soca
+kbs_2018_2 <- read.csv(file.path(L0_dir, "./KBS/2018/kbs_CN_weightsheet_2_2018.csv")) # Acmi
+
+kbs_2018_1_edited <- CN_csvdata_initial_prep(kbs_2018_1) # using function from top of script
+kbs_2018_2_edited <- CN_csvdata_initial_prep(kbs_2018_2) # using function from top of script
+kbs_2018_1_edited <- kbs_2018_1_edited[!(kbs_2018_1_edited$Sample=="Blind Standard"),] # delete blind standards in data
+kbs_2018_2_edited <- kbs_2018_2_edited[!(kbs_2018_2_edited$Sample=="Blind Standard"),]
+
+CN_kbs_2018 <- merge(kbs_2018_1_edited, kbs_2018_2_edited, all = TRUE) # merge kbs 2018 cn data into one dataframe
+names(CN_kbs_2018)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
+CN_kbs_2018 <- merge(CN_kbs_2018, cn18k_meta, all = TRUE)
+CN_kbs_2018 $Year <- "2018"
+CN_kbs_2018 <- CN_kbs_2018[,-c(6, 10)] # delete unneeded columns
+CN_kbs_2018 <- na.omit(CN_kbs_2018) # get rid of NAs which are data without C and N
+
 # UMBS
-# ***   Where are these data? the "CN_Inventory.xlsx" file in /CD_data suggests these exist.
-cn18u_meta <- read.csv(file.path(L0_dir, "./UMBS/2018/umbs_CN_2018.csv"))
+cn18u_meta <- read.csv(file.path(L0_dir, "./UMBS/2018/umbs_CN_UniqueID_2018.csv"))
+umbs_2018_1 <- read.csv(file.path(L0_dir, "./UMBS/2018/umbs_CN_weighsheet_1_2018.csv")) # Cest
+umbs_2018_2 <- read.csv(file.path(L0_dir, "./UMBS/2018/umbs_CN_weighsheet_2_2018.csv")) # Popr
+
+umbs_2018_1_edited <- CN_csvdata_initial_prep(umbs_2018_1) # using function from top of script
+umbs_2018_2_edited <- CN_csvdata_initial_prep(umbs_2018_2) # using function from top of script
+umbs_2018_1_edited <- umbs_2018_1_edited[!(umbs_2018_1_edited$Sample=="Blind Standard"),] # delete blind standards in data
+umbs_2018_2_edited <- umbs_2018_2_edited[!(umbs_2018_2_edited$Sample=="Blind Standard"),]
+
+CN_umbs_2018 <- merge(umbs_2018_1_edited, umbs_2018_2_edited, all = TRUE) # merge umbs 2018 cn data into one dataframe
+names(CN_umbs_2018)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
+CN_umbs_2018 <- merge(CN_umbs_2018, cn18u_meta, all = TRUE)
+CN_umbs_2018$Year <- "2018"
+CN_umbs_2018 <- CN_umbs_2018[,-c(6, 10)] # delete unneeded columns
+CN_umbs_2018 <- na.omit(CN_umbs_2018) # get rid of NAs which are data without C and N
+CN_umbs_2018 <- CN_umbs_2018[!(CN_umbs_2018$Nitrogen == ""), ] # delete row that did not have C and N data due to leaking tin
+
+CN_2018 <- merge(CN_kbs_2018, CN_umbs_2018, all = TRUE) # merge kbs and umbs 2018 cn data into one dataframe
+names(CN_2018)[2] <- "weight_mg" #changing column name
+names(CN_2018) <- tolower(names(CN_2018)) # column names to lower case
+CN_2018 <- merge(CN_2018, meta, all = TRUE)
 
 ## 2019 ##
 # These data were originally in 4 files at L0_dir, "./CN_data/2019/CN_WeighSheet_1_2019.csv"... "_2_", "_3_", "_4_"))
@@ -173,16 +215,6 @@ cn19u_samples_1 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_1_
 cn19u_samples_2 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_2_2019.csv"))
 cn19u_samples_3 <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_weighsheet_3_2019.csv")) # this has some kbs samples in it
 # that will need to be deleted when cleaned
-
-# create function to clean CN data files - this function can be used for data still in the "weighsheets" format
-CN_csvdata_initial_prep <- function(cn_data){
-        cn_data <- cn_data[-(1:2),] #get rid of the first 2 rows because it's not data
-        names(cn_data) <- cn_data[1,] #make the first row the column names
-        cn_data <- cn_data[-1,] #get rid of the first row because it's now the column names
-        cn_data <- cn_data[-(1:7),] #get rid of first 7 rows because these are the "standards" data
-        cn_data <- cn_data[c(3, 4, 10, 11)] #get rid of unwanted columns that don't have data
-        return(cn_data[!apply(is.na(cn_data) | cn_data == "", 1, all),])
-}
 
 # Cleaning KBS CN 2019 samples
 cn19k_samples_1_edited <- CN_csvdata_initial_prep(cn19k_samples_1)
@@ -225,7 +257,66 @@ CN_2019 <- CN_2019[,-c(1,6,8)] # delete unneeded columns
 CN_2019$year <- 2019
 CN_2019 <- merge(CN_2019, meta, all = TRUE) #merge with meta data
 
+# 2020
+# KBS
+cn20k_meta <- read.csv(file.path(L0_dir, "./KBS/2020/kbs_CN_UniqueID_2020.csv")) # meta data file
+kbs_2020_1 <- read.csv(file.path(L0_dir, "./KBS/2020/kbs_CN_weighsheet_1_2020.csv")) # Soca
+
+kbs_2020_1_edited <- CN_csvdata_initial_prep(kbs_2020_1) # using function from top of script
+kbs_2020_1_edited <- kbs_2020_1_edited[!(kbs_2020_1_edited$Sample=="Blind Standard"),] # delete blind standards in data
+
+names(kbs_2020_1_edited)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
+CN_kbs_2020 <- merge(kbs_2020_1_edited, cn20k_meta, all = TRUE)
+CN_kbs_2020$Year <- "2020"
+CN_kbs_2020 <- CN_kbs_2020[,-c(6, 10)] # delete unneeded columns
+CN_kbs_2020 <- na.omit(CN_kbs_2020) # get rid of NAs which are data without C and N
+
+# UMBS
+cn20u_meta <- read.csv(file.path(L0_dir, "./UMBS/2020/umbs_CN_UniqueID_2020.csv")) # meta data file
+umbs_2020_1 <- read.csv(file.path(L0_dir, "./UMBS/2020/umbs_CN_weighsheet_1_2020.csv")) # Popr
+umbs_2020_2 <- read.csv(file.path(L0_dir, "./UMBS/2020/umbs_CN_weighsheet_2_2020.csv")) # Cest
+
+umbs_2020_1_edited <- CN_csvdata_initial_prep(umbs_2020_1) # using function from top of script
+umbs_2020_2_edited <- CN_csvdata_initial_prep(umbs_2020_2)
+umbs_2020_1_edited <- umbs_2020_1_edited[!(umbs_2020_1_edited$Sample=="Blind Standard"),] # delete blind standards in data
+umbs_2020_2_edited <- umbs_2020_2_edited[!(umbs_2020_2_edited$Sample=="Blind Standard"),]
+
+CN_umbs_2020 <- merge(umbs_2020_1_edited, umbs_2020_2_edited, all = TRUE) # merge umbs 2018 cn data into one dataframe
+names(CN_umbs_2020)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
+CN_umbs_2020 <- merge(CN_umbs_2020, cn20u_meta, all = TRUE)
+CN_umbs_2020$Year <- "2020"
+CN_umbs_2020 <- CN_umbs_2020[,-c(6, 10)] # delete unneeded columns
+CN_umbs_2020 <- na.omit(CN_umbs_2020) # get rid of NAs which are data without C and N
+CN_umbs_2020 <- CN_umbs_2020[!(CN_umbs_2020$Nitrogen == ""), ] # delete row that did not have C and N data due to leaking tin
+
+CN_2020 <- merge(CN_kbs_2020, CN_umbs_2020, all = TRUE) # merge kbs and umbs 2018 cn data into one dataframe
+names(CN_2020)[2] <- "weight_mg" #changing column name
+names(CN_2020) <- tolower(names(CN_2020)) # column names to lower case
+CN_2020 <- merge(CN_2020, meta, all = TRUE)
+
+# 2021
+# KBS
+cn21k_meta <- read.csv(file.path(L0_dir, "./KBS/2021/kbs_CN_UniqueID_2021.csv")) # meta data file
+kbs_2021_1 <- read.csv(file.path(L0_dir, "./KBS/2021/kbs_CN_weighsheet_1_2021.csv")) # Soca
+
+kbs_2021_1_edited <- CN_csvdata_initial_prep(kbs_2021_1) # using function from top of script
+kbs_2021_1_edited <- kbs_2021_1_edited[!(kbs_2021_1_edited$Sample=="Blind Standard"),] # delete blind standards in data
+
+names(kbs_2021_1_edited)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
+CN_kbs_2021 <- merge(kbs_2021_1_edited, cn21k_meta, all = TRUE)
+CN_kbs_2021$Year <- "2021"
+CN_kbs_2021 <- CN_kbs_2021[,-c(6, 10)] # delete unneeded columns
+# CN_kbs_2021 <- na.omit(CN_kbs_2021) # get rid of NAs which are data without C and N
+names(CN_kbs_2021)[2] <- "weight_mg" #changing column name
+names(CN_kbs_2021) <- tolower(names(CN_kbs_2021)) # column names to lower case
+CN_2021 <- merge(CN_kbs_2021, meta, all = TRUE) #merge with meta data
+CN_2021 <- na.omit(CN_2021) # get rid of NAs which are data without C and N
+
 # Merge each year's cleaned CN data - right now only have 2017 and 2019 cleaned CN data
-CN_data_cleaned <- merge(CN_2019, CN_2017, all = TRUE)
+CN_17_18 <- merge(CN_2017, CN_2018, all = TRUE)
+CN_19_20 <- merge(CN_2019, CN_2020, all = TRUE)
+CN <- merge(CN_17_18 , CN_19_20, all = TRUE)
+CN_all <- merge(CN, CN_2021, all = TRUE)
+
 # write a new csv with the cleaned and merge data and upload to the shared google drive L1 folder
-write.csv(CN_data_cleaned, file.path(L1_dir, "./CN/CN_L1.csv"), row.names=F)
+write.csv(CN_all, file.path(L1_dir, "./CN/CN_L1.csv"), row.names=F)
