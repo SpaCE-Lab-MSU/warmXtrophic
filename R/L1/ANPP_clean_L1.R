@@ -1,11 +1,11 @@
 # TITLE:          warmXtrophic ANPP biomass and plant composition cleanup
-# AUTHORS:        Moriah Young
-# COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Pat Bills, Kara Dobson
+# AUTHORS:        Moriah Young, Kara Dobson
+# COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Pat Bills
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    A csv file containing ANPP biomass and plant composition data for both kbs and umbs sites is uploaded
 #                 to the L1 plant comp folder
 # PROJECT:        warmXtrophic
-# DATE:           October, 2021
+# DATE:           October, 2021; updated Feb 2022 by Kara
 
 # Clear all existing data
 rm(list=ls())
@@ -21,17 +21,19 @@ L1_dir <- Sys.getenv("L1DIR")
 ################################################################################
 # Read in csv files
 taxon <- read.csv(file.path(L0_dir,"taxon.csv")) # taxon meta data 
+meta <- read.csv(file.path(L0_dir, "plot.csv"))
 
 # Source in needed functions
-source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/ANPP_functions_L1.R") 
+#source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/ANPP_functions_L1.R") 
+source("~/warmXtrophic/R/L1/ANPP_functions_L1.R") # this works for Kara
 # need to figure out how this works with the .environ?
 
 ## KBS
 kbs_biomass_20 <- read.csv(file.path(L0_dir, "KBS/2020/kbs_ancillary_biomass_2020.csv"))
 kbs_plantcomp_20 <- read.csv(file.path(L0_dir, "KBS/2020/kbs_ancillary_plantcomp_2020.csv"))
 
-#kbs_biomass_21 <- read.csv(file.path(L0_dir, "KBS/2021/kbs_ANPP_biomass_2021.csv"))
-#kbs_plantcomp_21 <- read.csv(file.path(L0_dir, "KBS/2021/kbs_ANPP_plantcomp_2021.csv"))
+kbs_biomass_21 <- read.csv(file.path(L0_dir, "KBS/2021/kbs_biomass_2021.csv"))
+kbs_plantcomp_21 <- read.csv(file.path(L0_dir, "KBS/2021/kbs_anpp_plant_comp_2021.csv"))
 
 # UMBS
 umbs_biomass_20 <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_ANPP_2020.csv"))
@@ -41,6 +43,11 @@ umbs_biomass_21 <- read.csv(file.path(L0_dir, "UMBS/2021/umbs_ANPP_biomass_2021.
 umbs_plantcomp_21 <- read.csv(file.path(L0_dir, "UMBS/2021/umbs_ANPP_plantcomp_2021.csv"))
 
 ################################################################################
+# Making separate datasets for 2020 and 2021 biomass data
+# 2020 data was collected in ancillary plots, so no plant material was collected from within treatments
+# We'd need to regress this biomass data against plant heights to come up with an equation to convert height to weight
+# This hasn't been done
+
 # Clean data - 2020
 ## KBS
 
@@ -62,6 +69,10 @@ names(kbs_plantcomp_20) <- tolower(names(kbs_plantcomp_20))
 str(kbs_plantcomp_20)
 
 # Merge KBS biomass and plant comp data together
+# Note from Kara: do we want to merge these? we can use this data to see how accurately % cover reflects
+# plant abundance with the biomass data, but biomass was collected over the span of a month while % cover was
+# collected on one data in August, so the correlation may not be accurate here. Leaving it for now
+
 #kbs_ANPP <- merge(kbs_biomass, kbs_plant_comp, by = c("plot", "species"))
 kbs_ANPP_20 <- full_join(kbs_biomass_20, kbs_plantcomp_20, by = c("plot", "species", "site"))
 View(kbs_ANPP_20)
@@ -107,7 +118,8 @@ View(final_ANPP_20)
 
 # Now that the two sites are merged, now the species list needs to be cleaned like the other scripts we have i.e
 # phenology and plant comp
-
+ 
+# checking species and site names
 spp_name(final_ANPP_20) # need to fix a few species names
 site_name(final_ANPP_20) # need to change one site name
 
@@ -121,12 +133,28 @@ site_name(final_ANPP_20) # looks good
 final_ANPP_20 <- subset(final_ANPP_20, species != "Total")
 View(final_ANPP_20)
 
-################################################################################
-# write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
-write.csv(final_ANPP_20, file.path(L1_dir,"ANPP/final_ANPP_2020.csv"))
+# merging taxon info with dataframe
+colnames(taxon)[which(names(taxon) == "code")] <- "species" # changing column name for merging
+# removing columns I don't want from taxon
+taxon <- remove_col(taxon, name=c("X", "USDA_code", "LTER_code", "site", "old_name", 
+                                  "old_code", "X.1"))
+# merging with taxon information
+# left join with final_ANPP as left dataframe to keep all biomass data, but only keep taxon info for given species in biomass dataframe
+final_ANPP_20_join <- left_join(final_ANPP_20, taxon, by = "species")
+
+# setting NA's to 0 for plant comp - doing this because the species wasn't seen when % cover was taken, so its effectively 0
+# not doing this until asking phoebe/mark for their opinion
+#final_ANPP_20_join$cover[is.na(final_ANPP_20_join$cover)] <- 0
 
 ################################################################################
-# 2021 ANPP
+# write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
+write.csv(final_ANPP_20_join, file.path(L1_dir,"ANPP/final_ANPP_2020.csv"))
+
+
+################################################################################
+# 2021 biomass was collected within the treatment plots themselves
+
+# UMBS
 
 # Clean data
 # Biomass data
@@ -136,6 +164,7 @@ umbs_biomass_21 <- remove_col(umbs_biomass_21, name=c("weight_g", "dried_bag_wei
                                                       "measurement_type", "date"))
 str(umbs_biomass_21)
 
+# adding quadrat number to match with plant comp data
 umbs_biomass_21$quadrat_number <- 1
 
 colnames(umbs_biomass_21) <- sub("plant_biomass_g", "weight_g", colnames(umbs_biomass_21)) # change column name weight_g
@@ -157,6 +186,51 @@ umbs_ANPP_21$year <- "2021" # add year to data frame
 
 umbs_ANPP_21 <- umbs_ANPP_21[, c("site", "year", "plot", "species", "quadrat_number", "cover", "weight_g")] # reorganize column order
 View(umbs_ANPP_21)
+
+
+## KBS
+
+# Clean data
+# Biomass data
+View(kbs_biomass_21)
+# get rid of unnecessary columns
+kbs_biomass_21 <- remove_col(kbs_biomass_21, name=c("Mass_g", "Dried.bag.mass..g.", "Bag.Size", "direct.or.indirect.mass", 
+                                                      "Notes", "Date.Clipped","proofing.notes"))
+str(kbs_biomass_21)
+
+# adding quadrat type to match with plant comp data
+kbs_biomass_21$quadrat <- "clip"
+# adding site
+kbs_biomass_21$site <- "KBS"
+
+# change column names
+colnames(kbs_biomass_21) <- sub("Plot.ID", "Plot", colnames(kbs_biomass_21))
+colnames(kbs_biomass_21) <- sub("Species.Code", "Species_Code", colnames(kbs_biomass_21))
+colnames(kbs_biomass_21) <- sub("Dried.Plant.Biomass..g.", "weight_g", colnames(kbs_biomass_21))
+
+
+# Plant Comp data
+View(kbs_plantcomp_21)
+
+# restricting plant comp data to observations from september
+kbs_plantcomp_21 <- kbs_plantcomp_21[-c(161:557),]
+
+# get ride of unwanted columns
+kbs_plantcomp_21 <- remove_col(kbs_plantcomp_21, name=c("Julian", "Notes", "Date"))
+str(kbs_plantcomp_21)
+
+# Change column names to lowercase
+names(kbs_plantcomp_21) <- tolower(names(kbs_plantcomp_21))
+names(kbs_biomass_21) <- tolower(names(kbs_biomass_21))
+
+#kbs_ANPP <- merge(kbs_biomass, kbs_plant_comp, by = c("plot", "species"))
+kbs_ANPP_21 <- left_join(kbs_biomass_21, kbs_plantcomp_21, by = c("site", "plot", "quadrat", "species_code"))
+View(kbs_ANPP_21)
+
+kbs_ANPP_21$year <- "2021" # add year to data frame
+
+kbs_ANPP_21 <- kbs_ANPP_21[, c("site", "year", "plot", "species", "quadrat_number", "cover", "weight_g")] # reorganize column order
+View(kbs_ANPP_21)
 
 # Now that the two sites are merged, now the species list needs to be cleaned like the other scripts we have i.e
 # phenology and plant comp

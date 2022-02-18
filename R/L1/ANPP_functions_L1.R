@@ -56,6 +56,7 @@ change_spp <- function(df){
         df$species[df$species == "Bareground_sand"] <- "Bare_Ground"
         df$species[df$species == "Groundhog_hole_sand"] <- "Groundhog"
         df$species[df$species == "Surface_Litter"] <- "Litter"
+        df$species[df$species == "Unsrt"] <- "Unsorted"
         return(df)
 }
 
