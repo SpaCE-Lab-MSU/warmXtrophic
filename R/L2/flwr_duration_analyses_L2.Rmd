@@ -111,16 +111,10 @@ umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "umbs")
 # KBS SPECIES LEVEL - Looking at DURATION of flowering
 ```{r, warning=F, error=TRUE}
 ### KBS ###
-# Kara editing: I didn't change these below to the flwr_duration_scaled column, but they'd probably look about the same
 hist(kbs_flwr_spp$flwr_duration_scaled)
 qqnorm(kbs_flwr_spp$flwr_duration_scaled)
-shapiro.test(kbs_flwr_spp$flwr_duration) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+shapiro.test(kbs_flwr_spp$flwr_duration_scaled) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Kara editing: maybe log transforming or log transforming the data could help here since its right skewed
-kbs_flwr_spp$flwr_log <- log(kbs_flwr_spp$flwr_duration_scaled)
-hist(kbs_flwr_spp$flwr_log)
-qqnorm(kbs_flwr_spp$flwr_log)
-shapiro.test(kbs_flwr_spp$flwr_log) #eh, not great
 
 # Visualizing median Julian date for umbs at the PLOT LEVEL
 ggplot(kbs_flwr_spp, aes(flwr_duration_scaled, fill = plot)) + 

@@ -87,7 +87,7 @@ comp_kbs_spp <- subset(comp_species, site == "kbs")
 comp_umbs_spp <- subset(comp_species, site == "umbs")
 comp_umbs_spp <- subset(comp_umbs_spp, year_factor!="7") # delete 2021 data from umbs dataframe (doesn't make sense to have bc data was not collect at same frequency as previous years)
 
-# create dataframes for kbs and umbs
+# create dataframes for kbs and umbs at plot level
 comp_kbs_plot <- subset(comp_plot, site == "kbs")
 comp_umbs_plot <- subset(comp_plot, site == "umbs")
 comp_umbs_plot <- subset(comp_umbs_plot, year_factor!="7") # delete 2021 data from umbs dataframe (doesn't make sense to have bc data was not collect at same frequency as previous years)
