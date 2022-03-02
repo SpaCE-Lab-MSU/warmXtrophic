@@ -1,0 +1,54 @@
+---
+title: "PSF Greenhouse: Biomass Plots"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load in data
+```{r, message = F}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(plotrix)
+
+# Set working directory to Google Drive
+# .Renviron not working for MLY; hard-coding in here
+L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L0"
+L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L1"
+
+# Read in data
+biomass <- read.csv(file.path(L1_dir, "psf_biomass_2021_L1.csv"))
+
+# filter the data to contain the mean and std error for julian date of each site & species
+sum_biomass <- biomass %>%
+  group_by(treatment, species) %>%
+  summarize(avg_biomass = mean(total_biomass, na.rm = TRUE),
+            se = std.error(total_biomass, na.rm = TRUE))
+```
+
+```{r}
+### biomass ###
+ggplot(sum_biomass, aes(x = treatment, y = avg_biomass, fill = treatment)) +
+        geom_boxplot(color = "black", outlier.shape = NA) +
+        labs(x = "Treatent", y = "Total Biomass") +
+        facet_grid(.~species) +
+        geom_bar(position = "identity", stat = "identity") +
+        geom_errorbar(aes(ymin = avg_biomass - se, ymax = avg_biomass + se), width = 0.2, position = "identity") +
+        labs(x = "Treatment", y = "Biomass", title = "Average Total Biomass") +
+        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a", "green")) +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W", "control" = "C")) +
+        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = treatment)) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a", "control" = "green")) +
+        #coord_cartesian(ylim = c(42, 53)) +
+        theme_classic()
+```
+
+
+

@@ -1,0 +1,127 @@
+---
+title: "PSF Greenhouse: Biomass Analses"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load in data
+```{r, message = F}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(olsrr)
+library(predictmeans)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(rstatix)
+library(vegan)
+library(interactions)
+library(emmeans)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(labdsv) # used with Vegan package, the matrify() and matrify2() functions
+library(agricolae) # HSD.test() function
+library(bbmle)
+library(jtools) # summ() function
+
+# Set working directory to Google Drive
+# .Renviron not working for MLY; hard-coding in here
+L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L0"
+L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L1"
+
+# Read in data
+biomass <- read.csv(file.path(L1_dir, "psf_biomass_2021_L1.csv"))
+        
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+biomass$treatment <- as.factor(biomass$treatment)
+levels(biomass$treatment)
+# [1] "ambient" "control" "warmed" 
+biomass$treatment <- factor(biomass$treatment, levels(biomass$treatment)[c(3,1,2)])
+levels(biomass$treatment)
+# [1] "warmed"  "ambient" "control"
+
+trpr_biomass <- subset(biomass, species == "Trpr")
+phpr_biomass <- subset(biomass, species == "Phpr")
+```
+
+# Data exploration: Trpr
+```{r}
+descdist(trpr_biomass$total_biomass, discrete = FALSE)
+hist(trpr_biomass$total_biomass)
+qqnorm(trpr_biomass$total_biomass)
+shapiro.test(trpr_biomass$total_biomass) # not normal
+
+# logistic distribution?
+fit.logis <- fitdist(trpr_biomass$total_biomass, "logis")
+plot(b.fit.logis)
+
+# normal distribution?
+fit.norm <- fitdist(trpr_biomass$total_biomass, "norm")
+plot(b.fit.norm)
+
+# Gamma distribution?
+fit.gamma <- fitdist(trpr_biomass$total_biomass, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution?
+fit.weibull  <- fitdist(trpr_biomass$total_biomass, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(trpr_biomass$total_biomass, "lnorm")
+plot(fit.ln)
+
+# exponential distribution 
+fit.exp <- fitdist(trpr_biomass$total_biomass, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Logistic", "Normal", "Gamma", "Weibull", "Lognormal", "Exponential")
+denscomp(list(fit.logis, fit.norm, fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.logis, fit.norm, fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.logis, fit.norm, fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.logis, fit.norm, fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+gofstat(list(fit.logis, fit.norm, fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Logistic", "Normal", "Gamma", "Weibull", "Lognormal", "Exponential"))
+# Gamma looks best but weibull and lognormal are close
+```
+
+# Check assumptions
+```{r}
+fit_trpr <- lm(log(total_biomass) ~ treatment, data = trpr_biomass)
+outlierTest(fit_trpr) # no outliers
+qqPlot(fit_trpr, main="QQ Plot") 
+hist(fit_trpr$residuals)
+leveragePlots(fit_trpr)
+ols_test_normality(fit_trpr)
+
+```
+
+Model Comparisons
+```{r}
+# Trpr
+m1t <- lm(log(total_biomass) ~ treatment, data = trpr_biomass)
+m2t <- lmer(log(total_biomass) ~ treatment + (1|rep) + (1|block), data = trpr_biomass)
+m3t <- lmer(log(total_biomass) ~ treatment + (1|block), data = trpr_biomass)
+AICctab(m1t, m2t, m3t, weights = T) # m1t
+summary(m1t)
+
+# Phpr
+m1p <- lm(log(total_biomass) ~ treatment, data = phpr_biomass)
+m2p <- lmer(log(total_biomass) ~ treatment + (1|rep) + (1|block), data = phpr_biomass)
+m3p <- lmer(log(total_biomass) ~ treatment + (1|block), data = phpr_biomass)
+AICctab(m1p, m2p, m3p, weights = T) # m1p
+summary(m1p)
+```
+
+
