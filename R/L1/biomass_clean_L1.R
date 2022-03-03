@@ -25,7 +25,7 @@ meta <- read.csv(file.path(L0_dir, "plot.csv"))
 
 # Source in needed functions
 #source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/ANPP_functions_L1.R") 
-source("~/warmXtrophic/R/L1/ANPP_functions_L1.R") # this works for Kara
+source("~/warmXtrophic/R/L1/biomass_functions_L1.R") # this works for Kara
 # need to figure out how this works with the .environ?
 
 ## KBS
