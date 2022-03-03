@@ -19,7 +19,7 @@ L1_dir <- Sys.getenv("L1DIR")
 list.files(L0_dir)
 
 # Read in data
-taxa <- read.csv(file.path(L0_dir, "taxon.csv"))
+taxa <- read.csv(file.path(L0_dir, "taxon_list.csv"))
 # Make sure that you create a new .csv file of the taxon_list.xlsx file IN the Google shared folder
 # before you read in the data to ensure that you have the most up to date species list
 
