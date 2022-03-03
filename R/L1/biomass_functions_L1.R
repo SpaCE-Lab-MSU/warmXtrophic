@@ -48,7 +48,7 @@ change_spp <- function(df){
         df$species[df$species == "Soil"] <- "Bare_Ground"
         df$species[df$species == "Bareground"] <- "Bare_Ground"
         df$species[df$species == "Evening_Primrose"] <- "Oebi"
-        df$species[df$species == "Lichen"] <- "Ulsp"
+        df$species[df$species == "Lichen"] <- "Lisp"
         df$species[df$species == "Hieracium"] <- "Hisp"
         df$species[df$species == "Solidago"] <- "Sogi"
         df$species[df$species == "Capedi"] <- "Cape"
@@ -57,7 +57,6 @@ change_spp <- function(df){
         df$species[df$species == "Red Maple"] <- "Acru"
         df$species[df$species == "Bareground_sand"] <- "Bare_Ground"
         df$species[df$species == "Groundhog_hole_sand"] <- "Groundhog"
-        df$species[df$species == "Surface_Litter"] <- "Litter"
         df$species[df$species == "Unsrt"] <- "Unsorted"
         return(df)
 }

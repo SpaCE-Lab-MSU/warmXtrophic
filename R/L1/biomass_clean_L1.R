@@ -183,6 +183,22 @@ names(umbs_plantcomp_21) <- tolower(names(umbs_plantcomp_21))
 # restricting plant comp data to only quadrat 1
 umbs_plantcomp_21 <- umbs_plantcomp_21[!grepl(2, umbs_plantcomp_21$quadrat_number),]
 
+# fixing biomass species names
+spp_name(umbs_biomass_21) # need to fix a few species names
+site_name(umbs_biomass_21) # need to change one site name
+umbs_biomass_21 <- change_spp(umbs_biomass_21)
+spp_name(umbs_biomass_21) # looks good
+umbs_biomass_21 <- change_site(umbs_biomass_21)
+site_name(umbs_biomass_21) # looks good
+
+# fixing plant comp species names
+spp_name(umbs_plantcomp_21) # need to fix a few species names
+site_name(umbs_plantcomp_21) # need to change one site name
+umbs_plantcomp_21 <- change_spp(umbs_plantcomp_21)
+spp_name(umbs_plantcomp_21) # looks good
+umbs_plantcomp_21 <- change_site(umbs_plantcomp_21)
+site_name(umbs_plantcomp_21) # looks good
+
 #umbs_ANPP <- merge(umbs_biomass, umbs_plant_comp, by = c("plot", "species"))
 umbs_ANPP_21 <- full_join(umbs_biomass_21, umbs_plantcomp_21, by = c("plot", "species", "site", "quadrat_number"))
 View(umbs_ANPP_21)
@@ -192,25 +208,12 @@ umbs_ANPP_21$year <- "2021" # add year to data frame
 umbs_ANPP_21 <- umbs_ANPP_21[, c("site", "year", "plot", "species", "quadrat_number", "cover", "weight_g")] # reorganize column order
 View(umbs_ANPP_21)
 
-# Now that the two sites are merged, now the species list needs to be cleaned like the other scripts we have i.e
-# phenology and plant comp
-
-spp_name(umbs_ANPP_21) # need to fix a few species names
-site_name(umbs_ANPP_21) # need to change one site name
-
-umbs_ANPP_21 <- change_spp(umbs_ANPP_21)
-spp_name(umbs_ANPP_21) # looks good
-
-umbs_ANPP_21 <- change_site(umbs_ANPP_21)
-site_name(umbs_ANPP_21) # looks good
-
-View(umbs_ANPP_21)
-
 # merging taxon info with dataframe
 colnames(taxon)[which(names(taxon) == "code")] <- "species" # changing column name for merging
 # removing columns I don't want from taxon
 taxon <- remove_col(taxon, name=c("X", "USDA_code", "LTER_code", "site", "old_name", 
                                   "old_code", "X.1"))
+
 # merging with taxon information
 # left join with final_ANPP as left dataframe to keep all biomass data, but only keep taxon info for given species in biomass dataframe
 final_umbs_anpp_21 <- left_join(umbs_ANPP_21, taxon, by = "species")
@@ -224,11 +227,12 @@ final2_umbs_anpp_21 <- left_join(final_umbs_anpp_21, meta, by = "plot")
 
 # removing columns I don't want
 final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("quadrat_number"))
-################################################################################
+final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("X.2"))
+
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
 write.csv(final2_umbs_anpp_21, file.path(L1_dir,"ANPP/umbs_biomass_2021_L1.csv"))
 
-
+################################################################################
 ## KBS
 
 # Clean data
@@ -246,11 +250,12 @@ kbs_biomass_21$site <- "kbs"
 
 # change column names
 colnames(kbs_biomass_21) <- sub("Plot.ID", "Plot", colnames(kbs_biomass_21))
-colnames(kbs_biomass_21) <- sub("Species.Code", "Species_Code", colnames(kbs_biomass_21))
+colnames(kbs_biomass_21) <- sub("Species.Code", "Species", colnames(kbs_biomass_21))
 colnames(kbs_biomass_21) <- sub("Dried.Plant.Biomass..g.", "weight_g", colnames(kbs_biomass_21))
 
 # Plant Comp data
 View(kbs_plantcomp_21)
+colnames(kbs_plantcomp_21) <- sub("Species_Code", "Species", colnames(kbs_plantcomp_21))
 
 # restricting plant comp data to observations from september
 kbs_plantcomp_21 <- kbs_plantcomp_21[-c(161:557),]
@@ -263,32 +268,32 @@ str(kbs_plantcomp_21)
 names(kbs_plantcomp_21) <- tolower(names(kbs_plantcomp_21))
 names(kbs_biomass_21) <- tolower(names(kbs_biomass_21))
 
+# fixing biomass species names
+spp_name(kbs_biomass_21) # need to fix a few species names
+site_name(kbs_biomass_21) # good
+kbs_biomass_21 <- change_spp(kbs_biomass_21)
+spp_name(kbs_biomass_21) # looks good
+
+# fixing plant comp species names
+spp_name(kbs_plantcomp_21) # need to fix a few species names
+site_name(kbs_plantcomp_21) # good
+kbs_plantcomp_21 <- change_spp(kbs_plantcomp_21)
+spp_name(kbs_plantcomp_21) # looks good
+
 #kbs_ANPP <- merge(kbs_biomass, kbs_plant_comp, by = c("plot", "species"))
-kbs_ANPP_21 <- full_join(kbs_biomass_21, kbs_plantcomp_21, by = c("plot", "species_code", "site", "quadrat"))
+kbs_ANPP_21 <- full_join(kbs_biomass_21, kbs_plantcomp_21, by = c("plot", "species", "site", "quadrat"))
 View(kbs_ANPP_21)
 
 kbs_ANPP_21$year <- "2021" # add year to data frame
 
-kbs_ANPP_21 <- kbs_ANPP_21[, c("site", "year", "plot", "species_code", "quadrat", "cover", "weight_g")] # reorganize column order
-View(kbs_ANPP_21)
-
-colnames(kbs_ANPP_21) <- sub("species_code", "species", colnames(kbs_ANPP_21))
-
-# Now that the two sites are merged, now the species list needs to be cleaned like the other scripts we have i.e
-# phenology and plant comp
-spp_name(kbs_ANPP_21) # need to fix a few species names
-site_name(kbs_ANPP_21) # good
-
-kbs_ANPP_21 <- change_spp(kbs_ANPP_21)
-spp_name(kbs_ANPP_21) # looks good
-
+kbs_ANPP_21 <- kbs_ANPP_21[, c("site", "year", "plot", "species", "quadrat", "cover", "weight_g")] # reorganize column order
 View(kbs_ANPP_21)
 
 # merging taxon info with dataframe
 colnames(taxon)[which(names(taxon) == "code")] <- "species" # changing column name for merging
 # removing columns I don't want from taxon
 taxon <- remove_col(taxon, name=c("X", "USDA_code", "LTER_code", "site", "old_name", 
-                                  "old_code", "X.1"))
+                                  "old_code", "X.1", "X.2"))
 # merging with taxon information
 # left join with final_ANPP as left dataframe to keep all biomass data, but only keep taxon info for given species in biomass dataframe
 final_kbs_anpp_21 <- left_join(kbs_ANPP_21, taxon, by = "species")
