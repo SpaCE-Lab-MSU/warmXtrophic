@@ -31,16 +31,30 @@ umbs_biomass_21 <- umbs_biomass_21 %>% dplyr::select(-X)
 kbs_biomass_only <- kbs_biomass_21 %>%
         select(-cover) %>%
         drop_na(weight_g)
+umbs_biomass_only <- umbs_biomass_21 %>%
+        select(-cover) %>%
+        drop_na(weight_g)
 
 # removing uninformative species
 kbs_biomass_live <- kbs_biomass_only[!grepl("Litter", kbs_biomass_only$species),]
+umbs_biomass_live <- umbs_biomass_only[!grepl("Litter", umbs_biomass_only$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Standing_Dead", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Surface_Litter", umbs_biomass_live$species),]
 
 # keeping species that are found in W and A plots, not just one or the other
+# not using this in models below (yet) - could it skew results of total biomass?
+# tried all models with live2 dataframe and results seemed the same as with the live dataframe
 xtabs(weight_g ~ state + species, data=kbs_biomass_live) # some species have 0 biomass in one treatment
 kbs_biomass_live2 <- kbs_biomass_live %>%
         group_by(species) %>% 
         filter(all(c('warmed', 'ambient') %in% state))
 xtabs(weight_g ~ state + species, data=kbs_biomass_live2)
+
+xtabs(weight_g ~ state + species, data=umbs_biomass_live) # some species have 0 biomass in one treatment
+umbs_biomass_live2 <- umbs_biomass_live %>%
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+xtabs(weight_g ~ state + species, data=umbs_biomass_live2)
 
 #########################################
 # KBS
@@ -52,47 +66,47 @@ shapiro.test(kbs_biomass_only$weight_g)
 # very right skewed
 
 #### Data exploration ### - cleaned up dataframe
-hist(kbs_biomass_live2$weight_g)
-qqnorm(kbs_biomass_live2$weight_g)
-shapiro.test(kbs_biomass_live2$weight_g)
+hist(kbs_biomass_live$weight_g)
+qqnorm(kbs_biomass_live$weight_g)
+shapiro.test(kbs_biomass_live$weight_g)
 # very right skewed, looks about the same as above
 
 # histograms for each treatment separately - plot level
-hist(kbs_biomass_live2$weight_g[kbs_biomass_only$state == "ambient"])
-hist(kbs_biomass_live2$weight_g[kbs_biomass_only$state == "warmed"])
+hist(kbs_biomass_live$weight_g[kbs_biomass_only$state == "ambient"])
+hist(kbs_biomass_live$weight_g[kbs_biomass_only$state == "warmed"])
 
 # checking individual species
-hist(kbs_biomass_live2$weight_g[kbs_biomass_live2$species == "Elre"])
-hist(kbs_biomass_live2$weight_g[kbs_biomass_live2$species == "Soca"])
-hist(kbs_biomass_live2$weight_g[kbs_biomass_live2$species == "Popr"])
+hist(kbs_biomass_live$weight_g[kbs_biomass_live2$species == "Elre"])
+hist(kbs_biomass_live$weight_g[kbs_biomass_live2$species == "Soca"])
+hist(kbs_biomass_live$weight_g[kbs_biomass_live2$species == "Popr"])
 # still kinda skewed for some of these
 
 # histograms for each species
-ggplot(data = kbs_biomass_live2, aes(x = weight_g, fill=state)) + 
+ggplot(data = kbs_biomass_live, aes(x = weight_g, fill=state)) + 
         geom_histogram(alpha=0.5, binwidth=10) + 
         scale_fill_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         facet_wrap(~species)
 
 # density plot
-ggplot(data = kbs_biomass_live2, aes(x = weight_g, fill=state)) +
+ggplot(data = kbs_biomass_live, aes(x = weight_g, fill=state)) +
         geom_density(alpha=0.5) +
         scale_fill_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         theme_minimal()
 
 # leverage plots
-fit_k <- lm(weight_g ~ state, data = kbs_biomass_live2)
+fit_k <- lm(weight_g ~ state, data = kbs_biomass_live)
 outlierTest(fit_k) # three outliers, all Soca
 qqPlot(fit_k, main="QQ Plot") 
 hist(fit_k$residuals)
 leveragePlots(fit_k)
 
-fit1_k <- lm(weight_g ~ state + species, data = kbs_biomass_live2)
+fit1_k <- lm(weight_g ~ state + species, data = kbs_biomass_live)
 outlierTest(fit1_k) # three outliers, all Soca
 hist(fit1_k$residuals)
 qqPlot(fit1_k, main="QQ Plot") 
 leveragePlots(fit1_k)
 
-fit2_k <- lm(log(weight_g) ~ state + species + insecticide, data = kbs_biomass_live2)
+fit2_k <- lm(log(weight_g) ~ state + species + insecticide, data = kbs_biomass_live)
 outlierTest(fit2_k) # no outliers
 hist(fit2_k$residuals)
 qqPlot(fit2_k, main="QQ Plot") 
@@ -104,12 +118,12 @@ shapiro.test(resid(fit2_k))
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-plot(fit_2k)
+plot(fit2_k)
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
-leveneTest(residuals(fit2_k) ~ kbs_biomass_live2$state)
-leveneTest(residuals(fit2_k) ~ kbs_biomass_live2$species)
-leveneTest(residuals(fit2_k) ~ kbs_biomass_live2$insecticide)
+leveneTest(residuals(fit2_k) ~ kbs_biomass_live$state)
+leveneTest(residuals(fit2_k) ~ kbs_biomass_live$species)
+leveneTest(residuals(fit2_k) ~ kbs_biomass_live$insecticide)
 # Assumption not met for species - ignoring for now
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals - did this above
@@ -117,15 +131,15 @@ leveneTest(residuals(fit2_k) ~ kbs_biomass_live2$insecticide)
 
 ### Data analyses ###
 # data seems normal after accounting for variation in species
-mod1_k <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), kbs_biomass_live2, REML=FALSE)
-mod2_k <- lmer(log(weight_g) ~ state * species + insecticide + (1|plot), kbs_biomass_live2, REML=FALSE)
-mod3_k <- lmer(log(weight_g) ~ state + species + (1|plot), kbs_biomass_live2, REML=FALSE)
-mod4_k <- lmer(log(weight_g) ~ state * species + (1|plot), kbs_biomass_live2, REML=FALSE)
-mod5_k <- lmer(log(weight_g) ~ state + (1|plot/species), kbs_biomass_live2, REML=FALSE)
-mod6_k <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), kbs_biomass_live2, REML=FALSE)
-mod7_k <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), kbs_biomass_live2, REML=FALSE)
-mod8_k <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), kbs_biomass_live2, REML=FALSE)
-mod9_k <- lm(log(weight_g) ~ state, kbs_biomass_live2)
+mod1_k <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
+mod2_k <- lmer(log(weight_g) ~ state * species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
+mod3_k <- lmer(log(weight_g) ~ state + species + (1|plot), kbs_biomass_live, REML=FALSE)
+mod4_k <- lmer(log(weight_g) ~ state * species + (1|plot), kbs_biomass_live, REML=FALSE)
+mod5_k <- lmer(log(weight_g) ~ state + (1|plot/species), kbs_biomass_live, REML=FALSE)
+mod6_k <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
+mod7_k <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
+mod8_k <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), kbs_biomass_live, REML=FALSE)
+mod9_k <- lm(log(weight_g) ~ state, kbs_biomass_live)
 
 anova(mod1_k,mod2_k) # mod 2
 anova(mod2_k,mod3_k) # mod 2
@@ -160,5 +174,122 @@ emmip(mod4_k, state ~ species) +
 # code below pulls out state-species comparisons
 mod4k.emm <- emmeans(mod4_k, ~ state * species)
 contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+
+
+
+#########################################
+# UMBS
+
+#### Data exploration ###
+hist(umbs_biomass_only$weight_g)
+qqnorm(umbs_biomass_only$weight_g)
+shapiro.test(umbs_biomass_only$weight_g)
+# very right skewed
+
+#### Data exploration ### - cleaned up dataframe
+hist(umbs_biomass_live$weight_g)
+qqnorm(umbs_biomass_live$weight_g)
+shapiro.test(umbs_biomass_live$weight_g)
+# very right skewed, looks about the same as above
+
+# histograms for each treatment separately - plot level
+hist(umbs_biomass_live$weight_g[umbs_biomass_only$state == "ambient"])
+hist(umbs_biomass_live$weight_g[umbs_biomass_only$state == "warmed"])
+
+# histograms for each species
+ggplot(data = umbs_biomass_live, aes(x = weight_g, fill=state)) + 
+        geom_histogram(alpha=0.5, binwidth=10) + 
+        scale_fill_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        facet_wrap(~species)
+
+# density plot
+ggplot(data = umbs_biomass_live, aes(x = weight_g, fill=state)) +
+        geom_density(alpha=0.5) +
+        scale_fill_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        theme_minimal()
+
+# leverage plots
+fit_u <- lm(weight_g ~ state, data = umbs_biomass_live)
+outlierTest(fit_u) # one outlier
+qqPlot(fit_u, main="QQ Plot") 
+hist(fit_u$residuals)
+leveragePlots(fit_u)
+
+fit1_u <- lm(weight_g ~ state + species, data = umbs_biomass_live)
+outlierTest(fit1_u) # no outliers
+hist(fit1_u$residuals)
+qqPlot(fit1_u, main="QQ Plot") # not bad
+leveragePlots(fit1_u)
+shapiro.test(resid(fit1_u))
+
+fit2_u <- lm(log(weight_g) ~ state + species + insecticide, data = umbs_biomass_live)
+outlierTest(fit2_u) # no outliers
+hist(fit2_u$residuals)
+qqPlot(fit2_u, main="QQ Plot") 
+leveragePlots(fit2_u)
+shapiro.test(resid(fit2_u))
+# log transformation looks good
+
+# Assumption checking - log transformation
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+plot(fit2_u)
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(fit2_u) ~ umbs_biomass_live$state)
+leveneTest(residuals(fit2_u) ~ umbs_biomass_live$species)
+leveneTest(residuals(fit2_u) ~ umbs_biomass_live$insecticide)
+# Assumption not met for species and state - ignoring for now
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals - did this above
+
+
+### Data analyses ###
+# data seems normal after accounting for variation in species
+mod1_u <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), umbs_biomass_live, REML=FALSE)
+mod2_u <- lmer(log(weight_g) ~ state * species + insecticide + (1|plot), umbs_biomass_live, REML=FALSE)
+mod3_u <- lmer(log(weight_g) ~ state + species + (1|plot), umbs_biomass_live, REML=FALSE)
+mod4_u <- lmer(log(weight_g) ~ state * species + (1|plot), umbs_biomass_live, REML=FALSE)
+mod5_u <- lmer(log(weight_g) ~ state + (1|plot/species), umbs_biomass_live, REML=FALSE)
+mod6_u <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), umbs_biomass_live, REML=FALSE)
+mod7_u <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), umbs_biomass_live, REML=FALSE)
+mod8_u <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), umbs_biomass_live, REML=FALSE)
+mod9_u <- lm(log(weight_g) ~ state, umbs_biomass_live)
+
+anova(mod1_u,mod2_u) # mod 2
+anova(mod2_u,mod3_u) # mod 2
+anova(mod2_u,mod4_u) # mod 4
+anova(mod3_u,mod4_u) # mod 4
+anova(mod4_u,mod6_u) # mod 4
+anova(mod4_u,mod7_u) # mod 4
+anova(mod4_u,mod8_u) # mod 4
+AICctab(mod1_u,mod2_u,mod3_u,mod4_u,mod6_u,mod7_u,mod8_u,weights=T)
+# mod 4 or mod 3?
+
+# need to check this - doesn't look right
+## mod3
+#plot_model(mod3_u, show.values=TRUE, show.p=TRUE)
+#tab_model(mod3_u)
+#summary(mod3_u)
+#anova(mod3_u)
+#emmip(mod3_u, state ~ species) +
+#        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+#        theme_minimal()
+## code below pulls out state-species comparisons
+#mod3u.emm <- emmeans(mod3_u, ~ state + species)
+#contrast(mod3u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+
+#mod4
+plot_model(mod4_u, show.values=TRUE, show.p=TRUE)
+tab_model(mod4_u)
+summary(mod4_u)
+anova(mod4_u)
+emmip(mod4_u, state ~ species) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        theme_minimal()
+# code below pulls out state-species comparisons
+mod4u.emm <- emmeans(mod4_u, ~ state * species)
+contrast(mod4u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
 
