@@ -2,9 +2,9 @@
 # AUTHORS:        Moriah Young, Pat Bills, Phoebe Zarnetske
 # COLLABORATORS:  Mark Hammond, Kara Dobson
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
-# DATA OUTPUT:    A csv file containing CN data is uploaded to the L1 plant comp folder
+# DATA OUTPUT:    CN_L1.csv: A csv file containing CN data is uploaded to the L1 plant comp folder
 # PROJECT:        warmXtrophic
-# DATE:           March-Nov 2021
+# DATE:           March 2021 - March 2022
 # NOTES:        We have two different scanners at UMBS and KBS. The one at KBS provides leaf area, 
 #               leaf length, average width, and maximum width. The one at UMBS just provides an area.  
 #               Often SLA data is associated or “linked” with other data sets, sometimes with the same 
@@ -79,7 +79,16 @@ cn17u_cest_stem_1 <- read.csv(file.path(L0_dir, "./UMBS/2017/umbs_CN_Cest_2017_s
 # Cleaning KBS 2017 CN data
 # SOCA samples
 names(CN_2017_soca)
-CN_2017_soca_edited <- CN_2017_soca[,-c(3, 4, 9, 10, 11, 13, 14, 15)] # delete unneeded columns
+# [1] "Field_Site"                 "Field_harvest_date"        
+# [3] "Weighing_and_Packing_Date"  "Analysis_Date_and_Initial" 
+# [5] "Species"                    "Plot_Number"               
+# [7] "Plant_Number"               "Subsample_Number"          
+# [9] "Plate_Name"                 "Position_Number"           
+# [11] "Sample_ID"                  "Weight_mg"                 
+# [13] "File_Name"                  "Sample_Type"               
+# [15] "Analysis_Comments"          "Percent_by_Weight_Nitrogen"
+# [17] "Percent_by.Weight_Carbon"  
+CN_2017_soca_edited <- CN_2017_soca[,-c(3, 4, 9, 10, 11, 13, 14, 15)] # delete unnecessary columns
 names(CN_2017_soca_edited)[1] <- "Site" #changing column name
 names(CN_2017_soca_edited)[2] <- "Year" #changing column name
 names(CN_2017_soca_edited)[8] <- "Nitrogen" #changing column name
@@ -88,11 +97,14 @@ names(CN_2017_soca_edited)[4] <- "Plot" #changing column name
 CN_2017_soca_edited$Site <- "kbs" #change site name to lowercase to match majority of other dataframes
 names(CN_2017_soca_edited) <- tolower(names(CN_2017_soca_edited)) # column names to lower case
 CN_2017_soca_edited <- merge(CN_2017_soca_edited, meta, all = TRUE)
-CN_2017_soca_edited <- na.omit(CN_2017_soca_edited)
 
 # ACMI samples
 names(cn17k_acmi_1)
-CN_2017_acmi_edited <- cn17k_acmi_1[,-c(4, 8, 10, 11)] # delete unneeded columns
+# [1] "Plot"                 "Plant"                "Replicate"           
+# [4] "Treatment"            "sample.drywt..mg."    "PercNitrogen"        
+# [7] "PercCarbon"           "comment"              "Analysis.date"       
+# [10] "Location.on.plate"    "Position.in.Analysis"
+CN_2017_acmi_edited <- cn17k_acmi_1[,-c(4, 8, 10, 11)] # delete unnecessary columns
 names(CN_2017_acmi_edited)[7] <- "Year" #changing column name
 CN_2017_acmi_edited$Year <- "2017"
 names(CN_2017_acmi_edited)[4] <- "Weight_mg" #changing column name
@@ -101,21 +113,29 @@ names(CN_2017_acmi_edited)[5] <- "Nitrogen" #changing column name
 names(CN_2017_acmi_edited)[6] <- "Carbon" #changing column name
 CN_2017_acmi_edited$Site <- "kbs" # add site column
 CN_2017_acmi_edited$Species <- "Acmi" # add site column
-CN_2017_acmi_edited <- na.omit(CN_2017_acmi_edited)
+
 names(CN_2017_acmi_edited) <- tolower(names(CN_2017_acmi_edited)) # column names to lower case
 CN_2017_acmi_edited_1 <- merge(CN_2017_acmi_edited, meta, all = TRUE)
-CN_2017_acmi_edited_1 <- na.omit(CN_2017_acmi_edited_1)
 CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="A"]<- 1
 CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="B"]<- 2
 CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="C"]<- 3
+# Assign "replicate" = "subsample_number"
 names(CN_2017_acmi_edited_1)[3] <- "subsample_number" #changing column name to match 2017 soca data
-# ***should double check that "replicate" and "subsample_number" mean the same thing***
+# ***MARK: should double check that "replicate" and "subsample_number" mean the same thing***
 
 CN_kbs_2017 <- merge(CN_2017_acmi_edited_1, CN_2017_soca_edited, all = TRUE) # merge edited kbs soca and acmi into one dataframe
 
 # Cleaning UMBS 2017 CN data
 # basal
 names(cn17u_cest_basal_1)
+# [1] "Sample_date"                "Analysis_Date"             
+# [3] "Sample_Position_Number"     "Sample_ID"                 
+# [5] "Plot_ID"                    "Plant_Number"              
+# [7] "Species_Code"               "Type_of_Tissue"            
+# [9] "Dried_Tissue_Weight_mg"     "File_Name"                 
+# [11] "Lvl"                        "Comments"                  
+# [13] "Plate_Location_Code"        "type_of_Sample"            
+# [15] "Percent_Nitrogen_by_Weight" "Percent_Carbon_by_Weight"  
 CN_2017_cest_basal_edited <- cn17u_cest_basal_1[,-c(2, 3, 4, 10, 11, 12, 13, 14)] # delete unneeded columns
 names(CN_2017_cest_basal_edited)[1] <- "Year" #changing column name
 names(CN_2017_cest_basal_edited)[2] <- "Plot" #changing column name
