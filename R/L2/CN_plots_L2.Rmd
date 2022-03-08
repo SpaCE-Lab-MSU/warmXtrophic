@@ -58,9 +58,9 @@ ggplot(cn, aes(x = species, y = nitrogen, fill = state)) +
         theme_classic()
 ```
 
-# Nitrogen data: all yrs, by species - ignore the single boxplots where there should be 1 per yr (not sure why this is happening)
+# Nitrogen data: all yrs, by species
 ```{r}
-ggplot(cn, aes(x = year, y = nitrogen, fill = state)) +
+ggplot(cn, aes(x = factor(year), y = nitrogen, fill = state)) +
         geom_boxplot(color = "black", outlier.shape = NA) +
         geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
         facet_grid(.~species) +
@@ -69,5 +69,38 @@ ggplot(cn, aes(x = year, y = nitrogen, fill = state)) +
         #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         facet_grid(.~species) +
-        theme_classic()
+        theme_classic() +
+        theme(axis.text.x = element_text(angle = 90))
+```
+
+# Carbon data: all yrs, by species
+```{r}
+ggplot(cn, aes(x = factor(year), y = carbon, fill = state)) +
+        geom_boxplot(color = "black", outlier.shape = NA) +
+        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
+        facet_grid(.~species) +
+        labs(x = "Year", y = "Average Carbon Content") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        facet_grid(.~species) +
+        theme_classic() +
+        theme(axis.text.x = element_text(angle = 90))
+```
+
+# Some major outlier for Popr carbon; omit and re-plot
+```{r}
+cn1<-cn[(cn$carbon < 70),]
+cn1 <- cn1[!is.na(cn1$carbon), ] 
+ggplot(cn1, aes(x = factor(year), y = carbon, fill = state)) +
+        geom_boxplot(color = "black", outlier.shape = NA) +
+        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
+        facet_grid(.~species) +
+        labs(x = "Year", y = "Average Carbon Content") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        facet_grid(.~species) +
+        theme_classic() +
+        theme(axis.text.x = element_text(angle = 90))
 ```
