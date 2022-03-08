@@ -136,7 +136,7 @@ names(cn17u_cest_basal_1)
 # [11] "Lvl"                        "Comments"                  
 # [13] "Plate_Location_Code"        "type_of_Sample"            
 # [15] "Percent_Nitrogen_by_Weight" "Percent_Carbon_by_Weight"  
-CN_2017_cest_basal_edited <- cn17u_cest_basal_1[,-c(2, 3, 4, 10, 11, 12, 13, 14)] # delete unneeded columns
+CN_2017_cest_basal_edited <- cn17u_cest_basal_1[,-c(2, 3, 4, 10, 11, 12, 13, 14)] # delete unnecessary columns
 names(CN_2017_cest_basal_edited)[1] <- "Year" #changing column name
 names(CN_2017_cest_basal_edited)[2] <- "Plot" #changing column name
 names(CN_2017_cest_basal_edited)[4] <- "Species" #changing column name
@@ -144,16 +144,19 @@ names(CN_2017_cest_basal_edited)[6] <- "weight_mg" #changing column name
 names(CN_2017_cest_basal_edited)[7] <- "nitrogen" #changing column name
 names(CN_2017_cest_basal_edited)[8] <- "carbon" #changing column name
 CN_2017_cest_basal_edited$Site <- "umbs" # add site column
-CN_2017_cest_basal_edited <- na.omit(CN_2017_cest_basal_edited) # remove NAs
-# Note that the above na.omit is a complete case; removes rows that have mass values where there are no C or N data
-# Edit the above if needing to keep these mass values (for SLA for example)
+
 names(CN_2017_cest_basal_edited) <- tolower(names(CN_2017_cest_basal_edited)) # column names to lower case
 CN_2017_cest_basal_edited_1 <- merge(CN_2017_cest_basal_edited, meta, all = TRUE)
-CN_2017_cest_basal_edited_1 <- na.omit(CN_2017_cest_basal_edited_1) # remove NAs which are plots without C or N data
 
 # stem
 names(cn17u_cest_stem_1)
-CN_2017_cest_stem_edited <- cn17u_cest_stem_1[,-c(3, 4, 5, 11, 12, 13, 14, 15)] # delete unneeded columns
+# [1] "Field_Site"                 "Sample_date"                "Analysis_Date"             
+# [4] "Sample_Position_Number"     "Sample_ID"                  "Plot_ID"                   
+# [7] "Plant_Number"               "Species_Code"               "Type_of_Tissue"            
+# [10] "Dried_Tissue_Weight_mg"     "File_Name"                  "Lvl"                       
+# [13] "Comments"                   "Plate_Location_Code"        "type_of_Sample"            
+# [16] "Percent_Nitrogen_by_Weight" "Percent_Carbon_by_Weight"  
+CN_2017_cest_stem_edited <- cn17u_cest_stem_1[,-c(3, 4, 5, 11, 12, 13, 14, 15)] # delete unnecessary columns
 names(CN_2017_cest_stem_edited)[1] <- "site" #changing column name
 CN_2017_cest_stem_edited$site <- "umbs" #change site name to lowercase to match majority of other dataframes
 names(CN_2017_cest_stem_edited)[2] <- "year" #changing column name
@@ -162,13 +165,10 @@ names(CN_2017_cest_stem_edited)[5] <- "species" #changing column name
 names(CN_2017_cest_stem_edited)[7] <- "weight_mg" #changing column name
 names(CN_2017_cest_stem_edited)[8] <- "nitrogen" #changing column name
 names(CN_2017_cest_stem_edited)[9] <- "carbon" #changing column name
-CN_2017_cest_stem_edited <- na.omit(CN_2017_cest_stem_edited) # remove NAs
-# Note that the above na.omit is a complete case; removes rows that have mass values where there are no C or N data
-# Edit the above if needing to keep these mass values (for SLA for example)
+
 names(CN_2017_cest_stem_edited) <- tolower(names(CN_2017_cest_stem_edited)) # column names to lower case
 CN_2017_cest_stem_edited_1 <- merge(CN_2017_cest_stem_edited, meta, all = TRUE)
-CN_2017_cest_stem_edited_1 <- na.omit(CN_2017_cest_stem_edited_1) # remove NAs 
-# Note that the above na.omit is a complete case; removes rows that have, in this case, no data (mass, C, and N values)
+
 CN_umbs_2017 <- merge(CN_2017_cest_stem_edited_1, CN_2017_cest_basal_edited_1, all = TRUE) # merge edited cest basal and stem into one dataframe
 
 
@@ -190,9 +190,8 @@ kbs_2018_2_edited <- kbs_2018_2_edited[!(kbs_2018_2_edited$Sample=="Blind Standa
 CN_kbs_2018 <- merge(kbs_2018_1_edited, kbs_2018_2_edited, all = TRUE) # merge kbs 2018 cn data into one dataframe
 names(CN_kbs_2018)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
 CN_kbs_2018 <- merge(CN_kbs_2018, cn18k_meta, all = TRUE)
-CN_kbs_2018 $Year <- "2018"
-CN_kbs_2018 <- CN_kbs_2018[,-c(6, 10)] # delete unneeded columns
-CN_kbs_2018 <- na.omit(CN_kbs_2018) # get rid of NAs which are data without C and N
+CN_kbs_2018$Year <- "2018"
+CN_kbs_2018 <- CN_kbs_2018[,-c(6, 10)] # delete unnecessary columns
 
 # UMBS
 cn18u_meta <- read.csv(file.path(L0_dir, "./UMBS/2018/umbs_CN_UniqueID_2018.csv"))
@@ -208,9 +207,11 @@ CN_umbs_2018 <- merge(umbs_2018_1_edited, umbs_2018_2_edited, all = TRUE) # merg
 names(CN_umbs_2018)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
 CN_umbs_2018 <- merge(CN_umbs_2018, cn18u_meta, all = TRUE)
 CN_umbs_2018$Year <- "2018"
-CN_umbs_2018 <- CN_umbs_2018[,-c(6, 10)] # delete unneeded columns
-CN_umbs_2018 <- na.omit(CN_umbs_2018) # get rid of NAs which are data without C and N
-CN_umbs_2018 <- CN_umbs_2018[!(CN_umbs_2018$Nitrogen == ""), ] # delete row that did not have C and N data due to leaking tin
+names(CN_umbs_2018)
+# [1] "Unique_number" "Weight (mg)"   "Nitrogen"      "Carbon"        "Site"          "Date"         
+# [7] "Plot"          "Species"       "Plant_Number"  "Notes"         "Year"         
+CN_umbs_2018 <- CN_umbs_2018[,-c(6, 10)] # delete unnecessary columns
+# CN_umbs_2018 <- CN_umbs_2018[!(CN_umbs_2018$Nitrogen == ""), ] # delete row that did not have C and N data due to leaking tin
 
 CN_2018 <- merge(CN_kbs_2018, CN_umbs_2018, all = TRUE) # merge kbs and umbs 2018 cn data into one dataframe
 names(CN_2018)[2] <- "weight_mg" #changing column name
@@ -248,9 +249,11 @@ cn19k_samples_2_edited <- cn19k_samples_2_edited[!(cn19k_samples_2_edited$Sample
 CN_kbs_2019 <- merge(cn19k_samples_1_edited, cn19k_samples_2_edited, all = TRUE) # merge kbs 2019 cn data into one dataframe
 names(CN_kbs_2019)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
 CN_kbs_2019 <- merge(CN_kbs_2019, cn19k_meta, all = TRUE)
-CN_kbs_2019 <- CN_kbs_2019[,-c(7, 12, 13)] # delete unneeded columns
-CN_kbs_2019 <- na.omit(CN_kbs_2019) # get rid of NAs which are data without C and N
-
+names(CN_kbs_2019)
+# [1] "Unique_number" "Weight (mg)"   "Nitrogen"      "Carbon"        "Site"          "Date"         
+# [7] "Julian"        "Plot"          "Treatment"     "Species"       "Plant_Number"  "Number_leaves"
+# [13] "SLA"  
+CN_kbs_2019 <- CN_kbs_2019[,-c(7, 12, 13)] # delete unnecessary columns
 # Cleaning UMBS 2019 CN samples
 cn19u_samples_1_edited <- CN_csvdata_initial_prep(cn19u_samples_1)
 cn19u_samples_1_edited <- cn19u_samples_1_edited[!(cn19u_samples_1_edited$Sample=="Blind Standard"),] # delete blind standards in data
@@ -260,6 +263,7 @@ cn19u_samples_2_edited <- cn19u_samples_2_edited[!(cn19u_samples_2_edited$Sample
 
 cn19u_samples_3_edited <- CN_csvdata_initial_prep(cn19u_samples_3)
 cn19u_samples_3_edited <- cn19u_samples_3_edited[!(cn19u_samples_3_edited$Sample=="Blind Standard"),] # delete blind standards in data
+cn19u_samples_3_edited[c(1:22),]
 cn19u_samples_3_edited <- cn19u_samples_3_edited[c(1:20),] # only keep umbs data
 
 CN_umbs_2019 <- merge(cn19u_samples_1_edited, cn19u_samples_2_edited, all = TRUE) # merge umbs 2019 cn data into one dataframe
@@ -267,13 +271,19 @@ CN_umbs_2019 <- merge(CN_umbs_2019, cn19u_samples_3_edited, all = TRUE) # merge 
 CN_umbs_2019 <- merge(CN_umbs_2019, cn19u_samples_3_edited, all = TRUE)
 names(CN_umbs_2019)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
 CN_umbs_2019 <- merge(CN_umbs_2019, cn19u_meta, all = TRUE)
-CN_umbs_2019 <- CN_umbs_2019[,-c(7, 12, 13)] # delete unneeded columns
-CN_umbs_2019 <- na.omit(CN_umbs_2019) # get rid of NAs
+names(CN_umbs_2019)
+# [1] "Unique_number" "Weight (mg)"   "Nitrogen"      "Carbon"        "Site"          "Date"         
+# [7] "Julian"        "Plot"          "Treatment"     "Species"       "Plant_Number"  "Number_leaves"
+# [13] "SLA"  
+CN_umbs_2019 <- CN_umbs_2019[,-c(7, 12, 13)] # delete unnecessary columns
 
 CN_2019 <- merge(CN_umbs_2019, CN_kbs_2019, all = TRUE)
 names(CN_2019)[2] <- "Weight_mg" #changing column name so that I merge this with the meta data
 names(CN_2019) <- tolower(names(CN_2019)) # column names to lower case
-CN_2019 <- CN_2019[,-c(1,6,8)] # delete unneeded columns
+names(CN_2019)
+# [1] "unique_number" "weight_mg"     "nitrogen"      "carbon"        "site"          "date"         
+# [7] "plot"          "treatment"     "species"       "plant_number" 
+CN_2019 <- CN_2019[,-c(1,6,8)] # delete unnecessary columns
 CN_2019$year <- 2019
 CN_2019 <- merge(CN_2019, meta, all = TRUE) #merge with meta data
 
@@ -288,8 +298,10 @@ kbs_2020_1_edited <- kbs_2020_1_edited[!(kbs_2020_1_edited$Sample=="Blind Standa
 names(kbs_2020_1_edited)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
 CN_kbs_2020 <- merge(kbs_2020_1_edited, cn20k_meta, all = TRUE)
 CN_kbs_2020$Year <- "2020"
-CN_kbs_2020 <- CN_kbs_2020[,-c(6, 10)] # delete unneeded columns
-CN_kbs_2020 <- na.omit(CN_kbs_2020) # get rid of NAs which are data without C and N
+names(CN_kbs_2020)
+# [1] "Unique_number" "Weight (mg)"   "Nitrogen"      "Carbon"        "Site"          "Date"         
+# [7] "Plot"          "Species"       "Plant_Number"  "Notes"         "Year"         
+CN_kbs_2020 <- CN_kbs_2020[,-c(6, 10)] # delete unnecessary columns
 
 # UMBS
 cn20u_meta <- read.csv(file.path(L0_dir, "./UMBS/2020/umbs_CN_UniqueID_2020.csv")) # meta data file
@@ -305,8 +317,10 @@ CN_umbs_2020 <- merge(umbs_2020_1_edited, umbs_2020_2_edited, all = TRUE) # merg
 names(CN_umbs_2020)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
 CN_umbs_2020 <- merge(CN_umbs_2020, cn20u_meta, all = TRUE)
 CN_umbs_2020$Year <- "2020"
-CN_umbs_2020 <- CN_umbs_2020[,-c(6, 10)] # delete unneeded columns
-CN_umbs_2020 <- na.omit(CN_umbs_2020) # get rid of NAs which are data without C and N
+names(CN_umbs_2020)
+#[1] "Unique_number" "Weight (mg)"   "Nitrogen"      "Carbon"        "Site"          "Date"         
+#[7] "Plot"          "Species"       "Plant_Number"  "Notes"         "Year"         
+CN_umbs_2020 <- CN_umbs_2020[,-c(6, 10)] # delete unnecessary columns
 CN_umbs_2020 <- CN_umbs_2020[!(CN_umbs_2020$Nitrogen == ""), ] # delete row that did not have C and N data due to leaking tin
 
 CN_2020 <- merge(CN_kbs_2020, CN_umbs_2020, all = TRUE) # merge kbs and umbs 2018 cn data into one dataframe
@@ -325,12 +339,14 @@ kbs_2021_1_edited <- kbs_2021_1_edited[!(kbs_2021_1_edited$Sample=="Blind Standa
 names(kbs_2021_1_edited)[1] <- "Unique_number" #changing column name so that I merge this with the meta data
 CN_kbs_2021 <- merge(kbs_2021_1_edited, cn21k_meta, all = TRUE)
 CN_kbs_2021$Year <- "2021"
-CN_kbs_2021 <- CN_kbs_2021[,-c(6, 10)] # delete unneeded columns
+names(CN_kbs_2021)
+# [1] "Unique_number" "Weight (mg)"   "Nitrogen"      "Carbon"        "Site"          "Date"         
+# [7] "Plot"          "Species"       "Plant_Number"  "Notes"         "Year"         
+CN_kbs_2021 <- CN_kbs_2021[,-c(6, 10)] # delete unnecessary columns
 # CN_kbs_2021 <- na.omit(CN_kbs_2021) # get rid of NAs which are data without C and N
 names(CN_kbs_2021)[2] <- "weight_mg" #changing column name
 names(CN_kbs_2021) <- tolower(names(CN_kbs_2021)) # column names to lower case
 CN_2021 <- merge(CN_kbs_2021, meta, all = TRUE) #merge with meta data
-CN_2021 <- na.omit(CN_2021) # get rid of NAs which are data without C and N
 
 # Merge each year's cleaned CN data - right now only have 2017 and 2019 cleaned CN data
 CN_17_18 <- merge(CN_2017, CN_2018, all = TRUE)
@@ -338,5 +354,10 @@ CN_19_20 <- merge(CN_2019, CN_2020, all = TRUE)
 CN <- merge(CN_17_18 , CN_19_20, all = TRUE)
 CN_all <- merge(CN, CN_2021, all = TRUE)
 
-# write a new csv with the cleaned and merge data and upload to the shared google drive L1 folder
-write.csv(CN_all, file.path(L1_dir, "./CN/CN_L1.csv"), row.names=F)
+# write a new csv with the cleaned and merged data that includes NAs and upload to the shared google drive L1 folder
+write.csv(CN_all, file.path(L1_dir, "./CN/CN_L1_NAs.csv"), row.names=F)
+
+CN_all_noNAs <- CN_all[!is.na(CN_all$carbon), ] # get rid of NAs which are data without C
+
+# write a new csv with the cleaned and merged data (without NAs) and upload to the shared google drive L1 folder
+write.csv(CN_all_noNAs, file.path(L1_dir, "./CN/CN_L1.csv"), row.names=F)
