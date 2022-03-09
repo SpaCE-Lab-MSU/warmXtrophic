@@ -106,7 +106,7 @@ hist(fit1_k$residuals)
 qqPlot(fit1_k, main="QQ Plot") 
 leveragePlots(fit1_k)
 
-fit2_k <- lm(log(weight_g) ~ state + species + insecticide, data = kbs_biomass_live)
+fit2_k <- lm(log(weight_g) ~ state + species, data = kbs_biomass_live)
 outlierTest(fit2_k) # no outliers
 hist(fit2_k$residuals)
 qqPlot(fit2_k, main="QQ Plot") 
@@ -123,7 +123,6 @@ plot(fit2_k)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 leveneTest(residuals(fit2_k) ~ kbs_biomass_live$state)
 leveneTest(residuals(fit2_k) ~ kbs_biomass_live$species)
-leveneTest(residuals(fit2_k) ~ kbs_biomass_live$insecticide)
 # Assumption not met for species - ignoring for now
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals - did this above
@@ -149,7 +148,7 @@ anova(mod4_k,mod6_k) # mod 4
 anova(mod4_k,mod7_k) # mod 4
 anova(mod4_k,mod8_k) # mod 4
 AICctab(mod1_k,mod2_k,mod3_k,mod4_k,mod5_k,mod6_k,mod7_k,mod8_k,weights=T)
-# based on these comparisons, mod2 and mod4 both seem good. will look at model w/ insecticide to see if theres a treatment effect
+# based on these comparisons, mod2 and mod4 both seem good (mod4 better). will look at model w/ insecticide to see if theres a treatment effect
 
 # mod2
 plot_model(mod2_k, show.values=TRUE, show.p=TRUE)
@@ -222,7 +221,7 @@ qqPlot(fit1_u, main="QQ Plot") # not bad
 leveragePlots(fit1_u)
 shapiro.test(resid(fit1_u))
 
-fit2_u <- lm(log(weight_g) ~ state + species + insecticide, data = umbs_biomass_live)
+fit2_u <- lm(log(weight_g) ~ state + species, data = umbs_biomass_live)
 outlierTest(fit2_u) # no outliers
 hist(fit2_u$residuals)
 qqPlot(fit2_u, main="QQ Plot") 
@@ -239,7 +238,6 @@ plot(fit2_u)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 leveneTest(residuals(fit2_u) ~ umbs_biomass_live$state)
 leveneTest(residuals(fit2_u) ~ umbs_biomass_live$species)
-leveneTest(residuals(fit2_u) ~ umbs_biomass_live$insecticide)
 # Assumption not met for species and state - ignoring for now
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals - did this above
@@ -268,17 +266,17 @@ AICctab(mod1_u,mod2_u,mod3_u,mod4_u,mod6_u,mod7_u,mod8_u,weights=T)
 # mod 4 or mod 3?
 
 # need to check this - doesn't look right
-## mod3
-#plot_model(mod3_u, show.values=TRUE, show.p=TRUE)
-#tab_model(mod3_u)
-#summary(mod3_u)
-#anova(mod3_u)
-#emmip(mod3_u, state ~ species) +
-#        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-#        theme_minimal()
-## code below pulls out state-species comparisons
-#mod3u.emm <- emmeans(mod3_u, ~ state + species)
-#contrast(mod3u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+# mod3
+plot_model(mod3_u, show.values=TRUE, show.p=TRUE)
+tab_model(mod3_u)
+summary(mod3_u)
+anova(mod3_u)
+emmip(mod3_u, state ~ species) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        theme_minimal()
+# code below pulls out state-species comparisons
+mod3u.emm <- emmeans(mod3_u, ~ state + species)
+contrast(mod3u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
 #mod4
 plot_model(mod4_u, show.values=TRUE, show.p=TRUE)
