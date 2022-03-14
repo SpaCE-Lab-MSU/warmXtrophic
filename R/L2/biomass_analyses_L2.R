@@ -16,6 +16,7 @@ library(car)
 library(bbmle)
 library(sjPlot)
 library(emmeans)
+library(stats)
 
 # Set working directory 
 L1_dir <- Sys.getenv("L1DIR")
@@ -129,7 +130,7 @@ leveneTest(residuals(fit2_k) ~ kbs_biomass_live$species)
 
 
 ### Data analyses ###
-# data seems normal after accounting for variation in species
+# models with random effect #
 mod1_k <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
 mod2_k <- lmer(log(weight_g) ~ state * species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
 mod3_k <- lmer(log(weight_g) ~ state + species + (1|plot), kbs_biomass_live, REML=FALSE)
@@ -138,7 +139,6 @@ mod5_k <- lmer(log(weight_g) ~ state + (1|plot/species), kbs_biomass_live, REML=
 mod6_k <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
 mod7_k <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
 mod8_k <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), kbs_biomass_live, REML=FALSE)
-mod9_k <- lm(log(weight_g) ~ state, kbs_biomass_live)
 
 anova(mod1_k,mod2_k) # mod 2
 anova(mod2_k,mod3_k) # mod 2
@@ -173,6 +173,20 @@ emmip(mod4_k, state ~ species) +
 # code below pulls out state-species comparisons
 mod4k.emm <- emmeans(mod4_k, ~ state * species)
 contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+
+
+# non mixed-effect models #
+mod9_k <- lm(log(weight_g) ~ state, kbs_biomass_live2)
+mod10_k <- lm(log(weight_g) ~ state + species, kbs_biomass_live2)
+mod11_k <- lm(log(weight_g) ~ state * species, kbs_biomass_live2)
+
+anova(mod9_k,mod10_k)
+anova(mod10_k,mod11_k)
+anova(mod11_k)
+
+mod11k.emm <- emmeans(mod11_k, ~ state * species)
+contrast(mod11k.emm, "consec", simple = "each", combine = F, adjust = "tukey")
+emmip(mod11_k, species~state)
 
 
 
@@ -253,7 +267,6 @@ mod5_u <- lmer(log(weight_g) ~ state + (1|plot/species), umbs_biomass_live, REML
 mod6_u <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), umbs_biomass_live, REML=FALSE)
 mod7_u <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), umbs_biomass_live, REML=FALSE)
 mod8_u <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), umbs_biomass_live, REML=FALSE)
-mod9_u <- lm(log(weight_g) ~ state, umbs_biomass_live)
 
 anova(mod1_u,mod2_u) # mod 2
 anova(mod2_u,mod3_u) # mod 2
@@ -289,5 +302,18 @@ emmip(mod4_u, state ~ species) +
 # code below pulls out state-species comparisons
 mod4u.emm <- emmeans(mod4_u, ~ state * species)
 contrast(mod4u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+
+
+# non mixed-effect models #
+mod9_u <- lm(log(weight_g) ~ state, umbs_biomass_live2)
+mod10_u <- lm(log(weight_g) ~ state + species, umbs_biomass_live2)
+mod11_u <- lm(log(weight_g) ~ state * species, umbs_biomass_live2)
+
+anova(mod9_u,mod10_u)
+anova(mod10_u,mod11_u)
+anova(mod11_u)
+mod11u.emm <- emmeans(mod11_u, ~ state * species)
+contrast(mod11u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod11_u, species~state)
 
 
