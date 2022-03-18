@@ -214,7 +214,7 @@ outlierTest(fit1) # no outliers
 hist(fit1$residuals)
 qqPlot(fit1, main="QQ Plot") 
 leveragePlots(fit1)
-ols_test_normality(fit1) # p < 0.05 for all, so data is normal (I think)
+ols_test_normality(fit1) # p < 0.05 for all, so data is normal (I think? Is this function useful?)
 
 # UMBS State and species model 
 fit1umbs <- lm(spp_half_cover_date~state + species, data = green_umbs)
@@ -507,9 +507,10 @@ anova(mod1ps,mod3ps) #3
 anova(mod4ps,mod3ps) #4
 anova(mod4ps,mod5ps) #5
 anova(mod6ps,mod5ps) #5
-anova(mod6ps,mod7ps) #7
-AICctab(mod1ps, mod2ps, mod3ps, mod4ps, mod5ps, mod6ps, weights=T)
-summary(mod7ps)
+anova(mod5ps,mod7ps) # the same...? 
+AICctab(mod1ps, mod2ps, mod3ps, mod4ps, mod5ps, mod6ps, mod7ps,weights=T)
+summary(mod5ps)
+anova(mod4ps)
 
 # plot-level models using the re-summarized data frame
 mod1p <- lmer(plot_half_cover_date ~ state + (1|plot), green_kbsp, REML=FALSE)
@@ -523,12 +524,15 @@ mod8p <- lmer(plot_half_cover_date ~ state * year_factor + insecticide + (1|plot
 mod9p <- lmer(plot_half_cover_date ~ state * insecticide + year_factor + (1|plot), green_kbsp, REML=FALSE)
 mod10p <- lmer(plot_half_cover_date ~ state + insecticide * year_factor + (1|plot), green_kbsp, REML=FALSE)
 mod11p <- lmer(plot_half_cover_date ~ state * year_factor * insecticide + (1|plot), green_kbsp, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 11p and 10p the same
-anova(mod10p, mod11p) #11p just barely better, going with 10p because is simpler
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # 5p or 6p
+anova(mod5p, mod6p) #5p - used this model in results section
 
-summary(mod6p)
-summary(mod10p)
-emmeans(mod10p, list(pairwise ~ state+insecticide*year_factor), adjust = "tukey")
+summary(mod5p)
+anova(mod5p)
+emmeans(mod5p, list(pairwise ~ state+year_factor), adjust = "tukey")
+mod5p.emm <- emmeans(mod5p, ~ state + year_factor) # why are the comparisons the same for each year?
+contrast(mod5p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod5p, year_factor~state)
 ```
 
 # Analyses for species who reached half cover within the green-up observation window
