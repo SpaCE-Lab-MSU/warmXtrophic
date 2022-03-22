@@ -42,6 +42,33 @@ umbs_biomass_live <- umbs_biomass_only[!grepl("Litter", umbs_biomass_only$specie
 umbs_biomass_live <- umbs_biomass_live[!grepl("Standing_Dead", umbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Surface_Litter", umbs_biomass_live$species),]
 
+# making a dataframe for regression between cover and biomass - removing uninformative species first
+kbs_biomass_reg <- kbs_biomass_21[!grepl("Litter", kbs_biomass_21$species),]
+kbs_biomass_reg <- kbs_biomass_reg[!grepl("Total Live", kbs_biomass_reg$species),]
+kbs_biomass_reg <- kbs_biomass_reg[!grepl("Unknown", kbs_biomass_reg$species),]
+kbs_biomass_reg <- kbs_biomass_reg[!grepl("Unsorted", kbs_biomass_reg$species),]
+
+umbs_biomass_reg <- umbs_biomass_21[!grepl("Bare_Ground", umbs_biomass_21$species),]
+umbs_biomass_reg <- umbs_biomass_reg[!grepl("Groundhog", umbs_biomass_reg$species),]
+umbs_biomass_reg <- umbs_biomass_reg[!grepl("Litter", umbs_biomass_reg$species),]
+umbs_biomass_reg <- umbs_biomass_reg[!grepl("Standing_Dead", umbs_biomass_reg$species),]
+umbs_biomass_reg <- umbs_biomass_reg[!grepl("Surface_Litter", umbs_biomass_reg$species),]
+
+# setting NA to 0 for cover or biomass for the regression
+kbs_biomass_reg$cover[is.na(kbs_biomass_reg$cover)] <- 0
+kbs_biomass_reg$weight_g[is.na(kbs_biomass_reg$weight_g)] <- 0
+umbs_biomass_reg$cover[is.na(umbs_biomass_reg$cover)] <- 0
+umbs_biomass_reg$weight_g[is.na(umbs_biomass_reg$weight_g)] <- 0
+
+# fixing values listed as <1 for umbs
+umbs_biomass_reg[umbs_biomass_reg=="<1"] <- 0
+str(umbs_biomass_reg)
+str(kbs_biomass_reg)
+
+# making cover column numeric for umbs
+umbs_biomass_reg$cover <- as.numeric(umbs_biomass_reg$cover)
+str(umbs_biomass_reg)
+
 # keeping species that are found in W and A plots, not just one or the other
 # not using this in models below (yet) - could it skew results of total biomass?
 # tried all models with live2 dataframe and results seemed the same as with the live dataframe
@@ -189,6 +216,12 @@ contrast(mod11k.emm, "consec", simple = "each", combine = F, adjust = "tukey")
 emmip(mod11_k, species~state)
 
 
+# regression #
+cor.test(kbs_biomass_reg$cover, kbs_biomass_reg$weight_g, method="pearson")
+lm1 <- lm(cover ~ weight_g, data = kbs_biomass_reg)
+plot(cover ~ weight_g, data = kbs_biomass_reg)
+abline(lm1)
+summary(lm1)
 
 #########################################
 # UMBS
@@ -315,5 +348,13 @@ anova(mod11_u)
 mod11u.emm <- emmeans(mod11_u, ~ state * species)
 contrast(mod11u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod11_u, species~state)
+
+
+# regression #
+cor.test(umbs_biomass_reg$cover, umbs_biomass_reg$weight_g, method="pearson")
+lm1 <- lm(cover ~ weight_g, data = umbs_biomass_reg)
+plot(cover ~ weight_g, data = umbs_biomass_reg)
+abline(lm1)
+summary(lm1)
 
 

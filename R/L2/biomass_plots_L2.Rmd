@@ -140,4 +140,39 @@ ggplot(biomass_spp_u, aes(x = species, y = avg_weight, fill = state)) +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
+
+
+## Regression between cover and biomass
+# making a dataframe for regression between cover and biomass - removing uninformative species first
+kbs_biomass_reg <- kbs_biomass_21[!grepl("Litter", kbs_biomass_21$species),]
+kbs_biomass_reg <- kbs_biomass_reg[!grepl("Total Live", kbs_biomass_reg$species),]
+kbs_biomass_reg <- kbs_biomass_reg[!grepl("Unknown", kbs_biomass_reg$species),]
+kbs_biomass_reg <- kbs_biomass_reg[!grepl("Unsorted", kbs_biomass_reg$species),]
+umbs_biomass_reg <- umbs_biomass_21[!grepl("Bare_Ground", umbs_biomass_21$species),]
+umbs_biomass_reg <- umbs_biomass_reg[!grepl("Groundhog", umbs_biomass_reg$species),]
+umbs_biomass_reg <- umbs_biomass_reg[!grepl("Litter", umbs_biomass_reg$species),]
+umbs_biomass_reg <- umbs_biomass_reg[!grepl("Standing_Dead", umbs_biomass_reg$species),]
+umbs_biomass_reg <- umbs_biomass_reg[!grepl("Surface_Litter", umbs_biomass_reg$species),]
+
+# setting NA to 0 for cover or biomass for the regression
+kbs_biomass_reg$cover[is.na(kbs_biomass_reg$cover)] <- 0
+kbs_biomass_reg$weight_g[is.na(kbs_biomass_reg$weight_g)] <- 0
+umbs_biomass_reg$cover[is.na(umbs_biomass_reg$cover)] <- 0
+umbs_biomass_reg$weight_g[is.na(umbs_biomass_reg$weight_g)] <- 0
+
+# fixing values listed as <1 for umbs
+umbs_biomass_reg[umbs_biomass_reg=="<1"] <- 0
+# making cover column numeric for umbs
+umbs_biomass_reg$cover <- as.numeric(umbs_biomass_reg$cover)
+
+# regression #
+cor.test(kbs_biomass_reg$cover, kbs_biomass_reg$weight_g, method="pearson")
+lm1 <- lm(cover ~ weight_g, data = kbs_biomass_reg)
+plot(cover ~ weight_g, data = kbs_biomass_reg)
+abline(lm1)
+
+cor.test(umbs_biomass_reg$cover, umbs_biomass_reg$weight_g, method="pearson")
+lm1 <- lm(cover ~ weight_g, data = umbs_biomass_reg)
+plot(cover ~ weight_g, data = umbs_biomass_reg)
+abline(lm1)
 ```
