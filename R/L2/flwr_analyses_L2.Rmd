@@ -1,5 +1,5 @@
 ---
-title: "warmXtrophic Project: Flowering Phenology Analyses"
+title: "warmXtrophic Project: Phenology - Flowering Median Day Analyses"
 author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
@@ -101,35 +101,12 @@ umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "umbs")
 umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, year != "2021") # delete 2021 data
 ```
 
-# Data exploration for minimum (first) Julian date of flowering at the PLOT for both sites
-```{r}
-# Visualizing avg minimum Julian date for both sites at the PLOT LEVEL
-ggplot(flwr_plot, aes(julian_min, fill = plot)) + 
-        geom_histogram(binwidth = 0.5) + 
-        facet_grid(year ~ site, margins = TRUE, scales = "free")
-
-ggplot(flwr_plot, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
-        facet_grid(state~year, margins = TRUE, scales = "free")
-
-ggplot(flwr_plot, aes(julian_min, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1)
-
-ggplot(flwr_plot, aes(julian_min, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year)
-
-ggplot(flwr_plot, aes(julian_min, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year + plot)
-
-descdist(flwr_plot$julian_min, discrete = FALSE)
-```
-
+# Phoebe
 # UMBS SPECIES LEVEL - Looking at MEDIAN JULIAN DAY
 ```{r, warning=F}
 ### UMBS ###
 hist(umbs_flwr_spp$julian_median)
-qqnorm(umbs_flwr_spp$julian_median) # this looks good
+qqnorm(umbs_flwr_spp$julian_median) # this looks ok
 shapiro.test(umbs_flwr_spp$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
 # Visualizing median Julian date for umbs at the PLOT LEVEL
@@ -143,13 +120,13 @@ ggplot(umbs_flwr_spp, aes(julian_median, fill = as.factor(plot))) + geom_histogr
 ggplot(umbs_flwr_spp, aes(julian_median, fill = plot, color=plot)) +
         geom_density(alpha = 0.1)
 
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year)
-#
-#ggplot(umbs_flwr_plot, aes(julian_median, fill = plot, color=plot)) +
-#        geom_density(alpha = 0.1) +
-#        facet_wrap(~year + plot)
+ggplot(umbs_flwr_spp, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(umbs_flwr_spp, aes(julian_median, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
 
 # Exploring distributions for these right-skewed data:
 descdist(umbs_flwr_spp$julian_median, discrete = FALSE)
@@ -175,15 +152,16 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# Lognormal and gamma are very close, gamma slightly better, but going to go with log transforming
+# Lognormal and gamma are very close, log normal slightly better, so going with log transforming
 ```
 
+# Phoebe
 # UMBS PLOT LEVEL - Looking at MEDIAN JULIAN DAY
 ```{r, warning=F}
 ### UMBS ###
 hist(umbs_flwr_plot$julian_median)
 qqnorm(umbs_flwr_plot$julian_median)
-shapiro.test(umbs_flwr_plot$julian_median) # pvalue is > 0.05 so we accept the null hypothesis that the data is normal (aka not normally distributed)
+shapiro.test(umbs_flwr_plot$julian_median) # pvalue is > 0.05 so we accept the null hypothesis that the data is normal (aka normally distributed)
 
 # Visualizing median Julian date for umbs at the PLOT LEVEL
 ggplot(umbs_flwr_plot, aes(julian_median, fill = plot)) + 
@@ -228,7 +206,7 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# Log normal is the best fit based on this function or we could go with normal distribution
+# Gamma is the best fit based on this function with log normal really close or we could go with normal distribution
 ```
 
 # UMBS PLOT LEVEL ORIGIN - Looking at MEDIAN JULIAN DAY
@@ -549,6 +527,8 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
 # These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
+
+# Phoebe
 ```{r}
 # species level data
 # UMBS State-only model
@@ -574,7 +554,7 @@ interact_plot(fit3, pred = year_factor, modx = state)
 fit4 <- lm(log(julian_median) ~ state * year_factor + species, data = umbs_flwr_spp)
 interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
 ```
-
+# Phoebe
 ```{r}
 # Plot level data
 # UMBS State-only model
@@ -591,13 +571,14 @@ outlierTest(fit_plot_stateyear) # no outliers
 qqPlot(fit_plot_stateyear, main="QQ Plot") 
 hist(fit_plot_stateyear$residuals)
 leveragePlots(fit_plot_stateyear)
-ols_test_normality(fit_plot_stateyear) # all good
+ols_test_normality(fit_plot_stateyear) # not good
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 fit3 <- lm(log(julian_median) ~ state * year_factor, data = umbs_flwr_plot)
 interact_plot(fit3, pred = year_factor, modx = state)
 ```
+
 ```{r}
 # species level data
 # KBS State-only model
@@ -649,10 +630,47 @@ interact_plot(fit3_plot_kbs, pred = year_factor, modx = state)
 ```
 MIXED EFFECT MODELS
 
+# Phoebe
 UMBS Species-level Mixed Effects Models
 ```{r, error=TRUE}
-# Including year as a fixed effect and as an interactive term. Our goal here is to find a model that is the best fit to the data. We also want to find a model that is the most parsimonious (one that has the fewest parameters).
+# KBS SPECIES LEVEL - Looking at DURATION of flowering
+mod1 <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), umbs_flwr_spp, REML = FALSE)
+ggplot(umbs_flwr_spp,aes(x=plot,y=julian_median,col=species)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(mod1) # thus looks ok?
+# Homogeneity of variance looks weird here 
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(mod1) ~ umbs_flwr_spp$state)
+# Assumption met
+leveneTest(residuals(mod1) ~ umbs_flwr_spp$species)
+# Assumption met
+leveneTest(residuals(mod1) ~ umbs_flwr_spp$insecticide) 
+# Assumption not met
+leveneTest(residuals(mod1) ~ umbs_flwr_spp$plot)
+# Assumption not met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
+outlierTest(mod1) # 1676 outlier
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int<- ranef(mod1)$plot$`(Intercept)`
+qqnorm(r_int)
+# qqline(r_int) doesn't work
+# shapiro.test(r_int) # this doens't run
+```
+# Phoebe
+```{r, error=TRUE}
 # Do we need to include plot as a random effect with the UMBS models?   
 mod1 <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), umbs_flwr_spp, REML=FALSE)
 mod2 <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species), umbs_flwr_spp, REML=FALSE)
@@ -789,7 +807,7 @@ AICctab(mod1, mod2, mod3, mod5, mod6, mod7, mod7a, mod7b, mod7c, mod8, mod9, mod
 summary(mod7a)
 anova(mod7a)
 ```
-
+# Phoebe
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
 mod1p <- lmer(log(julian_median) ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
@@ -821,6 +839,7 @@ summary(mod14p)
 anova(mod14p)
 emmeans(mod14p, list(pairwise ~ state + origin + year_factor), adjust = "tukey")
 
+# Phoebe ignore
 # including growth form - first with interaction term
 umbs_flwr_plot_growthhabit <- within(umbs_flwr_plot_growthhabit, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
 mod15p <- lmer(log(julian_median) ~ state * growth_habit + (1+year_factor|plot), umbs_flwr_plot_growthhabit, REML=FALSE)
