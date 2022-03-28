@@ -48,9 +48,12 @@ umbs_biomass_only <- umbs_biomass_21 %>%
 
 # remove uninformative species
 kbs_biomass_live <- kbs_biomass_only[!grepl("Litter", kbs_biomass_only$species),]
+kbs_biomass_live <- kbs_biomass_live[!grepl("Umsp", kbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_only[!grepl("Litter", umbs_biomass_only$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Standing_Dead", umbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Surface_Litter", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Lisp", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Umsp", umbs_biomass_live$species),]
 
 # keeping species found only in w and a
 kbs_biomass_live2 <- kbs_biomass_live %>%
@@ -61,42 +64,59 @@ umbs_biomass_live2 <- umbs_biomass_live %>%
         filter(all(c('warmed', 'ambient') %in% state))
 
 ### Overall averages btwn treatments - barplot
-biomass_sum_k <- kbs_biomass_live %>%
+# plot level KBS
+biomass_sum_k2 <- kbs_biomass_live %>%
+        group_by(plot, state) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+biomass_sum_k3 <- biomass_sum_k2 %>%
         group_by(state) %>%
-        summarize(avg_weight = mean(weight_g, na.rm = TRUE),
-                  se = std.error(weight_g, na.rm = TRUE))
-ggplot(biomass_sum_k, aes(x = state, y = avg_weight, fill = state)) +
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = state)) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
-        geom_errorbar(aes(ymin = avg_weight - se, ymax = avg_weight + se), width = 0.2,
+        geom_errorbar(aes(ymin = average_weight - se, ymax = average_weight + se), width = 0.2,
                       position = "identity") +
-        labs(title="KBS") +
+        labs(title="KBS plot-level") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
-
-biomass_sum_u <- umbs_biomass_live %>%
+# plot level UMBS
+biomass_sum_u2 <- umbs_biomass_live %>%
+        group_by(plot, state) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+biomass_sum_u3 <- biomass_sum_u2 %>%
         group_by(state) %>%
-        summarize(avg_weight = mean(weight_g, na.rm = TRUE),
-                  se = std.error(weight_g, na.rm = TRUE))
-ggplot(biomass_sum_u, aes(x = state, y = avg_weight, fill = state)) +
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = state)) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
-        geom_errorbar(aes(ymin = avg_weight - se, ymax = avg_weight + se), width = 0.2,
+        geom_errorbar(aes(ymin = average_weight - se, ymax = average_weight + se), width = 0.2,
                       position = "identity") +
-        labs(title="UMBS")+
+        labs(title="UMBS plot-level")+
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
-
 
 ### Overall averages btwn treatments - boxplot
+# species level KBS
 ggplot(kbs_biomass_live, aes(x = state, y = weight_g, fill=state)) +
         geom_boxplot(outlier.shape=NA, alpha=0.7) +
         geom_jitter(aes(alpha=0.6, color=state, fill=state), shape=16, size=2) +
         scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        labs(title="KBS")+
+        labs(title="KBS - species level")+
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         theme_classic()
+# plot level KBS
+ggplot(biomass_sum_k2, aes(x = state, y = avg_weight, fill=state)) +
+        geom_boxplot(outlier.shape=NA, alpha=0.7) +
+        geom_jitter(aes(alpha=0.6, color=state, fill=state), shape=16, size=2) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        labs(title="KBS - plot level")+
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        theme_classic()
+# species level UMBS
 ggplot(umbs_biomass_live, aes(x = state, y = weight_g, fill=state)) +
         geom_boxplot(outlier.shape=NA, alpha=0.7) +
         geom_jitter(aes(alpha=0.6, color=state, fill=state), shape=16, size=2) +
@@ -105,6 +125,16 @@ ggplot(umbs_biomass_live, aes(x = state, y = weight_g, fill=state)) +
         labs(title="UMBS")+
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         theme_classic()
+# plot level UMBS
+ggplot(biomass_sum_u2, aes(x = state, y = avg_weight, fill=state)) +
+        geom_boxplot(outlier.shape=NA, alpha=0.7) +
+        geom_jitter(aes(alpha=0.6, color=state, fill=state), shape=16, size=2) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        labs(title="UMBS")+
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        theme_classic()
+
 
 ### Line plot of species responses to warming
 mod11_k <- lm(log(weight_g) ~ state * species, kbs_biomass_live2)
@@ -141,6 +171,31 @@ ggplot(biomass_spp_u, aes(x = species, y = avg_weight, fill = state)) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
 
+# Density histogram
+ggplot(kbs_biomass_live, aes(weight_g, fill = state, colour = state)) +
+        geom_density(alpha = 0.2) +
+        labs(title="KBS - all species") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_colour_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_minimal()
+ggplot(biomass_sum_k2, aes(avg_weight, fill = state, colour = state)) +
+        geom_density(alpha = 0.2) +
+        labs(title="KBS - plot level") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_colour_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_minimal()
+ggplot(umbs_biomass_live, aes(weight_g, fill = state, colour = state)) +
+        geom_density(alpha = 0.2) +
+        labs(title="UMBS - all species") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_colour_manual(values = c("#a6bddb", "#fb6a4a")) + 
+        theme_minimal()
+ggplot(biomass_sum_u2, aes(avg_weight, fill = state, colour = state)) +
+        geom_density(alpha = 0.2) +
+        labs(title="UMBS - plot level") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_colour_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_minimal()
 
 ## Regression between cover and biomass
 # making a dataframe for regression between cover and biomass - removing uninformative species first
@@ -167,12 +222,13 @@ umbs_biomass_reg$cover <- as.numeric(umbs_biomass_reg$cover)
 
 # regression #
 cor.test(kbs_biomass_reg$cover, kbs_biomass_reg$weight_g, method="pearson")
-lm1 <- lm(cover ~ weight_g, data = kbs_biomass_reg)
+lm1_k <- lm(cover ~ weight_g, data = kbs_biomass_reg)
 plot(cover ~ weight_g, data = kbs_biomass_reg)
-abline(lm1)
+abline(lm1_k)
 
 cor.test(umbs_biomass_reg$cover, umbs_biomass_reg$weight_g, method="pearson")
-lm1 <- lm(cover ~ weight_g, data = umbs_biomass_reg)
+lm1_u <- lm(cover ~ weight_g, data = umbs_biomass_reg)
 plot(cover ~ weight_g, data = umbs_biomass_reg)
-abline(lm1)
+abline(lm1_u)
+
 ```
