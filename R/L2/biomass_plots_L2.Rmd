@@ -1,7 +1,7 @@
 ---
 title: "Biomass Plots"
 author: "Kara Dobson"
-date: "3/14/2022"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 editor_options: 
   chunk_output_type: console
@@ -11,13 +11,13 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# TITLE:          Biomass plots
-# AUTHORS:        Kara Dobson
-# COLLABORATORS:  Phoebe Zarnetske, Moriah Young, Mark Hammond, Pat Bills
-# DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
-# DATA OUTPUT:    Visualizations of biomass data
-# PROJECT:        warmXtrophic
-# DATE:           March 2022
+## TITLE:          Biomass plots  
+## AUTHORS:        Kara Dobson  
+## COLLABORATORS:  Phoebe Zarnetske, Moriah Young, Mark Hammond, Pat Bills  
+## DATA INPUT:     Data imported as csv files from shared Google drive L0 folder  
+## DATA OUTPUT:    Visualizations of biomass data  
+## PROJECT:        warmXtrophic  
+## DATE:           March 2022  
 
 ```{r}
 # Clear all existing data

@@ -38,9 +38,21 @@ umbs_biomass_only <- umbs_biomass_21 %>%
 
 # removing uninformative species
 kbs_biomass_live <- kbs_biomass_only[!grepl("Litter", kbs_biomass_only$species),]
+kbs_biomass_live <- kbs_biomass_live[!grepl("Umsp", kbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_only[!grepl("Litter", umbs_biomass_only$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Standing_Dead", umbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Surface_Litter", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Umsp", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Lisp", umbs_biomass_live$species),]
+
+# summarizing data to plot-level
+# shouldn't have to do this if I can specify fixed/random effects in the model correctly (haven't figured that out)
+kbs_plot_biomass <- kbs_biomass_live %>%
+        group_by(plot, state) %>%
+        summarize(plot_sum_g = sum(weight_g, na.rm = TRUE))
+umbs_plot_biomass <- umbs_biomass_live %>%
+        group_by(plot, state) %>%
+        summarize(plot_sum_g = sum(weight_g, na.rm = TRUE))
 
 # making a dataframe for regression between cover and biomass - removing uninformative species first
 kbs_biomass_reg <- kbs_biomass_21[!grepl("Litter", kbs_biomass_21$species),]
@@ -115,12 +127,6 @@ ggplot(data = kbs_biomass_live, aes(x = weight_g, fill=state)) +
         scale_fill_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         facet_wrap(~species)
 
-# density plot
-ggplot(data = kbs_biomass_live, aes(x = weight_g, fill=state)) +
-        geom_density(alpha=0.5) +
-        scale_fill_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        theme_minimal()
-
 # leverage plots
 fit_k <- lm(weight_g ~ state, data = kbs_biomass_live)
 outlierTest(fit_k) # three outliers, all Soca
@@ -155,9 +161,8 @@ leveneTest(residuals(fit2_k) ~ kbs_biomass_live$species)
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals - did this above
 
-
 ### Data analyses ###
-# models with random effect #
+# models with random effect - species included here #
 mod1_k <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
 mod2_k <- lmer(log(weight_g) ~ state * species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
 mod3_k <- lmer(log(weight_g) ~ state + species + (1|plot), kbs_biomass_live, REML=FALSE)
@@ -166,7 +171,14 @@ mod5_k <- lmer(log(weight_g) ~ state + (1|plot/species), kbs_biomass_live, REML=
 mod6_k <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
 mod7_k <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
 mod8_k <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), kbs_biomass_live, REML=FALSE)
+mod9_k <- lmer(log(weight_g) ~ state + (1|species), kbs_biomass_live, REML=FALSE)
 
+# species not included #
+# Note: did not check assumptions for these first, will go back to that, just a prelim look here
+mod1_kp <- lm(plot_sum_g ~ state, data=kbs_plot_biomass)
+anova(mod1_kp)
+          
+# comparing models from above
 anova(mod1_k,mod2_k) # mod 2
 anova(mod2_k,mod3_k) # mod 2
 anova(mod2_k,mod4_k) # mod 4
@@ -174,7 +186,8 @@ anova(mod4_k,mod5_k) # mod 4
 anova(mod4_k,mod6_k) # mod 4
 anova(mod4_k,mod7_k) # mod 4
 anova(mod4_k,mod8_k) # mod 4
-AICctab(mod1_k,mod2_k,mod3_k,mod4_k,mod5_k,mod6_k,mod7_k,mod8_k,weights=T)
+anova(mod4_k,mod9_k) # mod 4
+AICctab(mod1_k,mod2_k,mod3_k,mod4_k,mod5_k,mod6_k,mod7_k,mod8_k,mod9_k,weights=T)
 # based on these comparisons, mod2 and mod4 both seem good (mod4 better). will look at model w/ insecticide to see if theres a treatment effect
 
 # mod2
@@ -203,17 +216,17 @@ contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
 
 # non mixed-effect models #
-mod9_k <- lm(log(weight_g) ~ state, kbs_biomass_live2)
-mod10_k <- lm(log(weight_g) ~ state + species, kbs_biomass_live2)
-mod11_k <- lm(log(weight_g) ~ state * species, kbs_biomass_live2)
+mod10_k <- lm(log(weight_g) ~ state, kbs_biomass_live)
+mod11_k <- lm(log(weight_g) ~ state + species, kbs_biomass_live)
+mod12_k <- lm(log(weight_g) ~ state * species, kbs_biomass_live)
 
-anova(mod9_k,mod10_k)
 anova(mod10_k,mod11_k)
-anova(mod11_k)
+anova(mod11_k,mod12_k)
+anova(mod12_k)
 
-mod11k.emm <- emmeans(mod11_k, ~ state * species)
-contrast(mod11k.emm, "consec", simple = "each", combine = F, adjust = "tukey")
-emmip(mod11_k, species~state)
+mod12k.emm <- emmeans(mod12_k, ~ state * species)
+contrast(mod12k.emm, "consec", simple = "each", combine = F, adjust = "tukey")
+emmip(mod12_k, species~state)
 
 
 # regression #
@@ -222,6 +235,7 @@ lm1 <- lm(cover ~ weight_g, data = kbs_biomass_reg)
 plot(cover ~ weight_g, data = kbs_biomass_reg)
 abline(lm1)
 summary(lm1)
+
 
 #########################################
 # UMBS
@@ -301,6 +315,12 @@ mod6_u <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), umbs_bi
 mod7_u <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), umbs_biomass_live, REML=FALSE)
 mod8_u <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), umbs_biomass_live, REML=FALSE)
 
+# species not included #
+# Note: did not check assumptions for these first, will go back to that, just a prelim look here
+mod1_up <- lm(plot_sum_g ~ state, data=umbs_plot_biomass)
+anova(mod1_up)
+
+# comparing models from above
 anova(mod1_u,mod2_u) # mod 2
 anova(mod2_u,mod3_u) # mod 2
 anova(mod2_u,mod4_u) # mod 4
