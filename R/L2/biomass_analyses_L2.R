@@ -1,4 +1,4 @@
-# TITLE:          warmXtrophic biomass and plant composition canalyses
+# TITLE:          warmXtrophic biomass and plant composition analyses
 # AUTHORS:        Kara Dobson
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
@@ -36,7 +36,8 @@ umbs_biomass_only <- umbs_biomass_21 %>%
         select(-cover) %>%
         drop_na(weight_g)
 
-# removing uninformative species
+# removing uninformative & unwanted species
+# Umsp & Lisp = moss and lichen, removing because sample collection also contains dirt/sand
 kbs_biomass_live <- kbs_biomass_only[!grepl("Litter", kbs_biomass_only$species),]
 kbs_biomass_live <- kbs_biomass_live[!grepl("Umsp", kbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_only[!grepl("Litter", umbs_biomass_only$species),]
@@ -46,7 +47,7 @@ umbs_biomass_live <- umbs_biomass_live[!grepl("Umsp", umbs_biomass_live$species)
 umbs_biomass_live <- umbs_biomass_live[!grepl("Lisp", umbs_biomass_live$species),]
 
 # summarizing data to plot-level
-# shouldn't have to do this if I can specify fixed/random effects in the model correctly (haven't figured that out)
+# shouldn't have to do this if I can specify fixed/random effects in the model correctly (below - haven't figured that out)
 kbs_plot_biomass <- kbs_biomass_live %>%
         group_by(plot, state) %>%
         summarize(plot_sum_g = sum(weight_g, na.rm = TRUE))
@@ -55,6 +56,7 @@ umbs_plot_biomass <- umbs_biomass_live %>%
         summarize(plot_sum_g = sum(weight_g, na.rm = TRUE))
 
 # making a dataframe for regression between cover and biomass - removing uninformative species first
+# note: need to fix this & look at total live cover against total biomass per plot
 kbs_biomass_reg <- kbs_biomass_21[!grepl("Litter", kbs_biomass_21$species),]
 kbs_biomass_reg <- kbs_biomass_reg[!grepl("Total Live", kbs_biomass_reg$species),]
 kbs_biomass_reg <- kbs_biomass_reg[!grepl("Unknown", kbs_biomass_reg$species),]
@@ -67,6 +69,7 @@ umbs_biomass_reg <- umbs_biomass_reg[!grepl("Standing_Dead", umbs_biomass_reg$sp
 umbs_biomass_reg <- umbs_biomass_reg[!grepl("Surface_Litter", umbs_biomass_reg$species),]
 
 # setting NA to 0 for cover or biomass for the regression
+# the 0 shows either a species wasn't seen in cover but weighed, or it was seen in cover but not weighed
 kbs_biomass_reg$cover[is.na(kbs_biomass_reg$cover)] <- 0
 kbs_biomass_reg$weight_g[is.na(kbs_biomass_reg$weight_g)] <- 0
 umbs_biomass_reg$cover[is.na(umbs_biomass_reg$cover)] <- 0
@@ -174,7 +177,7 @@ mod8_k <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), kbs_biomass_live,
 mod9_k <- lmer(log(weight_g) ~ state + (1|species), kbs_biomass_live, REML=FALSE)
 
 # species not included #
-# Note: did not check assumptions for these first, will go back to that, just a prelim look here
+# Note: did not check assumptions for this plot-level data first, will go back to that, just a prelim look here
 mod1_kp <- lm(plot_sum_g ~ state, data=kbs_plot_biomass)
 anova(mod1_kp)
           
@@ -261,12 +264,6 @@ ggplot(data = umbs_biomass_live, aes(x = weight_g, fill=state)) +
         geom_histogram(alpha=0.5, binwidth=10) + 
         scale_fill_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         facet_wrap(~species)
-
-# density plot
-ggplot(data = umbs_biomass_live, aes(x = weight_g, fill=state)) +
-        geom_density(alpha=0.5) +
-        scale_fill_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        theme_minimal()
 
 # leverage plots
 fit_u <- lm(weight_g ~ state, data = umbs_biomass_live)
