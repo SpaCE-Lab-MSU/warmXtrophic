@@ -30,6 +30,9 @@ list.files(L0_dir)
 #    KBS
 #######################################################################
 
+# note: data read in is often cumulative, so for example data from 2018 may contain data from 2016 and 2017 also
+# the data are merged with this duplicate data across years removed in the "merge_L1" scripts
+
 ############ KBS Pair 1
 #Read in data from H pendants
 KBS_1_1516 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2015_2016/KBS_1.csv"))
@@ -41,7 +44,7 @@ KBS_1H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/1H_kbs
 
 #Read in data from U pendants
 KBS_1U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_1U_09012017.csv"))
-KBS_1U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stations)/KBS_1U_07122018.csv"), skip=1)[ ,1:6]
+KBS_1U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/09_29_2018 (stations minus 3)/KBS_1U_09292018.csv"), skip=1)[ ,1:6]
 KBS_1U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1U_10072019.csv"), skip=1)[ ,1:6]
 KBS_1U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1U_10142020.csv"), skip=1)[ ,1:6]
 KBS_1U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/1U_kbs_11202021.csv"), skip=1)[ ,1:6]
