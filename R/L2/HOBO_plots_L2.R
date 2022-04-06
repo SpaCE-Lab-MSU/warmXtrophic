@@ -5,7 +5,7 @@
 # DATA OUTPUT: Plots of the data (also in the .Rmd plot file)
     ## note: plots are saved at each step in the script and merged into final figures at the end
 # PROJECT: warmXtrophic
-# DATE: July 2020, updated June 2021
+# DATE: July 2020, updated June 2021, updated April 2022
 
 # clear all existing data
 rm(list=ls())
@@ -38,6 +38,7 @@ UMBS_pend$Date_Time <- as.POSIXct(UMBS_pend$Date_Time, format = "%Y-%m-%d %H:%M"
 KBS_par$Date_Time <- as.POSIXct(KBS_par$Date_Time, format = "%Y-%m-%d")
 UMBS_par$Date_Time <- as.POSIXct(UMBS_par$Date_Time, format = "%Y-%m-%d")
 
+# notes on missing data:
 # remove sensor 1 from 2021 KBS because it failed
 # remove sensor 1 from 2021 for July-Nov at UMBS because of a wasp nest
 KBS$year <- format(KBS$Date_Time,format="%Y")
@@ -49,13 +50,13 @@ UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "08"),]
 UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "09"),]
 UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "10"),]
 UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "11"),]
+# note: sensor 3 KBS for 2021 and 2020 10cm temps failed - I remove those below
+# Also remote 2015 data below since sensors were installed midway through the summer
+
 
 #########################################
               # KBS #
 #########################################
-
-
-
 
 ###### microstation air/soil temperatures ######
 
@@ -66,16 +67,12 @@ KBS_season$month <- format(KBS_season$Date_Time,format="%m")
 KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
 KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
 
-# remove sensor 1 from 2021 KBS because it failed
-str(KBS_season)
-KBS_season <- KBS_season[!(KBS_season$sensor == 1 & KBS_season$year =="2021" ),] 
-
 KBS_season_air <- KBS_season %>%
   filter(month > "03") %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
-  dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+  dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, sensor)
 
 # another one for both heights of air measurements
 KBS_season_air2 <- KBS_season %>%
@@ -83,15 +80,15 @@ KBS_season_air2 <- KBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m,XU_warmed_air_10cm, XU_ambient_air_10cm)
+        dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m,XU_warmed_air_10cm, XU_ambient_air_10cm, sensor)
 
-# soil
+# soil temps
 KBS_season_soil <- KBS_season %>%
         filter(month > "03") %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        dplyr::select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
+        dplyr::select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm, sensor)
 
 # soil moisture
 KBS_season_soilmo <- KBS_season %>%
@@ -99,62 +96,77 @@ KBS_season_soilmo <- KBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        dplyr::select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
+        dplyr::select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm, sensor)
 
-## new dataframe for only july during the day
-#KBS_season_july <- KBS_season %>%
-#  filter(month == "07") %>%
-#  filter(hour > "06") %>%
-#  filter(hour < "20") %>%
-#  select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
-
-# create new dataframes for temperatures averaged by year & averaged by month and year
-KBS_avg_month <- KBS_season_air %>%  # by month and year
-  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+# create new dataframes for temperatures averaged for plotting
+KBS_avg_month <- KBS_season_air %>%  # by month and year, 1m temp only
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
   group_by(month, year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
+KBS_avg_month <- KBS_avg_month[!(KBS_avg_month$year =="2015"),]  # removing 2015 data
 
-KBS_avg_year <- KBS_season_air %>%  # by year
-  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+KBS_avg_year <- KBS_season_air %>%  # by year, 1m temp only
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
   group_by(year, treatment) %>%
   summarize(count = n(),
             average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
+KBS_avg_year<- KBS_avg_year[!(KBS_avg_year$year =="2015"),]  # removing 2015 data
 
-KBS_avg_year_air <- KBS_season_air2 %>%  # by year
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
-        group_by(year, treatment) %>%
-        summarize(count = n(),
-                  average_temp = mean(temp, na.rm = TRUE),
+KBS_avg_year_air <- KBS_season_air2 %>%  # by year, 1m and 10cm; also taking sensor-level average here
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
+        group_by(year, sensor, treatment) %>%
+        summarize(average_temp = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
+KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year =="2015"),]  # removing 2015 data
+KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2020" & # removing 10cm temperatures
+                                               KBS_avg_year_air$sensor == 3 &
+                                               KBS_avg_year_air$treatment == "XU_ambient_air_10cm"),]
+KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2021" & 
+                                               KBS_avg_year_air$sensor == 3 &
+                                               KBS_avg_year_air$treatment == "XU_ambient_air_10cm"),]
+KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2020" &
+                                               KBS_avg_year_air$sensor == 3 &
+                                               KBS_avg_year_air$treatment == "XU_warmed_air_10cm"),]
+KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2021" & 
+                                               KBS_avg_year_air$sensor == 3 &
+                                               KBS_avg_year_air$treatment == "XU_warmed_air_10cm"),]
+KBS_avg_year_air2 <- KBS_avg_year_air %>%  # summarizing over all sensors 
+        group_by(year, treatment) %>%
+        summarize(avg = mean(average_temp, na.rm = TRUE),
+                  se = std.error(average_temp, na.rm = TRUE))
 
 KBS_avg_air <- KBS_season_air2 %>%  # overall
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
 
-KBS_avg_year_soil <- KBS_season_soil %>%  # by year
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
-        group_by(year, treatment) %>%
+KBS_avg_year_soil <- KBS_season_soil %>%  # soil temp by year
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
+        group_by(year, treatment, sensor) %>%
         summarize(count = n(),
-                  average_temp = mean(temp, na.rm = TRUE),
+                  average = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
-
-KBS_avg_year_soilmo <- KBS_season_soilmo %>%  # by year
-        gather(key = "treatment", value = "moisture", -year, -month, -hour, -Date_Time) %>%
+KBS_avg_year_soil2 <- KBS_avg_year_soil %>%  # summarizing over all sensors 
         group_by(year, treatment) %>%
+        summarize(average_temp = mean(average, na.rm = TRUE),
+                  se = std.error(average, na.rm = TRUE))
+
+KBS_avg_year_soilmo <- KBS_season_soilmo %>%  # soil moisture by year
+        gather(key = "treatment", value = "moisture", -year, -month, -hour, -Date_Time, -sensor) %>%
+        group_by(year, treatment, sensor) %>%
         summarize(count = n(),
-                  average_moist = mean(moisture, na.rm = TRUE),
+                  average = mean(moisture, na.rm = TRUE),
                   se = std.error(moisture, na.rm = TRUE))
+KBS_avg_year_soilmo2 <- KBS_avg_year_soilmo %>%  # summarizing over all sensors 
+        group_by(year, treatment) %>%
+        summarize(average_moist = mean(average, na.rm = TRUE),
+                  se = std.error(average, na.rm = TRUE))
 
-KBS_soil_merged <- rbind(KBS_avg_year_soil, KBS_avg_year_soilmo)
+KBS_soil_merged <- rbind(KBS_avg_year_soil2, KBS_avg_year_soilmo2)
 
-#KBS_avg_july <- KBS_season_july %>%  # only for july
-#  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
-#  group_by(month, year, treatment) %>%
-#  summarize(average_temp = mean(temp, na.rm = TRUE),
-#            se = std.error(temp, na.rm = TRUE))
-
+# figures #
 # store the data plots - to be combined with UMBS plots later in the script
+# this plot is not averaged by sensor
 k_month <- ggplot(KBS_avg_month, aes(x = month, y = average_temp, fill = treatment)) + 
   facet_grid(.~year) +
   geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
@@ -165,6 +177,7 @@ k_month <- ggplot(KBS_avg_month, aes(x = month, y = average_temp, fill = treatme
   theme_classic() +
   labs(x = NULL, y = NULL, fill = "Treatment")
 
+# this plot is not averaged by sensor
 k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)) + 
   geom_bar(position = "identity", alpha=0.5, stat = "identity", color = 'black') +
   geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
@@ -174,18 +187,8 @@ k_year <- ggplot(KBS_avg_year, aes(x = year, y = average_temp, fill = treatment)
   theme_classic() +
   labs(title = "KBS", x=NULL, y = NULL, fill = "Treatment")
 
-#k_july <- ggplot(KBS_avg_july, aes(x = year, y = average_temp, fill = treatment)) + 
-#  geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
-#  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.1,
-#                position = "identity") +
-#  ylim(0, 30) +
-#  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
-#  theme_classic() +
-#  labs(title = "KBS — July", x=NULL, y = NULL, fill = "Treatment")
-
-# OTC air and soil temps
-Fig1_kbs <- ggplot(KBS_avg_year_air, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
-  geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
+Fig1_kbs <- ggplot(KBS_avg_year_air2, aes(x=year, y=avg, fill=treatment, shape=treatment)) +
+  geom_pointrange(aes(ymin = avg - se, ymax = avg + se), size=1, color="black") +
   scale_fill_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
   scale_shape_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c(22, 22, 21, 21))+
   labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
@@ -198,26 +201,18 @@ Fig1_overall_air_kbs <- ggplot(KBS_avg_air, aes(x=treatment, y=temp)) +
         theme(legend.position="bottom") +
         theme_classic()
 
-# tried a different violin plot below
-#with(KBS_avg_air, vioplot( 
-#        temp[treatment=="XH_warmed_air_1m"] , temp[treatment=="XH_ambient_air_1m"],
-#        temp[treatment=="XU_warmed_air_10cm"], temp[treatment=="XU_ambient_air_10cm"],
-#        col=rgb(0.1,0.4,0.7,0.7) , names=c("Warmed 1m","Ambient 1m", "Warmed 10cm", "Ambient 10cm"),
-#        ylim=c(10,45)
-#))
-
-Fig1_soil_kbs <- ggplot(KBS_avg_year_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
-        geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
+Fig1_soil_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=avg, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = avg - se, ymax = avg + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
-        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(21, 21))+
         labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
-        geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
+Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=avg, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = avg - se, ymax = avg + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
-        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(21, 21))+
         labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
@@ -234,16 +229,8 @@ Fig1_soil_kbs_dualy <- ggplot(KBS_soil_merged, aes(x=year, fill=treatment, shape
         theme(legend.position="bottom") +
         theme_classic()
 
-#ggplot(KBS_season_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
-#        geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
-#        scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
-#        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
-#        labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
-#        theme(legend.position="bottom") +
-#        theme_classic()
-
-Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air, aes(x = year, y = average_temp, group=treatment, color = treatment, linetype=treatment)) +
-        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
+Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=treatment, color = treatment, linetype=treatment)) +
+        geom_errorbar(aes(ymin=avg-se, ymax=avg+se), width=.1,color="black",linetype="solid") +
         geom_line(size = 1) +
         geom_point(size = 2) +
         scale_color_manual(name="Treatment",
@@ -444,39 +431,6 @@ summary(lm_kbs2)
 lm_kbs2
 
 
-# re-did this plot above
-####### soil temperatures ######
-## create a new data frame for soil temperatures during the day in the growing season
-#KBS_season_soil <- KBS
-#KBS_season_soil$month <- format(KBS_season_soil$Date_Time,format="%m")
-#KBS_season_soil$year <- format(KBS_season_soil$Date_Time,format="%y")
-#KBS_season_soil$hour <- format(KBS_season_soil$Date_Time, format="%H")
-#
-#KBS_season_soil <- KBS_season_soil %>%
-#  filter(month > "03") %>%
-#  filter(month < "09") %>%
-#  filter(hour > "06") %>%
-#  filter(hour < "20") %>%
-#  select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
-#
-## average warmed and ambient air temps for each year + standard error
-#KBS_avg_soil <- KBS_season_soil %>%
-#  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
-#  group_by(year, treatment) %>%
-#  summarize(average_temp = mean(temp, na.rm = TRUE),
-#            se = std.error(temp, na.rm = TRUE))
-#
-## plot the data
-#ggplot(KBS_avg_soil, aes(x = year, y = average_temp, fill = treatment)) + 
-#  geom_bar(stat = "identity", position = position_dodge(), color = 'black') +
-#  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.2,
-#                position = position_dodge(0.9)) +
-#  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('#a3b4d3','#d8ecf2'))+
-#  theme_classic() +
-#  labs(title = "KBS", x="Year", y = "Average Soil Temperature (°C)", fill = "Treatment") +
-#  theme(legend.position = "bottom")
-
-
 ###### soil moisture ######
 # alt plots to the one named "Fig 1" above
 # create a new data frame
@@ -547,8 +501,6 @@ ggplot(KBS_pend_season, aes(x = Pendant_ID, y = Temp_F_XP_air_1m)) +
 #########################################
 
 
-
-
 ###### microstation air/soil temperatures ######
 
 # create new dataframe with only data from april - august from 7 AM - 7 PM (growing season during the day)
@@ -562,7 +514,7 @@ UMBS_season_air <- UMBS_season %>%
   filter(month < "09") %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
-  dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+  dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, sensor)
 
 # another one for both air heights
 UMBS_season_air2 <- UMBS_season %>%
@@ -570,7 +522,7 @@ UMBS_season_air2 <- UMBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, XU_warmed_air_10cm, XU_ambient_air_10cm)
+        dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, XU_warmed_air_10cm, XU_ambient_air_10cm, sensor)
 
 # soil
 UMBS_season_soil <- UMBS_season %>%
@@ -578,7 +530,7 @@ UMBS_season_soil <- UMBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        dplyr::select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm)
+        dplyr::select(Date_Time, year, month, hour, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm, sensor)
 
 # soil moisture
 UMBS_season_soilmo <- UMBS_season %>%
@@ -586,56 +538,52 @@ UMBS_season_soilmo <- UMBS_season %>%
         filter(month < "09") %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
-        dplyr::select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm)
-
-## new dataframe for only july
-#UMBS_season_july <- UMBS_season %>%
-#  filter(month == "07") %>%
-#  filter(hour > "06") %>%
-#  filter(hour < "20") %>%
-#  select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m)
+        dplyr::select(Date_Time, year, month, hour, XH_warmed_soil_moisture_5cm, XH_ambient_soil_moisture_5cm, sensor)
 
 # create new dataframes for temperatures averaged by year & averaged by month and year
 UMBS_avg_month <- UMBS_season_air %>%
-  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
   group_by(month, year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
+UMBS_avg_month <- UMBS_avg_month[!(UMBS_avg_month$year =="2015"),]  # removing 2015 data
 
 UMBS_avg_year <- UMBS_season_air %>%
-  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
   group_by(year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
+UMBS_avg_year <- UMBS_avg_year[!(UMBS_avg_year$year =="2015"),]  # removing 2015 data
 
 UMBS_avg_year_air <- UMBS_season_air2 %>%
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
-        group_by(year, treatment) %>%
-        summarize(count = n(),
-                  average_temp = mean(temp, na.rm = TRUE),
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
+        group_by(year, sensor,treatment) %>%
+        summarize(average_temp = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
+UMBS_avg_year_air2 <- UMBS_avg_year_air %>%  # summarizing over all sensors 
+        group_by(year, treatment) %>%
+        summarize(avg = mean(average_temp, na.rm = TRUE),
+                  se = std.error(average_temp, na.rm = TRUE))
+UMBS_avg_year_air2 <- UMBS_avg_year_air2[!(UMBS_avg_year_air2$year =="2015"),]  # removing 2015 data
 
 UMBS_avg_year_soil <- UMBS_season_soil %>%
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
         group_by(year, treatment) %>%
         summarize(count = n(),
                   average_temp = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
+UMBS_avg_year_soil <- UMBS_avg_year_soil[!(UMBS_avg_year_soil$year =="2015"),]  # removing 2015 data
 
 UMBS_avg_year_soilmo <- UMBS_season_soilmo %>%  # by year
-        gather(key = "treatment", value = "moisture", -year, -month, -hour, -Date_Time) %>%
+        gather(key = "treatment", value = "moisture", -year, -month, -hour, -Date_Time, -sensor) %>%
         group_by(year, treatment) %>%
         summarize(count = n(),
                   average_moist = mean(moisture, na.rm = TRUE),
                   se = std.error(moisture, na.rm = TRUE))
+UMBS_avg_year_soilmo <- UMBS_avg_year_soilmo[!(UMBS_avg_year_soilmo$year =="2015"),]  # removing 2015 data
 
 UMBS_soil_merged <- rbind(UMBS_avg_year_soil, UMBS_avg_year_soilmo)
 
-#UMBS_avg_july <- UMBS_season_july %>%
-#  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
-#  group_by(month, year, treatment) %>%
-#  summarize(average_temp = mean(temp, na.rm = TRUE),
-#            se = std.error(temp, na.rm = TRUE))
 
 # store the data plots - to be combined with KBS plots later in the script
 u_month <- ggplot(UMBS_avg_month, aes(x = month, y = average_temp, fill = treatment)) + 
@@ -657,18 +605,9 @@ u_year <- ggplot(UMBS_avg_year, aes(x = year, y = average_temp, fill = treatment
   theme_classic() +
   labs(title = "UMBS", x="Year", y = NULL, fill = "Treatment")
 
-#u_july <- ggplot(UMBS_avg_july, aes(x = year, y = average_temp, fill = treatment)) + 
-#  geom_bar(position = "identity", alpha = 0.5, stat = "identity", color = 'black') +
-#  geom_errorbar(aes(ymin = average_temp - se, ymax = average_temp + se), width = 0.1,
-#                position = "identity") +
-#  ylim(0, 30) +
-#  scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('darkblue','lightblue'))+
-#  theme_classic() +
-#  labs(title = "UMBS — July", x="Year", y = NULL, fill = "Treatment")
-
-# Manuscript Fig 1 - OTC data plots
-Fig1_umbs <- ggplot(UMBS_avg_year_air, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
-        geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
+# OTC data plots
+Fig1_umbs <- ggplot(UMBS_avg_year_air2, aes(x=year, y=avg, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = avg - se, ymax = avg + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c('steelblue3','#fb6a4a','steelblue3','#fb6a4a'))+
         scale_shape_manual(labels = c("Ambient (1m)", "Warmed (1m)", "Ambient (10cm)", "Warmed (10cm)"), values=c(22, 22, 21, 21))+
         labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
@@ -678,7 +617,7 @@ Fig1_umbs <- ggplot(UMBS_avg_year_air, aes(x=year, y=average_temp, fill=treatmen
 Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
-        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(21, 21))+
         labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
@@ -686,7 +625,7 @@ Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, fill=tr
 Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
-        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(24, 24))+
+        scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(21, 21))+
         labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
@@ -703,8 +642,8 @@ Fig1_soil_umbs_dualy <- ggplot(UMBS_soil_merged, aes(x=year, fill=treatment, sha
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air, aes(x = year, y = average_temp, group=treatment, color = treatment, linetype=treatment)) +
-        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
+Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=treatment, color = treatment, linetype=treatment)) +
+        geom_errorbar(aes(ymin=avg-se, ymax=avg+se), width=.1,color="black",linetype="solid") +
         geom_line(size = 1) +
         geom_point(size = 2) +
         scale_color_manual(name="Treatment",
@@ -834,6 +773,7 @@ ggplot(UMBS_pend_season, aes(x = Pendant_ID, y = Temp_F_XP_air_1m)) +
 
 ### final figures ###
 # arrange the data to show both KBS and UMBS plots on the same figure
+# these two figures below are old
 final_year <- ggarrange(k_year, u_year, nrow = 2, common.legend = TRUE, legend = "bottom")
 annotate_figure(final_year,
                 left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90))
@@ -843,11 +783,7 @@ annotate_figure(final_month,
                 left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90),
                 top = text_grob("Year"))
 
-#final_july <- ggarrange(k_july, u_july, nrow = 2, common.legend = TRUE, legend = "bottom")
-#annotate_figure(final_july,
-#                left = text_grob("Average Air Temperature - 1m (°C)", color = "black", rot = 90),
-#                top = text_grob("Year"))
-
+# these figures below are the main ones I've been using
 Fig1 <- ggarrange(Fig1_kbs, Fig1_umbs, ncol = 2, common.legend = T, legend = "right")
 png("HOBO_plots_L2_air_temps.png", units="in", width=8, height=5, res=300)
 annotate_figure(Fig1,

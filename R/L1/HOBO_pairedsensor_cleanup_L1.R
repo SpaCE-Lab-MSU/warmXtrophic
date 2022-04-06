@@ -196,7 +196,13 @@ names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N
 names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
 names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
+# 2020a is in F 
+UMBS_1U_2020a$XU_warmed_air_10cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_warmed_air_10cm)
+UMBS_1U_2020a$XU_warmed_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_warmed_soil_temp_5cm)
+UMBS_1U_2020a$XU_ambient_air_10cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_ambient_air_10cm)
+UMBS_1U_2020a$XU_ambient_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_ambient_soil_temp_5cm)
 UMBS_1U_2020 <- rbind(UMBS_1U_2020a, UMBS_1U_2020b)
+
 
 #Merge data for each year
 UMBS_1_2017 <- merge(UMBS_1H_2017, UMBS_1U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -253,6 +259,11 @@ names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N
 names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
 names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
+# 2020a is in F
+UMBS_2U_2020a$XU_warmed_air_10cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_warmed_air_10cm)
+UMBS_2U_2020a$XU_warmed_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_warmed_soil_temp_5cm)
+UMBS_2U_2020a$XU_ambient_air_10cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_ambient_air_10cm)
+UMBS_2U_2020a$XU_ambient_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_ambient_soil_temp_5cm)
 UMBS_2U_2020 <- rbind(UMBS_2U_2020a, UMBS_2U_2020b)
 UMBS_2U_2021a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/06_16_2021/UMBS_2U_20210617.csv"), skip=1)[ ,1:6]
 UMBS_2U_2021b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_2U_20211115.csv"), skip=1)[ ,1:6]
@@ -316,6 +327,11 @@ names(UMBS_3U_2020b)[names(UMBS_3U_2020b)=="Temp...C..LGR.S.N..10737619..SEN.S.N
 names(UMBS_3U_2020b)[names(UMBS_3U_2020b)=="Temp...C..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_3U_2020b)[names(UMBS_3U_2020b)=="Temp...C..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
 names(UMBS_3U_2020b)[names(UMBS_3U_2020b)=="Temp...C..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_warmed_soil_5cm."] <- "XU_warmed_soil_temp_5cm"
+# 2020a U is in F
+UMBS_3U_2020a$XU_warmed_air_10cm <- fahrenheit.to.celsius(UMBS_3U_2020a$XU_warmed_air_10cm)
+UMBS_3U_2020a$XU_warmed_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_3U_2020a$XU_warmed_soil_temp_5cm)
+UMBS_3U_2020a$XU_ambient_air_10cm <- fahrenheit.to.celsius(UMBS_3U_2020a$XU_ambient_air_10cm)
+UMBS_3U_2020a$XU_ambient_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_3U_2020a$XU_ambient_soil_temp_5cm)
 UMBS_3U_2020 <- rbind(UMBS_3U_2020a, UMBS_3U_2020b)
 UMBS_3U_2021a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/06_16_2021/UMBS_3U_20210617.csv"), skip=1)[ ,1:6]
 UMBS_3U_2021b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_3U_20211115.csv"), skip=1)[ ,1:6]
