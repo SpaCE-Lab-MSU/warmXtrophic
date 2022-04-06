@@ -51,7 +51,8 @@ UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "09"),]
 UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "10"),]
 UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "11"),]
 # note: sensor 3 KBS for 2021 and 2020 10cm temps failed - I remove those below
-# Also remote 2015 data below since sensors were installed midway through the summer
+# also remove sensor 1 10cm data for KBS
+# Also remove 2015 data below since sensors were installed midway through the summer
 
 
 #########################################
@@ -132,6 +133,10 @@ KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2020" &
 KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2021" & 
                                                KBS_avg_year_air$sensor == 3 &
                                                KBS_avg_year_air$treatment == "XU_warmed_air_10cm"),]
+KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$sensor == 1 &
+                                               KBS_avg_year_air$treatment == "XU_warmed_air_10cm"),]
+KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$sensor == 1 &
+                                               KBS_avg_year_air$treatment == "XU_ambient_air_10cm"),]
 KBS_avg_year_air2 <- KBS_avg_year_air %>%  # summarizing over all sensors 
         group_by(year, treatment) %>%
         summarize(avg = mean(average_temp, na.rm = TRUE),
