@@ -175,11 +175,6 @@ mod6_k <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), kbs_bio
 mod7_k <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
 mod8_k <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), kbs_biomass_live, REML=FALSE)
 mod9_k <- lmer(log(weight_g) ~ state + (1|species), kbs_biomass_live, REML=FALSE)
-
-# species not included #
-# Note: did not check assumptions for this plot-level data first, will go back to that, just a prelim look here
-mod1_kp <- lm(plot_sum_g ~ state, data=kbs_plot_biomass)
-anova(mod1_kp)
           
 # comparing models from above
 anova(mod1_k,mod2_k) # mod 2
@@ -230,6 +225,21 @@ anova(mod12_k)
 mod12k.emm <- emmeans(mod12_k, ~ state * species)
 contrast(mod12k.emm, "consec", simple = "each", combine = F, adjust = "tukey")
 emmip(mod12_k, species~state)
+
+
+# plot-level analyses #
+mod1_kp <- lm(plot_sum_g ~ state, data=kbs_plot_biomass)
+outlierTest(mod1_kp) # no outliers
+hist(mod1_kp$residuals)
+qqPlot(mod1_kp, main="QQ Plot") 
+leveragePlots(mod1_kp)
+leveneTest(residuals(mod1_kp) ~ kbs_plot_biomass$state)
+shapiro.test(resid(mod1_kp))
+# looks good
+anova(mod1_kp)
+summary(mod1_kp)
+# plot as a random effect?
+mod2_kp <- lmer(plot_sum_g ~ state + (1|plot), data=kbs_plot_biomass, REML=F) # fails
 
 
 # regression #
@@ -312,11 +322,6 @@ mod6_u <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), umbs_bi
 mod7_u <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), umbs_biomass_live, REML=FALSE)
 mod8_u <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), umbs_biomass_live, REML=FALSE)
 
-# species not included #
-# Note: did not check assumptions for these first, will go back to that, just a prelim look here
-mod1_up <- lm(plot_sum_g ~ state, data=umbs_plot_biomass)
-anova(mod1_up)
-
 # comparing models from above
 anova(mod1_u,mod2_u) # mod 2
 anova(mod2_u,mod3_u) # mod 2
@@ -365,6 +370,21 @@ anova(mod11_u)
 mod11u.emm <- emmeans(mod11_u, ~ state * species)
 contrast(mod11u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod11_u, species~state)
+
+
+# plot-level analyses #
+mod1_up <- lm(plot_sum_g ~ state, data=umbs_plot_biomass)
+outlierTest(mod1_up) # no outliers
+hist(mod1_up$residuals)
+qqPlot(mod1_up, main="QQ Plot") 
+leveragePlots(mod1_up)
+leveneTest(residuals(mod1_up) ~ umbs_plot_biomass$state)
+shapiro.test(resid(mod1_up))
+# looks good
+anova(mod1_up)
+summary(mod1_up)
+# plot as a random effect?
+mod2_up <- lmer(plot_sum_g ~ state + (1|plot), data=umbs_plot_biomass, REML=F) # fails
 
 
 # regression #
