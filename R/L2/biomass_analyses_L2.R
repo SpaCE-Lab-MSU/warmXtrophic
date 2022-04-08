@@ -49,10 +49,10 @@ umbs_biomass_live <- umbs_biomass_live[!grepl("Lisp", umbs_biomass_live$species)
 # summarizing data to plot-level
 # shouldn't have to do this if I can specify fixed/random effects in the model correctly (below - haven't figured that out)
 kbs_plot_biomass <- kbs_biomass_live %>%
-        group_by(plot, state) %>%
+        group_by(plot, state, insecticide) %>%
         summarize(plot_sum_g = sum(weight_g, na.rm = TRUE))
 umbs_plot_biomass <- umbs_biomass_live %>%
-        group_by(plot, state) %>%
+        group_by(plot, state, insecticide) %>%
         summarize(plot_sum_g = sum(weight_g, na.rm = TRUE))
 
 # making a dataframe for regression between cover and biomass - removing uninformative species first
@@ -228,18 +228,19 @@ emmip(mod12_k, species~state)
 
 
 # plot-level analyses #
-mod1_kp <- lm(plot_sum_g ~ state, data=kbs_plot_biomass)
+mod1_kp <- lm(plot_sum_g ~ state+insecticide, data=kbs_plot_biomass)
 outlierTest(mod1_kp) # no outliers
 hist(mod1_kp$residuals)
 qqPlot(mod1_kp, main="QQ Plot") 
 leveragePlots(mod1_kp)
 leveneTest(residuals(mod1_kp) ~ kbs_plot_biomass$state)
+leveneTest(residuals(mod1_kp) ~ kbs_plot_biomass$insecticide)
 shapiro.test(resid(mod1_kp))
 # looks good
 anova(mod1_kp)
 summary(mod1_kp)
 # plot as a random effect?
-mod2_kp <- lmer(plot_sum_g ~ state + (1|plot), data=kbs_plot_biomass, REML=F) # fails
+mod2_kp <- lmer(plot_sum_g ~ state + insecticide + (1|plot), data=kbs_plot_biomass, REML=F) # fails
 
 
 # regression #
@@ -373,12 +374,13 @@ emmip(mod11_u, species~state)
 
 
 # plot-level analyses #
-mod1_up <- lm(plot_sum_g ~ state, data=umbs_plot_biomass)
+mod1_up <- lm(plot_sum_g ~ state + insecticide, data=umbs_plot_biomass)
 outlierTest(mod1_up) # no outliers
 hist(mod1_up$residuals)
 qqPlot(mod1_up, main="QQ Plot") 
 leveragePlots(mod1_up)
 leveneTest(residuals(mod1_up) ~ umbs_plot_biomass$state)
+leveneTest(residuals(mod1_up) ~ umbs_plot_biomass$insecticide)
 shapiro.test(resid(mod1_up))
 # looks good
 anova(mod1_up)
