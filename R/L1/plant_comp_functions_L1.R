@@ -1,10 +1,10 @@
 # TITLE:          Plant composition functions
-# AUTHORS:        Kara Dobson
-# COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Moriah Young
-# DATA INPUT:     
+# AUTHORS:        Kara Dobson, Pat Bills, Phoebe Zarnetske
+# COLLABORATORS:  Mark Hammond, Moriah Young
+# DATA INPUT:     a L0 dataframe with warmXtrophic observational data
 # DATA OUTPUT:    Script containing functions for cleaning plant comp data
 # PROJECT:        warmXtrophic
-# DATE:           December, 2020
+# DATE:           December, 2020; updated April 2022
 
 # remove certain columns
 remove_col <- function(df,name){
@@ -31,7 +31,7 @@ site_name <- function(df){
   return(spp)
 }
 
-# remove species
+# remove species that have no associated species in taxon.csv (entry was observer error / recorded improperly)
 remove_spp <- function(df){
         df <- df[!grepl("Alpe",df$Species),]
         df <- df[!grepl("Apca",df$Species),]
