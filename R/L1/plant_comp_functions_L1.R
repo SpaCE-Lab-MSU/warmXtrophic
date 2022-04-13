@@ -31,7 +31,7 @@ site_name <- function(df){
   return(spp)
 }
 
-# remove species that have no associated species in taxon.csv (entry was observer error / recorded improperly)
+# OPTIONAL: remove species that are very rare in the data
 remove_spp <- function(df){
         df <- df[!grepl("Alpe",df$Species),]
         df <- df[!grepl("Apca",df$Species),]
