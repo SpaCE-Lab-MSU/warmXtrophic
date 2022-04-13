@@ -10,9 +10,6 @@
 # Clear all existing data
 rm(list=ls())
 
-#Load packages
-library(tidyverse)
-
 # Source in needed functions from the github repo (or point to the script where you've saved it)
 source("/Users/phoebezarnetske/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R")
 
@@ -47,9 +44,7 @@ lapply(comp_list, site_name) # need to make these all the same for each site
 comp_list <- lapply(comp_list, change_spp)
 lapply(comp_list, spp_name)
 
-# Remove species
-comp_list <- lapply(comp_list, remove_spp)
-lapply(comp_list, spp_name)
+# Rare species were not removed in the Oecologia 2018 analysis so we are not using "remove_spp" function. 
 
 # Fixing site name
 comp_list <- lapply(comp_list, change_site)
