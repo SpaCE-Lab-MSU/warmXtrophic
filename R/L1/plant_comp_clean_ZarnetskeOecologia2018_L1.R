@@ -105,4 +105,4 @@ plant_comp_merge5 <- plant_comp_merge4[, c("year", "date", "julian", "site",
                                            "species", "scientific_name", "common_name",
                                            "cover")]
 # Upload clean data csv to google drive without the index column
-write.csv(plant_comp_merge5, file.path(L1_dir, "plant_composition/ZarnetskeOecologia2018cover.csv"), row.names=FALSE)
+write.csv(plant_comp_merge5, file.path(L1_dir, "plant_composition/ZarnetskeOecologia2018cover_L1.csv"), row.names=FALSE)
