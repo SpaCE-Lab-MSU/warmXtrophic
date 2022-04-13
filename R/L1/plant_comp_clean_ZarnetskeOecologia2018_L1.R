@@ -18,7 +18,7 @@ L0_dir <- "/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L0"
 L1_dir <- "/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1"
 
 # Read in data (only need columns 1-7 for the umbs files)
-meta <- read.csv(file.path(L0_dir, "plot.csv"))
+meta <- read.csv(file.path(L0_dir, "plot_2015_2016.csv"))
 taxon <- read.csv(file.path(L0_dir,"taxon.csv"))
 kbs_2015 <- read.csv(file.path(L0_dir,"KBS/2015/kbs_plant_comp_2015.csv"))
 kbs_2016 <- read.csv(file.path(L0_dir,"KBS/2016/kbs_plant_comp_2016.csv"))
@@ -96,12 +96,12 @@ plant_comp_merge3$resolution <- NULL
 
 # re organize order of column names 
 plant_comp_merge4 <- plant_comp_merge3[, c("site", "plot", "state","species", "cover", "date", "julian", "year", "month", "treatment_key", "state",
-                           "insecticide", "scientific_name", "common_name", "USDA_code", "LTER_code",
+                           "insecticide", "mammals", "scientific_name", "common_name", "USDA_code", "LTER_code",
                            "origin", "group", "family", "duration", "growth_habit")]
 
 # Subset out only necessary columns for this meta-analysis
 plant_comp_merge5 <- plant_comp_merge4[, c("year", "date", "julian", "site", 
-                                           "treatment_key", "state", "insecticide", "plot", 
+                                           "treatment_key", "state", "insecticide", "mammals", "plot", 
                                            "species", "scientific_name", "common_name",
                                            "cover")]
 # Upload clean data csv to google drive without the index column
