@@ -206,16 +206,16 @@ Fig1_overall_air_kbs <- ggplot(KBS_avg_air, aes(x=treatment, y=temp)) +
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_soil_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=avg, fill=treatment, shape=treatment)) +
-        geom_pointrange(aes(ymin = avg - se, ymax = avg + se), size=1, color="black") +
+Fig1_soil_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
         scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(21, 21))+
         labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=avg, fill=treatment, shape=treatment)) +
-        geom_pointrange(aes(ymin = avg - se, ymax = avg + se), size=1, color="black") +
+Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
+        geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
         scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(21, 21))+
         labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
