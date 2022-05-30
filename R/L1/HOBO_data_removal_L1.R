@@ -8,6 +8,8 @@
 # PROJECT:        warmXtrophic
 # DATE:           May 2022
 
+# clear all existing data
+rm(list=ls())
 
 # load in the data
 Sys.getenv("L1DIR")
@@ -26,10 +28,11 @@ UMBS$month <- format(UMBS$Date_Time,format="%m")
 
 ## Notes on bad data that is being removed because it is missing too much data or due to failures
 
-# KBS overall removal:
+# overall removal:
 # - 2015 (sensors not installed until midway through the summer)
 KBS <- KBS[!(KBS$year == "2015"),]
-# - sensor 1 (failed for 2021)
+UMBS <- UMBS[!(UMBS$year == "2015"),]
+# - sensor 1 KBS (failed for 2021)
 KBS <- KBS[!(KBS$sensor == 1 & KBS$year =="2021"),] 
 
 # KBS 10cm air temps:
@@ -39,6 +42,9 @@ KBS$XU_ambient_air_10cm[KBS$sensor == 1] <- NA
 # - sensor 3 has some records, but none span a full year or summer, all years removed
 KBS$XU_warmed_air_10cm[KBS$sensor == 3] <- NA
 KBS$XU_ambient_air_10cm[KBS$sensor == 3] <- NA
+# - sensor 2 2018 (there is no 10cm data for 2018 this way)
+KBS$XU_ambient_air_10cm[KBS$sensor == 2 & KBS$year == "2018"] <- NA
+KBS$XU_warmed_air_10cm[KBS$sensor == 2 & KBS$year == "2018"] <- NA
 
 # KBS 5cm soil temps:
 # - sensor 1 all years

@@ -92,7 +92,7 @@ KBS_2018_3_10 <- KBS %>%
         select(Date_Time, year, julian, sensor, XU_ambient_air_10cm, XU_warmed_air_10cm) %>%
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(sensor == 3)
-ggplot(KBS_2018_3_10, aes(x=julian, y=temp, group=treatment, color=treatment)) +
+ggplot(KBS_2018_1_10, aes(x=julian, y=temp, group=treatment, color=treatment)) +
         geom_point() +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),

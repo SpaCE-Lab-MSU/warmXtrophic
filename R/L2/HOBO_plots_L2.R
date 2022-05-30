@@ -21,10 +21,10 @@ L1_dir<-Sys.getenv("L1DIR")
 list.files(L1_dir)
 
 # load in the data
-KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv"))
-KBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv"))
+KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_dataremoved_L1.csv"))
+KBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_dataremoved_L1.csv"))
 
-UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv"))
+UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_dataremoved_L1.csv"))
 UMBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv"))
 
 KBS_par <- read.csv(file.path(L1_dir,"PAR/KBS_PAR_L1.csv"))
@@ -37,22 +37,6 @@ KBS_pend$Date_Time <- as.POSIXct(KBS_pend$Date_Time, format = "%Y-%m-%d %H:%M")
 UMBS_pend$Date_Time <- as.POSIXct(UMBS_pend$Date_Time, format = "%Y-%m-%d %H:%M")
 KBS_par$Date_Time <- as.POSIXct(KBS_par$Date_Time, format = "%Y-%m-%d")
 UMBS_par$Date_Time <- as.POSIXct(UMBS_par$Date_Time, format = "%Y-%m-%d")
-
-# notes on missing data:
-# remove sensor 1 from 2021 KBS because it failed
-# remove sensor 1 from 2021 for July-Nov at UMBS because of a wasp nest
-KBS$year <- format(KBS$Date_Time,format="%Y")
-UMBS$year <- format(UMBS$Date_Time,format="%Y")
-UMBS$month <- format(UMBS$Date_Time,format="%m")
-KBS <- KBS[!(KBS$sensor == 1 & KBS$year =="2021" ),] 
-UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "07"),] 
-UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "08"),]
-UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "09"),]
-UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "10"),]
-UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "11"),]
-# note: sensor 3 KBS for 2021 and 2020 10cm temps failed - I remove those below
-# also remove sensor 1 10cm data for KBS
-# Also remove 2015 data below since sensors were installed midway through the summer
 
 
 #########################################
@@ -105,7 +89,6 @@ KBS_avg_month <- KBS_season_air %>%  # by month and year, 1m temp only
   group_by(month, year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
-KBS_avg_month <- KBS_avg_month[!(KBS_avg_month$year =="2015"),]  # removing 2015 data
 
 KBS_avg_year <- KBS_season_air %>%  # by year, 1m temp only
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
@@ -113,30 +96,13 @@ KBS_avg_year <- KBS_season_air %>%  # by year, 1m temp only
   summarize(count = n(),
             average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
-KBS_avg_year<- KBS_avg_year[!(KBS_avg_year$year =="2015"),]  # removing 2015 data
 
 KBS_avg_year_air <- KBS_season_air2 %>%  # by year, 1m and 10cm; also taking sensor-level average here
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
         group_by(year, sensor, treatment) %>%
         summarize(average_temp = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
-KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year =="2015"),]  # removing 2015 data
-KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2020" & # removing 10cm temperatures
-                                               KBS_avg_year_air$sensor == 3 &
-                                               KBS_avg_year_air$treatment == "XU_ambient_air_10cm"),]
-KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2021" & 
-                                               KBS_avg_year_air$sensor == 3 &
-                                               KBS_avg_year_air$treatment == "XU_ambient_air_10cm"),]
-KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2020" &
-                                               KBS_avg_year_air$sensor == 3 &
-                                               KBS_avg_year_air$treatment == "XU_warmed_air_10cm"),]
-KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$year == "2021" & 
-                                               KBS_avg_year_air$sensor == 3 &
-                                               KBS_avg_year_air$treatment == "XU_warmed_air_10cm"),]
-KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$sensor == 1 &
-                                               KBS_avg_year_air$treatment == "XU_warmed_air_10cm"),]
-KBS_avg_year_air <- KBS_avg_year_air[!(KBS_avg_year_air$sensor == 1 &
-                                               KBS_avg_year_air$treatment == "XU_ambient_air_10cm"),]
+
 KBS_avg_year_air2 <- KBS_avg_year_air %>%  # summarizing over all sensors 
         group_by(year, treatment) %>%
         summarize(avg = mean(average_temp, na.rm = TRUE),
@@ -551,14 +517,12 @@ UMBS_avg_month <- UMBS_season_air %>%
   group_by(month, year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
-UMBS_avg_month <- UMBS_avg_month[!(UMBS_avg_month$year =="2015"),]  # removing 2015 data
 
 UMBS_avg_year <- UMBS_season_air %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
   group_by(year, treatment) %>%
   summarize(average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
-UMBS_avg_year <- UMBS_avg_year[!(UMBS_avg_year$year =="2015"),]  # removing 2015 data
 
 UMBS_avg_year_air <- UMBS_season_air2 %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
@@ -569,7 +533,6 @@ UMBS_avg_year_air2 <- UMBS_avg_year_air %>%  # summarizing over all sensors
         group_by(year, treatment) %>%
         summarize(avg = mean(average_temp, na.rm = TRUE),
                   se = std.error(average_temp, na.rm = TRUE))
-UMBS_avg_year_air2 <- UMBS_avg_year_air2[!(UMBS_avg_year_air2$year =="2015"),]  # removing 2015 data
 
 UMBS_avg_year_soil <- UMBS_season_soil %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
@@ -577,7 +540,6 @@ UMBS_avg_year_soil <- UMBS_season_soil %>%
         summarize(count = n(),
                   average_temp = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
-UMBS_avg_year_soil <- UMBS_avg_year_soil[!(UMBS_avg_year_soil$year =="2015"),]  # removing 2015 data
 
 UMBS_avg_year_soilmo <- UMBS_season_soilmo %>%  # by year
         gather(key = "treatment", value = "moisture", -year, -month, -hour, -Date_Time, -sensor) %>%
@@ -585,7 +547,6 @@ UMBS_avg_year_soilmo <- UMBS_season_soilmo %>%  # by year
         summarize(count = n(),
                   average_moist = mean(moisture, na.rm = TRUE),
                   se = std.error(moisture, na.rm = TRUE))
-UMBS_avg_year_soilmo <- UMBS_avg_year_soilmo[!(UMBS_avg_year_soilmo$year =="2015"),]  # removing 2015 data
 
 UMBS_soil_merged <- rbind(UMBS_avg_year_soil, UMBS_avg_year_soilmo)
 
