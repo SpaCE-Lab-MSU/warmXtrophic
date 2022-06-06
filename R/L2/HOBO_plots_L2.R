@@ -180,6 +180,17 @@ Fig1_soil_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, fill=tre
         theme(legend.position="bottom") +
         theme_classic()
 
+Fig1_soil_line_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, group=treatment, color=treatment)) +
+        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#fb6a4a"),
+                           labels=c("Ambient","Warmed")) +
+        labs(title="KBS",y=NULL, x=NULL) +
+        ylim(14.5,18.5) +
+        theme_bw(14)
+
 Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
@@ -187,6 +198,17 @@ Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist,
         labs(title="KBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
+
+Fig1_soil_moist_line_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist, group=treatment, color=treatment)) +
+        geom_errorbar(aes(ymin=average_moist-se, ymax=average_moist+se), width=.1,color="black",linetype="solid") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#fb6a4a"),
+                           labels=c("Ambient","Warmed")) +
+        labs(title="KBS",y=NULL, x=NULL) +
+        ylim(0.07,0.21) +
+        theme_bw(14)
 
 Fig1_soil_kbs_dualy <- ggplot(KBS_soil_merged, aes(x=year, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(y=average_temp, ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
@@ -210,6 +232,7 @@ Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=tre
         scale_linetype_manual(name="Treatment",
                               values = c("solid", "solid", "dotdash", "dotdash"),
                               labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+        ylim(16,26) +
         labs(title="KBS",y=NULL, x=NULL) +
         theme_bw(14)
 
@@ -588,6 +611,17 @@ Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, fill=tr
         theme(legend.position="bottom") +
         theme_classic()
 
+Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, group=treatment, color=treatment)) +
+        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#fb6a4a"),
+                           labels=c("Ambient","Warmed")) +
+        labs(title="UMBS",y=NULL, x=NULL) +
+        ylim(14.5, 18.5) +
+        theme_bw(14)
+
 Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
@@ -595,6 +629,17 @@ Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo, aes(x=year, y=average_moist
         labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
+
+Fig1_soil_moist_line_umbs <- ggplot(UMBS_avg_year_soilmo, aes(x=year, y=average_moist, group=treatment, color=treatment)) +
+        geom_errorbar(aes(ymin=average_moist-se, ymax=average_moist+se), width=.1,color="black",linetype="solid") +
+        geom_line(size = 1) +
+        geom_point(size = 2) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#fb6a4a"),
+                           labels=c("Ambient","Warmed")) +
+        labs(title="UMBS",y=NULL, x=NULL) +
+        ylim(0.07,0.21) +
+        theme_bw(14)
 
 Fig1_soil_umbs_dualy <- ggplot(UMBS_soil_merged, aes(x=year, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(y=average_temp, ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
@@ -618,6 +663,7 @@ Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=t
         scale_linetype_manual(name="Treatment",
                               values = c("solid", "solid", "dotdash", "dotdash"),
                               labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+        ylim(16,26) +
         labs(title="UMBS",y=NULL, x=NULL) +
         theme_bw(14)
 
@@ -787,6 +833,20 @@ Fig1.5 <- ggarrange(Fig1_temp_line_kbs, Fig1_temp_line_umbs, ncol = 2, common.le
 png("HOBO_plots_L2_air_temps_line.png", units="in", width=10, height=5, res=300)
 annotate_figure(Fig1.5,
                 left = text_grob("Average Air Temperature (°C)", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
+dev.off()
+
+Fig1.6 <- ggarrange(Fig1_soil_line_kbs, Fig1_soil_line_umbs, ncol = 2, common.legend = T, legend = "right")
+png("HOBO_plots_L2_soil_temps_line.png", units="in", width=10, height=5, res=300)
+annotate_figure(Fig1.6,
+                left = text_grob("Average Soil Temperature (°C)", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
+dev.off()
+
+Fig1.7 <- ggarrange(Fig1_soil_moist_line_kbs, Fig1_soil_moist_line_umbs, ncol = 2, common.legend = T, legend = "right")
+png("HOBO_plots_L2_soil_moist_line.png", units="in", width=10, height=5, res=300)
+annotate_figure(Fig1.7,
+                left = text_grob("Average Soil Moisture", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
 dev.off()
 

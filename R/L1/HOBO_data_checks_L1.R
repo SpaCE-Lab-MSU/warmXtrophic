@@ -360,7 +360,7 @@ KBS_2018_3_stemp <- KBS %>%
         select(Date_Time, year, julian, sensor, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm) %>%
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(sensor == 3)
-ggplot(KBS_2018_3_stemp, aes(x=julian, y=temp, group=treatment, color=treatment)) +
+ggplot(KBS_2018_2_stemp, aes(x=julian, y=temp, group=treatment, color=treatment)) +
         geom_point() +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
@@ -382,7 +382,7 @@ KBS_2019_3_stemp <- KBS %>%
         select(Date_Time, year, julian, sensor, XU_warmed_soil_temp_5cm, XU_ambient_soil_temp_5cm) %>%
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(sensor == 3)
-ggplot(KBS_2019_3_stemp, aes(x=julian, y=temp, group=treatment, color=treatment)) +
+ggplot(KBS_2019_2_stemp, aes(x=julian, y=temp, group=treatment, color=treatment)) +
         geom_point() +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),

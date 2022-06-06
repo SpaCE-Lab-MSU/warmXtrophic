@@ -3,6 +3,8 @@ title: 'warmXtrophic: HOBO analyses'
 author: "Kara Dobson"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -27,8 +29,8 @@ library(rstatix)
 L1_dir<-Sys.getenv("L1DIR")
 
 # load in the data
-KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv"))
-UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.csv"))
+KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_dataremoved_L1.csv"))
+UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_dataremoved_L1.csv"))
 
 KBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv"))
 UMBS_pend <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv"))
@@ -41,13 +43,10 @@ UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
 ## KBS air temperatures
 ```{r}
 # merge the data + filter data for only the daytime during the growing season
-KBS_season <- KBS
-KBS_season$month <- format(KBS_season$Date_Time,format="%m")
-KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
-KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
-
-# remove sensor 1 from 2021 KBS because it failed
-KBS_season1 <- KBS_season[!(KBS_season$sensor == 1 & KBS_season$year =="2021" ),] 
+KBS_season1 <- KBS
+KBS_season1$month <- format(KBS_season1$Date_Time,format="%m")
+KBS_season1$year <- format(KBS_season1$Date_Time,format="%Y")
+KBS_season1$hour <- format(KBS_season1$Date_Time, format="%H")
 
 # 1m
 KBS_season <- KBS_season1 %>%
@@ -91,7 +90,7 @@ KBS_avg_temp_10cm <- KBS_avg_year_10cm %>%
         group_by(treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
-print(KBS_avg_temp)
+print(KBS_avg_temp_10cm)
 
 # avg temps in the chambers during the daytime for each year
 KBS_avg_temp_year <- KBS_avg_year %>%
@@ -131,8 +130,6 @@ KBS_winter$month <- format(KBS_winter$Date_Time,format="%m")
 KBS_winter$year <- format(KBS_winter$Date_Time,format="%Y")
 KBS_winter$hour <- format(KBS_winter$Date_Time, format="%H")
 
-KBS_winter <- KBS_winter[!(KBS_winter$sensor == 1 & KBS_winter$year =="2021"),]
-
 KBS_winter <- KBS_winter %>%
         filter(month > "10" | month < "03") %>%
         filter(hour > "06") %>%
@@ -168,13 +165,6 @@ UMBS_season1 <- UMBS
 UMBS_season1$month <- format(UMBS_season1$Date_Time,format="%m")
 UMBS_season1$year <- format(UMBS_season1$Date_Time,format="%Y")
 UMBS_season1$hour <- format(UMBS_season1$Date_Time, format="%H")
-
-# remove sensor 1 from 2021 for July-Nov at UMBS because of a wasp nest
-UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "07"),] 
-UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "08"),]
-UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "09"),]
-UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "10"),]
-UMBS_season1 <- UMBS_season1[!(UMBS_season1$sensor == 1 & UMBS_season1$year =="2021" & UMBS_season1$month == "11"),]
 
 # 1m
 UMBS_season <- UMBS_season1 %>%
@@ -216,7 +206,7 @@ UMBS_avg_temp_10cm <- UMBS_avg_year_10cm %>%
         group_by(treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T),
                   sd_temp = sd(temp, na.rm = T))
-print(UMBS_avg_temp)
+print(UMBS_avg_temp_10cm)
 
 # avg temps in the chambers during the daytime for each year
 UMBS_avg_temp_year <- UMBS_avg_year %>%
@@ -292,8 +282,6 @@ KBS_season_soil$month <- format(KBS_season_soil$Date_Time,format="%m")
 KBS_season_soil$year <- format(KBS_season_soil$Date_Time,format="%y")
 KBS_season_soil$hour <- format(KBS_season_soil$Date_Time, format="%H")
 
-KBS_season_soil <- KBS_season_soil[!(KBS_season_soil$sensor == 1 & KBS_season_soil$year =="2021" ),]
-
 KBS_season_soil <- KBS_season_soil %>%
   filter(month > "03") %>%
   filter(month < "09") %>%
@@ -304,11 +292,6 @@ KBS_season_soil <- KBS_season_soil %>%
 # create new dataframes for temperatures averaged by year & averaged by month and year
 KBS_avg_soil <- KBS_season_soil %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time)
-
-# test for outliers - some extreme, go back and remove ?
-outliers <- KBS_avg_soil %>%
-  group_by(treatment, year) %>%
-  identify_outliers(temp)
 
 # avg soil temps in the chambers during the daytime
 KBS_avg_soil_temp <- KBS_avg_soil %>%
@@ -323,8 +306,6 @@ KBS_season_moist <- KBS
 KBS_season_moist$month <- format(KBS_season_moist$Date_Time,format="%m")
 KBS_season_moist$year <- format(KBS_season_moist$Date_Time,format="%y")
 KBS_season_moist$hour <- format(KBS_season_moist$Date_Time, format="%H")
-
-KBS_season_moist <- KBS_season_moist[!(KBS_season_moist$sensor == 1 & KBS_season_moist$year =="2021" ),]
 
 KBS_season_moist <- KBS_season_moist %>%
   filter(month > "03") %>%
