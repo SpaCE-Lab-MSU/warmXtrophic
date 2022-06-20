@@ -63,39 +63,53 @@ umbs_biomass_live2 <- umbs_biomass_live %>%
         group_by(species) %>% 
         filter(all(c('warmed', 'ambient') %in% state))
 
+# clean insecticide labels for plotting
+insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
+
 ### Overall averages btwn treatments - barplot
 # plot level KBS
 biomass_sum_k2 <- kbs_biomass_live %>%
-        group_by(plot, state) %>%
+        group_by(plot, state, insecticide) %>%
         summarize(avg_weight = sum(weight_g, na.rm = TRUE))
 biomass_sum_k3 <- biomass_sum_k2 %>%
-        group_by(state) %>%
+        group_by(state, insecticide) %>%
         summarize(average_weight = mean(avg_weight, na.rm = TRUE),
                   se = std.error(avg_weight, na.rm = TRUE))
-ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = state)) +
+kbs_bio <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = state)) +
+        facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
         geom_errorbar(aes(ymin = average_weight - se, ymax = average_weight + se), width = 0.2,
                       position = "identity") +
-        labs(title="KBS plot-level") +
+        labs(title="KBS", y="", x="") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        scale_x_discrete(labels=c("ambient" = "", "warmed" = "")) +
         theme_classic()
+
 # plot level UMBS
 biomass_sum_u2 <- umbs_biomass_live %>%
-        group_by(plot, state) %>%
+        group_by(plot, state, insecticide) %>%
         summarize(avg_weight = sum(weight_g, na.rm = TRUE))
 biomass_sum_u3 <- biomass_sum_u2 %>%
-        group_by(state) %>%
+        group_by(state, insecticide) %>%
         summarize(average_weight = mean(avg_weight, na.rm = TRUE),
                   se = std.error(avg_weight, na.rm = TRUE))
-ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = state)) +
+umbs_bio <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = state)) +
+        facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
         geom_errorbar(aes(ymin = average_weight - se, ymax = average_weight + se), width = 0.2,
                       position = "identity") +
-        labs(title="UMBS plot-level")+
+        labs(title="UMBS", y="", x="")+
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         theme_classic()
+
+biomass_comb <- ggpubr::ggarrange(kbs_bio, umbs_bio,
+                                     nrow = 2, common.legend = T, legend="none")
+#png("biomass_plots_L2_barplot.png", units="in", width=8, height=8, res=300)
+annotate_figure(biomass_comb,
+                left = text_grob("Plant Biomass (g)", color = "black", rot = 90),
+                bottom = text_grob("Treatment", color = "black"))
+#dev.off()
 
 ### Overall averages btwn treatments - boxplot
 # species level KBS
