@@ -96,7 +96,6 @@ KBS_avg_year <- KBS_season_air %>%  # by year, 1m temp only
   summarize(count = n(),
             average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
-
 KBS_avg_year_air <- KBS_season_air2 %>%  # by year, 1m and 10cm; also taking sensor-level average here
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
         group_by(year, sensor, treatment) %>%
@@ -549,7 +548,7 @@ UMBS_avg_year <- UMBS_season_air %>%
 
 UMBS_avg_year_air <- UMBS_season_air2 %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(year, sensor,treatment) %>%
+        group_by(year, sensor, treatment) %>%
         summarize(average_temp = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
 UMBS_avg_year_air2 <- UMBS_avg_year_air %>%  # summarizing over all sensors 
@@ -557,21 +556,29 @@ UMBS_avg_year_air2 <- UMBS_avg_year_air %>%  # summarizing over all sensors
         summarize(avg = mean(average_temp, na.rm = TRUE),
                   se = std.error(average_temp, na.rm = TRUE))
 
-UMBS_avg_year_soil <- UMBS_season_soil %>%
+UMBS_avg_year_soil <- UMBS_season_soil %>%  # soil temp by year
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(year, treatment) %>%
+        group_by(year, treatment, sensor) %>%
         summarize(count = n(),
-                  average_temp = mean(temp, na.rm = TRUE),
+                  average = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
-
-UMBS_avg_year_soilmo <- UMBS_season_soilmo %>%  # by year
-        gather(key = "treatment", value = "moisture", -year, -month, -hour, -Date_Time, -sensor) %>%
+UMBS_avg_year_soil2 <- UMBS_avg_year_soil %>%  # summarizing over all sensors 
         group_by(year, treatment) %>%
-        summarize(count = n(),
-                  average_moist = mean(moisture, na.rm = TRUE),
-                  se = std.error(moisture, na.rm = TRUE))
+        summarize(average_temp = mean(average, na.rm = TRUE),
+                  se = std.error(average, na.rm = TRUE))
 
-UMBS_soil_merged <- rbind(UMBS_avg_year_soil, UMBS_avg_year_soilmo)
+UMBS_avg_year_soilmo <- UMBS_season_soilmo %>%  # soil moisture by year
+        gather(key = "treatment", value = "moisture", -year, -month, -hour, -Date_Time, -sensor) %>%
+        group_by(year, treatment, sensor) %>%
+        summarize(count = n(),
+                  average = mean(moisture, na.rm = TRUE),
+                  se = std.error(moisture, na.rm = TRUE))
+UMBS_avg_year_soilmo2 <- UMBS_avg_year_soilmo %>%  # summarizing over all sensors 
+        group_by(year, treatment) %>%
+        summarize(average_moist = mean(average, na.rm = TRUE),
+                  se = std.error(average, na.rm = TRUE))
+
+UMBS_soil_merged <- rbind(UMBS_avg_year_soil2, UMBS_avg_year_soilmo2)
 
 
 # store the data plots - to be combined with KBS plots later in the script
@@ -603,7 +610,7 @@ Fig1_umbs <- ggplot(UMBS_avg_year_air2, aes(x=year, y=avg, fill=treatment, shape
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
+Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
         scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(21, 21))+
@@ -611,7 +618,7 @@ Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, fill=tr
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, group=treatment, color=treatment)) +
+Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, group=treatment, color=treatment)) +
         geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
         geom_line(size = 1) +
         geom_point(size = 2) +
@@ -622,7 +629,7 @@ Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil, aes(x=year, y=average_temp, gr
         ylim(14.5, 18.5) +
         theme_bw(14)
 
-Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
+Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
         scale_fill_manual(labels = c("Ambient", "Warmed"), values=c('steelblue3','#fb6a4a'))+
         scale_shape_manual(labels = c("Ambient", "Warmed"), values=c(21, 21))+
@@ -630,7 +637,7 @@ Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo, aes(x=year, y=average_moist
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_soil_moist_line_umbs <- ggplot(UMBS_avg_year_soilmo, aes(x=year, y=average_moist, group=treatment, color=treatment)) +
+Fig1_soil_moist_line_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average_moist, group=treatment, color=treatment)) +
         geom_errorbar(aes(ymin=average_moist-se, ymax=average_moist+se), width=.1,color="black",linetype="solid") +
         geom_line(size = 1) +
         geom_point(size = 2) +

@@ -57,7 +57,7 @@ KBS$XU_warmed_soil_temp_5cm[KBS$sensor == 3 & KBS$year == "2018"] <- NA
 KBS$XU_ambient_soil_temp_5cm[KBS$sensor == 2 & KBS$year == "2018"] <- NA
 KBS$XU_warmed_soil_temp_5cm[KBS$sensor == 2 & KBS$year == "2018"] <- NA
 
-# UMBS air temps:
+# UMBS:
 # - sensor 1 July-Nov 2021 (wasp nest was on sensor)
 UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "07"),] 
 UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "08"),]
