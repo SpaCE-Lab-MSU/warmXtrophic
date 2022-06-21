@@ -31,7 +31,7 @@ KBS$year <- format(KBS$Date_Time,format="%Y")
 
 # avg PAR overall
 KBS_avg_over <- KBS %>%
-        group_by(state) %>%
+        group_by(state, year) %>%
         summarize(mean = mean(Overstory, na.rm = T),
                   sd = sd(Overstory, na.rm = T))
 KBS_avg_under <- KBS %>%
