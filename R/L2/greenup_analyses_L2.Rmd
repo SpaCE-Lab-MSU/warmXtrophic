@@ -89,7 +89,7 @@ greenupp <- greenupp %>% dplyr::select(-X) # get rid of "X" column that shows up
 str(greenup)
 str(greenupp)
 
-# Order warm and ambient so that warm shows up first in plotting (and is default is red = warm; blue = ambient). First make it a factor.
+# Order warm and ambient so that warm shows up first in plotting
 greenup$state<-as.factor(greenup$state)
 levels(greenup$state)
 greenup$state <- factor(greenup$state, levels(greenup$state)[c(2,1)])
@@ -198,9 +198,9 @@ kbs_2020 <- subset(green_kbs, year == 6) # records from 227 & 228
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
 # These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
 ```{r}
-# checking fit for date as a function of state and species - bringing in species here makes it obvious that that is explaining some of the variation compared with the state-only model you had previously.
+# checking fit for date as a function of state/species/year - bringing in species here makes it obvious that that is explaining some of the variation compared with the state-only model you had previously.
 
-# species-level data
+### species-level data ###
 # KBS State-only model
 fit<- lm(spp_half_cover_date~state, data = green_kbs)
 outlierTest(fit) # no outliers
@@ -230,7 +230,7 @@ hist(fit1a$residuals)
 qqPlot(fit1a, main="QQ Plot") 
 leveragePlots(fit1a)
 
-# checking fit for date as a function of state and year
+# KBS: checking fit for date as a function of state and year
 fit2 <- lm(spp_half_cover_date~state+species+year_factor, data = green_kbs)
 hist(fit2$residuals)
 outlierTest(fit2) # no outliers
@@ -239,14 +239,16 @@ leveragePlots(fit2)
 ols_test_normality(fit2) # p < 0.05 for all, so data is normal (I think)
 
 
-# plot level data
+### plot level data ###
 # KBS State-only model
 fitp<- lm(plot_half_cover_date~state, data = green_kbsp)
 outlierTest(fitp) # no outliers
 qqPlot(fitp, main="QQ Plot") 
 hist(fitp$residuals)
 leveragePlots(fitp)
+leveneTest(residuals(fitp) ~ green_kbsp$state)
 ols_test_normality(fitp)
+shapiro.test(resid(fitp))
 
 # UMBS State-only model
 fitpu<- lm(plot_half_cover_date~state, data = green_umbsp)
@@ -254,6 +256,7 @@ outlierTest(fitpu) # no outliers
 qqPlot(fitpu, main="QQ Plot") 
 hist(fitpu$residuals)
 leveragePlots(fitpu)
+leveneTest(residuals(fitpu) ~ green_umbsp$state)
 ols_test_normality(fitpu)
 
 # KBS State and year model
@@ -262,7 +265,10 @@ outlierTest(fitp2) # no outliers
 qqPlot(fitp2, main="QQ Plot") 
 hist(fitp2$residuals)
 leveragePlots(fitp2)
+leveneTest(residuals(fitp2) ~ green_kbsp$state)
+leveneTest(residuals(fitp2) ~ green_kbsp$year_factor) # not met
 ols_test_normality(fitp2)
+shapiro.test(resid(fitp2))
 
 # UMBS State and year model
 fitp2u<- lm(plot_half_cover_date~state+year, data = green_umbsp)
@@ -494,25 +500,27 @@ emmeans(mod11a, list(pairwise ~ year_factor + growth_habit), adjust = "tukey")
 # KBS Plot-level Mixed Effects Models:
 ```{r}
 # plot-level models using the species summarized data frame with specific random effects
-mod1ps <- lmer(spp_half_cover_date ~ state + (1|plot/species), green_kbs, REML=FALSE)
-mod2ps <- lmer(spp_half_cover_date ~ state + insecticide + (1|plot/species), green_kbs, REML=FALSE)
-mod3ps <- lmer(spp_half_cover_date ~ state + insecticide + year_factor + (1|plot/species), green_kbs, REML=FALSE)
-mod4ps <- lmer(spp_half_cover_date ~ state + year_factor + (1|plot/species), green_kbs, REML=FALSE)
-mod5ps <- lmer(spp_half_cover_date ~ state + year_factor + (1|species) + (1|plot), green_kbs, REML=FALSE)
-mod6ps <- lmer(spp_half_cover_date ~ state + year_factor + insecticide + (1|species) + (1|plot), green_kbs, REML=FALSE)
-mod7ps <- lmer(spp_half_cover_date ~ state + year_factor + insecticide + (1|species), green_kbs, REML=FALSE)
-
-anova(mod1ps,mod2ps) #1
-anova(mod1ps,mod3ps) #3
-anova(mod4ps,mod3ps) #4
-anova(mod4ps,mod5ps) #5
-anova(mod6ps,mod5ps) #5
-anova(mod5ps,mod7ps) # the same...? 
-AICctab(mod1ps, mod2ps, mod3ps, mod4ps, mod5ps, mod6ps, mod7ps,weights=T)
-summary(mod5ps)
-anova(mod4ps)
+# note: we decided this was not the best approach - better to use the summarized dataframes
+#mod1ps <- lmer(spp_half_cover_date ~ state + (1|plot/species), green_kbs, REML=FALSE)
+#mod2ps <- lmer(spp_half_cover_date ~ state + insecticide + (1|plot/species), green_kbs, REML=FALSE)
+#mod3ps <- lmer(spp_half_cover_date ~ state + insecticide + year_factor + (1|plot/species), green_kbs, #REML=FALSE)
+#mod4ps <- lmer(spp_half_cover_date ~ state + year_factor + (1|plot/species), green_kbs, REML=FALSE)
+#mod5ps <- lmer(spp_half_cover_date ~ state + year_factor + (1|species) + (1|plot), green_kbs, REML=FALSE)
+#mod6ps <- lmer(spp_half_cover_date ~ state + year_factor + insecticide + (1|species) + (1|plot), #green_kbs, REML=FALSE)
+#mod7ps <- lmer(spp_half_cover_date ~ state + year_factor + insecticide + (1|species), green_kbs, #REML=FALSE)
+#
+#anova(mod1ps,mod2ps) #1
+#anova(mod1ps,mod3ps) #3
+#anova(mod4ps,mod3ps) #4
+#anova(mod4ps,mod5ps) #5
+#anova(mod6ps,mod5ps) #5
+#anova(mod5ps,mod7ps) # the same...? 
+#AICctab(mod1ps, mod2ps, mod3ps, mod4ps, mod5ps, mod6ps, mod7ps,weights=T)
+#summary(mod5ps)
+#anova(mod4ps)
 
 # plot-level models using the re-summarized data frame
+modfull <- lmer(plot_half_cover_date ~ state*year_factor + insecticide*year_factor + (1|plot), green_kbsp, REML=F)
 mod1p <- lmer(plot_half_cover_date ~ state + (1|plot), green_kbsp, REML=FALSE)
 mod2p <- lmer(plot_half_cover_date ~ insecticide + (1|plot), green_kbsp, REML=FALSE)
 mod3p <- lmer(plot_half_cover_date ~ insecticide + state + (1|plot), green_kbsp, REML=FALSE)
@@ -524,15 +532,18 @@ mod8p <- lmer(plot_half_cover_date ~ state * year_factor + insecticide + (1|plot
 mod9p <- lmer(plot_half_cover_date ~ state * insecticide + year_factor + (1|plot), green_kbsp, REML=FALSE)
 mod10p <- lmer(plot_half_cover_date ~ state + insecticide * year_factor + (1|plot), green_kbsp, REML=FALSE)
 mod11p <- lmer(plot_half_cover_date ~ state * year_factor * insecticide + (1|plot), green_kbsp, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # 5p or 6p
+AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # 5p, 6p, or 9p
 anova(mod5p, mod6p) #5p - used this model in results section
+anova(mod9p, mod5p) # should I go with 9p? includes insecticide as well
+AICtab(mod5p, mod6p, mod9p)
 
-summary(mod5p)
+summary(mod9p)
+anova(mod9p)
 anova(mod5p)
-emmeans(mod5p, list(pairwise ~ state+year_factor), adjust = "tukey")
-mod5p.emm <- emmeans(mod5p, ~ state + year_factor) # why are the comparisons the same for each year?
-contrast(mod5p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod5p, year_factor~state)
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state * insecticide) # why are the comparisons the same for each year?
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
 ```
 
 # Analyses for species who reached half cover within the green-up observation window
@@ -615,18 +626,13 @@ pois <- glm(spp_half_cover_date~state, data = green_kbs, family="poisson")
 hist(pois$residuals, main="Poisson glm residuals")
 ```
 
-\pagebreak
-
 # Below I try a few different generalized linear models with poisson distribution:  
-
 ## An interaction between state and year, plus insecticide as a fixed effect and species and plot as random effects
 ```{r}
 moda <- glmer(spp_half_cover_date ~ state*year + insecticide + (1|species) + (1|plot),
               data=green_kbs, family = poisson)
 summary(moda)
 ```
-
-\pagebreak
 
 ## No interaction between state and year, but with state and insecticide as fixed effects and species and plot as random effects
 ```{r}
@@ -635,16 +641,12 @@ modb <- glmer(spp_half_cover_date ~ state + year + insecticide + (1|species) + (
 summary(modb)
 ```
 
-\pagebreak
-
 ## State and insecticide as fixed effects & year, species and plot as random effects
 ```{r, eval=FALSE}
 modc <- glmer(spp_half_cover_date ~ state + insecticide + (1|year) + (1|species) + (1|plot),
               data=green_kbs, family = poisson)
 summary(modc)
 ```
-
-\pagebreak
 
 # Because no distributions seems to match well, I'll try a Friedman's test
 ```{r}
@@ -661,21 +663,10 @@ summary(modc)
 ```
 ## Error in friedman.test.default(c(141L, 202L, 122L, 101L, 127L, 120L, 197L,  :  not an unreplicated complete block design
 
-# Permanova?
-```{r, eval=FALSE}
-per1 <- adonis2(green_kbs$spp_half_cover_date ~ state*year + insecticide, data = green_kbs)
-per1
-per2 <- adonis(formula = green_kbs$spp_half_cover_date ~ state*year + insecticide, strata = green_kbs$plot, data = green_kbs)
-per2
-```
-# With per2, when controlling for "plot", there is a difference btwn treatments
-
 \pagebreak
 
 # *UMBS*
-
 # Checking for normality
-
 ```{r}
 hist(green_umbs$spp_half_cover_date)
 qqnorm(green_umbs$spp_half_cover_date)
@@ -683,10 +674,7 @@ shapiro.test(green_umbs$spp_half_cover_date)
 hist(green_umbs$spp_half_cover_date[green_kbs$state == "ambient"])
 hist(green_umbs$spp_half_cover_date[green_kbs$state == "warmed"])
 ```
-
 ## These look pretty good
-
-\pagebreak
 
 # Trying log transformation
 ```{r}
@@ -695,8 +683,6 @@ hist(green_umbs$date_log)
 shapiro.test(green_umbs$date_log)
 ```
 ## I think this looks good but shapiro-wilk is lower than 0.05
-
-\pagebreak
 
 # Trying inverse tranformation
 ```{r}
