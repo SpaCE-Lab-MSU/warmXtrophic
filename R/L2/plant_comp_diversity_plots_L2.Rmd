@@ -232,7 +232,7 @@ sum_shannon$year <- as.factor(sum_shannon$year)
 shannon_overall_plot <- function(loc) { 
   shannon_plot <- subset(sum_shannon, site == loc)
   return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group = state)) +
-                 geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1) +
+                 geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.1)) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
@@ -249,7 +249,7 @@ sum_simpson$year <- as.factor(sum_simpson$year)
 simpson_overall_plot <- function(loc) { 
   simpson_plot <- subset(sum_simpson, site == loc)
   return(ggplot(simpson_plot, aes(x = year, y = avg_simpson, group = state)) +
-                 geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1) +
+                 geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1, position=position_dodge(0.1)) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
@@ -266,7 +266,7 @@ sum_richness$year <- as.factor(sum_richness$year)
 richness_overall_plot <- function(loc) { 
   richness_plot <- subset(sum_richness, site == loc)
   return(ggplot(richness_plot, aes(x = year, y = avg_richness, group = state)) +
-                 geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1) +
+                 geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1, position=position_dodge(0.1)) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
@@ -299,7 +299,7 @@ sum_shannon_i$full_treat <- paste(sum_shannon_i$state, sum_shannon_i$insecticide
 sum_shannon_line_i <- function(loc) { 
         shannon_plot <- subset(sum_shannon_i, site == loc)
         return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1) +
+                       geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.1)) +
                        geom_line(size = 1) +
                        geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
@@ -322,7 +322,7 @@ sum_simpson_i$full_treat <- paste(sum_simpson_i$state, sum_simpson_i$insecticide
 sum_simpson_line_i <- function(loc) { 
         simpson_plot <- subset(sum_simpson_i, site == loc)
         return(ggplot(simpson_plot, aes(x = year, y = avg_simpson, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1) +
+                       geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1, position=position_dodge(0.1)) +
                        geom_line(size = 1) +
                        geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
@@ -345,7 +345,7 @@ sum_richness_i$full_treat <- paste(sum_richness_i$state, sum_richness_i$insectic
 sum_richness_line_i <- function(loc) { 
         richness_plot <- subset(sum_richness_i, site == loc)
         return(ggplot(richness_plot, aes(x = year, y = avg_richness, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1) +
+                       geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1, position=position_dodge(0.1)) +
                        geom_line(size = 1) +
                        geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
