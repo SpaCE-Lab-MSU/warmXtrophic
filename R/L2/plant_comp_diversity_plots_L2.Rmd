@@ -140,10 +140,10 @@ sum_richness_i <- change_site(sum_richness_i)
 # Set ggplot2 plotting
 # This code for ggplot2 sets the theme to mostly black and white 
 # (Arial font, and large font, base size=24)
-theme_set(theme_bw(14))
-theme_update(axis.text.x = element_text(size = 13),
-             axis.text.y = element_text(size = 16),
-             axis.title = element_text(size=16,face="bold"))
+theme_set(theme_classic(14))
+#theme_update(axis.text.x = element_text(size = 13),
+#             axis.text.y = element_text(size = 16),
+#             axis.title = element_text(size=16,face="bold"))
 ```
 
 ## Combining diversity indices - state only
