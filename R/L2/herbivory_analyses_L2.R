@@ -4,14 +4,7 @@
 # DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder
 # DATA OUTPUT:    
 # PROJECT:        warmXtrophic
-# DATE:           Jan 2021 ; updated May 2021
-
-
-##### Main questions ######
-# Is herbivory different between warmed and ambient treatments? Hypothesis: Ambient plants will have higher herbivory
-  # only run analyses on plots with no insecticide
-  # include year as a treatment (is this difference seen each year)?
-# Is herbivory different between warmed/ambient for native vs exotic? same for growth habit
+# DATE:           Jan 2021 ; updated May 2021; updated June 2022
 
 
 # Clear all existing data
@@ -30,6 +23,8 @@ library(lmtest)
 library(emmeans)
 library(bbmle)
 library(AER)
+library(countreg)
+library(sjPlot)
 
 # Get data
 Sys.getenv("L1DIR")
@@ -54,15 +49,23 @@ herb$year[herb$year == 2017] <- 3
 herb$year[herb$year == 2018] <- 4
 herb$year[herb$year == 2019] <- 5
 herb$year[herb$year == 2020] <- 6
+herb$year1 <- as.factor(herb$year1)
 
 # Remove NAs
 herb <- herb[complete.cases(herb),]
+
+# plot-level herb totals
+herb_plot <- herb %>%
+        group_by(plot, state, site, year1) %>%
+        summarize(plot_total = sum(p_eaten))
 
 # create dataframes for kbs and umbs only for plots with no insecticide
 herb_kbs <- subset(herb, site == "kbs" & insecticide == "insects")
 herb_umbs <- subset(herb, site == "umbs" & insecticide == "insects")
 herb_kbs_in <- subset(herb, site == "kbs")
 herb_umbs_in <- subset(herb, site == "umbs")
+herb_kbs_plot <- subset(herb_plot, site == "kbs")
+herb_umbs_plot <- subset(herb_plot, site == "umbs")
 # made separate dataframes for insects & no insects because the amount of herbivory measurements between
 # each species differs with each, and is relevant for the below data checks
 
@@ -93,17 +96,12 @@ herb_kbs_in %>% count(state, species)
 herb_umbs_in %>% count(state, species)
 
 # removing rare species
-herb_kbs <- herb_kbs[!grepl("Hype",herb_kbs$species),]
-herb_kbs_in <- herb_kbs_in[!grepl("Ceor",herb_kbs_in$species),]
-herb_kbs_in <- herb_kbs_in[!grepl("Dagl",herb_kbs_in$species),]
 herb_kbs_in <- herb_kbs_in[!grepl("Pore",herb_kbs_in$species),]
-herb_kbs_in <- herb_kbs_in[!grepl("Trpr",herb_kbs_in$species),]
-
 
 
 ###################### KBS herbivory distribution check ########################
 # How much of the data is zeros?
-100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #68% - thats a lot! probably have to use a zero-inflated model,
+100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #68% - thats a lot! probably have to use some type of zero-inflated model,
 # but I'll still check for normality & try some transformations below
 100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #61%
 100*sum(herb_kbs_in$p_eaten == 0)/nrow(herb_kbs_in) #70.5%
@@ -117,36 +115,36 @@ qqnorm(herb_kbs$p_eaten)
 shapiro.test(herb_kbs$p_eaten)
 fit <- lm(p_eaten~state, data = herb_kbs)
 qqPlot(fit)
+hist(resid(fit))
 
 # looking at each treatment separately
 hist(herb_kbs$p_eaten[herb_kbs$state == "ambient"])
 hist(herb_kbs$p_eaten[herb_kbs$state == "warmed"])
 
-# gamma distribution? - error message "the function mle failed to estimate the parameters"
-#fit.gamma <- fitdist(herb_kbs$p_eaten, "gamma")
-#plot(fit.gamma)
-
-# lognormal distribution? - error message "values must be positive to fit a lognormal"
-#fit.ln <- fitdist(herb_kbs$p_eaten, "lnorm")
-#plot(fit.ln)
-
 # log transform
 herb_kbs$p_log <- log(herb_kbs$p_eaten+1)
 hist(herb_kbs$p_log)
-qqnorm(herb_kbs$p_log)
-shapiro.test(herb_kbs$p_log) # NAs - data contains 0s
+fit_log <- lm(p_log~state, data = herb_kbs)
+qqPlot(fit_log)
+hist(resid(fit_log))
 
 # mean centering p_eaten
 herb_kbs$p_scaled <- herb_kbs$p_log - mean(herb_kbs$p_log)
 hist(herb_kbs$p_scaled)
 hist(herb_kbs$p_scaled[herb_kbs$state == "ambient"])
 hist(herb_kbs$p_scaled[herb_kbs$state == "warmed"])
+fit_scaled <- lm(p_scaled~state, data = herb_kbs)
+qqPlot(fit_scaled)
+hist(resid(fit_scaled))
 qqnorm(herb_kbs$p_scaled)
 shapiro.test(herb_kbs$p_scaled)
 
 # square root?
 herb_kbs$p_sqrt <- sqrt(herb_kbs$p_eaten)
 hist(herb_kbs$p_sqrt)
+fit_sqrt <- lm(p_sqrt~state, data = herb_kbs)
+qqPlot(fit_sqrt)
+hist(resid(fit_sqrt))
 qqnorm(herb_kbs$p_sqrt)
 shapiro.test(herb_kbs$p_sqrt)
 
@@ -163,39 +161,73 @@ herb_kbs_in %>%
         dplyr::filter(p_eaten != "0") %>%
         dplyr::summarize(mean_eaten = mean(p_eaten, na.rm=T), var_eaten = var(p_eaten, na.rm=T))
 # variance is also > mean, so can't be poisson
-# I'll try zero-inflated negative binomial due to an excess of zeros
+# I'll try zero-inflated negative binomial + hurdle models due to an excess of zeros
+# Note: I think a hurdle model would be more appropriate here, since one process is producing zeros
+# (i.e., eaten or not eaten)
 
 
 
 ############### KBS herbivory zero-inflated negative binomial - no insecticide ################
-## models with state and year ##
 # state as a fixed effect
 k.m1 <- zeroinfl(p_eaten ~ state,
                  dist = 'negbin',
                  data = herb_kbs)
-summary(k.m1)
 
 # state and year as fixed effects
-k.m2 <- zeroinfl(p_eaten ~ state + year,
+k.m2 <- zeroinfl(p_eaten ~ state + year1,
                  dist = 'negbin',
                  data = herb_kbs)
-summary(k.m2)
 lrtest(k.m1, k.m2) # model 2
 
+# state and species as fixed effects
+k.m3 <- zeroinfl(p_eaten ~ state + species,
+                  dist = 'negbin',
+                  data = herb_kbs)
+lrtest(k.m2, k.m3) # model 3
+
+# state. species and year as fixed effects
+k.m4 <- zeroinfl(p_eaten ~ state + species + year,
+                  dist = 'negbin',
+                  data = herb_kbs)
+lrtest(k.m3, k.m4) # model 4
+summary(k.m4)
+# calculating effect size - accounting for log link
+exp(0.48318 + -0.33365*0) # 1.621222
+exp(0.48318 + -0.33365*1) # 1.161288
+# effect:
+1.161288 - 1.621222 # -0.459934 % less herbivory on warmed plants (compared to ambient)
+
+# interaction between state and species as fixed effects, plus year
+k.m5 <- zeroinfl(p_eaten ~ state * species + year,
+                  dist = 'negbin',
+                  data = herb_kbs)
+lrtest(k.m4, k.m5) # model 4
+summary(k.m4)
+
+# check dispersion
+E <- resid(k.m4, type = "pearson")
+N  <- nrow(herb_kbs)
+p  <- length(coef(k.m4)) + 1 # '+1' is due to theta
+sum(E^2) / (N - p) # close enough to one
+
+# pairwise comparisons
+emmeans(k.m4, ~ state * species + year)
+
+
+### models with growth habit ###
 # state and growth habit as fixed effects
 herb_kbs <- within(herb_kbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
-k.m3 <- zeroinfl(p_eaten ~ state + growth_habit,
+k.m6 <- zeroinfl(p_eaten ~ state + growth_habit,
                  dist = 'negbin',
                  data = herb_kbs)
-summary(k.m3)
-lrtest(k.m2, k.m3) # model 2
+summary(k.m6)
 
 # state, growth habit, and year as fixed effects
-k.m4 <- zeroinfl(p_eaten ~ state + growth_habit + year,
+k.m7 <- zeroinfl(p_eaten ~ state + growth_habit + year,
                  dist = 'negbin',
                  data = herb_kbs)
-summary(k.m4)
-lrtest(k.m2, k.m4) # model 4
+summary(k.m7)
+lrtest(k.m6, k.m7) # model 7
 # calculating effect size of graminoids vs forb herbivory - accounting for log link
 exp(0.49467 + 1.00010*0) # 1.639957
 exp(0.49467 + 1.00010*1) # 4.458311
@@ -203,125 +235,72 @@ exp(0.49467 + 1.00010*1) # 4.458311
 4.458311 - 1.639957 # 2.818354 % more herbivory on graminoids
 
 # interaction between state and growth habit as fixed effects
-k.m5 <- zeroinfl(p_eaten ~ state * growth_habit,
-                 dist = 'negbin',
-                 data = herb_kbs)
-summary(k.m5)
-lrtest(k.m4, k.m5) # model 4
-
-# interaction between state and growth habit as fixed effects, plus year
-k.m6 <- zeroinfl(p_eaten ~ state * growth_habit + year,
-                 dist = 'negbin',
-                 data = herb_kbs)
-summary(k.m6)
-lrtest(k.m4, k.m6)
-
-# interaction between state, growth habit, and year (year as a factor wouldn't work - non-finite value)
-k.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
-                 dist = 'negbin',
-                 data = herb_kbs)
-summary(k.m7)
-lrtest(k.m4, k.m7) # model 4
-
-# state and origin as fixed effects
-herb_kbs <- within(herb_kbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
-k.m8 <- zeroinfl(p_eaten ~ state + origin,
+k.m8 <- zeroinfl(p_eaten ~ state * growth_habit,
                  dist = 'negbin',
                  data = herb_kbs)
 summary(k.m8)
-lrtest(k.m4, k.m8) # model 4
+lrtest(k.m7, k.m8) # model 8
 
-# state, origin, and year as fixed effects
-k.m9 <- zeroinfl(p_eaten ~ state + origin + year,
+# interaction between state and growth habit as fixed effects, plus year
+k.m9 <- zeroinfl(p_eaten ~ state * growth_habit + year,
                  dist = 'negbin',
                  data = herb_kbs)
 summary(k.m9)
-lrtest(k.m4, k.m9) # model 4
+lrtest(k.m8, k.m9) #m9
+
+# interaction between state, growth habit, and year (year as a factor wouldn't work - non-finite value)
+k.m10 <- zeroinfl(p_eaten ~ state * growth_habit * year,
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m10)
+lrtest(k.m9, k.m10) # model 10, but its pretty complicated
+
+
+### models with origin ###
+# state and origin as fixed effects
+herb_kbs <- within(herb_kbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+k.m11 <- zeroinfl(p_eaten ~ state + origin,
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m11)
+
+# state, origin, and year as fixed effects
+k.m12 <- zeroinfl(p_eaten ~ state + origin + year,
+                 dist = 'negbin',
+                 data = herb_kbs)
+summary(k.m12)
+lrtest(k.m11, k.m12) # model 12
 exp(0.45619 + 0.30246*0) # 1.57805
 exp(0.45619 + 0.30246*1) # 2.135391
 # effect:
 2.135391 - 1.57805 # 0.557341 % more herbivory on exotics
 
 # interaction between state and origin as fixed effects
-k.m10 <- zeroinfl(p_eaten ~ state * origin,
-                  dist = 'negbin',
-                  data = herb_kbs)
-summary(k.m10)
-lrtest(k.m4, k.m10) # model 4
-
-# interaction between state and origin as fixed effects, plus year
-k.m11 <- zeroinfl(p_eaten ~ state * origin + year,
-                  dist = 'negbin',
-                  data = herb_kbs)
-summary(k.m11)
-lrtest(k.m4, k.m11) # model 4
-
-# interaction between state, origin, and year
-k.m12 <- zeroinfl(p_eaten ~ state * origin * year,
-                  dist = 'negbin',
-                  data = herb_kbs)
-summary(k.m12)
-lrtest(k.m4,k.m12) # model 4
-
-# just origin - testing to see w/o state
-k.m12.2 <- zeroinfl(p_eaten ~ origin,
-                    dist = 'negbin',
-                    data = herb_kbs)
-summary(k.m12.2)
-
-# state and species as fixed effects
-k.m13 <- zeroinfl(p_eaten ~ state + species,
+k.m13 <- zeroinfl(p_eaten ~ state * origin,
                   dist = 'negbin',
                   data = herb_kbs)
 summary(k.m13)
-lrtest(k.m4, k.m13) # model 4
+lrtest(k.m12, k.m13) # model 13
 
-# state. species and year as fixed effects
-k.m14 <- zeroinfl(p_eaten ~ state + species + as.factor(year),
+# interaction between state and origin as fixed effects, plus year
+k.m14 <- zeroinfl(p_eaten ~ state * origin + year,
                   dist = 'negbin',
                   data = herb_kbs)
 summary(k.m14)
-lrtest(k.m4, k.m14) # model 14
-# calculating effect size - accounting for log link
-exp(0.27490 + -0.22879*0) # 1.316399
-exp(0.27490 + -0.22879*1) # 1.04719
-# effect:
-1.04719 - 1.316399 # -0.269209 % less herbivory on warmed plants (compared to ambient)
+lrtest(k.m13, k.m14) # model 4
 
-# interaction between state and species as fixed effects, plus year
-k.m15 <- zeroinfl(p_eaten ~ state * species + year,
+# interaction between state, origin, and year
+k.m15 <- zeroinfl(p_eaten ~ state * origin * year,
                   dist = 'negbin',
                   data = herb_kbs)
 summary(k.m15)
-lrtest(k.m14, k.m15) # model 15 slightly better, going with 14 because its simpler
+lrtest(k.m14,k.m15) # model 15, but its pretty complicated
 
-# checking models again
-lrtest(k.m2, k.m4, k.m9, k.m14) # model 14 best - with species
-res.k <- AIC(k.m1, k.m2, k.m3, k.m4, k.m5, k.m6, k.m7, k.m8, k.m9, k.m10, k.m11,k.m12,k.m13,k.m14,k.m15)
-
-## interaction between state, species, and year - doesn't run
-#m8 <- zeroinfl(p_eaten ~ state * species * year,
-#                     dist = 'negbin',
-#                     data = herb_kbs)
-#summary(m8)
-
-# check dispersion
-E <- resid(k.m14, type = "pearson")
-N  <- nrow(herb_kbs)
-p  <- length(coef(k.m14)) + 1 # '+1' is due to theta
-sum(E^2) / (N - p) # a little overdispersed - is that okay?
-
-# pairwise comparisons
-emmeans(k.m14, ~ state + species + year)
-
-
-
-# models with binned data - https://stats.idre.ucla.edu/r/dae/ordinal-logistic-regression/
-# ordinal logistic regression
-# state, species and year as fixed effects
-k.m16 <- polr(p_eaten_bins ~ state + species + year, data = herb_kbs, Hess=TRUE)
-summary(k.m16)
-coeftest(k.m16)
+# just origin - testing to see w/o state
+k.m15.2 <- zeroinfl(p_eaten ~ origin,
+                    dist = 'negbin',
+                    data = herb_kbs)
+summary(k.m15.2)
 
 
 
@@ -383,6 +362,91 @@ exp(0.54184 +  0.33766*1) # 2.409695
 2.409695 - 1.719167 # 0.690528 % more herbivory for exotics
 
 
+
+############### KBS herbivory hurdle model - no insecticide ################
+k.m1.h <- hurdle(p_eaten ~ state + species + year, data = herb_kbs, dist = "negbin", 
+                 zero.dist = "binomial")
+k.m2.h <- hurdle(p_eaten ~ state * species + year, data = herb_kbs, dist = "negbin", 
+                 zero.dist = "binomial")
+k.m3.h <- hurdle(p_eaten ~ state + year, data = herb_kbs, dist = "negbin", 
+                 zero.dist = "binomial")
+lrtest(k.m1.h,k.m2.h, k.m3.h)
+AICtab(k.m1.h,k.m2.h,k.m3.h) #m1
+
+summary(k.m1.h) #*used this output in the paper*#
+# calculating effect size for count model - accounting for log link
+exp(0.73960 + -0.33980*0) # 2.095097
+exp(0.73960 + -0.33980*1) # 1.491526
+# effect:
+1.491526 - 2.095097 # 0.603571 % less herbivory on warmed plants (compared to ambient)
+
+# calculating effect size of zero hurdle model - accounting for logit link
+exp(0.53933 + -0.21288*0)/(1+exp(0.53933 + -0.21288*0)) # 0.6316565
+exp(0.53933 + -0.21288*1)/(1+exp(0.53933 + -0.21288*1)) # 0.5808954
+# effect:
+0.5808954 - 0.6316565 # -0.0507611, so a 5 % lesser chance of experiencing herb. for warmed plants
+
+## Questions
+# Did I back transform correctly above & interpret the model right?
+# I know the count model fits a model to the non-zero data while the zero hurdle calculates the prob that a observation is not zero
+# for the count model, I used exp() to back transform due to log link, while the zero model used a logit link
+# I'm confused on the percentage part - For the count model, I treated the effect as the same units as the data themselves, which are % leaf eaten
+# so the effect of warming in the count model shows 0.60% less leaf eaten compared to ambient
+# however, for the zero model, is it given as a true percentage, and therefore the decimal point needs moved?
+# I did that above, to show 5% lesser change, but is it actually 0.05%?
+# could also just report the odds ratio, shown below
+
+# calculating odds
+expCoef <- exp(coef((k.m1.h)))
+expCoef <- matrix(expCoef, ncol = 2)
+colnames(expCoef) <- c("Count_model","Zero_hurdle_model")
+expCoef
+# baseline odds of having no herbivory is 1.7. The odds decrease to 0.808 if the plant is warmed
+# among plants that are eaten, baseline amount eaten is 2.095. This decreases to 0.71 if the plant is warmed (I think)
+
+sum(predict(k.m1.h, type = "prob")[,1]) # total # of zeros in the data
+rootogram(k.m1.h) # where bins fall below the 0 line = underfitting (this seems okay though?)
+
+# interpreting output: https://stackoverflow.com/questions/61847129/interpreting-zero-inflated-regression-summary
+# In sum, your zero model calculates the probability that an observations is not zero
+# the count model fits a model on those observations that are not zero.
+
+### origin ###
+herb_kbs2 <- herb_kbs %>%
+        filter(!(origin == 'Both')) 
+k.m1.ho <- hurdle(p_eaten ~ state + origin + year, data = herb_kbs2, dist = "negbin", 
+                 zero.dist = "binomial")
+k.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_kbs2, dist = "negbin", 
+                 zero.dist = "binomial")
+k.m3.ho <- hurdle(p_eaten ~ state + year, data = herb_kbs2, dist = "negbin", 
+                 zero.dist = "binomial")
+lrtest(k.m1.ho,k.m2.ho, k.m3.ho)
+AICtab(k.m1.ho,k.m2.ho,k.m3.ho) # going w m2 because we're interested in the interactive effects of warming + origin
+
+summary(k.m2.ho) #*used this output in the paper*#
+# calculating effect size for count model - accounting for log link
+exp(1.27701 + -0.54123*0) # 3.585902
+exp(1.27701 + -0.54123*1) # 2.087109
+# effect:
+2.087109 - 3.585902 # 1.498793 % less herbivory on native plants (compared to exotic)
+
+# calculating effect size of zero hurdle model - accounting for logit link
+exp(-0.19397 + 0.98801*0)/(1+exp(-0.19397 + 0.98801*0)) # 0.451659
+exp(-0.19397 + 0.98801*1)/(1+exp(-0.19397 + 0.98801*1)) # 0.6886981
+# effect:
+0.6886981 - 0.451659 # 24  % greater chance of experiencing herb. for native plants
+
+
+########## KBS models with binned data ###########
+# https://stats.idre.ucla.edu/r/dae/ordinal-logistic-regression/
+# ordinal logistic regression
+# state, species and year as fixed effects
+k.m16 <- polr(p_eaten_bins ~ state + species + year, data = herb_kbs, Hess=TRUE)
+summary(k.m16)
+coeftest(k.m16)
+
+
+
 ###################### UMBS herbivory distribution check ###########################
 # first, checking for normality
 descdist(herb_umbs$p_eaten, discrete = FALSE)
@@ -440,104 +504,25 @@ herb_umbs %>%
 u.m1 <- zeroinfl(p_eaten ~ state,
                  dist = 'negbin',
                  data = herb_umbs)
-summary(u.m1)
 
 # state and year as fixed effects
 u.m2 <- zeroinfl(p_eaten ~ state + year,
                  dist = 'negbin',
                  data = herb_umbs)
-summary(u.m2)
 lrtest(u.m1, u.m2) # model 2
 
-# state and growth habit as fixed effects
-herb_umbs <- within(herb_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
-u.m3 <- zeroinfl(p_eaten ~ state + growth_habit,
-                 dist = 'negbin',
-                 data = herb_umbs)
-summary(u.m3)
-lrtest(u.m2, u.m3) # model 2
-
-# state, growth habit, and year as fixed effects
-u.m4 <- zeroinfl(p_eaten ~ state + growth_habit + year,
-                 dist = 'negbin',
-                 data = herb_umbs)
-summary(u.m4)
-lrtest(u.m2, u.m4) # model 4
-# calculating effect size of graminoids vs forb herbivory - accounting for log link
-exp(-0.27115 + 0.26020*0) # 0.7625021
-exp(-0.27115 + 0.26020*1) # 0.9891097
-# effect:
-0.9891097 - 0.7625021 # 0.2266076 % more herbivory on graminoids
-
-# interaction between state and growth habit as fixed effects
-u.m5 <- zeroinfl(p_eaten ~ state * growth_habit,
-                 dist = 'negbin',
-                 data = herb_umbs)
-summary(u.m5)
-lrtest(u.m4, u.m5) # model 4
-
-# interaction between state and growth habit as fixed effects, plus year
-u.m6 <- zeroinfl(p_eaten ~ state * growth_habit + year,
-                 dist = 'negbin',
-                 data = herb_umbs)
-summary(u.m6)
-lrtest(u.m4, u.m6) # almost the same, going with model 4 because its simpler
-
-# interaction between state, growth habit, and year (year as a factor wouldn't woru - non-finite value)
-u.m7 <- zeroinfl(p_eaten ~ state * growth_habit * year,
-                 dist = 'negbin',
-                 data = herb_umbs)
-summary(u.m7)
-lrtest(u.m4, u.m7) # model 4
-
-# state and origin as fixed effects
-herb_umbs <- within(herb_umbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
-u.m8 <- zeroinfl(p_eaten ~ state + origin,
-                 dist = 'negbin',
-                 data = herb_umbs)
-summary(u.m8)
-lrtest(u.m4, u.m8) # model 4
-
-# state, origin, and year as fixed effects
-u.m9 <- zeroinfl(p_eaten ~ state + origin + year,
-                 dist = 'negbin',
-                 data = herb_umbs)
-summary(u.m9)
-lrtest(u.m4, u.m9) # model 4
-
-# interaction between state and origin as fixed effects
-u.m10 <- zeroinfl(p_eaten ~ state * origin,
-                  dist = 'negbin',
-                  data = herb_umbs)
-summary(u.m10)
-lrtest(u.m4, u.m10) # model 4
-
-# interaction between state and origin as fixed effects, plus year
-u.m11 <- zeroinfl(p_eaten ~ state * origin + year,
-                  dist = 'negbin',
-                  data = herb_umbs)
-summary(u.m11)
-lrtest(u.m4, u.m11) # model 4
-
-## interaction between state, origin, and year - doesn't work
-#u.m12 <- zeroinfl(p_eaten ~ state * origin * year,
-#                   dist = 'negbin',
-#                   data = herb_umbs)
-#summary(u.m12)
-
 # state and species as fixed effects
-u.m13 <- zeroinfl(p_eaten ~ state + species,
+u.m3 <- zeroinfl(p_eaten ~ state + species,
                   dist = 'negbin',
                   data = herb_umbs)
-summary(u.m13)
-lrtest(u.m4, u.m13) # model 4
+lrtest(u.m2, u.m3) # model 3
 
 # state, species and year as fixed effects
-u.m14 <- zeroinfl(p_eaten ~ state + species + as.factor(year),
+u.m4 <- zeroinfl(p_eaten ~ state + species + year,
                   dist = 'negbin',
                   data = herb_umbs)
-summary(u.m14)
-lrtest(u.m4, u.m14) # model 14
+summary(u.m4)
+lrtest(u.m3, u.m4) # model 4
 # calculating effect size - accounting for log link
 exp(-0.40972 + 0.26343*0) # 0.6638361
 exp(-0.40972 + 0.26343*1) # 0.8639071
@@ -545,30 +530,88 @@ exp(-0.40972 + 0.26343*1) # 0.8639071
 0.8639071 - 0.6638361 # 0.200071 % more herbivory on warmed plants
 
 # interaction between state and species as fixed effects, plus year
-u.m15 <- zeroinfl(p_eaten ~ state * species + year,
+u.m5 <- zeroinfl(p_eaten ~ state * species + year,
                   dist = 'negbin',
                   data = herb_umbs)
-summary(u.m15)
-lrtest(u.m14, u.m15) # model 15 - might go with 14 because its simpler
-
-## interaction between state, species, and year - doesn't run
-#m8 <- zeroinfl(p_eaten ~ state * species * year,
-#                     dist = 'negbin',
-#                     data = herb_umbs)
-#summary(m8)
-
-# checking models again
-lrtest(u.m2, u.m4, u.m9, u.m14) # model 14 best - with species
-res.u <- AIC(u.m1, u.m2, u.m3, u.m4, u.m5, u.m6, u.m7, u.m9, u.m10, u.m11,u.m13,u.m14,u.m15)
+summary(u.m5)
+lrtest(u.m4, u.m5) # model 5 - might go with 4 because its simpler
 
 # check dispersion - chose lowest loglik model for example
-E <- resid(u.m14, type = "pearson")
+E <- resid(u.m4, type = "pearson")
 N  <- nrow(herb_umbs)
-p  <- length(coef(u.m14)) + 1 # '+1' is due to theta
+p  <- length(coef(u.m4)) + 1 # '+1' is due to theta
 sum(E^2) / (N - p) # pretty close to one
 
 # pairwise comparisons
-emmeans(u.m14, ~ state + species + year)
+emmeans(u.m4, ~ state + species + year)
+
+### growth habit models ###
+# state and growth habit as fixed effects
+herb_umbs <- within(herb_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
+u.m6 <- zeroinfl(p_eaten ~ state + growth_habit,
+                 dist = 'negbin',
+                 data = herb_umbs)
+
+# state, growth habit, and year as fixed effects
+u.m7 <- zeroinfl(p_eaten ~ state + growth_habit + year,
+                 dist = 'negbin',
+                 data = herb_umbs)
+summary(u.m7)
+lrtest(u.m6, u.m7) # model 7
+# calculating effect size of graminoids vs forb herbivory - accounting for log link
+exp(-0.27115 + 0.26020*0) # 0.7625021
+exp(-0.27115 + 0.26020*1) # 0.9891097
+# effect:
+0.9891097 - 0.7625021 # 0.2266076 % more herbivory on graminoids
+
+# interaction between state and growth habit as fixed effects
+u.m8 <- zeroinfl(p_eaten ~ state * growth_habit,
+                 dist = 'negbin',
+                 data = herb_umbs)
+summary(u.m8)
+lrtest(u.m7, u.m8) # model 8
+
+# interaction between state and growth habit as fixed effects, plus year
+u.m9 <- zeroinfl(p_eaten ~ state * growth_habit + year,
+                 dist = 'negbin',
+                 data = herb_umbs)
+summary(u.m9)
+lrtest(u.m8, u.m9) # model 9
+
+# interaction between state, growth habit, and year (year as a factor wouldn't woru - non-finite value)
+u.m10 <- zeroinfl(p_eaten ~ state * growth_habit * year,
+                 dist = 'negbin',
+                 data = herb_umbs)
+summary(u.m10)
+lrtest(u.m9, u.m10) # model 10
+
+### origin models ###
+# state and origin as fixed effects
+herb_umbs <- within(herb_umbs, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
+u.m11 <- zeroinfl(p_eaten ~ state + origin,
+                 dist = 'negbin',
+                 data = herb_umbs)
+
+# state, origin, and year as fixed effects
+u.m12 <- zeroinfl(p_eaten ~ state + origin + year,
+                 dist = 'negbin',
+                 data = herb_umbs)
+summary(u.m12)
+lrtest(u.m11, u.m12) # model 12
+
+# interaction between state and origin as fixed effects
+u.m13 <- zeroinfl(p_eaten ~ state * origin,
+                  dist = 'negbin',
+                  data = herb_umbs)
+summary(u.m13)
+lrtest(u.m12, u.m13) # model 13
+
+# interaction between state and origin as fixed effects, plus year
+u.m14 <- zeroinfl(p_eaten ~ state * origin + year,
+                  dist = 'negbin',
+                  data = herb_umbs)
+summary(u.m14)
+lrtest(u.m13, u.m14) # model 14
 
 
 
@@ -628,6 +671,103 @@ exp(0.54184 +  0.33766*0) # 1.719167
 exp(0.54184 +  0.33766*1) # 2.409695
 # effect:
 2.409695 - 1.719167 # 0.690528 % more herbivory for exotics
+
+
+
+############### UMBS herbivory hurdle model - no insecticide ################
+u.m1.h <- hurdle(p_eaten ~ state + species + year, data = herb_umbs, dist = "negbin", 
+                 zero.dist = "binomial")
+u.m2.h <- hurdle(p_eaten ~ state * species + year, data = herb_umbs, dist = "negbin", 
+                 zero.dist = "binomial")
+u.m3.h <- hurdle(p_eaten ~ state + year, data = herb_umbs, dist = "negbin", 
+                 zero.dist = "binomial")
+lrtest(u.m1.h,u.m2.h, u.m3.h)
+AICtab(u.m1.h,u.m2.h,u.m3.h) #m1
+
+summary(u.m2.h) #*used this output in the paper*#
+# calculating effect size of zero hurdle model - accounting for logit link
+exp(-1.6161 + 2.1877*0)/(1+exp(-1.6161 + 2.1877*0)) #0.1657434
+exp(-1.6161 + 2.1877*1)/(1+exp(-1.6161 + 2.1877*1)) #0.6391323
+# effect:
+0.6391323 - 0.1657434 # 47 % greater chance of experiencing herb. for warmed plants
+
+sum(predict(u.m1.h, type = "prob")[,1]) # total # of zeros in the data
+rootogram(u.m1.h) # where bins fall below the 0 line = underfitting (this seems okay though?)
+
+# interpreting output: https://stackoverflow.com/questions/61847129/interpreting-zero-inflated-regression-summary
+# In sum, your zero model calculates the probability that an observations is not zero
+# the count model fits a model on those observations that are not zero.
+
+### origin ###
+herb_umbs2 <- herb_umbs %>%
+        filter(!(origin == 'Both' |
+                         origin == ""))
+herb_umbs2 <- within(herb_umbs2, origin <- relevel(factor(origin), ref = "Exotic"))
+u.m1.ho <- hurdle(p_eaten ~ state + origin + year, data = herb_umbs2, dist = "negbin", 
+                  zero.dist = "binomial")
+u.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_umbs2, dist = "negbin", 
+                  zero.dist = "binomial")
+u.m3.ho <- hurdle(p_eaten ~ state + year, data = herb_umbs2, dist = "negbin", 
+                  zero.dist = "binomial")
+lrtest(u.m1.ho,u.m2.ho, u.m3.ho)
+AICtab(u.m1.ho,u.m2.ho,u.m3.ho) # going w m2 because we're interested in the interactive effects of warming + origin
+
+summary(u.m2.ho) #*used this output in the paper*#
+# calculating effect size for count model interaction - accounting for log link
+exp(1.18908) # 3.284058 intercept
+exp(-0.51126) # 0.5997394 warming
+exp(-0.26926) # 0.7639446 exotic
+exp(0.49803) # 1.645476 interaction
+# effect:
+3.284058 + 0.5997394 + 0.7639446 + 1.645476 # 6.293218 amount of herbivory on warmed+exotic plants
+
+exp(0.91982) # 2.508839 intercept
+exp(-0.01323) # 0.9868571 warming
+exp(0.26926) # 1.308995 exotic
+exp(-0.498033) # 0.6077249 interaction
+# effect:
+2.508839 + 0.9868571 + 1.308995 + 0.6077249 # 5.412416 amount of herbivory on warmed+native plants
+
+
+################# KBS plot-level analyses #####################
+# first, checking for normality
+descdist(herb_kbs_plot$plot_total, discrete = FALSE)
+hist(herb_kbs_plot$plot_total)
+qqnorm(herb_kbs_plot$plot_total)
+shapiro.test(herb_kbs_plot$plot_total)
+fit <- lm(plot_total~state, data = herb_kbs_plot)
+qqPlot(fit)
+hist(resid(fit))
+shapiro.test(resid(fit))
+
+# log
+descdist(log(herb_kbs_plot$plot_total), discrete = FALSE)
+hist(log(herb_kbs_plot$plot_total))
+qqnorm(log(herb_kbs_plot$plot_total))
+shapiro.test(log(herb_kbs_plot$plot_total))
+fit <- lm(log(plot_total)~state, data = herb_kbs_plot)
+qqPlot(fit)
+hist(resid(fit))
+shapiro.test(resid(fit))
+
+# sqrt
+descdist(sqrt(herb_kbs_plot$plot_total), discrete = FALSE)
+hist(sqrt(herb_kbs_plot$plot_total))
+qqnorm(sqrt(herb_kbs_plot$plot_total))
+shapiro.test(sqrt(herb_kbs_plot$plot_total))
+fit <- lm(sqrt(plot_total)~state, data = herb_kbs_plot)
+qqPlot(fit)
+hist(resid(fit))
+shapiro.test(resid(fit))
+
+# going with log, trying some models
+mod_plot1 <- lmer(log(plot_total) ~ state + (1|plot), data = herb_kbs_plot)
+mod_plot2 <- lmer(log(plot_total) ~ state + year1 + (1|plot), data = herb_kbs_plot)
+mod_plot3 <- lmer(log(plot_total) ~ state * year1 + (1|plot), data = herb_kbs_plot)
+anova(mod_plot1, mod_plot2)
+anova(mod_plot2, mod_plot3)
+summary(mod_plot2)
+
 
 
 
@@ -836,6 +976,9 @@ sum(E^2) / (N - p) # a little overdispersed - is that okay?
 
 # pairwise comparisons
 emmeans(k.m14, ~ state + species + year)
+
+
+
 
 
 
