@@ -1107,3 +1107,14 @@ emmeans(mod17pu, list(pairwise ~ growth_habit), adjust = "tukey")
 emmeans(mod17pu, list(pairwise ~ year_factor), adjust = "tukey")
 ```
 
+Summary of Mixed Models as HTML Table
+```{r}
+# KBS
+tab_model(mod7a, mod7p)
+
+#UMBS
+tab_model(mod7au, mod8pu)
+
+```
+
+
