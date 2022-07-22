@@ -424,6 +424,7 @@ lrtest(k.m1.ho,k.m2.ho, k.m3.ho)
 AICtab(k.m1.ho,k.m2.ho,k.m3.ho) # going w m2 because we're interested in the interactive effects of warming + origin
 
 summary(k.m2.ho) #*used this output in the paper*#
+plot_model(k.m2.ho, type = "pred", terms = c("origin", "state"))
 # calculating effect size for count model - accounting for log link
 exp(1.27701 + -0.54123*0) # 3.585902
 exp(1.27701 + -0.54123*1) # 2.087109
@@ -435,6 +436,21 @@ exp(-0.19397 + 0.98801*0)/(1+exp(-0.19397 + 0.98801*0)) # 0.451659
 exp(-0.19397 + 0.98801*1)/(1+exp(-0.19397 + 0.98801*1)) # 0.6886981
 # effect:
 0.6886981 - 0.451659 # 24  % greater chance of experiencing herb. for native plants
+
+### growth form ###
+herb_kbs3 <- herb_kbs %>%
+        filter(!(growth_habit == ""))
+k.m1.hg <- hurdle(p_eaten ~ state + growth_habit + year, data = herb_kbs3, dist = "negbin", 
+                  zero.dist = "binomial")
+k.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_kbs3, dist = "negbin", 
+                  zero.dist = "binomial")
+k.m3.hg <- hurdle(p_eaten ~ state + year, data = herb_kbs3, dist = "negbin", 
+                  zero.dist = "binomial")
+lrtest(k.m1.hg,k.m2.hg,k.m3.hg)
+AICtab(k.m1.hg,k.m2.hg,k.m3.hg) # going w m2 because we're interested in the interactive effects of warming + origin
+
+summary(k.m2.hg) #*used this output in the paper*#
+plot_model(k.m2.hg, type = "pred", terms = c("state", "growth_habit"))
 
 
 ########## KBS models with binned data ###########
@@ -713,6 +729,9 @@ lrtest(u.m1.ho,u.m2.ho, u.m3.ho)
 AICtab(u.m1.ho,u.m2.ho,u.m3.ho) # going w m2 because we're interested in the interactive effects of warming + origin
 
 summary(u.m2.ho) #*used this output in the paper*#
+plot_model(u.m2.ho, type = "pred", terms = c("origin", "state"))
+
+# think these calculations are wrong below
 # calculating effect size for count model interaction - accounting for log link
 exp(1.18908) # 3.284058 intercept
 exp(-0.51126) # 0.5997394 warming
@@ -723,11 +742,39 @@ exp(0.49803) # 1.645476 interaction
 
 exp(0.91982) # 2.508839 intercept
 exp(-0.01323) # 0.9868571 warming
-exp(0.26926) # 1.308995 exotic
+exp(0.26926) # 1.308995 native
 exp(-0.498033) # 0.6077249 interaction
 # effect:
 2.508839 + 0.9868571 + 1.308995 + 0.6077249 # 5.412416 amount of herbivory on warmed+native plants
 
+### growth form ###
+herb_umbs <- within(herb_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Graminoid"))
+u.m1.hg <- hurdle(p_eaten ~ state + growth_habit + year, data = herb_umbs, dist = "negbin", 
+                  zero.dist = "binomial")
+u.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_umbs, dist = "negbin", 
+                  zero.dist = "binomial")
+u.m3.hg <- hurdle(p_eaten ~ state + year, data = herb_umbs, dist = "negbin", 
+                  zero.dist = "binomial")
+lrtest(u.m1.hg,u.m2.hg, u.m3.hg)
+AICtab(u.m1.hg,u.m2.hg,u.m3.hg) # going w m2 because we're interested in the interactive effects of warming + origin
+
+summary(u.m2.hg) #*used this output in the paper*#
+plot_model(u.m2.hg, type = "pred", terms = c("growth_habit","state"))
+
+
+# testing some plots
+herb_umbs_plottest <- herb_umbs %>%
+        group_by(state,growth_habit) %>%
+        summarize(mean_eaten = mean(p_eaten))
+herb_umbs_test <- herb_umbs
+herb_umbs_test$p_eaten = ifelse(herb_umbs_test$p_eaten < 1, 0, 1)
+herb_umbs_test2 <- herb_umbs_test %>%
+        group_by(state,growth_habit) %>%
+        summarize(sum_eaten = sum(p_eaten))
+ggplot(herb_umbs_plottest, aes(x=growth_habit, y=mean_eaten, fill=state)) +
+        geom_bar(stat="identity",position="dodge")
+ggplot(herb_umbs_test2, aes(x=growth_habit, y=sum_eaten, fill=state)) +
+        geom_bar(stat="identity",position="dodge")
 
 ################# KBS plot-level analyses #####################
 # first, checking for normality

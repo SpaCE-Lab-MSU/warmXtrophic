@@ -47,7 +47,6 @@ umbs_biomass_live <- umbs_biomass_live[!grepl("Umsp", umbs_biomass_live$species)
 umbs_biomass_live <- umbs_biomass_live[!grepl("Lisp", umbs_biomass_live$species),]
 
 # summarizing data to plot-level
-# shouldn't have to do this if I can specify fixed/random effects in the model correctly (below - haven't figured that out)
 kbs_plot_biomass <- kbs_biomass_live %>%
         group_by(plot, state, insecticide) %>%
         summarize(plot_sum_g = sum(weight_g, na.rm = TRUE))

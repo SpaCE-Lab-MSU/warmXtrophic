@@ -107,7 +107,7 @@ greenup$year_factor[greenup$year == 2018] <- 3
 greenup$year_factor[greenup$year == 2019] <- 4
 greenup$year_factor[greenup$year == 2020] <- 5
 greenup$year_factor[greenup$year == 2021] <- 6
-greenup$year_factor <- as.factor(greenup$year_factor) # having year as numerical was messing with some analyses below (namely emmeans post-hoc analyses), so converted it to a factor
+#greenup$year_factor <- as.factor(greenup$year_factor) # having year as numerical was messing with some analyses below (namely emmeans post-hoc analyses), so converted it to a factor
 
 greenupp$year_factor[greenupp$year == 2016] <- 1
 greenupp$year_factor[greenupp$year == 2017] <- 2
@@ -115,7 +115,7 @@ greenupp$year_factor[greenupp$year == 2018] <- 3
 greenupp$year_factor[greenupp$year == 2019] <- 4
 greenupp$year_factor[greenupp$year == 2020] <- 5
 greenupp$year_factor[greenupp$year == 2021] <- 6
-greenupp$year_factor <- as.factor(greenupp$year_factor)
+#greenupp$year_factor <- as.factor(greenupp$year_factor)
 
 # create dataframes for kbs and umbs - remember that these contain species within plots
 green_kbs <- subset(greenup, site == "kbs")
@@ -587,6 +587,7 @@ anova(umod9, umod9a) # umod 9a?
 summary(umod9a)
 anova(umod9)
 emmeans(umod9a, list(pairwise ~ state + origin), adjust = "tukey")
+
 
 # including growth form - first with interaction term
 green_umbs <- within(green_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb")) # releveling so forb is the reference
