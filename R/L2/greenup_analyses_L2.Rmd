@@ -222,7 +222,7 @@ outlierTest(fit1umbs) # no outliers
 hist(fit1umbs$residuals)
 qqPlot(fit1umbs, main="QQ Plot") 
 leveragePlots(fit1umbs)
-ols_test_normality(fit1umbs) # p < 0.05 for all, so data is normal (I think)
+ols_test_normality(fit1umbs)
 
 fit1a <- lm(min_green_date~state + species, data = green_kbs)
 outlierTest(fit1a) # no outliers
@@ -236,7 +236,7 @@ hist(fit2$residuals)
 outlierTest(fit2) # no outliers
 qqPlot(fit2, main="QQ Plot") 
 leveragePlots(fit2)
-ols_test_normality(fit2) # p < 0.05 for all, so data is normal (I think)
+ols_test_normality(fit2)
 
 
 ### plot level data ###
@@ -246,6 +246,7 @@ outlierTest(fitp) # no outliers
 qqPlot(fitp, main="QQ Plot") 
 hist(fitp$residuals)
 leveragePlots(fitp)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 leveneTest(residuals(fitp) ~ green_kbsp$state)
 ols_test_normality(fitp)
 shapiro.test(resid(fitp))
@@ -258,6 +259,7 @@ hist(fitpu$residuals)
 leveragePlots(fitpu)
 leveneTest(residuals(fitpu) ~ green_umbsp$state)
 ols_test_normality(fitpu)
+shapiro.test(resid(fitpu))
 
 # KBS State and year model
 fitp2<- lm(plot_half_cover_date~state+year_factor, data = green_kbsp)
@@ -266,7 +268,7 @@ qqPlot(fitp2, main="QQ Plot")
 hist(fitp2$residuals)
 leveragePlots(fitp2)
 leveneTest(residuals(fitp2) ~ green_kbsp$state)
-leveneTest(residuals(fitp2) ~ green_kbsp$year_factor) # not met
+leveneTest(residuals(fitp2) ~ green_kbsp$year_factor) # doesn't work with numerical year
 ols_test_normality(fitp2)
 shapiro.test(resid(fitp2))
 
@@ -276,8 +278,31 @@ outlierTest(fitp2u)
 qqPlot(fitp2u, main="QQ Plot") 
 hist(fitp2u$residuals)
 leveragePlots(fitp2u)
+leveneTest(residuals(fitp2u) ~ green_umbsp$state)
 ols_test_normality(fitp2u)
+shapiro.test(resid(fitp2u))
 
+
+### trying transformations
+# KBS State and year model - reciprocal transformation
+fitp2_trans<- lm(1/(plot_half_cover_date)~state+year_factor, data = green_kbsp)
+outlierTest(fitp2_trans) # no outliers
+qqPlot(fitp2_trans, main="QQ Plot") 
+hist(fitp2_trans$residuals)
+leveragePlots(fitp2_trans)
+leveneTest(residuals(fitp2_trans) ~ green_kbsp$state)
+leveneTest(residuals(fitp2_trans) ~ green_kbsp$year_factor) # doesn't work with numerical year
+shapiro.test(resid(fitp2_trans))
+
+# UMBS State and year model - reciprocal transformation
+fitu2_trans<- lm(1/(plot_half_cover_date)~state+year_factor, data = green_umbsp)
+outlierTest(fitu2_trans) # no outliers
+qqPlot(fitu2_trans, main="QQ Plot") 
+hist(fitu2_trans$residuals)
+leveragePlots(fitu2_trans)
+leveneTest(residuals(fitu2_trans) ~ green_umbsp$state)
+leveneTest(residuals(fitu2_trans) ~ green_umbsp$year_factor) # doesn't work with numerical year
+shapiro.test(resid(fitu2_trans))
 ```
 
 \pagebreak
@@ -290,9 +315,9 @@ ols_test_normality(fitp2u)
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 # KBS
-fit3 <- lm(plot_half_cover_date ~ state + year, data = green_kbsp)
+fit3 <- lm(1/(plot_half_cover_date) ~ state + year, data = green_kbsp)
 interact_plot(fit3, pred = year, modx = state)
-fit4 <- lm(plot_half_cover_date ~ state * year, data = green_kbsp)
+fit4 <- lm(1/(plot_half_cover_date) ~ state * year, data = green_kbsp)
 interact_plot(fit4, pred = year, modx = state)
 
 fit5 <- lm(spp_half_cover_date ~ state + year + species, data = green_kbs)
@@ -306,9 +331,9 @@ fit8 <- lm(min_green_date ~ state * year + species, data = green_kbs)
 interact_plot(fit8, pred = year, modx = state, mod2 = species)
 
 # UMBS
-fit3u <- lm(plot_half_cover_date ~ state + year, data = green_umbsp)
+fit3u <- lm(1/(plot_half_cover_date) ~ state + year, data = green_umbsp)
 interact_plot(fit3u, pred = year, modx = state)
-fit4u <- lm(plot_half_cover_date ~ state * year, data = green_umbsp)
+fit4u <- lm(1/(plot_half_cover_date) ~ state * year, data = green_umbsp)
 interact_plot(fit4u, pred = year, modx = state)
 
 fit5u <- lm(spp_half_cover_date ~ state + year + species, data = green_umbs)
@@ -520,30 +545,26 @@ emmeans(mod11a, list(pairwise ~ year_factor + growth_habit), adjust = "tukey")
 #anova(mod4ps)
 
 # plot-level models using the re-summarized data frame
-modfull <- lmer(plot_half_cover_date ~ state*year_factor + insecticide*year_factor + (1|plot), green_kbsp, REML=F)
-mod1p <- lmer(plot_half_cover_date ~ state + (1|plot), green_kbsp, REML=FALSE)
-mod2p <- lmer(plot_half_cover_date ~ insecticide + (1|plot), green_kbsp, REML=FALSE)
-mod3p <- lmer(plot_half_cover_date ~ insecticide + state + (1|plot), green_kbsp, REML=FALSE)
-mod4p <- lmer(plot_half_cover_date ~ insecticide * state + (1|plot), green_kbsp, REML=FALSE)
-mod5p <- lmer(plot_half_cover_date ~ state + year_factor + (1|plot), green_kbsp, REML=FALSE)
-mod6p <- lmer(plot_half_cover_date ~ state + year_factor + insecticide + (1|plot), green_kbsp, REML=FALSE)
-mod7p <- lmer(plot_half_cover_date ~ state * year_factor + (1|plot), green_kbsp, REML=FALSE)
-mod8p <- lmer(plot_half_cover_date ~ state * year_factor + insecticide + (1|plot), green_kbsp, REML=FALSE)
-mod9p <- lmer(plot_half_cover_date ~ state * insecticide + year_factor + (1|plot), green_kbsp, REML=FALSE)
-mod10p <- lmer(plot_half_cover_date ~ state + insecticide * year_factor + (1|plot), green_kbsp, REML=FALSE)
-mod11p <- lmer(plot_half_cover_date ~ state * year_factor * insecticide + (1|plot), green_kbsp, REML=FALSE)
-AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # 5p, 6p, or 9p
-anova(mod5p, mod6p) #5p - used this model in results section
-anova(mod9p, mod5p) # should I go with 9p? includes insecticide as well
-AICtab(mod5p, mod6p, mod9p)
-
-summary(mod9p)
-anova(mod9p)
-anova(mod5p)
-emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p, ~ state * insecticide) # why are the comparisons the same for each year?
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
+modfull <- lmer(1/(plot_half_cover_date) ~ state*as.factor(year_factor) + insecticide*as.factor(year_factor) + (1|plot), green_kbsp, REML=F)
+mod1p <- lmer(1/(plot_half_cover_date) ~ state + (1|plot), green_kbsp, REML=FALSE)
+mod2p <- lmer(1/(plot_half_cover_date) ~ insecticide + (1|plot), green_kbsp, REML=FALSE)
+mod3p <- lmer(1/(plot_half_cover_date) ~ insecticide + state + (1|plot), green_kbsp, REML=FALSE)
+mod4p <- lmer(1/(plot_half_cover_date) ~ insecticide * state + (1|plot), green_kbsp, REML=FALSE)
+mod5p <- lmer(1/(plot_half_cover_date) ~ state + as.factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
+mod6p <- lmer(1/(plot_half_cover_date) ~ state + as.factor(year_factor) + insecticide + (1|plot), green_kbsp, REML=FALSE)
+mod7p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
+mod8p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) + insecticide + (1|plot), green_kbsp, REML=FALSE)
+mod9p <- lmer(1/(plot_half_cover_date) ~ state * insecticide + as.factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
+mod10p <- lmer(1/(plot_half_cover_date) ~ state + insecticide * as.factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
+mod11p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) * insecticide + (1|plot), green_kbsp, REML=FALSE)
+AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
+anova(mod5p, mod6p)
+anova(mod5p, mod7p)
+summary(mod7p)
+emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
+mod7p.emm <- emmeans(mod7p, ~ state * year_factor)
+contrast(mod7p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod7p, year_factor~state)
 ```
 
 # Analyses for species who reached half cover within the green-up observation window
