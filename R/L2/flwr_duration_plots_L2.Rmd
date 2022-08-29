@@ -27,7 +27,7 @@ library(hrbrthemes)
 #Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
 L2_dir<-Sys.getenv("L2DIR")
-#list.files(L1_dir)
+list.files(L1_dir)
 
 # Read in data
 # Set ggplot2 plotting
@@ -42,12 +42,6 @@ flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv"
 flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
 flwr_plot_origin <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_origin_L2.csv")) # plot level data for origin
 flwr_plot_growthhabit <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv")) # plot level data for growth habit
-
-# get rid of "X" column that shows up
-flwr_species$X <- NULL
-flwr_plot$X <- NULL
-flwr_plot_origin$X <- NULL
-flwr_plot_growthhabit$X <- NULL
 
 # making site names capital for cleaner plots - from Kara
 change_site <- function(df){
@@ -78,6 +72,7 @@ flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
 levels(flwr_plot$state)
 # [1] "warmed"  "ambient"
 
+# make flwr_duration numeric
 flwr_species$flwr_duration <- as.numeric(as.character(flwr_species$flwr_duration))
 flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
 flwr_plot_origin$flwr_duration <- as.numeric(as.character(flwr_plot_origin$flwr_duration))
@@ -90,6 +85,49 @@ flwr_species$flwr_duration_scaled <- flwr_species$flwr_duration+1
 flwr_plot_origin$flwr_duration_scaled <- flwr_plot_origin$flwr_duration+1
 flwr_plot_growthhabit$flwr_duration_scaled <- flwr_plot_growthhabit$flwr_duration+1
 
+```
 
+Need to wrangle data differently than what we have above. Need a column with first julian date of flower and 
+a last julian date of flower
+```{r}
+# read in flower and seed set data
+flwr_sd <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
+str(flwr_sd)
+
+# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
+flwr_sd <- flwr_sd[-which(flwr_sd$year == "2021" & flwr_sd$site == "umbs"),]
+
+# Create separate data frames for flowering and seeding
+phen_flwr <- subset(flwr_sd, action == "flower")
+
+# data frame with julian date of first flower
+flwr_min <- phen_flwr %>% 
+        group_by(site, plot, species, year, state, action, origin, insecticide, treatment_key, year_factor,
+                 growth_habit) %>%
+        summarise(first_flwr = min(julian))
+
+# data frame with julian date of last flower
+flwr_max <- phen_flwr %>% 
+        group_by(site, plot, species, year, state, action, origin, insecticide, treatment_key, year_factor,
+                 growth_habit) %>%
+        summarise(last_flwr = max(julian))
+
+flwr_dur <- phen_flwr %>% 
+        group_by(site, plot, species, year, state, action, origin, insecticide, treatment_key, year_factor,
+                 growth_habit) %>%
+        summarise(dur_flwr = max(julian) - min(julian))
+
+flwr_duration <- merge(flwr_min, flwr_max)
+flwr_duration <- merge(flwr_duration, flwr_dur)
+```
+
+Horizontal Line Chart 
+https://stackoverflow.com/questions/59728092/multiple-horizontal-line-chart-in-r
+Flower duration at plot level
+```{r}
+#example below
+ggplot(df)+
+  geom_segment(aes(x = start, xend = finish, y = slno, yend = slno, color = as.factor(slno)), size = 2)
 ```
 

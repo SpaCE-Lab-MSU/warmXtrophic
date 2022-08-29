@@ -208,4 +208,4 @@ levels(phen_data$state)
 # [1] "warmed"  "ambient"
 
 # write a new csv with the cleaned and merge data and upload to the shared google drive
-write.csv(phen_data, file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
+write.csv(phen_data, file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"), row.names = F)

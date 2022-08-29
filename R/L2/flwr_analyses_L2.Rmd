@@ -62,6 +62,7 @@ flwr_plot_origin <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_origin
 flwr_plot_growthhabit <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv")) # plot level data for growth habit
 
 # get rid of "X" column that shows up
+# In order for the "X" column not to show up, when you write.csv in the clean script, make sure you add "row.names = F"
 flwr_species$X <- NULL
 flwr_plot$X <- NULL
 flwr_plot_origin$X <- NULL
@@ -633,7 +634,7 @@ MIXED EFFECT MODELS
 # Phoebe
 UMBS Species-level Mixed Effects Models
 ```{r, error=TRUE}
-# KBS SPECIES LEVEL - Looking at DURATION of flowering
+# UMBS SPECIES LEVEL - Looking at DURATION of flowering
 mod1 <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), umbs_flwr_spp, REML = FALSE)
 ggplot(umbs_flwr_spp,aes(x=plot,y=julian_median,col=species)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
@@ -641,19 +642,19 @@ ggplot(umbs_flwr_spp,aes(x=plot,y=julian_median,col=species)) + geom_jitter() + 
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
 par(mfrow=c(1,2))
-plot(mod1) # thus looks ok?
+plot(mod1) # this looks ok?
 # Homogeneity of variance looks weird here 
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
 leveneTest(residuals(mod1) ~ umbs_flwr_spp$state)
-# Assumption met
+# Assumption not met
 leveneTest(residuals(mod1) ~ umbs_flwr_spp$species)
-# Assumption met
+# Assumption not met
 leveneTest(residuals(mod1) ~ umbs_flwr_spp$insecticide) 
-# Assumption not met
+# Assumption met
 leveneTest(residuals(mod1) ~ umbs_flwr_spp$plot)
-# Assumption not met
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -666,8 +667,8 @@ outlierTest(mod1) # 1676 outlier
 require(lme4)
 r_int<- ranef(mod1)$plot$`(Intercept)`
 qqnorm(r_int)
-# qqline(r_int) doesn't work
-# shapiro.test(r_int) # this doens't run
+# qqline(r_int) #doesn't work
+# shapiro.test(r_int) #this doens't run
 ```
 # Phoebe
 ```{r, error=TRUE}
@@ -784,7 +785,7 @@ mod12 <- lmer(log(julian_median) ~ state * factor(year_factor) + (1+factor(year_
 # updated mod5
 mod13 <- lmer(log(julian_median) ~ state * factor(year_factor) + (1|species), umbs_flwr_spp)
 
-# All the models ran:
+# All the models:
 mod1 <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species) + (1|plot), umbs_flwr_spp, REML=FALSE)
 mod2 <- lmer(log(julian_median) ~ state*year_factor + insecticide*year_factor + (1|species), umbs_flwr_spp, REML=FALSE)
 mod3 <- lmer(log(julian_median) ~ state*year_factor + (1|species), umbs_flwr_spp, REML=FALSE)

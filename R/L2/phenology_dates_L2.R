@@ -41,8 +41,7 @@ plot_info <- read.csv(file.path(L0_dir, "plot.csv"))
 
 # read in meta taxon list
 taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
-taxon$X <- NULL # get rid of "X" column that shows up
-taxon$X.1 <- NULL # get rid of "X.1" column that shows up
+
 # change column name for from "code" to "Species" to match cleaned plant comp data
 colnames(taxon) <- sub("code", "species", colnames(taxon))
 
@@ -55,7 +54,6 @@ plantcomp <- plantcomp[-which(plantcomp$year == "2021" & plantcomp$site == "umbs
 
 # read in flower and seed set data
 flwr_sd <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
-flwr_sd <- flwr_sd %>% select(-X) # get rid of "X" column that shows up
 str(flwr_sd)
 
 # delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
@@ -466,7 +464,7 @@ half_cover_kbs <- unique(half_cover_kbs[c("species", "year")])
 # can pick these out and analyze these separately
 
 
-###### FLOWERING (Moriah did this) ######
+###### FLOWERING ###### (Moriah did this)
 
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(flwr_sd, action == "flower")
@@ -508,7 +506,7 @@ phen_flwr_spp <- merge(FirstFlwr_spp, MedianFlwr_spp)
 phen_flwr_spp <- merge(phen_flwr_spp, flwr_dur_s)
 
 # write a new csv with flowering data at the SPECIES LEVEL and upload to the shared google drive
-write.csv(phen_flwr_spp, file.path(L2_dir, "phenology/final_flwr_species_L2.csv"))
+write.csv(phen_flwr_spp, file.path(L2_dir, "phenology/final_flwr_species_L2.csv"), row.names = F)
 
 ### Create a data frame at the PLOT LEVEL that includes median date of flower, first flower date, and duration
 
@@ -533,7 +531,7 @@ phen_flwr_plot <- merge(FirstFlwr_plot, MedianFlwr_plot)
 phen_flwr_plot <- merge(phen_flwr_plot, flwr_dur_plot)
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
-write.csv(phen_flwr_plot, file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
+write.csv(phen_flwr_plot, file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"), row.names=F)
 
 
 # Average first Flower Date by PLOT LEVEL by ORIGIN
@@ -557,7 +555,7 @@ phen_flwr_plot_origin <- merge(FirstFlwr_plot_origin, MedianFlwr_plot_origin)
 phen_flwr_plot_origin <- merge(phen_flwr_plot_origin, flwr_dur_plot_origin)
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
-write.csv(phen_flwr_plot_origin, file.path(L2_dir, "phenology/final_flwr_plot_origin_L2.csv"))
+write.csv(phen_flwr_plot_origin, file.path(L2_dir, "phenology/final_flwr_plot_origin_L2.csv"), row.names=F)
 
 
 # Average first Flower Date by PLOT LEVEL by GROWTH HABIT
@@ -581,7 +579,7 @@ phen_flwr_plot_growthhabit <- merge(FirstFlwr_plot_growthhabit, MedianFlwr_plot_
 phen_flwr_plot_growthhabit <- merge(phen_flwr_plot_growthhabit, flwr_dur_plot_growthhabit)
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
-write.csv(phen_flwr_plot_growthhabit, file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv"))
+write.csv(phen_flwr_plot_growthhabit, file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv"), row.names=F)
 
 
 # Create some plots to visualize these data (NOT FINISHED - MY 7/11/21)
@@ -611,7 +609,7 @@ p4 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_dens
 p4 + facet_wrap(~year)
 
 
-###### SEED SET (Moriah did this) ######
+###### SEED SET ###### (Moriah did this) 
 ### Create a data frame at the SPECIES LEVEL that includes first date of seed
 # First Seed by SPECIES LEVEL - filter data to contain the date of first seed for each species at each plot
 FirstSd_spp <- phen_sd %>%
@@ -635,14 +633,14 @@ FirstSd_plot_growthhabit <- FirstSd_spp  %>%
   summarize(julian_min = mean(julian_min, na.rm=T))
 
 # write a new csv with first seed date at the SPECIES LEVEL and upload to the shared google drive
-write.csv(FirstSd_spp, file.path(L2_dir, "phenology/final_sd_species_L2.csv"))
+write.csv(FirstSd_spp, file.path(L2_dir, "phenology/final_sd_species_L2.csv"), row.names=F)
 
 # write a new csv with first seed date at the PLOT LEVEL and upload to the shared google drive
-write.csv(FirstSd_plot, file.path(L2_dir, "phenology/final_sd_plot_L2.csv"))
+write.csv(FirstSd_plot, file.path(L2_dir, "phenology/final_sd_plot_L2.csv"), row.names=F)
 
 # write a new csv with first seed date at the ORIGIN PLOT LEVEL and upload to the shared google drive
-write.csv(FirstSd_plot_origin, file.path(L2_dir, "phenology/final_sd_plot_origin_L2.csv"))
+write.csv(FirstSd_plot_origin, file.path(L2_dir, "phenology/final_sd_plot_origin_L2.csv"), row.names=F)
 
 # write a new csv with first seed date at the GROWTH HABIT PLOT LEVEL and upload to the shared google drive
-write.csv(FirstSd_plot_growthhabit, file.path(L2_dir, "phenology/final_sd_plot_growthhabit_L2.csv"))
+write.csv(FirstSd_plot_growthhabit, file.path(L2_dir, "phenology/final_sd_plot_growthhabit_L2.csv"), row.names=F)
 
