@@ -120,14 +120,69 @@ flwr_dur <- phen_flwr %>%
 
 flwr_duration <- merge(flwr_min, flwr_max)
 flwr_duration <- merge(flwr_duration, flwr_dur)
+
+flwr_avg_min <- flwr_duration %>% 
+        group_by(site, year, state, treatment_key, insecticide, year_factor) %>%
+        summarise(avg_first_flwr = mean(first_flwr))
+
+flwr_avg_max <- flwr_duration %>% 
+        group_by(site, year, state, treatment_key, insecticide, year_factor) %>%
+        summarise(avg_last_flwr = mean(last_flwr))
+
+flwr_avg_duration <- merge(flwr_avg_min, flwr_avg_max)
+
+flwr_avg_duration_19 <- subset(flwr_avg_duration, year == "2019" & site == "kbs")
+flwr_avg_duration_umbs <- subset(flwr_avg_duration, site == "umbs")
+flwr_avg_duration_kbs <- subset(flwr_avg_duration, site == "kbs")    
 ```
 
 Horizontal Line Chart 
 https://stackoverflow.com/questions/59728092/multiple-horizontal-line-chart-in-r
-Flower duration at plot level
+Flower duration at plot level by treatment
 ```{r}
-#example below
-ggplot(df)+
-  geom_segment(aes(x = start, xend = finish, y = slno, yend = slno, color = as.factor(slno)), size = 2)
+ggplot(flwr_avg_duration_19) +
+        geom_segment(aes(x = avg_first_flwr, xend = avg_last_flwr, y = treatment_key, yend = treatment_key, color= as.factor(treatment_key)), size = 2) +
+        labs(title = "KBS 2019 Average Flower Duration", x = "Julian Date", y = "Treatment") +
+        scale_y_discrete(labels=c("A0" = "Ambient",
+                                  "AI" = "Ambient +\n Reduced\n Herbivory",
+                                  "W0"="Warmed",
+                                  "WI"="Warmed +\n Reduced\n Herbivory")) +
+        theme(legend.position = "none")
 ```
+
+All years onto one plot
+```{r}
+# KBS
+ggplot(flwr_avg_duration_kbs) +
+  geom_linerange(aes(xmin = avg_first_flwr, xmax = avg_last_flwr,
+                   y = treatment_key, 
+                   color = as.factor(treatment_key),
+                   group = year), size = 2, 
+                 position = position_dodge(width = 0.5)) +
+  labs(title = "KBS Average Flower Duration", 
+       x = "Julian Date", y = "Treatment") +
+  scale_y_discrete(labels = c("A0" = "Ambient",
+                              "AI" = "Ambient +\n Reduced\n Herbivory",
+                              "W0" = "Warmed",
+                              "WI" = "Warmed +\n Reduced\n Herbivory")) +
+  theme_bw() +
+  theme(legend.position = "none") 
+
+# UMBS
+ggplot(flwr_avg_duration_umbs) +
+  geom_linerange(aes(xmin = avg_first_flwr, xmax = avg_last_flwr,
+                   y = treatment_key, 
+                   color = as.factor(treatment_key),
+                   group = year), size = 2, 
+                 position = position_dodge(width = 0.5)) +
+  labs(title = "UMBS Average Flower Duration", 
+       x = "Julian Date", y = "Treatment") +
+  scale_y_discrete(labels = c("A0" = "Ambient",
+                              "AI" = "Ambient +\n Reduced\n Herbivory",
+                              "W0" = "Warmed",
+                              "WI" = "Warmed +\n Reduced\n Herbivory")) +
+  theme_bw() +
+  theme(legend.position = "none") 
+```
+
 
