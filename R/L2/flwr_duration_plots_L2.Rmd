@@ -22,6 +22,7 @@ library(plotrix)
 library(tidyverse)
 library(ggpubr)
 library(hrbrthemes)
+library(directlabels)
 
 # Set working directory
 #Sys.getenv("L1DIR")
@@ -153,36 +154,45 @@ ggplot(flwr_avg_duration_19) +
 All years onto one plot
 ```{r}
 # KBS
-ggplot(flwr_avg_duration_kbs) +
-  geom_linerange(aes(xmin = avg_first_flwr, xmax = avg_last_flwr,
+flwr_avg_duration_kbs_plot <- ggplot(flwr_avg_duration_kbs) +
+                geom_linerange(aes(xmin = avg_first_flwr, xmax = avg_last_flwr,
                    y = treatment_key, 
                    color = as.factor(treatment_key),
                    group = year), size = 2, 
                  position = position_dodge(width = 0.5)) +
-  labs(title = "KBS Average Flower Duration", 
-       x = "Julian Date", y = "Treatment") +
+        #geom_dl(aes(label=year), method = "last.points") + # doesn't work
+  labs(title = "KBS", x = "Julian Date", y = "Treatment") +
   scale_y_discrete(labels = c("A0" = "Ambient",
                               "AI" = "Ambient +\n Reduced\n Herbivory",
                               "W0" = "Warmed",
                               "WI" = "Warmed +\n Reduced\n Herbivory")) +
-  theme_bw() +
   theme(legend.position = "none") 
+flwr_avg_duration_kbs_plot
+# 2021 data from kbs looks like it should be deleted? Ask Mark about this. Maybe data wasn't taking as frequently as other years
 
 # UMBS
-ggplot(flwr_avg_duration_umbs) +
-  geom_linerange(aes(xmin = avg_first_flwr, xmax = avg_last_flwr,
+flwr_avg_duration_umbs_plot <- ggplot(flwr_avg_duration_umbs) +
+                geom_linerange(aes(xmin = avg_first_flwr, xmax = avg_last_flwr,
                    y = treatment_key, 
                    color = as.factor(treatment_key),
                    group = year), size = 2, 
                  position = position_dodge(width = 0.5)) +
-  labs(title = "UMBS Average Flower Duration", 
-       x = "Julian Date", y = "Treatment") +
+        #geom_dl(aes(label=year), method = "last.points") + # doesn't work
+  labs(title = "UMBS", x = "Julian Date", y = "Treatment") +
   scale_y_discrete(labels = c("A0" = "Ambient",
                               "AI" = "Ambient +\n Reduced\n Herbivory",
                               "W0" = "Warmed",
                               "WI" = "Warmed +\n Reduced\n Herbivory")) +
-  theme_bw() +
   theme(legend.position = "none") 
+flwr_avg_duration_umbs_plot
+
+flwr_dur <- ggarrange(flwr_avg_duration_kbs_plot, flwr_avg_duration_umbs_plot, nrow = 2)
+png("flwr_duration_plots_L2_avg_all_years.png", units="in", width=8, height=12, res=300)
+annotate_figure(flwr_dur,
+                top = text_grob("Average Duration of Flowering", color = "black"),
+                bottom = text_grob("Treatment", color = "black"))
+
+dev.off()
 ```
 
 
