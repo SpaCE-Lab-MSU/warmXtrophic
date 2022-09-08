@@ -20,6 +20,7 @@ library(stats)
 
 # Set working directory 
 L1_dir <- Sys.getenv("L1DIR")
+list.files(L1_dir)
 
 # load data
 # note: we also have 2020 ancillary biomass (no warming treatment), so only analyzing warming effect with 2021 harvested biomass
@@ -237,10 +238,21 @@ leveneTest(residuals(mod1_kp) ~ kbs_plot_biomass$insecticide)
 shapiro.test(resid(mod1_kp))
 # looks good
 anova(mod1_kp)
-summary(mod1_kp)
+summary(mod1_kp) ###* used this in paper *###
 # plot as a random effect?
 mod2_kp <- lmer(plot_sum_g ~ state + insecticide + (1|plot), data=kbs_plot_biomass, REML=F) # fails
-
+# interaction btwn state and insecticide?
+mod3_kp <- lm(plot_sum_g ~ state*insecticide, data=kbs_plot_biomass)
+outlierTest(mod3_kp) # no outliers
+hist(mod3_kp$residuals)
+qqPlot(mod3_kp, main="QQ Plot") 
+leveragePlots(mod3_kp)
+leveneTest(residuals(mod3_kp) ~ kbs_plot_biomass$state)
+leveneTest(residuals(mod3_kp) ~ kbs_plot_biomass$insecticide)
+shapiro.test(resid(mod3_kp))
+# looks good
+anova(mod3_kp)
+summary(mod3_kp)
 
 # regression #
 cor.test(kbs_biomass_reg$cover, kbs_biomass_reg$weight_g, method="pearson")
@@ -386,6 +398,18 @@ anova(mod1_up)
 summary(mod1_up)
 # plot as a random effect?
 mod2_up <- lmer(plot_sum_g ~ state + (1|plot), data=umbs_plot_biomass, REML=F) # fails
+# interaction between state and insecticide?
+mod3_up <- lm(plot_sum_g ~ state * insecticide, data=umbs_plot_biomass)
+outlierTest(mod3_up) # no outliers
+hist(mod3_up$residuals)
+qqPlot(mod3_up, main="QQ Plot") 
+leveragePlots(mod3_up)
+leveneTest(residuals(mod3_up) ~ umbs_plot_biomass$state)
+leveneTest(residuals(mod3_up) ~ umbs_plot_biomass$insecticide)
+shapiro.test(resid(mod3_up))
+# looks good
+anova(mod3_up)
+summary(mod3_up)
 
 
 # regression #
