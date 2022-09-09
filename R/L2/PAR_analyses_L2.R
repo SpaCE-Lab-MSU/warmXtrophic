@@ -23,6 +23,9 @@ UMBS <- read.csv(file.path(L1_dir,"PAR/UMBS_PAR_L1.csv"))
 KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d")
 UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d")
 
+## note:
+# not doing growing season-specific PAR averages because all of the data collected on PAR was already
+# during the growing season (including some in Sept.)
 
 ########## KBS ###########
 # add column for month and year
@@ -31,7 +34,7 @@ KBS$year <- format(KBS$Date_Time,format="%Y")
 
 # avg PAR overall
 KBS_avg_over <- KBS %>%
-        group_by(state, year) %>%
+        group_by(state) %>%
         summarize(mean = mean(Overstory, na.rm = T),
                   sd = sd(Overstory, na.rm = T))
 KBS_avg_under <- KBS %>%
@@ -42,6 +45,7 @@ KBS_avg_sun <- KBS %>%
         group_by(state) %>%
         summarize(mean = mean(Percent_Sunlight, na.rm = T),
                   sd = sd(Percent_Sunlight, na.rm = T))
+
 
 # avg PAR early vs. late season
 KBS_avg_over_early <- KBS %>%
