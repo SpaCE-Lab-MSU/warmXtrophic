@@ -212,17 +212,27 @@ herb_binom_sumu <- herb_binom_u %>%
         group_by(state) %>%
         mutate(n = n/sum(n) * 100)
 # plotting binary response
-binom_plot_k <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = p_eaten, label = paste0(round(n, 2), "%"))) +
-        geom_col(col="black") +
-        geom_text(position=position_stack(0.5)) +
+binom_plot_k <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = state, label = paste0(round(n, 2), "%"))) +
+        geom_col(col="black",aes(alpha = p_eaten)) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          guide = "none") +
+        scale_alpha_manual(values=c(0.3, 1),
+                           labels = c("Eaten","Not Eaten"),
+                           name = "Proportion") +
+        geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         labs(y="Proportion eaten or not (%)", x=NULL,title="KBS", subtitle="A", fill=NULL) +
         theme_classic() +
         theme(legend.position="none")
-binom_plot_u <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = p_eaten, label = paste0(round(n, 2), "%"))) +
-        geom_col(col="black") +
-        geom_text(position=position_stack(0.5)) +
+binom_plot_u <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = state, label = paste0(round(n, 2), "%"))) +
+        geom_col(col="black",aes(alpha = p_eaten)) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          guide="none") +
+        scale_alpha_manual(values=c(0.3, 1),
+                           labels = c("Eaten","Not Eaten"),
+                           name = "Proportion") +
+        geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         labs(y=NULL, x=NULL, title="UMBS",subtitle="B", fill=NULL) +
         theme_classic()
 
