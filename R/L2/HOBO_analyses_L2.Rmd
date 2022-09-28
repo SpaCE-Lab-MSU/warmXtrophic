@@ -24,6 +24,7 @@ library(tidyverse)
 library(plotrix)
 library(ggpubr)
 library(rstatix)
+library(sjPlot)
 
 # Set working directory
 L1_dir<-Sys.getenv("L1DIR")
@@ -105,6 +106,7 @@ KBS_avg_temp_year <- KBS_avg_year %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
 print(KBS_avg_temp_year)
+tab_df(KBS_avg_temp_year)
 
 # avg temps in the chambers on hot days
 KBS_avg_hot_day <- KBS_season %>%
@@ -121,21 +123,23 @@ print(KBS_avg_hot_day)
 KBS_early <- KBS_season %>%
         filter(month == "03" | month == "04") %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(treatment, sensor) %>%
+        group_by(year, sensor, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T)) %>%
-        group_by(treatment) %>%
+        group_by(year, treatment) %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
 print(KBS_early)
+tab_df(KBS_early)
 KBS_late <- KBS_season %>%
         filter(month == "07" | month == "08") %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(treatment, sensor) %>%
+        group_by(year, sensor, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T)) %>%
-        group_by(treatment) %>%
+        group_by(year, treatment) %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
 print(KBS_late)
+tab_df(KBS_late)
 
 # winter warming?
 KBS_winter <- KBS
@@ -237,6 +241,7 @@ UMBS_avg_temp_year <- UMBS_avg_year %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
 print(UMBS_avg_temp_year)
+tab_df(UMBS_avg_temp_year)
 
 # avg temps in the chambers on hot days
 UMBS_avg_hot_day <- UMBS_season %>%
@@ -253,22 +258,24 @@ print(UMBS_avg_hot_day)
 UMBS_early <- UMBS_season %>%
         filter(month == "03" | month == "04") %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(sensor, treatment) %>%
+        group_by(year, sensor, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T))  %>%
-        group_by(treatment) %>%
+        group_by(year, treatment) %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
 print(UMBS_early)
+tab_df(UMBS_early)
 
 UMBS_late <- UMBS_season %>%
         filter(month == "07" | month == "08") %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(sensor, treatment) %>%
+        group_by(year, sensor, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T))  %>%
-        group_by(treatment) %>%
+        group_by(year, treatment) %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
 print(UMBS_late)
+tab_df(UMBS_late)
 
 # winter warming?
 UMBS_winter <- UMBS
