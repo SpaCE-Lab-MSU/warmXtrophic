@@ -217,9 +217,9 @@ flwr_avg_duration_kbs_plot2 <- ggplot(flwr_avg_duration_kbs) +
         scale_color_manual(values=c('A0'='blue', 'AI'='deepskyblue', 'W0'='red', 'WI'='red4'),
                            name="Treatment",
                            labels = c("A0" = "Ambient",
-                              "AI" = "Ambient +\n Reduced Herbivory",
+                              "AI" = "Ambient + Reduced Herbivory",
                               "W0" = "Warmed",
-                              "WI" = "Warmed +\n Reduced Herbivory")) +
+                              "WI" = "Warmed + Reduced Herbivory")) +
         theme(legend.position = "none", axis.text.x=element_blank())
 flwr_avg_duration_kbs_plot2
 
@@ -234,21 +234,22 @@ flwr_avg_duration_umbs_plot2 <- ggplot(flwr_avg_duration_umbs) +
         scale_color_manual(values=c('A0'='blue', 'AI'='deepskyblue', 'W0'='red', 'WI'='red4'),
                            name="Treatment",
                            labels = c("A0" = "Ambient",
-                              "AI" = "Ambient +\n Reduced Herbivory",
+                              "AI" = "Ambient + Reduced Herbivory",
                               "W0" = "Warmed",
-                              "WI" = "Warmed +\n Reduced Herbivory"))
+                              "WI" = "Warmed + Reduced Herbivory"))
 flwr_avg_duration_umbs_plot2
 
 flwr_dur2 <- ggarrange(flwr_avg_duration_kbs_plot2, flwr_avg_duration_umbs_plot2, 
                       nrow = 2, 
                       common.legend = TRUE,
-                      legend = "bottom",
+                      legend = "right",
                       labels = NULL)
 png("flwr_duration_plots_L2_avg_all_years_version2.png", units="in", width=8, height=12, res=300)
 annotate_figure(flwr_dur2,
-                top = text_grob("Average Duration of Flowering", 
-                                color = "black", size = 15),
-                left = text_grob("Julian Date", color = "black", rot = 90, size = 15),)
+                left = text_grob("Julian Date", 
+                                 color = "black", 
+                                 rot = 90, 
+                                 size = 15),)
 dev.off()
 ```
 
