@@ -64,10 +64,10 @@ flwr_plot_origin <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_origin
 flwr_plot_growthhabit <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv")) # plot level data for growth habit
 
 # get rid of "X" column that shows up
-flwr_species$X <- NULL
-flwr_plot$X <- NULL
-flwr_plot_origin$X <- NULL
-flwr_plot_growthhabit$X <- NULL
+# flwr_species$X <- NULL
+# flwr_plot$X <- NULL
+# flwr_plot_origin$X <- NULL
+# flwr_plot_growthhabit$X <- NULL
 
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 flwr_species$state <- as.factor(flwr_species$state)
@@ -105,7 +105,6 @@ kbs_flwr_plot_origin <- subset(flwr_plot_origin, site == "kbs")
 kbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "kbs")
 umbs_flwr_plot_origin <- subset(flwr_plot_origin, site == "umbs")
 umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "umbs")
-
 ```
 
 # KBS SPECIES LEVEL - Looking at DURATION of flowering
@@ -114,7 +113,6 @@ umbs_flwr_plot_growthhabit <- subset(flwr_plot_growthhabit, site == "umbs")
 hist(kbs_flwr_spp$flwr_duration_scaled)
 qqnorm(kbs_flwr_spp$flwr_duration_scaled)
 shapiro.test(kbs_flwr_spp$flwr_duration_scaled) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
-
 
 # Visualizing median Julian date for umbs at the PLOT LEVEL
 ggplot(kbs_flwr_spp, aes(flwr_duration_scaled, fill = plot)) + 
@@ -159,7 +157,7 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# weibull best fit
+# weibull best fit, probably going to go with log transformation
 ```
 
 # KBS PLOT LEVEL - Looking at DURATION of flowering
@@ -212,7 +210,7 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# weibull
+# weibull, probably going with log transformation
 ```
 
 # KBS PLOT LEVEL ORIGIN - Looking at DURATION of flowering
@@ -371,7 +369,7 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# weibull
+# weibull, probably going with log transformation
 ```
 
 # UMBS PLOT LEVEL - Looking at DURATION of flowering
@@ -424,7 +422,7 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# Weibull 
+# Weibull, probably going with log transformation
 ```
 
 # UMBS PLOT LEVEL ORIGIN - Looking at DURATION of flowering
@@ -477,7 +475,7 @@ ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# weibull
+# weibull, probably going with log transformation
 ```
 
 # UMBS PLOT LEVEL GROWTH HABIT - Looking at DURATION of flowering
@@ -567,7 +565,7 @@ interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
 # Plot level data
 # KBS State-only model
 fit_plot_state_kbs <- lm(log(flwr_duration_scaled) ~ state, data = kbs_flwr_plot)
-outlierTest(fit_plot_state_kbs) # outliers
+outlierTest(fit_plot_state_kbs) # outliers - 142, 155, 220, 116, 207, 272
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
 leveragePlots(fit_plot_state_kbs)
@@ -575,7 +573,7 @@ ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov tes
 
 # KBS State and year model
 fit_plot_stateyear_kbs <- lm(log(flwr_duration_scaled) ~ state + year_factor, data = kbs_flwr_plot)
-outlierTest(fit_plot_stateyear_kbs) # outliers
+outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
 leveragePlots(fit_plot_stateyear_kbs)
@@ -637,7 +635,6 @@ interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange 
 
 # UMBS
 ```{r}
-# log transformation wont work because we have zeros in the data so I'm going to square root the response variable since the data is skewed to the right.
 # species level data
 # UMBS State-only model
 fit_spp_state_umbs <- lm(log(flwr_duration_scaled) ~ state, data = umbs_flwr_spp)
@@ -653,7 +650,7 @@ outlierTest(fit_spp_stateyear_umbs) # no outliers
 qqPlot(fit_spp_stateyear_umbs, main="QQ Plot") 
 hist(fit_spp_stateyear_umbs$residuals)
 leveragePlots(fit_spp_stateyear_umbs)
-ols_test_normality(fit_spp_stateyear_umbs) # ok except Kol-Smir test
+ols_test_normality(fit_spp_stateyear_umbs)
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
@@ -671,7 +668,7 @@ outlierTest(fit_plot_state_umbs) # no outliers
 qqPlot(fit_plot_state_umbs, main="QQ Plot") 
 hist(fit_plot_state_umbs$residuals)
 leveragePlots(fit_plot_state_umbs)
-ols_test_normality(fit_plot_state_umbs) # these don't look great...
+ols_test_normality(fit_plot_state_umbs) # these look good
 
 # UMBS State and year model
 fit_plot_stateyear_umbs <- lm(flwr_duration_scaled ~ state + year_factor, data = umbs_flwr_plot)
@@ -679,7 +676,7 @@ outlierTest(fit_plot_stateyear_umbs) # no outliers
 qqPlot(fit_plot_stateyear_umbs, main="QQ Plot") 
 hist(fit_plot_stateyear_umbs$residuals)
 leveragePlots(fit_plot_stateyear_umbs)
-ols_test_normality(fit_plot_stateyear_umbs) # these don't look great either
+ols_test_normality(fit_plot_stateyear_umbs) # these look good except Kolmogorov-Smirnov which is > 0.05
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
@@ -828,7 +825,6 @@ anova(mod5, mod6)
 AICctab(mod5, mod6, weights=T)
 anova(mod5)
 
-
 # We can consider an alternative model that's simpler to understand and also one that provides more insight about the species. That would be something like this:
 mod7 <- lmer(log(flwr_duration_scaled) ~ state + species + (1+factor(year_factor)|plot), kbs_flwr_spp, REML=FALSE)
 mod7a <- lmer(log(flwr_duration_scaled)  ~ state + species + factor(year_factor) + (1|plot), kbs_flwr_spp, REML=FALSE)
@@ -908,29 +904,31 @@ mod12 <- lmer(log(flwr_duration_scaled) ~ state * factor(year_factor) + (1+facto
 # mod13 <- lmer(log(flwr_duration_scaled) ~ state * factor(year_factor) + (1|species), kbs_flwr_spp, REML=FALSE)
 AICctab(mod1, mod2, mod3, mod5, mod7, mod7a, mod7b, mod7c, mod8, mod9, mod9a, mod10, mod11, mod11a, mod12, mod13, weights=T) # mod7a is the best fitting model (took out mod12 bc it wouldn't run)
 # not sure why the above code wont work - all the data looks identical to me despite what error says??
+AICctab(mod9a, mod11a, weights=T)
+anova(mod9a, mod11a)
 summary(mod7a)
 anova(mod7a)
 ```
 
 # KBS Plot-level Mixed Effects Models:
 ```{r, error=TRUE}
-mod1p <- lmer(flwr_duration_scaled ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod2p <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod3p <- lmer(flwr_duration_scaled ~ insecticide + state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod4p <- lmer(flwr_duration_scaled ~ insecticide * state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod5p <- lmer(flwr_duration_scaled ~ state + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod6p <- lmer(flwr_duration_scaled ~ state + year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod7p <- lmer(flwr_duration_scaled ~ state * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod8p <- lmer(flwr_duration_scaled ~ state * year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod10p <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod11p <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod1p <- lmer(log(flwr_duration_scaled) ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod2p <- lmer(log(flwr_duration_scaled) ~ insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod3p <- lmer(log(flwr_duration_scaled) ~ insecticide + state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod4p <- lmer(log(flwr_duration_scaled) ~ insecticide * state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod5p <- lmer(log(flwr_duration_scaled) ~ state + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod6p <- lmer(log(flwr_duration_scaled) ~ state + year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod7p <- lmer(log(flwr_duration_scaled) ~ state * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod8p <- lmer(log(flwr_duration_scaled) ~ state * year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod9p <- lmer(log(flwr_duration_scaled) ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod10p <- lmer(log(flwr_duration_scaled) ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod11p <- lmer(log(flwr_duration_scaled) ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
-anova(mod1p, mod2p) # go with 1p
-AICctab(mod1p, mod2p, weights=T)
-summ(mod1p)
-summary(mod1p)
-emmeans(mod1p, list(pairwise ~ state), adjust = "tukey")
+anova(mod5p, mod7p) # go with 5p although they are nearly identical
+AICctab(mod5p, mod7p, weights=T)
+summ(mod5p)
+summary(mod5p)
+emmeans(mod5p, list(pairwise ~ state), adjust = "tukey")
 
 # including native vs. exotic
 kbs_flwr_plot_origin <- within(kbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
@@ -1134,28 +1132,29 @@ AICctab(mod1u, mod2u, mod3u, mod5u, mod6u, mod7u, mod7au, mod7bu, mod7cu, mod8u,
 AICctab(mod12u, mod7au, weights=T)
 summary(mod12u)
 anova(mod12u)
-
+emmeans(mod12u, list(pairwise ~ state * factor(year_factor)), adjust = "tukey")
+emmeans(mod12u, list(pairwise ~ state ), adjust = "tukey")
 ```
 
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
-mod1up <- lmer(flwr_duration_scaled ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod2up <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod3up <- lmer(flwr_duration_scaled ~ insecticide + state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod4up <- lmer(flwr_duration_scaled ~ insecticide * state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod5up <- lmer(flwr_duration_scaled ~ state + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod6up <- lmer(flwr_duration_scaled ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod7up <- lmer(flwr_duration_scaled ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod8up <- lmer(flwr_duration_scaled ~ state * year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod9up <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod10up <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod11up <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod1up <- lmer(log(flwr_duration_scaled) ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod2up <- lmer(log(flwr_duration_scaled) ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod3up <- lmer(log(flwr_duration_scaled) ~ insecticide + state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod4up <- lmer(log(flwr_duration_scaled) ~ insecticide * state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod5up <- lmer(log(flwr_duration_scaled) ~ state + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod6up <- lmer(log(flwr_duration_scaled) ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod7up <- lmer(log(flwr_duration_scaled) ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod8up <- lmer(log(flwr_duration_scaled) ~ state * year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod9up <- lmer(log(flwr_duration_scaled) ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod10up <- lmer(log(flwr_duration_scaled) ~ state + insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod11up <- lmer(log(flwr_duration_scaled) ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
 AICctab(mod1up, mod2up, mod3up, mod4up, mod5up, mod6up, mod7up, mod8up, mod9up, mod10up, mod11up, weights=T)
-anova(mod1up, mod2up) # go with simpler model 1up
-AICctab(mod1up, mod2up, weights=T)
-summ(mod1up)
-summary(mod1up)
-emmeans(mod1up, list(pairwise ~ state), adjust = "tukey")
+anova(mod5up, mod6up) # go with simpler model 5up
+AICctab(mod5up, mod6up, weights=T)
+summ(mod5up)
+summary(mod5up)
+emmeans(mod5up, list(pairwise ~ state), adjust = "tukey")
 
 # including native vs. exotic
 umbs_flwr_plot_origin <- within(umbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
