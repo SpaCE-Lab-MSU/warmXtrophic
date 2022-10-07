@@ -23,6 +23,7 @@ library(tidyverse)
 library(ggpubr)
 library(hrbrthemes)
 library(directlabels)
+library(grid)
 
 # Set working directory
 #Sys.getenv("L1DIR")
@@ -95,9 +96,16 @@ a last julian date of flower
 flwr_sd <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
 str(flwr_sd)
 
-# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# delete UMBS 2021 data from dataframe - doesn't make sense to have bc we can't get min flower/sd, median flower, or 
 # flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
 flwr_sd <- flwr_sd[-which(flwr_sd$year == "2021" & flwr_sd$site == "umbs"),]
+flwr_sd <- flwr_sd[-which(flwr_sd$year == "2015"),]
+
+# trying to add empty values for 2021 to umbs so the x-axis matches the other plots
+flwr_plot2 <- flwr_sd
+de<-data.frame("umbs",NA, NA, "flower", NA, NA, "2021", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA , NA, NA, NA, NA, 7)
+names(de)<-c("site","plot","species", "action", "date", "julian", "year", "month", "treatment_key","state","insecticide","scientific_name","common_name", "usda_species", "lter_species", "origin", "group", "family", "duration", "growth_habit", "rhizomatous", "year_factor")
+flwr_sd <- rbind(flwr_plot2, de)
 
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(flwr_sd, action == "flower")
@@ -199,45 +207,48 @@ dev.off()
 switching axis
 ```{r}
 # KBS
-flwr_avg_duration_kbs_plot <- ggplot(flwr_avg_duration_kbs) +
+flwr_avg_duration_kbs_plot2 <- ggplot(flwr_avg_duration_kbs) +
                 geom_linerange(aes(ymin = avg_first_flwr, ymax = avg_last_flwr,
                    x = year, 
                    color = as.factor(treatment_key)), 
                    size = 2, 
                    position = position_dodge(width = 0.5)) +
-        labs(title = "KBS", x = "Year", y = "Julian Date") +
+        labs(title = "KBS", x = NULL, y = NULL) +
         scale_color_manual(values=c('A0'='blue', 'AI'='deepskyblue', 'W0'='red', 'WI'='red4'),
                            name="Treatment",
                            labels = c("A0" = "Ambient",
                               "AI" = "Ambient +\n Reduced Herbivory",
                               "W0" = "Warmed",
-                              "WI" = "Warmed +\n Reduced Herbivory"))
-flwr_avg_duration_kbs_plot
-# 2021 data from kbs looks like it should be deleted? Ask Mark about this. Maybe data wasn't taking as frequently as other years + 2015 data
+                              "WI" = "Warmed +\n Reduced Herbivory")) +
+        theme(legend.position = "none", axis.text.x=element_blank())
+flwr_avg_duration_kbs_plot2
 
 # UMBS
-flwr_avg_duration_umbs_plot <- ggplot(flwr_avg_duration_umbs) +
+flwr_avg_duration_umbs_plot2 <- ggplot(flwr_avg_duration_umbs) +
                 geom_linerange(aes(ymin = avg_first_flwr, ymax = avg_last_flwr,
                    x = year, 
                    color = as.factor(treatment_key)), 
                    size = 2, 
                    position = position_dodge(width = 0.5)) +
-        labs(title = "UMBS", x = "Year", y = "Julian Date") +
+        labs(title = "UMBS", x = "Year", y = NULL) +
         scale_color_manual(values=c('A0'='blue', 'AI'='deepskyblue', 'W0'='red', 'WI'='red4'),
                            name="Treatment",
                            labels = c("A0" = "Ambient",
                               "AI" = "Ambient +\n Reduced Herbivory",
                               "W0" = "Warmed",
                               "WI" = "Warmed +\n Reduced Herbivory"))
-flwr_avg_duration_umbs_plot
+flwr_avg_duration_umbs_plot2
 
-flwr_dur <- ggarrange(flwr_avg_duration_kbs_plot, flwr_avg_duration_umbs_plot, 
+flwr_dur2 <- ggarrange(flwr_avg_duration_kbs_plot2, flwr_avg_duration_umbs_plot2, 
                       nrow = 2, 
                       common.legend = TRUE,
-                      legend = "bottom")
+                      legend = "bottom",
+                      labels = NULL)
 png("flwr_duration_plots_L2_avg_all_years_version2.png", units="in", width=8, height=12, res=300)
-annotate_figure(flwr_dur,
-                top = text_grob("Average Duration of Flowering", color = "black"))
+annotate_figure(flwr_dur2,
+                top = text_grob("Average Duration of Flowering", 
+                                color = "black", size = 15),
+                left = text_grob("Julian Date", color = "black", rot = 90, size = 15),)
 dev.off()
 ```
 
