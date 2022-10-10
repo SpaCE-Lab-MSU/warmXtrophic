@@ -242,7 +242,7 @@ flwr_avg_duration_umbs_plot2
 flwr_dur2 <- ggarrange(flwr_avg_duration_kbs_plot2, flwr_avg_duration_umbs_plot2, 
                       nrow = 2, 
                       common.legend = TRUE,
-                      legend = "right",
+                      legend = "bottom",
                       labels = NULL)
 png("flwr_duration_plots_L2_avg_all_years_version2.png", units="in", width=8, height=12, res=300)
 annotate_figure(flwr_dur2,
