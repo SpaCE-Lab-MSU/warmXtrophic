@@ -100,7 +100,6 @@ umbs_bio <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = sta
                       position = "identity") +
         labs(title="UMBS", y="", x="")+
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         theme_classic()
 
 biomass_comb <- ggpubr::ggarrange(kbs_bio, umbs_bio,
@@ -163,11 +162,12 @@ biomass_spp_k <- kbs_biomass_live2 %>%
         group_by(species, state) %>%
         summarize(avg_weight = mean(weight_g, na.rm = TRUE),
                   se = std.error(weight_g, na.rm = TRUE))
-ggplot(biomass_spp_k, aes(x = species, y = avg_weight, fill = state)) +
+kbs_spp <- ggplot(biomass_spp_k, aes(x = state, y = avg_weight, fill = state)) +
+        facet_wrap(~species, ncol=4, scales="free") +
         geom_bar(position = "dodge", stat = "identity", col = "black") +
         geom_errorbar(aes(ymin = avg_weight - se, ymax = avg_weight + se), width = 0.2,
                       position = position_dodge(0.9)) +
-        labs(title="KBS") +
+        labs(title="KBS",x=NULL,y=NULL) +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
@@ -176,14 +176,23 @@ biomass_spp_u <- umbs_biomass_live2 %>%
         group_by(species, state) %>%
         summarize(avg_weight = mean(weight_g, na.rm = TRUE),
                   se = std.error(weight_g, na.rm = TRUE))
-ggplot(biomass_spp_u, aes(x = species, y = avg_weight, fill = state)) +
+umbs_spp <- ggplot(biomass_spp_u, aes(x = state, y = avg_weight, fill = state)) +
+        facet_wrap(~species, ncol=4, scales = "free") +
         geom_bar(position = "dodge", stat = "identity", col = "black") +
         geom_errorbar(aes(ymin = avg_weight - se, ymax = avg_weight + se), width = 0.2,
                       position = position_dodge(0.9)) +
-        labs(title="UMBS") +
+        labs(title="UMBS",x=NULL,y=NULL) +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
         theme_classic()
+
+biomass_spp_comb <- ggpubr::ggarrange(kbs_spp, umbs_spp,
+                                     ncol = 2, common.legend = T, legend="none")
+png("biomass_plots_spp_L2_barplot.png", units="in", width=8, height=6, res=300)
+annotate_figure(biomass_spp_comb,
+                left = text_grob("Plant Biomass (g)", color = "black", rot = 90),
+                bottom = text_grob("Treatment", color = "black"))
+dev.off()
 
 # Density histogram
 ggplot(kbs_biomass_live, aes(weight_g, fill = state, colour = state)) +

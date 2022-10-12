@@ -186,9 +186,10 @@ Fig1_soil_line_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, gro
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
                            labels=c("Ambient","Warmed")) +
-        labs(title="KBS",y=NULL, x=NULL) +
+        labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5,18.5) +
         theme_bw(14)
+        
 
 Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
@@ -227,13 +228,16 @@ Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=tre
         geom_point(size = 2) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a", "#a6bddb", "#fb6a4a"),
-                           labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+                           labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         scale_linetype_manual(name="Treatment",
                               values = c("solid", "solid", "dotdash", "dotdash"),
-                              labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+                              labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         ylim(16,26) +
         labs(title="KBS",y=NULL, x=NULL) +
-        theme_bw(14)
+        theme_bw(14) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank()) +
+        theme(legend.position="none")
 
 ###### par data ######
 # old attempts at seeing how PAR and temp are correlated - not enough data to show a trend
@@ -625,9 +629,11 @@ Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, g
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
                            labels=c("Ambient","Warmed")) +
-        labs(title="UMBS",y=NULL, x=NULL) +
+        labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5, 18.5) +
-        theme_bw(14)
+        theme_bw(14) +
+        theme(axis.title.y=element_blank(),
+              axis.text.y=element_blank())
 
 Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
@@ -666,13 +672,17 @@ Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=t
         geom_point(size = 2) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a", "#a6bddb", "#fb6a4a"),
-                           labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+                           labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         scale_linetype_manual(name="Treatment",
                               values = c("solid", "solid", "dotdash", "dotdash"),
-                              labels=c("Ambient 1m","Warmed 1m","Ambient 10cm", "Warmed 10cm")) +
+                              labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         ylim(16,26) +
         labs(title="UMBS",y=NULL, x=NULL) +
-        theme_bw(14)
+        theme_bw(14) +
+        theme(axis.title.x=element_blank(),
+              axis.text.x=element_blank(),
+              axis.title.y=element_blank(),
+              axis.text.y=element_blank())
 
 
 ###### par data ######
@@ -855,5 +865,13 @@ png("HOBO_plots_L2_soil_moist_line.png", units="in", width=10, height=5, res=300
 annotate_figure(Fig1.7,
                 left = text_grob("Average Soil Moisture", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
+dev.off()
+
+Fig1.8 <- ggarrange(Fig1.5,Fig1.6,
+                    nrow = 2, common.legend = F)
+png("HOBO_plots_L2_air_soil_line.png", units="in", width=10, height=8, res=300)
+annotate_figure(Fig1.8,
+                left = text_grob("Soil temperature (°C)             Air temperature (°C)", color = "black", rot = 90,size=20),
+                bottom = text_grob("Year", color = "black", size=20))
 dev.off()
 
