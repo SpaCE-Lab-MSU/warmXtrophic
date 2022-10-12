@@ -51,9 +51,15 @@ comp$year_factor[comp$year == 2019] <- 4
 comp$year_factor[comp$year == 2020] <- 5
 
 # calculating total composition sums - proxy for most common species
-comp_yearly_totals <- comp %>%
-        group_by(species, site) %>%
-        summarize(comp_sum = sum(cover, na.rm = T))
+comp$cover <- as.numeric(comp$cover)
+comp2 <- comp
+comp2 <- comp2[!comp2$species %in% c("Litter", "Vert_Litter","Animal_Disturbance","Bare_Ground"), ]
+comp_yearly_totals <- comp2 %>%
+        filter(year == 2021 & state == "ambient") %>%
+        group_by(site, species) %>%
+        summarize(comp_sum =sum(cover, na.rm = T)) %>%
+        arrange(site, desc(comp_sum))
+tab_df(comp_yearly_totals)
 
 # getting relative % cover for comparisons between native & exotic #
 # most code from Kileigh's old script
