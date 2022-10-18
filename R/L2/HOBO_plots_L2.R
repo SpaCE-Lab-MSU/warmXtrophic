@@ -188,7 +188,11 @@ Fig1_soil_line_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, gro
                            labels=c("Ambient","Warmed")) +
         labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5,18.5) +
-        theme_bw(14)
+        theme_bw(14) +
+        theme(legend.title=element_text(size=15), 
+              legend.text=element_text(size=14),
+              axis.text.x = element_text(size=13),
+              axis.text.y = element_text(size=13))
         
 
 Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
@@ -237,7 +241,11 @@ Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=tre
         theme_bw(14) +
         theme(axis.title.x=element_blank(),
               axis.text.x=element_blank()) +
-        theme(legend.position="none")
+        theme(legend.position="none") +
+        theme(plot.title = element_text(size = 17),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=14),
+              axis.text.y = element_text(size=13))
 
 ###### par data ######
 # old attempts at seeing how PAR and temp are correlated - not enough data to show a trend
@@ -633,7 +641,10 @@ Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, g
         ylim(14.5, 18.5) +
         theme_bw(14) +
         theme(axis.title.y=element_blank(),
-              axis.text.y=element_blank())
+              axis.text.y=element_blank()) +
+        theme(legend.title=element_text(size=15), 
+              legend.text=element_text(size=14),
+              axis.text.x = element_text(size=13))
 
 Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
@@ -682,7 +693,10 @@ Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=t
         theme(axis.title.x=element_blank(),
               axis.text.x=element_blank(),
               axis.title.y=element_blank(),
-              axis.text.y=element_blank())
+              axis.text.y=element_blank()) +
+        theme(plot.title = element_text(size = 17),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=14))
 
 
 ###### par data ######
@@ -871,7 +885,7 @@ Fig1.8 <- ggarrange(Fig1.5,Fig1.6,
                     nrow = 2, common.legend = F)
 png("HOBO_plots_L2_air_soil_line.png", units="in", width=10, height=8, res=300)
 annotate_figure(Fig1.8,
-                left = text_grob("Soil temperature (°C)             Air temperature (°C)", color = "black", rot = 90,size=20),
-                bottom = text_grob("Year", color = "black", size=20))
+                left = text_grob("Soil temperature (°C)             Air temperature (°C)", color = "black", rot = 90,size=18),
+                bottom = text_grob("Year", color = "black", size=18))
 dev.off()
 

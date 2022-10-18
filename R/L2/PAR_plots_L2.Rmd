@@ -106,6 +106,7 @@ KBS_line<-ggplot(KBS_gather, aes(x = year, y = average_par, group=full_treat, co
                               values = c("dotdash", "solid", "dotdash", "solid"),
                               labels=c("Ambient - Understory","Ambient - Overstory","Warmed - Understory", "Warmed - Overstory")) +
         labs(title="KBS",y=NULL, x=NULL) +
+        ylim(0,2000) +
         theme_bw(14)
 
 UMBS_gather$full_treat <- paste(UMBS_gather$state, UMBS_gather$par_location, sep="_")
@@ -120,13 +121,14 @@ UMBS_line<-ggplot(UMBS_gather, aes(x = year, y = average_par, group=full_treat, 
                               values = c("dotdash", "solid", "dotdash", "solid"),
                               labels=c("Ambient - Understory","Ambient - Overstory","Warmed - Understory", "Warmed - Overstory")) +
         labs(title="UMBS",y=NULL, x=NULL) +
+        ylim(0,2000) +
         theme_bw(14)
 
 line_comb <- ggarrange(KBS_line, UMBS_line, ncol = 2, common.legend = T, legend = "right")
 png("PAR_plots_L2_PAR_line.png", units="in", width=9, height=5, res=300)
 annotate_figure(line_comb,
-                left = text_grob("PAR", color = "black", rot = 90),
-                bottom = text_grob("Year", color = "black"))
+                left = text_grob("PAR", color = "black", rot = 90, size=17),
+                bottom = text_grob("Year", color = "black", size=17))
 dev.off()
 ```
 

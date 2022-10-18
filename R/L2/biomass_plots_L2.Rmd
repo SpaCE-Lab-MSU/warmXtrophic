@@ -80,10 +80,12 @@ kbs_bio <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = stat
         geom_bar(position = "identity", stat = "identity", col = "black") +
         geom_errorbar(aes(ymin = average_weight - se, ymax = average_weight + se), width = 0.2,
                       position = "identity") +
-        labs(title="KBS", y="", x="") +
+        labs(title="KBS", y=NULL, x=NULL) +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        scale_x_discrete(labels=c("ambient" = "", "warmed" = "")) +
-        theme_classic()
+        scale_x_discrete(labels=c("ambient" = NULL, "warmed" = NULL)) +
+        theme_bw(14) +
+        theme(plot.title = element_text(size=20),
+              axis.text.y = element_text(size=17))
 
 # plot level UMBS
 biomass_sum_u2 <- umbs_biomass_live %>%
@@ -98,17 +100,22 @@ umbs_bio <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = sta
         geom_bar(position = "identity", stat = "identity", col = "black") +
         geom_errorbar(aes(ymin = average_weight - se, ymax = average_weight + se), width = 0.2,
                       position = "identity") +
-        labs(title="UMBS", y="", x="")+
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        theme_classic()
+        labs(title="UMBS", y=NULL, x=NULL)+
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels=c("ambient"="Ambient","warmed"="Warmed")) +
+        theme_bw(14) +
+        theme(plot.title = element_text(size = 20),
+              axis.text.x = element_text(size=17),
+              axis.text.y = element_text(size=17)) +
+        scale_x_discrete(labels=c("ambient"="Ambient","warmed"="Warmed"))
 
 biomass_comb <- ggpubr::ggarrange(kbs_bio, umbs_bio,
                                      nrow = 2, common.legend = T, legend="none")
-#png("biomass_plots_L2_barplot.png", units="in", width=8, height=8, res=300)
+png("biomass_plots_L2_barplot.png", units="in", width=8, height=8, res=300)
 annotate_figure(biomass_comb,
-                left = text_grob("Plant Biomass (g)", color = "black", rot = 90),
-                bottom = text_grob("Treatment", color = "black"))
-#dev.off()
+                left = text_grob("Plant Biomass (g/0.2m^2)", color = "black", rot = 90, size=18),
+                bottom = text_grob("Treatment", color = "black", size=18))
+dev.off()
 
 ### Overall averages btwn treatments - boxplot
 # species level KBS

@@ -223,7 +223,14 @@ binom_plot_k <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = state, label = 
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         labs(y="Proportion eaten or not (%)", x=NULL,title="KBS", subtitle="A", fill=NULL) +
         theme_classic() +
-        theme(legend.position="none")
+        theme(legend.position="none") +
+        theme(plot.title = element_text(size = 17),
+              plot.subtitle = element_text(size=13),
+              axis.text.y = element_text(size=13),
+              axis.text.x=element_blank(),
+              axis.title.y=element_text(size=15),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=14))
 binom_plot_u <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = state, label = paste0(round(n, 2), "%"))) +
         geom_col(col="black",aes(alpha = p_eaten)) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
@@ -234,7 +241,14 @@ binom_plot_u <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = state, label = 
                            name = "Proportion") +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         labs(y=NULL, x=NULL, title="UMBS",subtitle="B", fill=NULL) +
-        theme_classic()
+        theme_classic() +
+        theme(plot.title = element_text(size = 17),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_blank(),
+              axis.text.y = element_blank(),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=14))
+        
 
 # amount eaten plot
 sum_herb_overall_k <- herb %>%
@@ -257,7 +271,11 @@ eaten_k <- ggplot(sum_herb_overall_k, aes(x = state, y = avg_eaten, fill = state
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         theme_classic() +
-        theme(legend.position="none")
+        theme(legend.position="none") +
+        theme(axis.text.y = element_text(size=13),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_text(size=13),
+              axis.title.y=element_text(size=15))
 eaten_u <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = state)) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
         geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
@@ -266,7 +284,10 @@ eaten_u <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = state
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         theme_classic() +
-        theme(legend.position="none")
+        theme(legend.position="none") +
+        theme(axis.text.y = element_text(size=13),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_text(size=13))
 
 # plotting binary response & amount eaten on same figure
 binary_overall <- ggarrange(binom_plot_k, binom_plot_u,
@@ -274,7 +295,7 @@ binary_overall <- ggarrange(binom_plot_k, binom_plot_u,
                             nrow = 2, ncol = 2, common.legend = T, legend="top")
 png("binary_combined_plot.png", units="in", width=8, height=8, res=300)
 annotate_figure(binary_overall,
-                bottom = text_grob("Treatment", color = "black"))
+                bottom = text_grob("Treatment", color = "black",size=15))
 dev.off()
 
 
