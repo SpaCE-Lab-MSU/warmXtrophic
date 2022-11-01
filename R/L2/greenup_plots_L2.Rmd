@@ -475,61 +475,69 @@ sum_green_plot2$year <- as.factor(sum_green_plot2$year)
 gr_line <- function(loc) { 
   gr_plot <- subset(sum_green_plot2, site == loc)
   return(ggplot(gr_plot, aes(x = year, y = avg_julian, group = state)) +
-                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), position=position_dodge(0.1), width=.25) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
            labs(x = NULL, y = "Green-up", title = loc, color="Treatment") +
+           ylim(80,195) +
            theme_bw(14))
 }
 gr_line_kbs <- gr_line("KBS")
 gr_line_kbs <- gr_line_kbs + theme(axis.text.x=element_blank())
 gr_line_umbs <- gr_line("UMBS")
-gr_line_umbs <- gr_line_umbs + labs(y=NULL) + theme(axis.text.x=element_blank())
+gr_line_umbs <- gr_line_umbs + labs(y=NULL) + theme(axis.text.x=element_blank(),
+                                                    axis.title.y=element_blank(),
+                                                    axis.text.y=element_blank())
 
 #flower
 sum_flwr_plot$year <- as.factor(sum_flwr_plot$year)
 flwr_line <- function(loc) { 
   flwr_plot <- subset(sum_flwr_plot, site == loc)
   return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group = state)) +
-                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), position=position_dodge(0.1), width=.25) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
            labs(x = NULL, y = "Flowering", title=loc, color="Treatment") +
+           ylim(165,220) +
            theme_bw(14))
 }
 flwr_line_kbs <- flwr_line("KBS")
 flwr_line_kbs <- flwr_line_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
 flwr_line_umbs <- flwr_line("UMBS")
-flwr_line_umbs <- flwr_line_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank())
+flwr_line_umbs <- flwr_line_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
+                                                                    axis.title.y=element_blank(),
+                                                                    axis.text.y=element_blank())
 
 #seed
 sum_sd_plot$year <- as.factor(sum_sd_plot$year)
 sd_line <- function(loc) { 
   sd_plot <- subset(sum_sd_plot, site == loc)
   return(ggplot(sd_plot, aes(x = year, y = avg_julian, group = state)) +
-                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), width=.1) +
+                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), position=position_dodge(0.1), width=.25) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"),labels=c("Ambient","Warmed")) +
            labs(x = NULL, y = "Seed set", title=loc, color="Treatment") +
+           ylim(175,250) +
            theme_bw(14))
 }
 sd_line_kbs <- sd_line("KBS")
 sd_line_kbs <- sd_line_kbs + labs(title=NULL)
 sd_line_umbs <- sd_line("UMBS")
-sd_line_umbs <- sd_line_umbs + labs(y=NULL, title=NULL)
+sd_line_umbs <- sd_line_umbs + labs(y=NULL, title=NULL) + theme(axis.title.y=element_blank(),
+                                                                axis.text.y=element_blank())
 
 phen_line <- ggpubr::ggarrange(gr_line_kbs, gr_line_umbs,
                           flwr_line_kbs, flwr_line_umbs,
                           sd_line_kbs, sd_line_umbs,
-                          nrow = 3, ncol = 2, common.legend = T, legend="right")
-#png("greenup_plots_L2_all_phenology_line.png", units="in", width=9, height=8, res=300)
+                          nrow = 3, ncol = 2, common.legend = T, legend="bottom")
+png("greenup_plots_L2_all_phenology_line.png", units="in", width=9, height=8, res=300)
 annotate_figure(phen_line,
                 left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
                 bottom = text_grob("Year", color = "black", size=15))
-#dev.off()
+dev.off()
 ```
 
 ## Combining greenup, flower, and seed into one figure - plot level

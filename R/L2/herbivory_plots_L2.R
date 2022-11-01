@@ -270,6 +270,7 @@ eaten_k <- ggplot(sum_herb_overall_k, aes(x = state, y = avg_eaten, fill = state
         labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(0,8) +
         theme_classic() +
         theme(legend.position="none") +
         theme(axis.text.y = element_text(size=13),
@@ -283,9 +284,10 @@ eaten_u <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = state
         labs(x = NULL, y = NULL, title=NULL, subtitle="D") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(0,8) +
         theme_classic() +
         theme(legend.position="none") +
-        theme(axis.text.y = element_text(size=13),
+        theme(axis.text.y = element_blank(),
               plot.subtitle = element_text(size=13),
               axis.text.x=element_text(size=13))
 

@@ -180,12 +180,13 @@ Fig1_soil_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, fill=tre
         theme_classic()
 
 Fig1_soil_line_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, group=treatment, color=treatment)) +
-        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
+        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), position=position_dodge(0.15),
+                      width=.3,color="black",linetype="solid") +
         geom_line(size = 1) +
         geom_point(size = 2) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
-                           labels=c("Ambient","Warmed")) +
+                           labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
         labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5,18.5) +
         theme_bw(14) +
@@ -227,7 +228,8 @@ Fig1_soil_kbs_dualy <- ggplot(KBS_soil_merged, aes(x=year, fill=treatment, shape
         theme_classic()
 
 Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=treatment, color = treatment, linetype=treatment)) +
-        geom_errorbar(aes(ymin=avg-se, ymax=avg+se), width=.1,color="black",linetype="solid") +
+        geom_errorbar(aes(ymin=avg-se, ymax=avg+se), position=position_dodge(0.15),
+                      width=.3,color="black",linetype="solid") +
         geom_line(size = 1) +
         geom_point(size = 2) +
         scale_color_manual(name="Treatment",
@@ -631,12 +633,13 @@ Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, fill=t
         theme_classic()
 
 Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, group=treatment, color=treatment)) +
-        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), width=.1,color="black",linetype="solid") +
+        geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), position=position_dodge(0.15),
+                      width=.3,color="black",linetype="solid") +
         geom_line(size = 1) +
         geom_point(size = 2) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
-                           labels=c("Ambient","Warmed")) +
+                           labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
         labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5, 18.5) +
         theme_bw(14) +
@@ -678,7 +681,8 @@ Fig1_soil_umbs_dualy <- ggplot(UMBS_soil_merged, aes(x=year, fill=treatment, sha
         theme_classic()
 
 Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=treatment, color = treatment, linetype=treatment)) +
-        geom_errorbar(aes(ymin=avg-se, ymax=avg+se), width=.1,color="black",linetype="solid") +
+        geom_errorbar(aes(ymin=avg-se, ymax=avg+se), position=position_dodge(0.15),
+                      width=.3,color="black",linetype="solid") +
         geom_line(size = 1) +
         geom_point(size = 2) +
         scale_color_manual(name="Treatment",
