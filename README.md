@@ -1,7 +1,9 @@
 # warmXtrophic
 
 PI: Phoebe Zarnetske
+
 Collaborators: Mark Hammond, Moriah Young, Kara Dobson
+
 Prior collaborators/technicians: Nina Lany, Kileigh Welshofer, Kathryn Schmidt, Amy Wrobleski 
 
 Funding: Michigan State University
