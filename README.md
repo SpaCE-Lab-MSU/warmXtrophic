@@ -1,13 +1,16 @@
 # warmXtrophic
 
 PI: Phoebe Zarnetske
-Collaborators/technicians: Mark Hammond, Nina Lany, Kileigh Welshofer, Moriah Young, Kara Dobson, Kathryn Schmidt 
+Collaborators: Mark Hammond, Moriah Young, Kara Dobson
+Prior collaborators/technicians: Nina Lany, Kileigh Welshofer, Kathryn Schmidt, Amy Wrobleski 
 
 Funding: Michigan State University
 
 This repository contains R scripts that organize, analyze, and plot data from the long term Warming X Trophic Interactions experiment at Kellogg Biological Station and University of Michigan Biological Station (UMBS).
 
-Data exists on the Google Shared Drive: SpaCE_Lab_warmXtrophic
+A manuscript is in preparation summarizing the data from 2015-2021, co-led by Kara Dobson and Moriah Young, coauthors: Phoebe Zarnetske, Mark Hammond.
+
+Data exists on the Google Shared Drive: SpaCE_Lab_warmXtrophic/data
 
 The experiment began in June 2015 and at each site includes the following treatments:
 
@@ -39,4 +42,4 @@ In 2017 we added C&N composition from plant leaves for a few species.
 Data workflow in SpaCE_Lab_warmXtrophic shared drive:
 ![Workflow Image](docs/data_workflow.jpg)
 
-![DEI Workflow Image](docs/EDI_harmonization_procedure_general.png)
+![EDI Workflow Image](docs/EDI_harmonization_procedure_general.png)
