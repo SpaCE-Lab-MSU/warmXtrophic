@@ -1,6 +1,6 @@
 ---
 title: "Plant Comp Plots"
-author: "Kara Dobson, Moriah"
+author: "Kara Dobson, Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
@@ -55,6 +55,7 @@ comp <- comp[!(comp$species=="Bare_Ground" |
                        comp$species=="Animal_Disturbance"), ]
 #comp <- na.omit(comp)
 ```
+
 ```{r}
 # subset out a date in August (one in late July) for each site to look at biomass w/o repeating measurements
 comp_peak <- subset(comp, date == "2015-08-25" | date == "2015-07-28" | # first date is kbs, second is umbs
@@ -65,12 +66,93 @@ comp_peak <- subset(comp, date == "2015-08-25" | date == "2015-07-28" | # first 
                       date == "2020-08-15" | date == "2020-08-04")
 
 # filter data to contain the averages and std error for each site
-comp_peak$species[comp_peak$species == "Litter"] <- NA
-comp_peak$species[comp_peak$species == "Vert_Litter"] <- NA
+comp_peak$cover <- as.numeric(comp_peak$cover)
 sum_comp_site <- comp_peak %>%
   group_by(site, state, year) %>%
   summarize(avg_cover = mean(cover, na.rm = TRUE),
             se = std.error(cover, na.rm = TRUE))
+
+# filter by origin - native or exotic
+comp_peak_origin <- comp_peak
+comp_peak_origin$origin[comp_peak_origin$origin == "Both"] <- NA
+comp_peak_origin$origin[comp_peak_origin$origin == ""] <- NA
+comp_peak_origin <- na.omit(comp_peak_origin)
+sum_comp_site_origin <- comp_peak_origin %>%
+  group_by(site, state, year, origin) %>%
+  summarize(avg_cover = mean(cover, na.rm = TRUE),
+            se = std.error(cover, na.rm = TRUE))
+
+# filter by growth habit
+comp_peak_growth <- comp_peak
+comp_peak_growth$growth_habit[comp_peak_growth$growth_habit == "Vine"] <- NA
+comp_peak_growth$growth_habit[comp_peak_growth$growth_habit == "Shrub"] <- NA
+comp_peak_growth$growth_habit[comp_peak_growth$growth_habit == "Tree"] <- NA
+comp_peak_growth$growth_habit[comp_peak_growth$growth_habit == ""] <- NA
+comp_peak_growth <- na.omit(comp_peak_growth)
+sum_comp_site_growth <- comp_peak_growth %>%
+  group_by(site, state, year, growth_habit) %>%
+  summarize(avg_cover = mean(cover, na.rm = TRUE),
+            se = std.error(cover, na.rm = TRUE))
+
+```
+
+```{r}
+comp_peak1 <- comp_peak
+comp_peak1$cover <- as.numeric(as.character(comp_peak1$cover))
+# calculate plot cover total by species-plot per year - this gives the total cover of a species in a plot for each year
+total_comp_plot <- comp_peak1 %>%
+  group_by(site, year_factor, year, plot, state, insecticide, treatment_key) %>%
+  summarize(total_cover = sum(cover, na.rm = TRUE))
+
+comp_peak2 <- merge(total_comp_plot, comp_peak1, by = c("plot","year_factor", "year", "site", "state", "insecticide", "treatment_key"))
+
+#calculate relative percent cover per species in each plot (="relative abundance")
+comp_peak2$relabun <- (comp_peak2$cover/comp_peak2$total_cover)*100
+
+#ORIGIN
+comp_origin <- comp_peak2 %>% 
+        group_by(site, year_factor, year, plot, state, insecticide, treatment_key, origin) %>%
+  summarize(relabun_sum = sum(relabun, na.rm = TRUE))
+comp_origin$origin[comp_origin$origin == "Both"] <- NA
+comp_origin$origin[comp_origin$origin == ""] <- NA
+comp_origin <- na.omit(comp_origin)
+
+comp_origin_plot <- comp_origin %>% 
+        group_by(site, year_factor, year, state, insecticide, treatment_key, origin) %>%
+  summarize(relabun_mean = mean(relabun_sum, na.rm = TRUE),
+se = std.error(relabun_sum, na.rm = TRUE))
+
+#GROWTH
+comp_growth <- comp_peak2 %>% 
+        group_by(site, year_factor, year, plot, state, insecticide, treatment_key, growth_habit) %>%
+  summarize(relabun_sum = sum(relabun, na.rm = TRUE))
+comp_growth$growth_habit[comp_growth$growth_habit == "Vine"] <- NA
+comp_growth$growth_habit[comp_growth$growth_habit == "Shrub"] <- NA
+comp_growth$growth_habit[comp_growth$growth_habit == "Tree"] <- NA
+comp_growth$growth_habit[comp_growth$growth_habit == ""] <- NA
+comp_growth <- na.omit(comp_growth)
+
+comp_growth_plot <- comp_growth %>% 
+        group_by(site, year_factor, year, state, insecticide, treatment_key, growth_habit) %>%
+  summarize(relabun_mean = mean(relabun_sum, na.rm = TRUE),
+se = std.error(relabun_sum, na.rm = TRUE))
+```
+
+```{r}
+comp_origin_plot_graph <- function(loc) { 
+  comp_origin_plot <- subset(comp_origin_plot, site == loc)
+  return(ggplot(comp_origin_plot, aes(x = origin, y = relabun_mean, fill = treatment_key)) +
+           facet_grid(.~year) +
+           geom_bar(position = "dodge", stat = "identity", color = "black") +
+           geom_errorbar(aes(ymin = relabun_mean - se, ymax = relabun_mean + se), width = 0.2,
+                         position = position_dodge(0.9)) +
+           labs(x = "State", y = "Relative Abundance", title = loc) +
+           #scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           #scale_x_discrete(labels=c("Exotic" = "E", "Native" = "N")) +
+           theme_classic())
+}
+comp_origin_plot_graph("kbs")
+comp_origin_plot_graph("umbs")
 ```
 
 

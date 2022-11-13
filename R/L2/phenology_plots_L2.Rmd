@@ -34,21 +34,19 @@ L2_dir <- Sys.getenv("L2DIR")
 # Read in data 
 # cleaned phenology data from L1
 phen_data <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
-phen_data <- phen_data %>% 
-        select(-X) # get rid of "X" column that shows up
-View(phen_data) # take a look at the data to see if looks good
 
 # Read in data
 flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv"))
 flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
-
 sd_species <- read.csv(file.path(L2_dir, "phenology/final_sd_species_L2.csv"))
 sd_plot <- read.csv(file.path(L2_dir, "phenology/final_sd_plot_L2.csv"))
 
-
-# remove unneeded X column
-flwr_species$X <- NULL # get rid of "X" column that shows up
-flwr_plot$X <- NULL # get rid of "X" column that shows up
+# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
+flwr_species <- flwr_species[-which(flwr_species$year == "2021" & flwr_species$site == "umbs"),]
+flwr_plot <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
+sd_species <- sd_species[-which(sd_species$year == "2021" & sd_species$site == "umbs"),]
+sd_plot <- sd_plot[-which(sd_plot$year == "2021" & sd_plot$site == "umbs"),]
 
 # Set ggplot2 plotting
 # This code for ggplot2 sets the theme to mostly black and white 
@@ -69,6 +67,13 @@ sum_firstflwr_site <- flwr_species %>%
   group_by(site, state, year) %>%
   summarize(avg_julian = mean(julian_min, na.rm = TRUE),
             se = std.error(julian_min, na.rm = TRUE))
+
+# trying to add empty values for 2021 to umbs so the x-axis matches the other plots
+sum_firstflwr_site2 <- sum_firstflwr_site
+de<-data.frame("umbs", NA, "2021", NA, NA)
+names(de)<-c("site","state", "year", "avg_julian", "se")
+de$year <- as.integer(de$year)
+sum_firstflwr_site <- rbind(sum_firstflwr_site2, de)
 
 # Native vs Exotic
 sum_firstflwr_org <- flwr_species %>%
@@ -98,6 +103,34 @@ sum_firstsd_site <- sd_species %>%
 ```
 
 # Plots to Visualize Flowering
+```{r}
+flwr_line <- function(loc) { 
+  flwr_plot <- subset(sum_firstflwr_site, site == loc)
+  return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group = state)) +
+                 geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), position=position_dodge(0.1), width=.25) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Julian Date of First Flower", title=loc, color="Treatment") +
+           ylim(150,205))
+}
+
+flwr_line_kbs <- flwr_line("kbs")
+flwr_line_kbs <- flwr_line_kbs + labs(title="KBS", y=NULL) + theme(axis.text.x=element_blank())
+flwr_line_umbs <- flwr_line("umbs")
+flwr_line_umbs <- flwr_line_umbs + labs(title="UMBS", y=NULL)
+
+flwr_line <- ggpubr::ggarrange(flwr_line_kbs, flwr_line_umbs,
+                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
+png("firstflwr_plots_L2.png", units="in", width=9, height=8, res=300)
+annotate_figure(flwr_line,
+                left = text_grob("Julian data of first flower", color = "black", rot = 90, size=15),
+                bottom = text_grob("Year", color = "black", size=15))
+dev.off()
+```
+
+
+Old code below
 ## Given species and site and for every year plot
 ```{r, echo = FALSE, warning=FALSE, message=FALSE}
 FirstFlwr_plot <- function(spp, loc) { 

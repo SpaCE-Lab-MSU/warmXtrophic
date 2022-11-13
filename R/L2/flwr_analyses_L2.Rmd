@@ -371,7 +371,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 
 # KBS PLOT LEVEL - Looking at MEDIAN JULIAN DAY
 ```{r, warning=F}
-### UMBS ###
+### KBS ###
 hist(kbs_flwr_plot$julian_median)
 qqnorm(kbs_flwr_plot$julian_median)
 shapiro.test(kbs_flwr_plot$julian_median) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
@@ -811,21 +811,22 @@ anova(mod7a)
 # Phoebe
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
-mod1p <- lmer(log(julian_median) ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod2p <- lmer(log(julian_median) ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod3p <- lmer(log(julian_median) ~ insecticide + state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod4p <- lmer(log(julian_median) ~ insecticide * state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod5p <- lmer(log(julian_median) ~ state + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod6p <- lmer(log(julian_median) ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod7p <- lmer(log(julian_median) ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod8p <- lmer(log(julian_median) ~ state * year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod9p <- lmer(log(julian_median) ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod10p <- lmer(log(julian_median) ~ state + insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod11p <- lmer(log(julian_median) ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod1p <- lmer(julian_median ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod2p <- lmer(julian_median ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod3p <- lmer(julian_median ~ insecticide + state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod4p <- lmer(julian_median ~ insecticide * state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod5p <- lmer(julian_median ~ state + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod6p <- lmer(julian_median ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod7p <- lmer(julian_median ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod8p <- lmer(julian_median ~ state * year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod9p <- lmer(julian_median ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod10p <- lmer(julian_median ~ state + insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod11p <- lmer(julian_median ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
-anova(mod5p, mod7p) # go with simpler model 5p
-AICctab(mod5p, mod7p, weights=T)
+anova(mod5p, mod10p) # go with simpler model 5p
+AICctab(mod5p, mod10p, weights=T)
 summ(mod5p)
+anova(mod5p)
 summary(mod5p)
 emmeans(mod5p, list(pairwise ~ state+year_factor), adjust = "tukey")
 
@@ -1004,10 +1005,12 @@ mod10pk <- lmer(log(julian_median) ~ state + insecticide * year_factor + (1|plot
 mod11pk <- lmer(log(julian_median) ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
 AICctab(mod1pk, mod2pk, mod3pk, mod4pk, mod5pk, mod6pk, mod7pk, mod8pk, mod9pk, mod10pk, mod11pk, weights=T)
 anova(mod5pk, mod7pk) # go with more complex model mod7pk
+anova(mod8pk, mod7pk)
 AICctab(mod5pk, mod7pk, weights=T)
-summ(mod5pk)
-summary(mod5pk)
-emmeans(mod5pk, list(pairwise ~ state+year_factor), adjust = "tukey")
+AICctab(mod8pk, mod7pk, weights=T)
+summ(mod7pk)
+summary(mod7pk)
+emmeans(mod7pk, list(pairwise ~ state*year_factor), adjust = "tukey")
 
 # including native vs. exotic
 kbs_flwr_plot_origin <- within(kbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference

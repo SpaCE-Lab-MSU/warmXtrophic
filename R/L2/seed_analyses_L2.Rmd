@@ -69,6 +69,10 @@ sd_plot_growthhabit$X <- NULL
 sd_species$julian_min <- as.numeric(as.integer(sd_species$julian_min))
 sd_plot$julian_min <- as.numeric(as.integer(sd_plot$julian_min))
 
+# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
+sd_plot <- sd_plot[-which(sd_plot$year == "2021" & sd_plot$site == "umbs"),]
+
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 sd_species$state <- as.factor(sd_species$state)
 levels(sd_species$state)
@@ -803,10 +807,10 @@ mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kb
 mod10p <- lmer(log(julian_min) ~ state + insecticide * year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
 mod11p <- lmer(log(julian_min) ~ state * year_factor * insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 11p and 10p the same
-anova(mod5p, mod6p) #6p just barely better, going with 5p because it's simpler though
-summary(mod5p)
-anova(mod5p)
-emmeans(mod5p, list(pairwise ~ state+year_factor), adjust = "tukey")
+anova(mod7p, mod8p) #6p just barely better, going with 5p because it's simpler though
+summary(mod7p)
+anova(mod7p)
+emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
 
 # including native vs. exotic
 kbs_sd_plot_origin <- within(kbs_sd_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
@@ -980,7 +984,7 @@ mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_s
 mod10pu <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), umbs_sd_plot, REML=FALSE)
 mod11pu <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_sd_plot, REML=FALSE)
 AICctab(mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T) # model 11p and 10p the same
-anova(mod5pu, mod6pu) #5pu just barely better, going with 5pu because it's simpler though
+anova(mod5pu, mod6pu) #go with mod5pu
 summary(mod5pu)
 anova(mod5pu)
 emmeans(mod5pu, list(pairwise ~ state+year_factor), adjust = "tukey")

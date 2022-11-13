@@ -1,0 +1,260 @@
+---
+title: "warmXtrophic Project: Flowering First Date of Flower Analyses"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+Load in packages & data
+```{r, message = F}
+rm(list=ls()) # clear all existing data
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(vegan)
+library(car)
+library(rstatix)
+library(scales)
+library(fitdistrplus)
+library(moments)# for calculating skewness of data
+library(ggpubr)
+library(jtools) # summ() function
+library(predictmeans)
+library(olsrr)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(GGally) # ggpairs() function
+library(bbmle) # AICtab() function
+
+# Set working directory
+Sys.getenv("L1DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+
+# Read in data
+flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
+
+```
+
+```{r}
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+flwr_plot$state <- as.factor(flwr_plot$state)
+levels(flwr_plot$state)
+# [1] "ambient" "warmed" 
+flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
+levels(flwr_plot$state)
+# [1] "warmed"  "ambient"
+
+str(flwr_plot)
+
+# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
+flwr_plot <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
+
+umbs_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
+kbs_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
+```
+
+KBS Plot Level
+```{r}
+### KBS ###
+hist(kbs_plot$julian_min)
+qqnorm(kbs_plot$julian_min)
+shapiro.test(kbs_plot$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) but it looks normal enough
+
+# Visualizing median Julian date for kbs at the PLOT LEVEL
+ggplot(kbs_plot, aes(julian_min, fill = plot)) + 
+        geom_histogram(binwidth = 0.5) + 
+        facet_grid(year ~ site, margins = TRUE, scales = "free")
+
+ggplot(kbs_plot, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
+        facet_grid(state~year, margins = TRUE, scales = "free")
+
+ggplot(kbs_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1)
+
+ggplot(kbs_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year)
+
+ggplot(kbs_plot, aes(julian_min, fill = plot, color=plot)) +
+        geom_density(alpha = 0.1) +
+        facet_wrap(~year + plot)
+
+# Exploring distributions for these right-skewed data:
+descdist(kbs_plot$julian_min, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_plot$julian_min, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_plot$julian_min, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_plot$julian_min, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# log normal best fit but data looks pretty normal so sticking with that
+```
+
+Leverage plots and detecting Outliers
+```{r}
+# Plot level data
+# KBS State-only model
+fit_plot_state_kbs <- lm(julian_min ~ state, data = kbs_plot)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
+
+# KBS State and year model
+fit_plot_stateyear_kbs <- lm(julian_min ~ state + year_factor, data = kbs_plot)
+outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
+qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs$residuals)
+leveragePlots(fit_plot_stateyear_kbs)
+ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal 
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(julian_min ~ state * year_factor, data = kbs_plot)
+interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+```
+
+Mixed Effects Model
+```{r}
+# KBS PLOT LEVEL - Looking at FIRST date of flowering
+mod1 <- lmer(julian_min ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_plot, REML = FALSE)
+ggplot(kbs_plot,aes(x=plot,y=julian_min)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(mod1) # the ones in the data are making this look weird - idk this doesn't look great
+# Homogeneity of variance looks weird here 
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(mod1) ~ kbs_plot$state)
+# Assumption not met
+leveneTest(residuals(mod1) ~ kbs_plot$insecticide) 
+# Assumption not met
+leveneTest(residuals(mod1) ~ kbs_plot$plot)
+# Assumption not met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
+outlierTest(mod1) # no outliers
+```
+
+```{r}
+mod1p <- lmer(julian_min ~ state + (1|plot), kbs_plot, REML=FALSE)
+mod2p <- lmer(julian_min ~ insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod3p <- lmer(julian_min ~ insecticide + state + (1|plot), kbs_plot, REML=FALSE)
+mod4p <- lmer(julian_min ~ insecticide * state + (1|plot), kbs_plot, REML=FALSE)
+mod5p <- lmer(julian_min ~ state + year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod6p <- lmer(julian_min ~ state + year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod7p <- lmer(julian_min ~ state * year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod8p <- lmer(julian_min ~ state * year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod9p <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod10p <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod11p <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), kbs_plot, REML=FALSE)
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
+anova(mod7p, mod8p) # go with 5p although they are nearly identical
+AICctab(mod7p, mod8p, weights=T)
+summ(mod7p)
+anova(mod7p)
+summary(mod7p)
+emmeans(mod7p, list(pairwise ~ state + year_factor), adjust = "tukey")
+```
+
+UMBS plot level
+```{r}
+### UMBS ###
+hist(umbs_plot$julian_min)
+qqnorm(umbs_plot$julian_min)
+shapiro.test(umbs_plot$julian_min) # pvalue is > 0.05 so we fail to reject the null hypothesis that the data is normal (aka normally distributed!!)
+
+```
+
+Leverage plots and detecting Outliers
+```{r}
+# Plot level data
+# KBS State-only model
+fit_plot_state_umbs <- lm(julian_min ~ state, data = umbs_plot)
+outlierTest(fit_plot_state_umbs) # no outliers
+qqPlot(fit_plot_state_umbs, main="QQ Plot") 
+hist(fit_plot_state_umbs$residuals)
+leveragePlots(fit_plot_state_umbs)
+ols_test_normality(fit_plot_state_umbs) # looks ok besides Kolmogorov-Smirnov test
+
+# KBS State and year model
+fit_plot_stateyear_umbs <- lm(julian_min ~ state + year_factor, data = umbs_plot)
+outlierTest(fit_plot_stateyear_umbs) 
+qqPlot(fit_plot_stateyear_umbs, main="QQ Plot") 
+hist(fit_plot_stateyear_umbs$residuals)
+leveragePlots(fit_plot_stateyear_umbs)
+ols_test_normality(fit_plot_stateyear_umbs) # a couple tests say not normal 
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(julian_min ~ state * year_factor, data = umbs_plot)
+interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+```
+
+```{r}
+mod1p <- lmer(julian_min ~ state + (1|plot), umbs_plot, REML=FALSE)
+mod2p <- lmer(julian_min ~ insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod3p <- lmer(julian_min ~ insecticide + state + (1|plot), umbs_plot, REML=FALSE)
+mod4p <- lmer(julian_min ~ insecticide * state + (1|plot), umbs_plot, REML=FALSE)
+mod5p <- lmer(julian_min ~ state + year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod6p <- lmer(julian_min ~ state + year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod7p <- lmer(julian_min ~ state * year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod8p <- lmer(julian_min ~ state * year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod9p <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod10p <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod11p <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_plot, REML=FALSE)
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
+anova(mod10p, mod6p) # go with 10p
+AICctab(mod10p, mod6p, weights=T)
+summ(mod10p)
+summary(mod10p)
+anova(mod10p)
+emmeans(mod10p, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod10p, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
+```

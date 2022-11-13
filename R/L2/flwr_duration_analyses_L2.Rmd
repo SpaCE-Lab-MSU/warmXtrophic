@@ -90,6 +90,10 @@ flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
 flwr_plot_origin$flwr_duration <- as.numeric(as.character(flwr_plot_origin$flwr_duration))
 flwr_plot_growthhabit$flwr_duration <- as.numeric(as.character(flwr_plot_growthhabit$flwr_duration))
 
+# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
+flwr_plot <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
+
 # Kara's edits:
 # adding 1 to each occurrence in the flwr_duration column so everything is scaled up the same & removes 0's
 flwr_plot$flwr_duration_scaled <- flwr_plot$flwr_duration+1
@@ -564,15 +568,15 @@ interact_plot(fit4, pred = year_factor, modx = state, mod2 = species)
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(log(flwr_duration_scaled) ~ state, data = kbs_flwr_plot)
-outlierTest(fit_plot_state_kbs) # outliers - 142, 155, 220, 116, 207, 272
+fit_plot_state_kbs <- lm(flwr_duration_scaled ~ state, data = kbs_flwr_plot)
+outlierTest(fit_plot_state_kbs) # no outliers
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
 leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(log(flwr_duration_scaled) ~ state + year_factor, data = kbs_flwr_plot)
+fit_plot_stateyear_kbs <- lm(flwr_duration_scaled ~ state + year_factor, data = kbs_flwr_plot)
 outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
@@ -912,23 +916,24 @@ anova(mod7a)
 
 # KBS Plot-level Mixed Effects Models:
 ```{r, error=TRUE}
-mod1p <- lmer(log(flwr_duration_scaled) ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod2p <- lmer(log(flwr_duration_scaled) ~ insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod3p <- lmer(log(flwr_duration_scaled) ~ insecticide + state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod4p <- lmer(log(flwr_duration_scaled) ~ insecticide * state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod5p <- lmer(log(flwr_duration_scaled) ~ state + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod6p <- lmer(log(flwr_duration_scaled) ~ state + year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod7p <- lmer(log(flwr_duration_scaled) ~ state * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod8p <- lmer(log(flwr_duration_scaled) ~ state * year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod9p <- lmer(log(flwr_duration_scaled) ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod10p <- lmer(log(flwr_duration_scaled) ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod11p <- lmer(log(flwr_duration_scaled) ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod1p <- lmer(flwr_duration_scaled ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod2p <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod3p <- lmer(flwr_duration_scaled ~ insecticide + state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod4p <- lmer(flwr_duration_scaled ~ insecticide * state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod5p <- lmer(flwr_duration_scaled ~ state + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod6p <- lmer(flwr_duration_scaled ~ state + year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod7p <- lmer(flwr_duration_scaled ~ state * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod8p <- lmer(flwr_duration_scaled ~ state * year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod10p <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod11p <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
-anova(mod5p, mod7p) # go with 5p although they are nearly identical
-AICctab(mod5p, mod7p, weights=T)
-summ(mod5p)
+anova(mod1p, mod2p) # go with 5p although they are nearly identical
+AICctab(mod1p, mod2p, weights=T)
+summ(mod1p)
+anova(mod1p)
 summary(mod5p)
-emmeans(mod5p, list(pairwise ~ state), adjust = "tukey")
+emmeans(mod5p, list(pairwise ~ state + year_factor), adjust = "tukey")
 
 # including native vs. exotic
 kbs_flwr_plot_origin <- within(kbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
@@ -1138,23 +1143,23 @@ emmeans(mod12u, list(pairwise ~ state ), adjust = "tukey")
 
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
-mod1up <- lmer(log(flwr_duration_scaled) ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod2up <- lmer(log(flwr_duration_scaled) ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod3up <- lmer(log(flwr_duration_scaled) ~ insecticide + state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod4up <- lmer(log(flwr_duration_scaled) ~ insecticide * state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod5up <- lmer(log(flwr_duration_scaled) ~ state + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod6up <- lmer(log(flwr_duration_scaled) ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod7up <- lmer(log(flwr_duration_scaled) ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod8up <- lmer(log(flwr_duration_scaled) ~ state * year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod9up <- lmer(log(flwr_duration_scaled) ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod10up <- lmer(log(flwr_duration_scaled) ~ state + insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod11up <- lmer(log(flwr_duration_scaled) ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod1up <- lmer(flwr_duration_scaled ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod2up <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod3up <- lmer(flwr_duration_scaled ~ insecticide + state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod4up <- lmer(flwr_duration_scaled ~ insecticide * state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod5up <- lmer(flwr_duration_scaled ~ state + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod6up <- lmer(flwr_duration_scaled ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod7up <- lmer(flwr_duration_scaled ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod8up <- lmer(flwr_duration_scaled ~ state * year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod9up <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod10up <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod11up <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
 AICctab(mod1up, mod2up, mod3up, mod4up, mod5up, mod6up, mod7up, mod8up, mod9up, mod10up, mod11up, weights=T)
-anova(mod5up, mod6up) # go with simpler model 5up
-AICctab(mod5up, mod6up, weights=T)
-summ(mod5up)
-summary(mod5up)
-emmeans(mod5up, list(pairwise ~ state), adjust = "tukey")
+anova(mod1up, mod2up) # go with simpler model 1up
+AICctab(mod2up, mod1up, weights=T)
+summ(mod1up)
+summary(mod1up)
+emmeans(mod1up, list(pairwise ~ state), adjust = "tukey")
 
 # including native vs. exotic
 umbs_flwr_plot_origin <- within(umbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
