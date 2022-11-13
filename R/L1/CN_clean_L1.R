@@ -16,10 +16,6 @@
 # Clear all existing data
 rm(list=ls())
 
-#Load packages
-library(tidyverse)
-library(janitor)
-
 # Set working directory
 L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
@@ -52,7 +48,14 @@ CN_csvdata_initial_prep <- function(cn_data){
 # SOCA - 3 different plates ran in the combustion analysis instrument for this species
 # No "meta" data file existed for the 2017 data - Mark essentially cleaned this data in excel and the result of that cleaning
 # are the files being uploaded below
-# These are in TRIPLICATES (we decided to do singlets for years after 2017)
+# These are in TRIPLICATES meaning that each row has a "subsample_number" (1,2,3) associated with
+# subsample (or replicate) from an aliquot of "pooled" ground leaf sample from one plant. 
+# in 2017, per plant, we harvested 3-5 leaves.  We dried the leaves.  We pooled the leaves together from that one single plant 
+# and then we ground that leaf material into a pool.  We then pulled aliquots of ground tissue from that pool and weighed 
+# and packed the tins.  If we assume the pool is homogeneous and if there is no bias or error with instrumentation, then we 
+# would expect the variation across subsamples within the same plant to be very low. We assessed this and found very little error
+# associated with the within-sample.
+# We decided to do singlets for years after 2017.
 # SOCA
 cn17k_soca_1 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate1_2017.csv"))
 cn17k_soca_2 <- read.csv(file.path(L0_dir, "./KBS/2017/kbs_CN_Solidago_plate2_2017.csv"))

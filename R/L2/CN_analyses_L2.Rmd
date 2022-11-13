@@ -1,6 +1,6 @@
 ---
 title: "warmXtrophic Project: CN Analyses"
-author: "Kara Dobson"
+author: "Phoebe Zarnetske, Kara Dobson"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
@@ -25,150 +25,202 @@ library(fitdistrplus)
 # Set working directory
 L1_dir<-Sys.getenv("L1DIR")
 
+# Above .Renviron not working for PLZ; hard-coding in here
+L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L0"
+L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1"
+L2_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L2"
+
 # Read in data
 cn <- read.csv(file.path(L1_dir, "CN/CN_L1.csv"))
-
+# Re-order "state" so gg plotting colors works better for blue=ambient; red=warmed
+cn$state <- factor(cn$state,levels=c("warmed","ambient"))
+cn <- cn %>%
+  rename(treatment = state)
 # check species in dataframe
-with(cn,table(cn$site,cn$species)) # keep sites in same dataframe for now bc unique spp at each site
+with(cn,table(cn$site,cn$species)) 
+with(cn,table(cn$year,cn$species, cn$site))
+# Subsamples only occur in 2017; after that we did not use multiple replicate subsamples from 1 plant
+with(cn,table(cn$subsample_number,cn$species, cn$year))
+# keep sites in same dataframe for now bc unique spp at each site
 
-# removing NAs - two rows have NAs for both N and C, so this takes care of both
-cn <- cn[!is.na(cn$carbon), ]
 ```
 
-# Data exploration: Carbon
+# 2017 within plot and within-plant C & N variation analysis
+
+(This section modified from code initiated by Nina Lany). In July 2017, Elizabeth Postema, an REU at KBS, analyzed the nitrogen content of *Achillea millefolium* foliage as part of a bioassay quantifying slug growth on leaves grown in warmed quadrats vs. ambient control quadrats. 
+She collected the youngest 4 to 5 fully expanded leaves on each of five individual yarrow plants per quadrat (plot). 
+Each leaf was placed in its own glassine envelope. 
+The leaves were then dried. If the species had a dominant mid-rib and easily removable, the mid-rib was removed. 
+We made the decision to pool the 4 to 5 dried leaves together, grind them, and then weigh out 2-3 replicates from the pooled tissue for each plant. 
+
+We then also collected *Solidago canadensis* leaves from KBS for warmed vs. ambient control plots and repeated the above process. For *Centaurea stoebe* at UMBS we collected basal and stem leaves per plant (one of each). 
+
+Below is the statistical analysis to pull out the sources of variation (due to the warming treatment, among individual plants within quadrats, and among individual leaves within a plant) to make informed decisions for sampling during summer 2018 and subsequent years.
+We focused on the nitrogen content (%N drymass) of leaves rather than the C:N ratio because this has been shown to be most relevant for nitrogen-limited folivores.
+
+# How much variation can be attributed to differences among leaves on an individual plant, individuals in a quadrat, and the warming treatment? 
 ```{r}
-descdist(cn$carbon, discrete = FALSE)
-hist(cn$carbon)
-qqnorm(cn$carbon)
-shapiro.test(cn$carbon)
+# Subset to 2017, species
+cn17<-cn %>% filter(year == 2017)
+cn17$plant_id <- paste(cn17$plot, cn17$plant_number, sep = "_")
+cn17_soca<-cn17 %>% filter(species == "Soca")
+cn17_cest<-cn17 %>% filter(species == "Cest")
+cn17_acmi<-cn17 %>% filter(species == "Acmi")
+#aggregate to mean and sd %N (and mean %C) of the (typically) two leaves per plant
+cn17N <- cn17 %>%
+    group_by(plot, site, species, treatment, insecticide) %>%
+    summarize(mean_N = mean(nitrogen),sd_N = sd(nitrogen)) 
 
-# looking at each species separately
-hist(cn$carbon[cn$species == "Soca"])
-hist(cn$carbon[cn$species == "Cest"])
-hist(cn$carbon[cn$species == "Popr"]) # skewness looks species specific
+cn17C <- cn17 %>%
+    group_by(plot, site, species, treatment, insecticide) %>%
+    summarize(mean_C = mean(carbon),sd_C = sd(carbon)) 
 
-# logistic distribution?
-c.fit.logis <- fitdist(cn$carbon, "logis")
-plot(c.fit.logis)
+cn17msd<-merge(cn17C,cn17N)
+```
+As a first pass, ignoring the nested structure of the data, we can `eyeball' that there was a lot of variability but perhaps a small difference in the means of the warmed vs. ambient treatments per species.
 
-# normal distribution?
-c.fit.norm <- fitdist(cn$carbon, "norm")
-plot(c.fit.norm)
+```{r,fig.height = 4, fig.width=4, echo=FALSE}
+p<-ggplot(cn17, aes(x=species, y=nitrogen, fill=treatment)) +
+  geom_boxplot(position=position_dodge(1))
+p
+```
+We run a mixed-effects ANOVA model with 'state' as fixed effect and 'species', 'plot' and 'plant_number' as random intercepts to quantify the variation attributable to each source. 
+Residuals did not indicate non-normality and the data were not transformed.
 
-par(mfrow=c(2,2))
-plot.legend <- c("Logistic", "Normal")
-denscomp(list(c.fit.logis, c.fit.norm), legendtext = plot.legend)
-cdfcomp (list(c.fit.logis, c.fit.norm), legendtext = plot.legend)
-qqcomp  (list(c.fit.logis, c.fit.norm), legendtext = plot.legend)
-ppcomp  (list(c.fit.logis, c.fit.norm), legendtext = plot.legend)
-gofstat(list(c.fit.logis, c.fit.norm), fitnames = c("Logistic", "Normal"))
-# Normal looks best
+#Soca
+```{r, message=FALSE}
+library(lme4)
+n.soca.m1 <- lmer(nitrogen ~ treatment + (1|plot) + (1|plant_id), data = cn17_soca)
+summary(n.soca.m1)
+plot(n.soca.m1)
 ```
 
-# Data exploration: Nitrogen
+The analysis indicates that variation attributable to differences in the means of the two treatment groups was highest (0.12 %), followed by variation due to replicate runs of the pooled tissue from individual plants (0.05 %), followed by variation among individuals within a quadrat (0.04 %). This implies that variation among plots should be high. The figure below shows that variation in the mean %N among the 12 plots in the dataset was high.
+
+```{r,fig.height = 4, fig.width=4, echo=FALSE}
+p<-ggplot(cn17_soca, aes(x=treatment, y=nitrogen, fill=treatment)) +
+  geom_violin() +
+  ggtitle("Solidago canadensis") +
+  xlab("Treatment") + ylab("% Foliar Nitrogen") 
+p
+```
+
+#Cest
+```{r, message=FALSE}
+library(lme4)
+n.cest.m1 <- lmer(nitrogen ~ treatment + (1|plot) + (1|plant_id), data = cn17_cest)
+summary(n.cest.m1)
+plot(n.cest.m1)
+```
+
+The analysis indicates that variation attributable to differences in the means of the two treatment groups was highest (0.04 %), followed by variation among individuals within a quadrat (0.035 %), followed by variation due to replicate runs of the pooled tissue from individual plants (>0.0001 %). This implies that variation among plots should be high. The figure below shows that variation in the mean %N among the 11 plots in the dataset was high.
+
+```{r,fig.height = 4, fig.width=4, echo=FALSE}
+p<-ggplot(cn17_cest, aes(x=treatment, y=nitrogen, fill=treatment)) +
+  geom_violin() +
+  ggtitle("Centaurea stoebe") +
+  xlab("Treatment") + ylab("% Foliar Nitrogen") 
+p
+```
+
+#Acmi
+```{r, message=FALSE}
+library(lme4)
+n.acmi.m1 <- lmer(nitrogen ~ treatment + (1|plot) + (1|plant_id), data = cn17_acmi)
+summary(n.acmi.m1)
+plot(n.acmi.m1)
+```
+
+The analysis indicates that variation attributable to differences in the means of the two treatment groups was highest (0.14 %), followed by variation due to replicate runs of the pooled tissue from individual plants (0.05 %),followed by variation among individuals within a quadrat (0.02 %). This implies that variation among plots should be high. The figure below shows that variation in the mean %N among the 11 plots in the dataset was high.
+
+```{r,fig.height = 4, fig.width=4, echo=FALSE}
+p<-ggplot(cn17_acmi, aes(x=treatment, y=nitrogen, fill=treatment)) +
+  geom_violin() +
+  ggtitle("Achillea millefolium") +
+  xlab("Treatment") + ylab("% Foliar Nitrogen") 
+p
+```
+
+Below is a histogram of the standard deviation of %N for replicate pooled samples within individual plants. This indicates that the low variation of about foliar N, on average, among replicates within individual plants estimated by the random-effects ANOVA is reasonable per species.
+
+```{r, message=FALSE}
+ggplot(cn17msd, aes(x = sd_N, colour = species, fill=species)) + 
+  geom_histogram(alpha=0.5, position="dodge", bins=15) +
+        facet_grid(vars(species))
+```
+
+# Power Analysis
+So, how many samples are required to detect a difference of 0.1% drymass foliar nitrogen, given the observed variation in each species' %N?
+I chose a difference of 0.1% because bioassays have shown this difference has a large effect on the growth rate and survival of Lepidoptera larvae.
+This power analysis uses the mean %N of the two replicate subsamples of pooled leaves per plant and ignores the dependence among individual plants in the same quadrat. 
+Thus, this is likely an underestimate of the number of samples required.
+
+
+```{r, message = FALSE}
+library("pwr")
+effect_size = 0.1/sd(cn17msd$sd_N[cn17msd$species=="Soca"]) 
+pwr.anova.test( k=2, sig.level = 0.05, power = 0.8, f = effect_size)
+
+effect_size = 0.1/sd(cn17msd$sd_N[cn17msd$species=="Cest"]) 
+pwr.anova.test( k=2, sig.level = 0.05, power = 0.8, f = effect_size)
+
+effect_size = 0.1/sd(cn17msd$sd_N[cn17msd$species=="Acmi"]) 
+pwr.anova.test( k=2, sig.level = 0.05, power = 0.8, f = effect_size)
+```
+Variation among plots within a treatment was large, so definitely continue to sample all plots.
+Variation among replicate runs of the pooled tissue for an individual was not as large, and variation among individuals within a plot was much smaller.
+The power analysis for Soca indicates that approx 3.6 samples in each group, Cest = 5.8 in each group, Acmi = 6 in each group, are required to have sufficient power to detect a difference, if present. That's pretty small.
+
+Model with all species as fixed effects; still shows plot-level variation is larger than within-plant level variation.
+```{r, message=FALSE}
+n.m1 <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = cn17)
+summary(n.m1)
+```
+
+Based on the above investigation, we don't need to account for variation among replicate runs of the pooled tissue for an individual. So we will take the mean by plant and move forward.
+
 ```{r}
-descdist(cn$nitrogen, discrete = FALSE)
-hist(cn$nitrogen)
-qqnorm(cn$nitrogen)
-shapiro.test(cn$nitrogen)
+cn$plant_id <- paste(cn$plot, cn$plant_number, sep = "_")
 
-# looking at each species separately
-hist(cn$nitrogen[cn$species == "Soca"])
-hist(cn$nitrogen[cn$species == "Cest"])
-hist(cn$nitrogen[cn$species == "Popr"])
+cn1 <- cn %>%
+    group_by(plot,site,year,species,treatment, insecticide, plant_id) %>%
+    summarize(nitrogen = mean(nitrogen), carbon = mean(carbon), weight_mg = mean(weight_mg)) 
 
-# logistic distribution?
-n.fit.logis <- fitdist(cn$nitrogen, "logis")
-plot(n.fit.logis)
+# Take a look at these data
+hist(cn1$carbon)
+sort(unique(cn1$carbon))
+# Remove data > 55
+c1<-cn1 %>% filter(carbon < 55)
+#Model for Carbon
+c.m1 <- lmer(carbon ~ treatment + species + (1|plot) + (1|plant_id), data = c1)
+summary(c.m1)
+plot(c.m1)
+qqnorm(resid(c.m1))
+# Some outliers. Let's remove and re-fit.
+# Remove data < 35
+c1<-c1 %>% filter(carbon > 35)
+#Model for Carbon
+c.m1 <- lmer(carbon ~ treatment + species + (1|plot) + (1|plant_id), data = c1)
+summary(c.m1)
+plot(c.m1)
+qqnorm(resid(c.m1))
 
-# normal distribution?
-n.fit.norm <- fitdist(cn$nitrogen, "norm")
-plot(n.fit.norm)
-
-par(mfrow=c(2,2))
-plot.legend <- c("Logistic", "Normal")
-denscomp(list(n.fit.logis, n.fit.norm), legendtext = plot.legend)
-cdfcomp (list(n.fit.logis, n.fit.norm), legendtext = plot.legend)
-qqcomp  (list(n.fit.logis, n.fit.norm), legendtext = plot.legend)
-ppcomp  (list(n.fit.logis, n.fit.norm), legendtext = plot.legend)
-gofstat(list(n.fit.logis, n.fit.norm), fitnames = c("Logistic", "Normal"))
-# Normal looks best
+#Model for Nitrogen
+# Take a look at these data
+hist(cn1$nitrogen)
+n.m1 <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = cn1)
+summary(n.m1)
+plot(n.m1)
+qqnorm(resid(n.m1))
+# Resids suggest outlier
+sort(unique(cn1$nitrogen))
+# Remove data >4 
+n1<-cn1 %>% filter(nitrogen < 4)
+hist(n1$nitrogen)
+n.m1 <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = n1)
+summary(n.m1)
+plot(n.m1)
+qqnorm(resid(n.m1))
 ```
-
-# Check assumptions
-```{r}
-# check assumptions
-#m1 <- lmer(carbon ~ state + insecticide + (1|plot), data = cn, REML=F)
-```
-# updates end here - need to merge meta-data with cn data
-# code below is old
-
-\pagebreak
-
-# Old code
-# Model comparison: KBS Soca
-```{r}
-# carbon
-#m1a <- lm(carbon ~ state, data = cn_kbs)
-#m1b <- lm(carbon ~ state + insecticide, data = cn_kbs)
-#m1c <- lmer(carbon ~ state + (1|plot), data = cn_kbs)
-#m1d <- lmer(carbon ~ state + insecticide + (1|plot), data = cn_kbs)
-#AICctab(m1a, m1b, m1c, m1d, weights = T)
-#summary(m1a)
-#summary(m1c) # plot as a random effect
-#
-## nitrogen
-#m2a <- lm(nitrogen ~ state, data = cn_kbs)
-#m2b <- lm(nitrogen ~ state + insecticide, data = cn_kbs)
-#m2c <- lmer(nitrogen ~ state + (1|plot), data = cn_kbs)
-#m2d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_kbs)
-#AICctab(m2a, m2b, m2c, m2d, weights = T)
-#summary(m2a)
-#summary(m2c) # plot as a random effect
-```
-
-# Model comparison: UMBS Cest
-```{r}
-# carbon
-#m3a <- lm(carbon ~ state, data = cn_cest_umbs)
-#m3b <- lm(carbon ~ state + insecticide, data = cn_cest_umbs)
-#m3c <- lmer(carbon ~ state + (1|plot), data = cn_cest_umbs)
-#m3d <- lmer(carbon ~ state + insecticide + (1|plot), data = cn_cest_umbs)
-#AICctab(m3a, m3b, m3c, m3d, weights = T)
-#summary(m3a)
-#summary(m3c) # plot as a random effect
-#
-## nitrogen
-#m4a <- lm(nitrogen ~ state, data = cn_cest_umbs)
-#m4b <- lm(nitrogen ~ state + insecticide, data = cn_cest_umbs)
-#m4c <- lmer(nitrogen ~ state + (1|plot), data = cn_cest_umbs)
-#m4d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_cest_umbs)
-#AICctab(m4a, m4b, m4c, m4d, weights = T)
-#summary(m4a)
-#summary(m4c) # plot as a random effect
-```
-
-# Model comparison: UMBS Popr
-```{r}
-# carbon
-#m5a <- lm(carbon ~ state, data = cn_popr_umbs)
-#m5b <- lm(carbon ~ state + insecticide, data = cn_popr_umbs)
-#m5c <- lmer(carbon ~ state + (1|plot), data = cn_popr_umbs)
-#m5d <- lmer(carbon ~ state + insecticide + (1|plot), data = cn_popr_umbs)
-#AICctab(m5a, m5b, m5c, m5d, weights = T)
-#summary(m5a)
-#summary(m5c) # plot as a random effect
-#
-## nitrogen
-#m6a <- lm(nitrogen ~ state, data = cn_popr_umbs)
-#m6b <- lm(nitrogen ~ state + insecticide, data = cn_popr_umbs)
-#m6c <- lmer(nitrogen ~ state + (1|plot), data = cn_popr_umbs)
-#m6d <- lmer(nitrogen ~ state + insecticide + (1|plot), data = cn_popr_umbs)
-#AICctab(m6a, m6b, m6c, m6d, weights = T)
-#summary(m6a)
-#summary(m6c) # plot as a random effect
-```
-
-
 
 
