@@ -480,7 +480,7 @@ gr_line <- function(loc) {
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
            labs(x = NULL, y = "Green-up", title = loc, color="Treatment") +
-           ylim(80,195) +
+           ylim(80,210) +
            theme_bw(14))
 }
 gr_line_kbs <- gr_line("KBS")
@@ -491,6 +491,8 @@ gr_line_umbs <- gr_line_umbs + labs(y=NULL) + theme(axis.text.x=element_blank(),
                                                     axis.text.y=element_blank())
 
 #flower
+sum_flwr_plot <- sum_flwr_plot[!(sum_flwr_plot$site == "UMBS" & sum_flwr_plot$year == "2021" ),] 
+
 sum_flwr_plot$year <- as.factor(sum_flwr_plot$year)
 flwr_line <- function(loc) { 
   flwr_plot <- subset(sum_flwr_plot, site == loc)
@@ -511,6 +513,8 @@ flwr_line_umbs <- flwr_line_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=
                                                                     axis.text.y=element_blank())
 
 #seed
+sum_sd_plot <- sum_sd_plot[!(sum_sd_plot$site == "UMBS" & sum_sd_plot$year == "2021" ),] 
+
 sum_sd_plot$year <- as.factor(sum_sd_plot$year)
 sd_line <- function(loc) { 
   sd_plot <- subset(sum_sd_plot, site == loc)
