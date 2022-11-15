@@ -565,6 +565,7 @@ UMBS_avg_year_air <- UMBS_season_air2 %>%
         group_by(year, sensor, treatment) %>%
         summarize(average_temp = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
+UMBS_avg_year_air <- UMBS_avg_year_air[!(UMBS_avg_year_air$year == "2021" & UMBS_avg_year_air$sensor == 1 ),] 
 UMBS_avg_year_air2 <- UMBS_avg_year_air %>%  # summarizing over all sensors 
         group_by(year, treatment) %>%
         summarize(avg = mean(average_temp, na.rm = TRUE),
@@ -576,6 +577,8 @@ UMBS_avg_year_soil <- UMBS_season_soil %>%  # soil temp by year
         summarize(count = n(),
                   average = mean(temp, na.rm = TRUE),
                   se = std.error(temp, na.rm = TRUE))
+UMBS_avg_year_soil <- UMBS_avg_year_soil[!(UMBS_avg_year_soil$year == "2021" & UMBS_avg_year_soil$sensor == 1 ),] 
+
 UMBS_avg_year_soil2 <- UMBS_avg_year_soil %>%  # summarizing over all sensors 
         group_by(year, treatment) %>%
         summarize(average_temp = mean(average, na.rm = TRUE),
@@ -631,6 +634,7 @@ Fig1_soil_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, fill=t
         labs(title="UMBS",y=NULL, x=NULL, fill="Treatment", shape="Treatment") +
         theme(legend.position="bottom") +
         theme_classic()
+
 
 Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, group=treatment, color=treatment)) +
         geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), position=position_dodge(0.15),
