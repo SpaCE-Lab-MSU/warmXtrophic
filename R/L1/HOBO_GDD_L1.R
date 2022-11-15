@@ -51,14 +51,40 @@ KBS_GDD_calc <- KBS_dates %>%  # by year, 1m temp only
 KBS_GDD_calc$GDD_base_10 <- ifelse(KBS_GDD_calc$GDD_base_10 < 0, 0, KBS_GDD_calc$GDD_base_10)
 
 # column for cumulative GDD per year
+# this can be used for all response variables:
+# determine the julian "end date" of that response variable, and look in this dataframe to see
+# the cumulative number of GDD by that end date for each year + treatment
 KBS_GDD <- KBS_GDD_calc %>%
         group_by(year, treatment) %>%
         mutate(GDD_cumulative = cumsum(GDD_base_10))
 
 
-# new dataframe for temp mean, median, and max for each year + treatment
-KBS_avg <- KBS_dates %>%  # by year, 1m temp only
+# new dataframes for temp mean, median, and max for each year + treatment
+# specific for each response variable
+# green-up:
+KBS_avg_greenup <- KBS_dates %>%  # by year, 1m temp only
         gather(key = "treatment", value = "temp", -year, -month, -day, -hour, -julian, -Date_Time, -sensor) %>%
+        filter(julian > "060", julian < "210") %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm=T),
+                  median_temp = median(temp, na.rm=T),
+                  max_temp = max(temp, na.rm=T)) %>% # using a base temp of 10C, commonly used for plants
+        na.omit()
+
+# flowering:
+KBS_avg_flower <- KBS_dates %>%  # by year, 1m temp only
+        gather(key = "treatment", value = "temp", -year, -month, -day, -hour, -julian, -Date_Time, -sensor) %>%
+        filter(julian > "140", julian < "230") %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm=T),
+                  median_temp = median(temp, na.rm=T),
+                  max_temp = max(temp, na.rm=T)) %>% # using a base temp of 10C, commonly used for plants
+        na.omit()
+
+# seed set:
+KBS_avg_seed <- KBS_dates %>%  # by year, 1m temp only
+        gather(key = "treatment", value = "temp", -year, -month, -day, -hour, -julian, -Date_Time, -sensor) %>%
+        filter(julian > "160", julian < "260") %>%
         group_by(year, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm=T),
                   median_temp = median(temp, na.rm=T),
