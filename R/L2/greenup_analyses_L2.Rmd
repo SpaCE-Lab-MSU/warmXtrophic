@@ -560,7 +560,7 @@ mod11p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) * insec
 AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
 anova(mod5p, mod6p)
 anova(mod5p, mod9p)
-summary(mod7p)
+summary(mod6p)
 # calculating effect size - accounting for reciprocal transformation
 1/(1.109e-02 + -7.050e-04*0) # 90.17133 warmed
 1/(1.109e-02 + -7.050e-04*1) # 96.29273 ambient
@@ -646,7 +646,8 @@ AICtab(modfull_u, mod1p_u, mod2p_u, mod3p_u, mod4p_u, mod5p_u, mod6p_u, mod7p_u,
 anova(mod5p_u, mod8p_u)
 anova(mod8p_u, mod7p_u)
 summary(mod7p_u)
-emmeans(mod7p_u, list(pairwise ~ state*year_factor), adjust = "tukey")
+anova(mod9p_u)
+emmeans(mod7p_u, list(pairwise ~ state*as.factor(year_factor)), adjust = "tukey")
 mod7p_u.emm <- emmeans(mod7p_u, ~ state * year_factor)
 contrast(mod7p_u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod7p_u, year_factor~state)

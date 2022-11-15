@@ -213,19 +213,6 @@ mod4k.emm <- emmeans(mod4_k, ~ state * species)
 contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
 
-# non mixed-effect models #
-mod10_k <- lm(log(weight_g) ~ state, kbs_biomass_live)
-mod11_k <- lm(log(weight_g) ~ state + species, kbs_biomass_live)
-mod12_k <- lm(log(weight_g) ~ state * species, kbs_biomass_live)
-
-anova(mod10_k,mod11_k)
-anova(mod11_k,mod12_k)
-anova(mod12_k)
-
-mod12k.emm <- emmeans(mod12_k, ~ state * species)
-contrast(mod12k.emm, "consec", simple = "each", combine = F, adjust = "tukey")
-emmip(mod12_k, species~state)
-
 
 # plot-level analyses #
 mod1_kp <- lm(plot_sum_g ~ state+insecticide, data=kbs_plot_biomass)
@@ -253,6 +240,9 @@ shapiro.test(resid(mod3_kp))
 # looks good
 anova(mod3_kp)
 summary(mod3_kp)
+
+anova(mod1_kp,mod3_kp)
+AICctab(mod1_kp, mod3_kp)
 
 # regression #
 cor.test(kbs_biomass_reg$cover, kbs_biomass_reg$weight_g, method="pearson")

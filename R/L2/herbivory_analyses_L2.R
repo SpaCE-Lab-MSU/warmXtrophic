@@ -374,6 +374,8 @@ lrtest(k.m1.h,k.m2.h, k.m3.h)
 AICtab(k.m1.h,k.m2.h,k.m3.h) #m1
 
 summary(k.m1.h) #*used this output in the paper*#
+means <- emmeans(k.m1.h, ~ state)
+pairs(means, adjust = "none")
 # calculating effect size for count model - accounting for log link
 exp(0.73960 + -0.33980*0) # 2.095097
 exp(0.73960 + -0.33980*1) # 1.491526
@@ -423,8 +425,11 @@ k.m3.ho <- hurdle(p_eaten ~ state + year, data = herb_kbs2, dist = "negbin",
 lrtest(k.m1.ho,k.m2.ho, k.m3.ho)
 AICtab(k.m1.ho,k.m2.ho,k.m3.ho) # going w m2 because we're interested in the interactive effects of warming + origin
 
-summary(k.m2.ho) #*used this output in the paper*#
-plot_model(k.m2.ho, type = "pred", terms = c("origin", "state"))
+summary(k.m1.ho) #*used this output in the paper*#
+means <- emmeans(k.m1.ho, ~ origin)
+pairs(means, adjust = "none")
+
+plot_model(k.m1.ho, type = "pred", terms = c("origin"))
 # calculating effect size for count model - accounting for log link
 exp(1.27701 + -0.54123*0) # 3.585902
 exp(1.27701 + -0.54123*1) # 2.087109
@@ -719,6 +724,7 @@ herb_umbs2 <- herb_umbs %>%
         filter(!(origin == 'Both' |
                          origin == ""))
 herb_umbs2 <- within(herb_umbs2, origin <- relevel(factor(origin), ref = "Exotic"))
+herb_umbs2 <- within(herb_umbs2, state <- relevel(factor(state), ref = "ambient"))
 u.m1.ho <- hurdle(p_eaten ~ state + origin + year, data = herb_umbs2, dist = "negbin", 
                   zero.dist = "binomial")
 u.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_umbs2, dist = "negbin", 
@@ -729,6 +735,8 @@ lrtest(u.m1.ho,u.m2.ho, u.m3.ho)
 AICtab(u.m1.ho,u.m2.ho,u.m3.ho) # going w m2 because we're interested in the interactive effects of warming + origin
 
 summary(u.m2.ho) #*used this output in the paper*#
+means <- emmeans(u.m2.ho, ~ origin*state)
+pairs(means, adjust = "none")
 plot_model(u.m2.ho, type = "pred", terms = c("origin", "state"))
 
 # think these calculations are wrong below
@@ -759,6 +767,8 @@ lrtest(u.m1.hg,u.m2.hg, u.m3.hg)
 AICtab(u.m1.hg,u.m2.hg,u.m3.hg) # going w m2 because we're interested in the interactive effects of warming + origin
 
 summary(u.m2.hg) #*used this output in the paper*#
+means <- emmeans(u.m2.hg, ~ growth_habit*state)
+pairs(means, adjust = "none")
 plot_model(u.m2.hg, type = "pred", terms = c("growth_habit","state"))
 
 
