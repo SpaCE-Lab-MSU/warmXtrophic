@@ -90,3 +90,26 @@ KBS_avg_seed <- KBS_dates %>%  # by year, 1m temp only
                   median_temp = median(temp, na.rm=T),
                   max_temp = max(temp, na.rm=T)) %>% # using a base temp of 10C, commonly used for plants
         na.omit()
+
+# fixing column names
+names(KBS_GDD)[names(KBS_GDD) == 'treatment'] <- 'state'
+names(KBS_avg_greenup)[names(KBS_avg_greenup) == 'treatment'] <- 'state'
+names(KBS_avg_flower)[names(KBS_avg_flower) == 'treatment'] <- 'state'
+names(KBS_avg_seed)[names(KBS_avg_seed) == 'treatment'] <- 'state'
+
+# fixing state treatment names
+KBS_GDD$state[KBS_GDD$state == "XH_ambient_air_1m"] <- "ambient"
+KBS_GDD$state[KBS_GDD$state == "XH_warmed_air_1m"] <- "warmed"
+KBS_avg_greenup$state[KBS_avg_greenup$state == "XH_ambient_air_1m"] <- "ambient"
+KBS_avg_greenup$state[KBS_avg_greenup$state == "XH_warmed_air_1m"] <- "warmed"
+KBS_avg_flower$state[KBS_avg_flower$state == "XH_ambient_air_1m"] <- "ambient"
+KBS_avg_flower$state[KBS_avg_flower$state == "XH_warmed_air_1m"] <- "warmed"
+KBS_avg_seed$state[KBS_avg_seed$state == "XH_ambient_air_1m"] <- "ambient"
+KBS_avg_seed$state[KBS_avg_seed$state == "XH_warmed_air_1m"] <- "warmed"
+
+# save dataframes to L1 folder
+write.csv(KBS_GDD, file.path(L1_dir,"HOBO_data/KBS_GDD_L1.csv"), row.names = F)
+write.csv(KBS_avg_greenup, file.path(L1_dir,"HOBO_data/KBS_greenup_temps_L1.csv"), row.names = F)
+write.csv(KBS_avg_flower, file.path(L1_dir,"HOBO_data/KBS_flower_temps_L1.csv"), row.names = F)
+write.csv(KBS_avg_seed, file.path(L1_dir,"HOBO_data/KBS_seed_temps_L1.csv"), row.names = F)
+          
