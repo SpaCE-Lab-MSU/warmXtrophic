@@ -72,6 +72,7 @@ library(effects)
 library(glmmTMB)
 library(bbmle)
 library(emmeans)
+library(gtsummary)
 #install.packages('TMB',type='source')
 
 # Set ggplot2 plots to bw: see here for more options: http://www.sthda.com/english/wiki/ggplot2-themes-and-background-colors-the-3-elements
@@ -84,6 +85,10 @@ greenup <- read.csv(file.path(L2_dir, "greenup/final_greenup_species_L2.csv")) #
 greenup <- greenup %>% dplyr::select(-X) # get rid of "X" column that shows up (could fix this in cleaning script)
 greenupp <- read.csv(file.path(L2_dir, "greenup/final_greenup_plot_L2.csv")) # plot level greenup dates
 greenupp <- greenupp %>% dplyr::select(-X) # get rid of "X" column that shows up
+
+# read in GDD and temp data
+GDD <- read.csv(file.path(L1_dir, "HOBO_data/KBS_GDD_L1.csv"))
+temps <- read.csv(file.path(L1_dir, "HOBO_data/KBS_greenup_temps_L1.csv"))
 
 # check variable types
 str(greenup)
@@ -123,6 +128,23 @@ green_umbs <- subset(greenup, site == "umbs")
 
 green_kbsp <- subset(greenupp, site == "kbs")
 green_umbsp <- subset(greenupp, site == "umbs")
+
+# Add in GDD and temp data for each year + treatment
+green_kbsp <- left_join(green_kbsp, temps, by=c('year','state'))
+# basing cutoff for GDD at julian date 210
+green_kbsp$GDD <- NA
+green_kbsp$GDD[green_kbsp$year == 2016 & green_kbsp$state == "ambient"] = 941
+green_kbsp$GDD[green_kbsp$year == 2016 & green_kbsp$state == "warmed"] = 1162
+green_kbsp$GDD[green_kbsp$year == 2017 & green_kbsp$state == "ambient"] = 967
+green_kbsp$GDD[green_kbsp$year == 2017 & green_kbsp$state == "warmed"] = 1250
+green_kbsp$GDD[green_kbsp$year == 2018 & green_kbsp$state == "ambient"] = 1035
+green_kbsp$GDD[green_kbsp$year == 2018 & green_kbsp$state == "warmed"] = 1261
+green_kbsp$GDD[green_kbsp$year == 2019 & green_kbsp$state == "ambient"] = 965
+green_kbsp$GDD[green_kbsp$year == 2019 & green_kbsp$state == "warmed"] = 1134
+green_kbsp$GDD[green_kbsp$year == 2020 & green_kbsp$state == "ambient"] = 943
+green_kbsp$GDD[green_kbsp$year == 2020 & green_kbsp$state == "warmed"] = 1152
+green_kbsp$GDD[green_kbsp$year == 2021 & green_kbsp$state == "ambient"] = 996
+green_kbsp$GDD[green_kbsp$year == 2021 & green_kbsp$state == "warmed"] = 1226
 ```
 
 # Data Exploration:
@@ -559,8 +581,10 @@ mod10p <- lmer(1/(plot_half_cover_date) ~ state + insecticide * as.factor(year_f
 mod11p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) * insecticide + (1|plot), green_kbsp, REML=FALSE)
 AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
 anova(mod5p, mod6p)
-anova(mod5p, mod9p)
-summary(mod6p)
+AICctab(mod5p, mod9p)
+table <- anova(mod5p, mod9p)
+summary(mod5p)
+anova(mod5p)
 # calculating effect size - accounting for reciprocal transformation
 1/(1.109e-02 + -7.050e-04*0) # 90.17133 warmed
 1/(1.109e-02 + -7.050e-04*1) # 96.29273 ambient
@@ -570,6 +594,9 @@ emmeans(mod5p, list(pairwise ~ state*year_factor), adjust = "tukey")
 mod5p.emm <- emmeans(mod5p, ~ state * year_factor)
 contrast(mod5p.emm, "consec", simple = "each", combine = F, adjust = "mvt") # for mod5p, this won't show differences between years bc there is not an interaction term in the model
 emmip(mod5p, year_factor~state)
+
+# making a table with best-fit model and hypothesized model
+kable(table) %>% kableExtra::kable_styling()
 ```
 
 # Analyses for species who reached half cover within the green-up observation window
@@ -643,14 +670,19 @@ mod9p_u <- lmer(1/(plot_half_cover_date) ~ state * insecticide + as.factor(year_
 mod10p_u <- lmer(1/(plot_half_cover_date) ~ state + insecticide * as.factor(year_factor) + (1|plot), green_umbsp, REML=FALSE)
 mod11p_u <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) * insecticide + (1|plot), green_umbsp, REML=FALSE)
 AICtab(modfull_u, mod1p_u, mod2p_u, mod3p_u, mod4p_u, mod5p_u, mod6p_u, mod7p_u, mod8p_u, mod9p_u, mod10p_u, mod11p_u, weights=T)
+AICctab(mod7p_u, mod9p_u)
 anova(mod5p_u, mod8p_u)
-anova(mod8p_u, mod7p_u)
+table2 <- anova(mod9p_u, mod7p_u)
 summary(mod7p_u)
 anova(mod9p_u)
 emmeans(mod7p_u, list(pairwise ~ state*as.factor(year_factor)), adjust = "tukey")
 mod7p_u.emm <- emmeans(mod7p_u, ~ state * year_factor)
 contrast(mod7p_u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod7p_u, year_factor~state)
+
+# comparing models in a table output
+# making a table with best-fit model and hypothesized model
+kable(table2) %>% kableExtra::kable_styling()
 ```
 
 
