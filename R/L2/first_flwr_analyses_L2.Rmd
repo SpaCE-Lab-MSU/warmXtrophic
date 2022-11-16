@@ -194,13 +194,13 @@ mod8p <- lmer(julian_min ~ state * year_factor + insecticide + (1|plot), kbs_plo
 mod9p <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
 mod10p <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), kbs_plot, REML=FALSE)
 mod11p <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), kbs_plot, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
-anova(mod7p, mod8p) # go with 5p although they are nearly identical
-AICctab(mod7p, mod8p, weights=T)
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 7p and 8p are the top models
+anova(mod7p, mod8p) # go with 7p although they are nearly identical
+AICctab(mod7p, mod8p, weights=T) # 7p
 summ(mod7p)
 anova(mod7p)
 summary(mod7p)
-emmeans(mod7p, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
 ```
 
 UMBS plot level
@@ -238,23 +238,23 @@ interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange 
 ```
 
 ```{r}
-mod1p <- lmer(julian_min ~ state + (1|plot), umbs_plot, REML=FALSE)
-mod2p <- lmer(julian_min ~ insecticide + (1|plot), umbs_plot, REML=FALSE)
-mod3p <- lmer(julian_min ~ insecticide + state + (1|plot), umbs_plot, REML=FALSE)
-mod4p <- lmer(julian_min ~ insecticide * state + (1|plot), umbs_plot, REML=FALSE)
-mod5p <- lmer(julian_min ~ state + year_factor + (1|plot), umbs_plot, REML=FALSE)
-mod6p <- lmer(julian_min ~ state + year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
-mod7p <- lmer(julian_min ~ state * year_factor + (1|plot), umbs_plot, REML=FALSE)
-mod8p <- lmer(julian_min ~ state * year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
-mod9p <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_plot, REML=FALSE)
-mod10p <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), umbs_plot, REML=FALSE)
-mod11p <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_plot, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
-anova(mod10p, mod6p) # go with 10p
-AICctab(mod10p, mod6p, weights=T)
-summ(mod10p)
-summary(mod10p)
-anova(mod10p)
-emmeans(mod10p, list(pairwise ~ state + year_factor), adjust = "tukey")
-emmeans(mod10p, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
+mod1pu <- lmer(julian_min ~ state + (1|plot), umbs_plot, REML=FALSE)
+mod2pu <- lmer(julian_min ~ insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod3pu <- lmer(julian_min ~ insecticide + state + (1|plot), umbs_plot, REML=FALSE)
+mod4pu <- lmer(julian_min ~ insecticide * state + (1|plot), umbs_plot, REML=FALSE)
+mod5pu <- lmer(julian_min ~ state + year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod6pu <- lmer(julian_min ~ state + year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod7pu <- lmer(julian_min ~ state * year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod8pu <- lmer(julian_min ~ state * year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod10pu <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod11pu <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_plot, REML=FALSE)
+AICctab(mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T) # model 10p and 6p are the top models
+anova(mod10pu, mod6pu) # go with 10p
+AICctab(mod10pu, mod6pu, weights=T)
+summ(mod10pu)
+summary(mod10pu)
+anova(mod10pu)
+emmeans(mod10pu, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod10pu, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
 ```
