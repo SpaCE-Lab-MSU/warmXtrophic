@@ -17,6 +17,7 @@ library(bbmle)
 library(sjPlot)
 library(emmeans)
 library(stats)
+library(knitr)
 
 # Set working directory 
 L1_dir <- Sys.getenv("L1DIR")
@@ -226,23 +227,23 @@ shapiro.test(resid(mod1_kp))
 # looks good
 anova(mod1_kp)
 summary(mod1_kp) ###* used this in paper *###
-# plot as a random effect?
-mod2_kp <- lmer(plot_sum_g ~ state + insecticide + (1|plot), data=kbs_plot_biomass, REML=F) # fails
-# interaction btwn state and insecticide?
-mod3_kp <- lm(plot_sum_g ~ state*insecticide, data=kbs_plot_biomass)
-outlierTest(mod3_kp) # no outliers
-hist(mod3_kp$residuals)
-qqPlot(mod3_kp, main="QQ Plot") 
-leveragePlots(mod3_kp)
-leveneTest(residuals(mod3_kp) ~ kbs_plot_biomass$state)
-leveneTest(residuals(mod3_kp) ~ kbs_plot_biomass$insecticide)
-shapiro.test(resid(mod3_kp))
-# looks good
-anova(mod3_kp)
-summary(mod3_kp)
 
-anova(mod1_kp,mod3_kp)
-AICctab(mod1_kp, mod3_kp)
+# interaction btwn state and insecticide?
+mod2_kp <- lm(plot_sum_g ~ state*insecticide, data=kbs_plot_biomass)
+outlierTest(mod2_kp) # no outliers
+hist(mod2_kp$residuals)
+qqPlot(mod2_kp, main="QQ Plot") 
+leveragePlots(mod2_kp)
+leveneTest(residuals(mod2_kp) ~ kbs_plot_biomass$state)
+leveneTest(residuals(mod2_kp) ~ kbs_plot_biomass$insecticide)
+shapiro.test(resid(mod2_kp))
+# looks good
+anova(mod2_kp)
+summary(mod2_kp)
+
+table <- anova(mod1_kp,mod2_kp)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod1_kp, mod2_kp)
 
 # regression #
 cor.test(kbs_biomass_reg$cover, kbs_biomass_reg$weight_g, method="pearson")
@@ -386,20 +387,23 @@ shapiro.test(resid(mod1_up))
 # looks good
 anova(mod1_up)
 summary(mod1_up)
-# plot as a random effect?
-mod2_up <- lmer(plot_sum_g ~ state + (1|plot), data=umbs_plot_biomass, REML=F) # fails
+
 # interaction between state and insecticide?
-mod3_up <- lm(plot_sum_g ~ state * insecticide, data=umbs_plot_biomass)
-outlierTest(mod3_up) # no outliers
-hist(mod3_up$residuals)
-qqPlot(mod3_up, main="QQ Plot") 
-leveragePlots(mod3_up)
-leveneTest(residuals(mod3_up) ~ umbs_plot_biomass$state)
-leveneTest(residuals(mod3_up) ~ umbs_plot_biomass$insecticide)
-shapiro.test(resid(mod3_up))
+mod2_up <- lm(plot_sum_g ~ state * insecticide, data=umbs_plot_biomass)
+outlierTest(mod2_up) # no outliers
+hist(mod2_up$residuals)
+qqPlot(mod2_up, main="QQ Plot") 
+leveragePlots(mod2_up)
+leveneTest(residuals(mod2_up) ~ umbs_plot_biomass$state)
+leveneTest(residuals(mod2_up) ~ umbs_plot_biomass$insecticide)
+shapiro.test(resid(mod2_up))
 # looks good
-anova(mod3_up)
-summary(mod3_up)
+anova(mod2_up)
+summary(mod2_up)
+
+table2 <- anova(mod1_up,mod2_up)
+kable(table2) %>% kableExtra::kable_styling()
+AICctab(mod1_up, mod2_up)
 
 
 # regression #
