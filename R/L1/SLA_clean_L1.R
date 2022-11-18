@@ -1,10 +1,10 @@
 # TITLE:          Leaf Traits: Specific Leaf Area (SLA) Data Cleanup 
-# AUTHORS:        Moriah Young, Pat Bills, Phoebe Zarnetske
+# AUTHORS:        Phoebe Zarnetske, Moriah Young, Pat Bills 
 # COLLABORATORS:  Mark Hammond, Kara Dobson
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    A csv file containing SLA data is uploaded to the L1 plant comp folder
 # PROJECT:        warmXtrophic
-# DATE:           March-Nov 2021
+# DATE:           March 2021-Nov 2022
 # NOTES:        We have two different scanners at UMBS and KBS. The one at KBS provides leaf area, 
 #               leaf length, average width, and maximum width. The one at UMBS just provides an area.  
 #               Often SLA data is associated or “linked” with other data sets, sometimes with the same 
@@ -18,7 +18,6 @@ rm(list=ls())
 
 #Load packages
 library(tidyverse)
-library(janitor)
 
 # Set working directory
 L0_dir <- Sys.getenv("L0DIR")
@@ -185,15 +184,11 @@ sla_final<-sla_final[rowSums(is.na(sla_final[ , 7:8])) == 0, ]
 dim(sla_final)
 
 str(sla_final)
-# plant_number is character; also rename to a-e 
-sla_final$plant_id<-sla_final$plant_number
-sla_final["plant_id"][sla_final["plant_id"]=="1"]<-"a"
-sla_final["plant_id"][sla_final["plant_id"]=="2"]<-"b"
-sla_final["plant_id"][sla_final["plant_id"]=="3"]<-"c"
-sla_final["plant_id"][sla_final["plant_id"]=="4"]<-"d"
-sla_final["plant_id"][sla_final["plant_id"]=="5"]<-"e"
 
-# Merge in plot ID info
+# Create a variable for Plant ID
+sla_final$plant_id <- paste(sla_final$plot, sla_final$plant_number, sep = "_")
+
+# Merge in plot info
 sla_final <- merge(sla_final, meta, by = c("plot"))
 
 # convert to day, month, year -- use POSIXlt 
@@ -209,84 +204,11 @@ sla_final$year[yr18]<-strptime(sla_final$date, "%m/%d/%y")$year[yr18] + 1900
 
 sla_final<-sla_final[with(sla_final, order(site, year, species)),]
 
-# Compute SLA
+# Compute SLA (= Area / Mass)
 sla_final$sla<-sla_final$area_cm2/sla_final$mass_g
-
-# SLA values and mixed effects modeling in SLA_analyses_L2.Rmd indicate the following recording errors (based on outliertest()):
-spla[1375,] 
-spla[1406,]
-# These are extremely small numbers for area relative to mass; also an order of magnitude lower than other area measurements in 2020.
-spla[697,] # this data point is an order of magnitude higher for mass; likely recording error. Edited to appropriate magnitude in SLA_analyses_L2.Rmd.
-spla[835,] # this data point is an order of magnitude lower for mass (0.0017) than similar ones for Popr with similar area; likely recording error. Edited to appropriate magnitude in SLA_analyses_L2.Rmd.
-
-# For clarity with modeling, these outliers are removed in SLA_analyses_L2.Rmd. 
-# sla was re-calculated for that data frame. File output = "./SLA/SLA_L1_nooutliers.csv"
 
 # write a new csv with the cleaned and merged data and upload to the shared google drive L1 folder
 write.csv(sla_final, file.path(L1_dir, "./SLA/SLA_L1.csv"), row.names=F)
 
 ## PLZ stopped updating 11/17/2021 HERE; waiting on CN data
 
-#### Create L1 CN data ####
-
-### 2017 DATA ###
-
-### 2018 DATA ###
-
-### 2019 DATA ###
-
-# create function to clean 2019 CN data files
-CN_csvdata_initial_prep <- function(cn_data){
-        cn_data <- cn_data[-(1:2),] #get rid of the first 2 rows because it's not data
-        names(cn_data) <- cn_data[1,] #make the first row the column names
-        cn_data <- cn_data[-1,] #get rid of the first row because it's now the column names
-        cn_data <- cn_data[-(1:7),] #get rid of first 7 rows because these are the "standards" data
-        cn_data <- cn_data[c(3, 4, 10, 11)] #get rid of unwanted columns that don't have data
-        return(cn_data[!apply(is.na(cn_data) | cn_data == "", 1, all),])
-}
-
-# Clean 2019 CN data 
-CN1 <- CN_csvdata_initial_prep(cn19_1_raw)
-CN2 <- CN_csvdata_initial_prep(cn19_2_raw)
-CN3 <- CN_csvdata_initial_prep(cn19_3_raw)
-CN4 <- CN_csvdata_initial_prep(cn19_4_raw)
-
-# read in 2019 meta files for CN data
-umbs19_CN <- read.csv(file.path(L0_dir, "./UMBS/2019/umbs_CN_2019.csv"))
-kbs19_CN <- read.csv(file.path(L0_dir, "./KBS/2019/kbs_CN_2019.csv"))
-
-# merge separate CN files into one data frame
-CN_all <- merge(CN1, CN2, all = TRUE)
-CN_all <- merge(CN_all, CN3, all = TRUE)
-CN_all <- merge(CN_all, CN4, all = TRUE)
-
-CN_all$Sample[CN_all$Sample == "Blind Standard"] <- NA
-CN_all <- na.omit(CN_all)
-View(CN_all)
-
-# clean meta data
-umbs19_CN <- umbs19_CN[-c(7, 8, 9)] # get rid of unwanted columns
-kbs19_CN <- kbs19_CN[-c(7, 8, 9)] # get rid of unwanted columns
-
-### 2020 DATA ###
-
-### EDIT OTHER YR FILES ABOVE IN CHRONOLOGICAL ORDER BEFORE NEXT STEP
-
-# NOTE: edit to reflect diff yrs when add in other YEAR files from above
-meta_CN <- merge(umbs19_CN, kbs19_CN, all = TRUE)
-colnames(meta_CN) <- sub("Unique_number", "Sample", colnames(meta_CN))# merge two meta data files
-View(meta_CN)
-
-# merge new CN data frame with the meta data frame
-CN_final <- merge(meta_CN, CN_all, by = "Sample")
-names(CN_final) <- tolower(names(CN_final)) # column names to lower case
-CN_final <- clean_names(CN_final) # get rid of space and parenthesis in "weight (mg)" column **function from janitor package**
-
-# change column name for merging
-colnames(meta)[which(names(meta) == "treatment_key")] <- "treatment"
-CN_final <- merge(CN_final, meta, by = c("plot", "treatment"))
-
-View(CN_final)
-
-# write a new cvs with the cleaned and merge data and upload to the shared google drive L1 folder
-write.csv(CN_final, file.path(L1_dir, "./CN/CN_L1.csv"))

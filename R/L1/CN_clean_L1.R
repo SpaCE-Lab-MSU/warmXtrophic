@@ -4,7 +4,7 @@
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    CN_L1.csv: A csv file containing CN data is uploaded to the L1 plant comp folder
 # PROJECT:        warmXtrophic
-# DATE:           March 2021 - March 2022
+# DATE:           March 2021 - Nov 2022
 # NOTES:        We have two different scanners at UMBS and KBS. The one at KBS provides leaf area, 
 #               leaf length, average width, and maximum width. The one at UMBS just provides an area.  
 #               Often SLA data is associated or “linked” with other data sets, sometimes with the same 
@@ -15,6 +15,9 @@
 
 # Clear all existing data
 rm(list=ls())
+
+#Load packages
+library(tidyverse)
 
 # Set working directory
 L0_dir <- Sys.getenv("L0DIR")
@@ -356,6 +359,9 @@ CN_17_18 <- merge(CN_2017, CN_2018, all = TRUE)
 CN_19_20 <- merge(CN_2019, CN_2020, all = TRUE)
 CN <- merge(CN_17_18 , CN_19_20, all = TRUE)
 CN_all <- merge(CN, CN_2021, all = TRUE)
+
+# Create a variable for Plant ID
+CN_all$plant_id <- paste(CN_all$plot, CN_all$plant_number, sep = "_")
 
 # write a new csv with the cleaned and merged data that includes NAs and upload to the shared google drive L1 folder
 write.csv(CN_all, file.path(L1_dir, "./CN/CN_L1_NAs.csv"), row.names=F)
