@@ -3,6 +3,8 @@ title: 'warmXtrophic Project: CN Plots'
 author: "Kara Dobson, Phoebe Zarnetske"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -18,51 +20,195 @@ rm(list=ls())
 library(tidyverse)
 library(plotrix)
 
-# Set working directory to Google Drive
-setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
+# Set working directory
+L1_dir<-Sys.getenv("L1DIR")
 
 # Read in data
-cn <- read.csv("L1/CN/CN_L1.csv")
+cn <- read.csv(file.path(L1_dir, "CN/CN_L1.csv"))
+
+# make individual plant ID
+cn$plant_id <- paste(cn$plot, cn$plant_number, sep = "_")
+
+# take the plant-level mean
+cn <- cn %>%
+  rename(treatment = state)
+cn1 <- cn %>%
+    group_by(plot,site,year,species,treatment, insecticide, plant_id) %>%
+    summarize(nitrogen = mean(nitrogen), carbon = mean(carbon), weight_mg = mean(weight_mg)) 
+
+# remove outliers (found in CN analyses script)
+cn1<-cn1 %>% filter(carbon < 55)
+cn1<-cn1 %>% filter(nitrogen < 4)
+
+# take the treatment-level mean
+cn_treatment <- cn1 %>%
+    group_by(site,treatment,insecticide) %>%
+    summarize(nitrogen_mean = mean(nitrogen), carbon_mean = mean(carbon), weight_mg = mean(weight_mg),
+              n_se = std.error(nitrogen), c_se = std.error(carbon)) 
+# take the average by year + species
+cn_spp <- cn1 %>%
+    group_by(site,year, species, treatment) %>%
+    summarize(nitrogen_mean = mean(nitrogen), carbon_mean = mean(carbon), weight_mg = mean(weight_mg),
+              n_se = std.error(nitrogen), c_se = std.error(carbon)) 
+
+# clean insecticide labels for plotting
+insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 
 # Summary of data
-with(cn,table(cn$site,cn$species)) 
-with(cn,table(cn$year,cn$species)) 
-with(cn,table(cn$year,cn$site)) 
+with(cn1,table(cn$site,cn$species)) 
+with(cn1,table(cn$year,cn$species)) 
+with(cn1,table(cn$year,cn$site)) 
 ```
 
-# Carbon data: all yrs, sites
-## Cest and Popr = UMBS, Soca = KBS (working on faceting this)
+# Carbon data: species-level
+## Cest & Popr = UMBS, Soca & Acmi = KBS 
 ```{r}
-ggplot(cn, aes(x = species, y = carbon, fill = state)) +
-        #facet_grid(.~site) +
+ggplot(cn1, aes(x = species, y = carbon, fill = treatment)) +
         geom_boxplot(color = "black", outlier.shape = NA) +
         labs(x = "Species", y = "Average Carbon Content") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
+        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = treatment)) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         coord_cartesian(ylim = c(42, 53)) +
         theme_classic()
 ```
 
-# Nitrogen data: all yrs, sites
+# Carbon data: treatment-level
 ```{r}
-ggplot(cn, aes(x = species, y = nitrogen, fill = state)) +
-        #facet_grid(.~site) +
+cn_treat_kbs <- cn_treatment %>%
+        filter(site == "kbs")
+c_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = carbon_mean, fill = treatment)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", color = 'black') +
+        geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+                position = "identity") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="KBS") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        coord_cartesian(ylim=c(44,48)) +
+        theme_classic() +
+        theme(legend.position = "none")
+cn_treat_umbs <- cn_treatment %>%
+        filter(site == "umbs")
+c_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = carbon_mean, fill = treatment)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", color = 'black') +
+        geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+                position = "identity") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="UMBS") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        coord_cartesian(ylim=c(44,48)) +
+        theme_classic() +
+        theme(legend.position = "none")
+c_comb <- ggpubr::ggarrange(c_kbs, c_umbs,
+                                     ncol = 2, common.legend = T, legend="none")
+png("carbon_treatmentlevel_L2.png", units="in", width=7, height=4, res=300)
+annotate_figure(c_comb,
+                left = text_grob("Carbon content (%)", color = "black", rot = 90),
+                bottom = text_grob("Treatment", color = "black"))
+dev.off()
+```
+
+# Carbon data: year + species
+```{r}
+png("carbon_species_L2.png", units="in", width=5, height=4, res=300)
+ggplot(cn_spp, aes(x = year, y = carbon_mean, fill = treatment)) +
+        facet_wrap(.~species) +
+        geom_bar(position = "dodge", stat = "identity", color = 'black') +
+        geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+                position = position_dodge(0.9)) +
+        labs(fill = "Treatment", x = "Year", y = "Carbon content (%)") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        coord_cartesian(ylim=c(40,50)) +
+        theme_classic() +
+        theme(legend.position = "none")
+dev.off()
+```
+
+# Nitrogen data: species-level
+```{r}
+ggplot(cn1, aes(x = species, y = nitrogen, fill = treatment)) +
         geom_boxplot(color = "black", outlier.shape = NA) +
         labs(x = "Species", y = "Average Nitrogen Content") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
+        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = treatment)) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         theme_classic()
 ```
 
-# Nitrogen data: all yrs, by species
+# Nitrogen data: treatment-level
 ```{r}
-ggplot(cn, aes(x = factor(year), y = nitrogen, fill = state)) +
+cn_treat_kbs <- cn_treatment %>%
+        filter(site == "kbs")
+n_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = nitrogen_mean, fill = treatment)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", color = 'black') +
+        geom_errorbar(aes(ymin = nitrogen_mean - n_se, ymax = nitrogen_mean + n_se), width = 0.2,
+                position = "identity") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="KBS") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        coord_cartesian(ylim=c(1.5,2.1)) +
+        theme_classic() +
+        theme(legend.position = "none")
+cn_treat_umbs <- cn_treatment %>%
+        filter(site == "umbs")
+n_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = nitrogen_mean, fill = treatment)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", color = 'black') +
+        geom_errorbar(aes(ymin = nitrogen_mean - n_se, ymax = nitrogen_mean + n_se), width = 0.2,
+                position = "identity") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="UMBS") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        coord_cartesian(ylim=c(1.5,2.1)) +
+        theme_classic() +
+        theme(legend.position = "none")
+n_comb <- ggpubr::ggarrange(n_kbs, n_umbs,
+                                     ncol = 2, common.legend = T, legend="none")
+png("nitrogen_treatmentlevel_L2.png", units="in", width=7, height=4, res=300)
+annotate_figure(n_comb,
+                left = text_grob("Nitrogen content (%)", color = "black", rot = 90),
+                bottom = text_grob("Treatment", color = "black"))
+dev.off()
+```
+
+# Carbon data: year + species
+```{r}
+png("nitrogen_species_L2.png", units="in", width=5, height=4, res=300)
+ggplot(cn_spp, aes(x = year, y = nitrogen_mean, fill = treatment)) +
+        facet_wrap(.~species) +
+        geom_bar(position = "dodge", stat = "identity", color = 'black') +
+        geom_errorbar(aes(ymin = nitrogen_mean - n_se, ymax = nitrogen_mean + n_se), width = 0.2,
+                position = position_dodge(0.9)) +
+        labs(fill = "Treatment", x = "Year", y = "Nitrogen content (%)") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(40,50)) +
+        theme_classic() +
+        theme(legend.position = "none")
+dev.off()
+```
+
+# Nitrogen data: by year + species
+```{r}
+ggplot(cn1, aes(x = factor(year), y = nitrogen, fill = treatment)) +
         geom_boxplot(color = "black", outlier.shape = NA) +
-        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
+        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = treatment)) +
         facet_grid(.~species) +
         labs(x = "Year", y = "Average Nitrogen Content") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
@@ -73,28 +219,11 @@ ggplot(cn, aes(x = factor(year), y = nitrogen, fill = state)) +
         theme(axis.text.x = element_text(angle = 90))
 ```
 
-# Carbon data: all yrs, by species
+# Carbon data: by year + species
 ```{r}
-ggplot(cn, aes(x = factor(year), y = carbon, fill = state)) +
+ggplot(cn1, aes(x = factor(year), y = carbon, fill = treatment)) +
         geom_boxplot(color = "black", outlier.shape = NA) +
-        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
-        facet_grid(.~species) +
-        labs(x = "Year", y = "Average Carbon Content") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        #scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        facet_grid(.~species) +
-        theme_classic() +
-        theme(axis.text.x = element_text(angle = 90))
-```
-
-# Some major outlier for Popr carbon; omit and re-plot
-```{r}
-cn1<-cn[(cn$carbon < 70),]
-cn1 <- cn1[!is.na(cn1$carbon), ] 
-ggplot(cn1, aes(x = factor(year), y = carbon, fill = state)) +
-        geom_boxplot(color = "black", outlier.shape = NA) +
-        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = state)) +
+        geom_jitter(shape=16, position=position_jitterdodge(), alpha = 0.6, aes(colour = treatment)) +
         facet_grid(.~species) +
         labs(x = "Year", y = "Average Carbon Content") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
