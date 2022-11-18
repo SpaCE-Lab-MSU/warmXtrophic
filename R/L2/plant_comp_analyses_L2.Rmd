@@ -1116,5 +1116,3 @@ tab_model(mod7a, mod7p)
 tab_model(mod7au, mod8pu)
 
 ```
-
-

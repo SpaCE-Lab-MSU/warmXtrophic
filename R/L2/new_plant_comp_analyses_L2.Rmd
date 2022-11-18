@@ -1,0 +1,422 @@
+---
+title: "warmXtrophic Project: Plant Composition Analyses"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=80),tidy=TRUE)
+```
+
+Load in packages & data
+```{r, message = F}
+rm(list=ls()) # clear all existing data
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(vegan)
+library(car)
+library(rstatix)
+library(scales)
+library(fitdistrplus)
+library(moments)# for calculating skewness of data
+library(ggpubr)
+library(jtools) # summ() function
+library(predictmeans)
+library(olsrr)
+library(car)
+library(fitdistrplus)
+library(ggpubr)
+library(interactions)
+library(sjPlot)
+library(effects)
+library(glmmTMB)
+library(GGally) # ggpairs() function
+library(bbmle) # AICtab() function
+
+# Set working directory
+Sys.getenv("L1DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+
+# Read in data
+comp_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv")) # plot level data
+origin_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_origin_L2.csv")) # origin plot level data
+growth_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_growthhabit_L2.csv")) # growth habit plot level data
+```
+
+```{r}
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+comp_plot$state <- as.factor(comp_plot$state)
+levels(comp_plot$state)
+# [1] "ambient" "warmed" 
+comp_plot$state <- factor(comp_plot$state, levels(comp_plot$state)[c(2,1)])
+levels(comp_plot$state)
+# [1] "warmed"  "ambient"
+
+origin_plot$state <- as.factor(origin_plot$state)
+levels(origin_plot$state)
+origin_plot$state <- factor(origin_plot$state, levels(origin_plot$state)[c(2,1)])
+levels(origin_plot$state)
+
+growth_plot$state <- as.factor(growth_plot$state)
+levels(growth_plot$state)
+growth_plot$state <- factor(growth_plot$state, levels(growth_plot$state)[c(2,1)])
+levels(growth_plot$state)
+
+umbs_comp_plot <- subset(comp_plot, site == "umbs") # pull out umbs only data 
+kbs_comp_plot <- subset(comp_plot, site == "kbs") # pull out kbs only data 
+umbs_origin_plot <- subset(origin_plot, site == "umbs") # pull out umbs only data 
+kbs_origin_plot <- subset(origin_plot, site == "kbs") # pull out kbs only data 
+umbs_growth_plot <- subset(growth_plot, site == "umbs") # pull out umbs only data 
+kbs_growth_plot <- subset(growth_plot, site == "kbs") # pull out kbs only data 
+```
+
+KBS Plot Level
+```{r}
+### KBS ###
+hist(kbs_comp_plot$plot_total_cover_year)
+qqnorm(kbs_comp_plot$plot_total_cover_year)
+shapiro.test(kbs_comp_plot$plot_total_cover_year) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+
+# Exploring distributions:
+descdist(kbs_comp_plot$plot_total_cover_year, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_comp_plot$plot_total_cover_year, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_comp_plot$plot_total_cover_year, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_comp_plot$plot_total_cover_year, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# log normal best fit 
+```
+
+Leverage plots and detecting Outliers
+```{r}
+# Plot level data
+# KBS State-only model
+fit_plot_state_kbs <- lm(log(plot_total_cover_year) ~ state, data = kbs_comp_plot)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
+
+# KBS State and year model
+fit_plot_stateyear_kbs <- lm(log(plot_total_cover_year) ~ state + year_factor, data = kbs_comp_plot)
+outlierTest(fit_plot_stateyear_kbs) # no outliers 
+qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs$residuals)
+leveragePlots(fit_plot_stateyear_kbs)
+ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal 
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(log(plot_total_cover_year) ~ state * year_factor, data = kbs_comp_plot)
+interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+```
+
+Mixed Effects Model
+```{r}
+# KBS PLOT LEVEL
+mod1 <- lmer(log(plot_total_cover_year) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_comp_plot, REML = FALSE)
+ggplot(kbs_comp_plot,aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(mod1) # the ones in the data are making this look weird - idk this doesn't look great
+# Homogeneity of variance looks weird here 
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(mod1) ~ kbs_comp_plot$state)
+# Assumption not met
+leveneTest(residuals(mod1) ~ kbs_comp_plot$insecticide) 
+# Assumption not met
+leveneTest(residuals(mod1) ~ kbs_comp_plot$plot)
+# Assumption not met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # normally distributed resids bc p>0.05
+outlierTest(mod1) # no outliers
+```
+
+```{r}
+# plot-level models 
+modfull <- lmer(log(plot_total_cover_year) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_comp_plot, REML=F)
+mod1p <- lmer(log(plot_total_cover_year) ~ state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod2p <- lmer(log(plot_total_cover_year) ~ insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod3p <- lmer(log(plot_total_cover_year) ~ insecticide + state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod4p <- lmer(log(plot_total_cover_year) ~ insecticide * state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod5p <- lmer(log(plot_total_cover_year) ~ state + year_factor + (1|plot), kbs_comp_plot, REML=FALSE)
+mod6p <- lmer(log(plot_total_cover_year) ~ state + year_factor + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod7p <- lmer(log(plot_total_cover_year) ~ state * year_factor + (1|plot), kbs_comp_plot, REML=FALSE)
+mod8p <- lmer(log(plot_total_cover_year) ~ state * year_factor + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod9p <- lmer(log(plot_total_cover_year) ~ state * insecticide + year_factor + (1|plot), kbs_comp_plot, REML=FALSE)
+mod10p <- lmer(log(plot_total_cover_year) ~ state + insecticide * year_factor + (1|plot), kbs_comp_plot, REML=FALSE)
+mod11p <- lmer(log(plot_total_cover_year) ~ state * year_factor * insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
+anova(mod7p, mod8p)
+AICctab(mod7p, mod8p, weights=T) # 8p
+summ(mod8p)
+summary(mod8p)
+anova(mod8p)
+emmeans(mod8p, list(pairwise ~ state*year_factor), adjust = "tukey")
+emmeans(mod8p, list(pairwise ~ insecticide), adjust = "tukey")
+```
+
+KBS Origin Plot Level
+```{r}
+### KBS ###
+hist(kbs_origin_plot$relabun)
+qqnorm(kbs_origin_plot$relabun)
+shapiro.test(kbs_origin_plot$relabun) # pvalue is > 0.05 so we can reject the null hypothesis that the data is normal (aka normally distributed) 
+
+# Exploring distributions:
+descdist(kbs_origin_plot$relabun, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_origin_plot$relabun, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_origin_plot$relabun, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_origin_plot$relabun, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# log normal best fit, but going to go with normal
+```
+
+Leverage plots and detecting Outliers
+```{r}
+# Plot level data
+# KBS State-only model
+fit_plot_state_kbs <- lm(relabun ~ state, data = kbs_origin_plot)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
+
+# KBS State and year model
+fit_plot_stateyear_kbs <- lm(relabun ~ state + year_factor, data = kbs_origin_plot)
+outlierTest(fit_plot_stateyear_kbs) # no outliers 
+qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs$residuals)
+leveragePlots(fit_plot_stateyear_kbs)
+ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal 
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(relabun ~ state * year_factor, data = kbs_origin_plot)
+interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+```
+
+Mixed Effects Model
+```{r}
+# KBS origin plot level
+modfull_o <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_origin_plot, REML = FALSE)
+ggplot(kbs_origin_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(modfull_o) # the ones in the data are making this look weird - idk this doesn't look great
+# Homogeneity of variance looks weird here 
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(modfull_o) ~ kbs_origin_plot$state)
+# Assumption not met
+leveneTest(residuals(modfull_o) ~ kbs_origin_plot$insecticide) 
+# Assumption not met
+leveneTest(residuals(modfull_o) ~ kbs_origin_plot$plot)
+# Assumption not met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(modfull_o))
+hist(residuals(modfull_o))
+shapiro.test(resid(modfull_o)) # normally distributed resids bc p>0.05
+outlierTest(modfull_o) # no outliers
+```
+
+```{r}
+# plot-level models using the re-summarized data frame
+modfull_o <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_origin_plot, REML=F)
+mod1p_o <- lmer(relabun ~ state + (1|plot), kbs_origin_plot, REML=FALSE)
+mod2p_o <- lmer(relabun ~ insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
+mod3p_o <- lmer(relabun ~ insecticide + state + (1|plot), kbs_origin_plot, REML=FALSE)
+mod4p_o <- lmer(relabun ~ insecticide * state + (1|plot), kbs_origin_plot, REML=FALSE)
+mod5p_o <- lmer(relabun ~ state + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+mod6p_o <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
+mod7p_o <- lmer(relabun ~ state * year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+mod8p_o <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
+mod9p_o <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+mod10p_o <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+mod11p_o <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
+AICtab(modfull_o, mod1p_o, mod2p_o, mod3p_o, mod4p_o, mod5p_o, mod6p_o, mod7p_o, mod8p_o, mod9p_o, mod10p_o, mod11p_o, weights=T)
+anova(mod5p_o, mod6p_o)
+AICctab(mod5p_o, mod6p_o, weights=T) #5p_o
+summ(mod5p_o)
+summary(mod5p_o)
+anova(mod5p_o)
+emmeans(mod5p_o, list(pairwise ~ state + year_factor), adjust = "tukey")
+```
+
+KBS Growth Plot Level
+```{r}
+### KBS ###
+hist(kbs_growth_plot$relabun)
+qqnorm(kbs_growth_plot$relabun)
+shapiro.test(kbs_growth_plot$relabun) # pvalue is > 0.05 so we can reject the null hypothesis that the data is normal (aka normally distributed) 
+
+# Exploring distributions:
+descdist(kbs_growth_plot$relabun, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_growth_plot$relabun, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_growth_plot$relabun, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_growth_plot$relabun, "lnorm")
+plot(fit.ln)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal")
+denscomp(list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
+gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
+# log normal best fit, but going to go with normal
+```
+
+Leverage plots and detecting Outliers
+```{r}
+# Plot level data
+# KBS State-only model
+fit_plot_state_kbs <- lm(relabun ~ state, data = kbs_growth_plot)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
+
+# KBS State and year model
+fit_plot_stateyear_kbs <- lm(relabun ~ state + year_factor, data = kbs_growth_plot)
+outlierTest(fit_plot_stateyear_kbs) # no outliers 
+qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs$residuals)
+leveragePlots(fit_plot_stateyear_kbs)
+ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal 
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(relabun ~ state * year_factor, data = kbs_growth_plot)
+interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+```
+
+Mixed Effects Model
+```{r}
+# KBS origin plot level
+modfull_g <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_growth_plot, REML = FALSE)
+ggplot(kbs_growth_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(modfull_g) # the ones in the data are making this look weird - idk this doesn't look great
+# Homogeneity of variance looks weird here 
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(modfull_g) ~ kbs_growth_plot$state)
+# Assumption not met
+leveneTest(residuals(modfull_g) ~ kbs_growth_plot$insecticide) 
+# Assumption not met
+leveneTest(residuals(modfull_g) ~ kbs_origin_plot$plot)
+# Assumption not met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(modfull_g))
+hist(residuals(modfull_g))
+shapiro.test(resid(modfull_g)) # normally distributed resids bc p>0.05
+outlierTest(modfull_g) # no outliers
+```
+
+```{r}
+# plot-level models using the re-summarized data frame
+modfull_g <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_growth_plot, REML=F)
+mod1p_g <- lmer(relabun ~ state + (1|plot), kbs_growth_plot, REML=FALSE)
+mod2p_g <- lmer(relabun ~ insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
+mod3p_g <- lmer(relabun ~ insecticide + state + (1|plot), kbs_growth_plot, REML=FALSE)
+mod4p_g <- lmer(relabun ~ insecticide * state + (1|plot), kbs_growth_plot, REML=FALSE)
+mod5p_g <- lmer(relabun ~ state + year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
+mod6p_g <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
+mod7p_g <- lmer(relabun ~ state * year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
+mod8p_g <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
+mod9p_g <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
+mod10p_g <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
+mod11p_g <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
+AICtab(modfull_g, mod1p_g, mod2p_g, mod3p_g, mod4p_g, mod5p_g, mod6p_g, mod7p_g, mod8p_g, mod9p_g, mod10p_g, mod11p_g, weights=T)
+anova(mod1p_g, mod5p_g)
+AICctab(mod1p_g, mod5p_g, weights=T) #5p_o
+summ(mod1p_g)
+summary(mod1p_g)
+anova(mod1p_g)
+```
