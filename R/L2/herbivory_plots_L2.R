@@ -253,13 +253,17 @@ binom_plot_u <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = state, label = 
 # amount eaten plot
 sum_herb_overall_k <- herb %>%
         filter(site == "KBS",
-               insecticide == "insects") %>%
+               insecticide == "insects")
+sum_herb_overall_k <- sum_herb_overall_k[sum_herb_overall_k$p_eaten != 0, ]
+sum_herb_overall_k <- sum_herb_overall_k %>%
         group_by(state) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 sum_herb_overall_u <- herb %>%
         filter(site == "UMBS",
-               insecticide == "insects") %>%
+               insecticide == "insects")
+sum_herb_overall_u <- sum_herb_overall_u[sum_herb_overall_u$p_eaten != 0, ]
+sum_herb_overall_u <- sum_herb_overall_u %>%
         group_by(state) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
@@ -270,7 +274,7 @@ eaten_k <- ggplot(sum_herb_overall_k, aes(x = state, y = avg_eaten, fill = state
         labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        ylim(0,8) +
+        ylim(0,21) +
         theme_classic() +
         theme(legend.position="none") +
         theme(axis.text.y = element_text(size=13),
@@ -284,7 +288,7 @@ eaten_u <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = state
         labs(x = NULL, y = NULL, title=NULL, subtitle="D") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        ylim(0,8) +
+        ylim(0,21) +
         theme_classic() +
         theme(legend.position="none") +
         theme(axis.text.y = element_blank(),
@@ -432,7 +436,8 @@ herb_plot_spp("Soca", "KBS")
 
 
 #### All species for each site ####
-sum_herb_spp2 <- herb %>%
+sum_herb_spp2 <- herb[herb$p_eaten != 0, ]
+sum_herb_spp2 <- sum_herb_spp2 %>%
         group_by(site, state, insecticide, species) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
@@ -609,13 +614,17 @@ binom_plot_u_org <- ggplot(herb_binom_u_org2,
 # amount eaten plot
 sum_herb_org_k <- herb_org_rem %>%
         filter(site == "KBS",
-               insecticide == "insects") %>%
+               insecticide == "insects")
+sum_herb_org_k <- sum_herb_org_k[sum_herb_org_k$p_eaten != 0, ]
+sum_herb_org_k <- sum_herb_org_k %>%
         group_by(state, origin) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 sum_herb_org_u <- herb_org_rem %>%
         filter(site == "UMBS",
-               insecticide == "insects") %>%
+               insecticide == "insects")
+sum_herb_org_u <- sum_herb_org_u[sum_herb_org_u$p_eaten != 0, ]
+sum_herb_org_u <- sum_herb_org_u %>%
         group_by(state, origin) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
@@ -642,7 +651,7 @@ eaten_k_org <- ggplot(sum_herb_org_k, aes(x = Treatment, y = avg_eaten, fill = s
         labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         theme_classic() +
-        ylim(0,9) + 
+        ylim(0,20) + 
         scale_x_discrete(labels=c("Native _ warmed" = "Native \n Warmed",
                                   "Exotic _ warmed" = "Exotic \n Warmed",
                                   "Native _ ambient" = "Native \n Ambient",
@@ -677,7 +686,7 @@ eaten_u_org <- ggplot(sum_herb_org_u, aes(x = Treatment, y = avg_eaten, fill = s
         labs(x = NULL, y = NULL, title=NULL, subtitle="D") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         theme_classic() +
-        ylim(0,9) +
+        ylim(0,20) +
         scale_x_discrete(labels=c("Native _ warmed" = "Native \n Warmed",
                                   "Exotic _ warmed" = "Exotic \n Warmed",
                                   "Native _ ambient" = "Native \n Ambient",
@@ -785,13 +794,17 @@ binom_plot_u_gr <- ggplot(herb_binom_u_gr2,
 # amount eaten plot
 sum_herb_gr_k <- herb_gr_rem %>%
         filter(site == "KBS",
-               insecticide == "insects") %>%
+               insecticide == "insects")
+sum_herb_gr_k <- sum_herb_gr_k[sum_herb_gr_k$p_eaten != 0, ]
+sum_herb_gr_k <- sum_herb_gr_k %>%
         group_by(state, growth_habit) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 sum_herb_gr_u <- herb_gr_rem %>%
         filter(site == "UMBS",
-               insecticide == "insects") %>%
+               insecticide == "insects")
+sum_herb_gr_u <- sum_herb_gr_u[sum_herb_gr_u$p_eaten != 0, ]
+sum_herb_gr_u <- sum_herb_gr_u %>%
         group_by(state, growth_habit) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
@@ -818,7 +831,7 @@ eaten_k_gr <- ggplot(sum_herb_gr_k, aes(x = Treatment, y = avg_eaten, fill = sta
         labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
         theme_classic() +
-        ylim(0,10) + 
+        ylim(0,27) + 
         scale_x_discrete(labels=c("Forb _ warmed" = "Forb \n Warmed",
                                   "Graminoid _ warmed" = "Graminoid \n Warmed",
                                   "Forb _ ambient" = "Forb \n Ambient",
@@ -834,9 +847,8 @@ eaten_u_gr <- ggplot(sum_herb_gr_u, aes(x = Treatment, y = avg_eaten, fill = sta
                       position = "identity") +
         labs(x = NULL, y = NULL, title=NULL, subtitle="D") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         theme_classic() +
-        ylim(0,10) +
+        ylim(0,27) +
         scale_x_discrete(labels=c("Forb _ warmed" = "Forb \n Warmed",
                                   "Graminoid _ warmed" = "Graminoid \n Warmed",
                                   "Forb _ ambient" = "Forb \n Ambient",

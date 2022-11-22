@@ -425,7 +425,7 @@ k.m3.ho <- hurdle(p_eaten ~ state + year, data = herb_kbs2, dist = "negbin",
 lrtest(k.m1.ho,k.m2.ho, k.m3.ho)
 AICtab(k.m1.ho,k.m2.ho,k.m3.ho) # going w m2 because we're interested in the interactive effects of warming + origin
 
-summary(k.m1.ho) #*used this output in the paper*#
+summary(k.m2.ho) #*used this output in the paper*#
 means <- emmeans(k.m1.ho, ~ origin)
 pairs(means, adjust = "none")
 
@@ -756,7 +756,7 @@ exp(-0.498033) # 0.6077249 interaction
 2.508839 + 0.9868571 + 1.308995 + 0.6077249 # 5.412416 amount of herbivory on warmed+native plants
 
 ### growth form ###
-herb_umbs <- within(herb_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Graminoid"))
+herb_umbs <- within(herb_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb"))
 u.m1.hg <- hurdle(p_eaten ~ state + growth_habit + year, data = herb_umbs, dist = "negbin", 
                   zero.dist = "binomial")
 u.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_umbs, dist = "negbin", 
