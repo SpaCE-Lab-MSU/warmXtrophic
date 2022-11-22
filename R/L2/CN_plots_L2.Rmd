@@ -42,6 +42,8 @@ cn1<-cn1 %>% filter(nitrogen < 4)
 
 # take the treatment-level mean
 cn_treatment <- cn1 %>%
+    group_by(site, plot, species, treatment, insecticide) %>%
+    summarize(nitrogen = mean(nitrogen), carbon = mean(carbon), weight_mg = mean(weight_mg)) %>%    
     group_by(site,treatment,insecticide) %>%
     summarize(nitrogen_mean = mean(nitrogen), carbon_mean = mean(carbon), weight_mg = mean(weight_mg),
               n_se = std.error(nitrogen), c_se = std.error(carbon)) 
@@ -88,7 +90,7 @@ c_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = carbon_mean, fill = treatme
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(44,48)) +
+        coord_cartesian(ylim=c(42,48)) +
         theme_classic() +
         theme(legend.position = "none")
 cn_treat_umbs <- cn_treatment %>%
@@ -103,7 +105,7 @@ c_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = carbon_mean, fill = treat
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(44,48)) +
+        coord_cartesian(ylim=c(42,48)) +
         theme_classic() +
         theme(legend.position = "none")
 c_comb <- ggpubr::ggarrange(c_kbs, c_umbs,
@@ -159,7 +161,7 @@ n_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = nitrogen_mean, fill = treat
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(1.5,2.1)) +
+        coord_cartesian(ylim=c(1.5,2.25)) +
         theme_classic() +
         theme(legend.position = "none")
 cn_treat_umbs <- cn_treatment %>%
@@ -174,7 +176,7 @@ n_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = nitrogen_mean, fill = tre
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(1.5,2.1)) +
+        coord_cartesian(ylim=c(1.5,2.25)) +
         theme_classic() +
         theme(legend.position = "none")
 n_comb <- ggpubr::ggarrange(n_kbs, n_umbs,
