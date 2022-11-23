@@ -80,25 +80,6 @@ hist(kbs_plot$julian_min)
 qqnorm(kbs_plot$julian_min)
 shapiro.test(kbs_plot$julian_min) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) but it looks normal enough
 
-# Visualizing median Julian date for kbs at the PLOT LEVEL
-ggplot(kbs_plot, aes(julian_min, fill = plot)) + 
-        geom_histogram(binwidth = 0.5) + 
-        facet_grid(year ~ site, margins = TRUE, scales = "free")
-
-ggplot(kbs_plot, aes(julian_min, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
-        facet_grid(state~year, margins = TRUE, scales = "free")
-
-ggplot(kbs_plot, aes(julian_min, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1)
-
-ggplot(kbs_plot, aes(julian_min, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year)
-
-ggplot(kbs_plot, aes(julian_min, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year + plot)
-
 # Exploring distributions for these right-skewed data:
 descdist(kbs_plot$julian_min, discrete = FALSE)
 
@@ -201,6 +182,16 @@ summ(mod7p)
 anova(mod7p)
 summary(mod7p)
 emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
+
+#including herb reduction
+anova(mod8p)
+#including herb reduction as interactive term
+anova(mod9p)
+
+# code to get table information for manuscript
+table <- anova(mod7p, mod9p)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod7p, mod9p, weights=T)
 ```
 
 UMBS plot level
@@ -251,10 +242,19 @@ mod10pu <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), umbs_
 mod11pu <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_plot, REML=FALSE)
 AICctab(mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T) # model 10p and 6p are the top models
 anova(mod10pu, mod6pu) # go with 10p
-AICctab(mod10pu, mod6pu, weights=T)
+AICctab(mod10pu, mod6pu, weights=T) #10p
 summ(mod10pu)
 summary(mod10pu)
 anova(mod10pu)
 emmeans(mod10pu, list(pairwise ~ state + year_factor), adjust = "tukey")
 emmeans(mod10pu, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
+emmeans(mod10pu, list(pairwise ~ year_factor), adjust = "tukey")
+
+# with herb reduction as interactive term
+anova(mod9pu)
+
+# code to get table information for manuscript
+table <- anova(mod10pu, mod9pu)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod10pu, mod9pu, weights=T)
 ```

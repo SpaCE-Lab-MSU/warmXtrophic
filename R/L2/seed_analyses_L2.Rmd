@@ -41,6 +41,7 @@ library(effects)
 library(glmmTMB)
 library(GGally) # ggpairs() function
 library(bbmle) # AICtab() function
+library(knitr)
 
 # Set working directory
 Sys.getenv("L1DIR")
@@ -806,11 +807,28 @@ mod8p <- lmer(log(julian_min) ~ state * year_factor + insecticide + (1|plot), kb
 mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
 mod10p <- lmer(log(julian_min) ~ state + insecticide * year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
 mod11p <- lmer(log(julian_min) ~ state * year_factor * insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 11p and 10p the same
-anova(mod7p, mod8p) #6p just barely better, going with 5p because it's simpler though
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) 
+anova(mod7p, mod8p) 
+AICctab(mod7p, mod8p, weights=T)
 summary(mod7p)
 anova(mod7p)
 emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
+
+# calculating effect size - accounting for log transformation
+exp(5.46150 + (-0.11720*0)) # 235.4503 warmed
+exp(5.46150 + (-0.11720*1)) # 209.4112 ambient
+# effect:
+209.4112 - 235.4503 # -26.0391 --> ambient plots advanced date of first seed set by 26.0391 days
+
+# including herb reduction as fixed effects in model
+anova(mod8p)
+# including herb reduction as interactive term
+anova(mod9p)
+
+# code to get table information for manuscript
+table <- anova(mod7p, mod9p)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod7p, mod9p, weights=T)
 
 # including native vs. exotic
 kbs_sd_plot_origin <- within(kbs_sd_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
@@ -985,9 +1003,20 @@ mod10pu <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), umbs_
 mod11pu <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_sd_plot, REML=FALSE)
 AICctab(mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T) # model 11p and 10p the same
 anova(mod5pu, mod6pu) #go with mod5pu
+AICctab(mod5pu, mod6pu, weights=T)
 summary(mod5pu)
 anova(mod5pu)
 emmeans(mod5pu, list(pairwise ~ state+year_factor), adjust = "tukey")
+
+# including herb reduction in model
+anova(mod6pu)
+# including herb reduction as interactive term
+anova(mod9pu)
+
+# code to get table information for manuscript
+table <- anova(mod5pu, mod9pu)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod5pu, mod9pu, weights=T)
 
 # including native vs. exotic
 umbs_sd_plot_origin <- within(umbs_sd_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference

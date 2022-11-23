@@ -928,12 +928,16 @@ mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot
 mod10p <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
 mod11p <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
-anova(mod1p, mod2p) # go with 5p although they are nearly identical
+anova(mod1p, mod2p) # go with 1p although they are nearly identical
 AICctab(mod1p, mod2p, weights=T)
-summ(mod1p)
 anova(mod1p)
-summary(mod5p)
-emmeans(mod5p, list(pairwise ~ state + year_factor), adjust = "tukey")
+summary(mod1p)
+
+# code to get table information for manuscript
+table <- anova(mod1p, mod9p)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod1p, mod9p, weights=T)
+
 
 # including native vs. exotic
 kbs_flwr_plot_origin <- within(kbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
@@ -1156,10 +1160,19 @@ mod10up <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|pl
 mod11up <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
 AICctab(mod1up, mod2up, mod3up, mod4up, mod5up, mod6up, mod7up, mod8up, mod9up, mod10up, mod11up, weights=T)
 anova(mod1up, mod2up) # go with simpler model 1up
-AICctab(mod2up, mod1up, weights=T)
-summ(mod1up)
+AICctab(mod2up, mod1up, weights=T) #mod1up
+anova(mod1up)
 summary(mod1up)
-emmeans(mod1up, list(pairwise ~ state), adjust = "tukey")
+
+# with herb reduction included in model
+anova(mod3up)
+# with herb reduction as interactive term
+anova(mod9up)
+
+# code to get table information for manuscript
+table <- anova(mod1up, mod9up)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod1up, mod9up, weights=T)
 
 # including native vs. exotic
 umbs_flwr_plot_origin <- within(umbs_flwr_plot_origin, origin <- relevel(factor(origin), ref = "Native")) # releveling so native is the reference
