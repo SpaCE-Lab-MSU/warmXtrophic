@@ -5,7 +5,7 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 ---
 
-COLLABORATORS: Phoebe Zarnetske, Mark Hammond, Pat Bills 
+COLLABORATORS: Kara Dobson, Phoebe Zarnetske, Mark Hammond, Pat Bills 
 DATA INPUT: Clean & plot plant comp csv from the shared Google drive  
 DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
 PROJECT: warmXtrophic 
@@ -133,7 +133,7 @@ native_line <- function(loc) {
 native_line_kbs <- native_line("kbs")
 native_line_kbs <- native_line_kbs + labs(title="KBS", subtitle= "Native", y=NULL) + theme(axis.text.x=element_blank())
 native_line_umbs <- native_line("umbs")
-native_line_umbs <- native_line_umbs + labs(title="UMBS", subtitle= "Native", y=NULL) + theme(axis.text.x=element_blank())
+native_line_umbs <- native_line_umbs + labs(title="UMBS", subtitle= "Native", y=NULL)
 
 #native_line <- ggpubr::ggarrange(native_line_kbs, native_line_umbs,
 #                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
@@ -155,12 +155,12 @@ exotic_line <- function(loc) {
 }
 
 exotic_line_kbs <- exotic_line("kbs")
-exotic_line_kbs <- exotic_line_kbs + labs(title=NULL, subtitle="Exotic", y=NULL)
+exotic_line_kbs <- exotic_line_kbs + labs(title="KBS", subtitle="Exotic", y=NULL) + theme(axis.text.x=element_blank())
 exotic_line_umbs <- exotic_line("umbs")
-exotic_line_umbs <- exotic_line_umbs + labs(title=NULL, subtitle="Exotic", y=NULL)
+exotic_line_umbs <- exotic_line_umbs + labs(title="UMBS", subtitle="Exotic", y=NULL)
 
-origin_line <- ggpubr::ggarrange(native_line_kbs, native_line_umbs,
-                                 exotic_line_kbs, exotic_line_umbs,
+origin_line <- ggpubr::ggarrange(native_line_kbs, exotic_line_kbs,
+                                 native_line_umbs, exotic_line_umbs,
                           nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 png("origin_relative_abundance_plots_L2.png", units="in", width=9, height=8, res=300)
 annotate_figure(origin_line,
@@ -187,7 +187,7 @@ forb_line <- function(loc) {
 forb_line_kbs <- forb_line("kbs")
 forb_line_kbs <- forb_line_kbs + labs(title="KBS", subtitle= "Forb", y=NULL) + theme(axis.text.x=element_blank())
 forb_line_umbs <- forb_line("umbs")
-forb_line_umbs <- forb_line_umbs + labs(title="UMBS", subtitle= "Forb", y=NULL) + theme(axis.text.x=element_blank())
+forb_line_umbs <- forb_line_umbs + labs(title="UMBS", subtitle= "Forb", y=NULL)
 
 #forb_line <- ggpubr::ggarrange(forb_line_kbs, forb_line_umbs,
 #                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
@@ -209,12 +209,12 @@ graminoid_line <- function(loc) {
 }
 
 graminoid_line_kbs <- graminoid_line("kbs")
-graminoid_line_kbs <- graminoid_line_kbs + labs(title=NULL, subtitle="Graminoid", y=NULL)
+graminoid_line_kbs <- graminoid_line_kbs + labs(title="KBS", subtitle="Graminoid", y=NULL) + theme(axis.text.x=element_blank())
 graminoid_line_umbs <- graminoid_line("umbs")
-graminoid_line_umbs <- graminoid_line_umbs + labs(title=NULL, subtitle="Graminoid", y=NULL)
+graminoid_line_umbs <- graminoid_line_umbs + labs(title="UMBS", subtitle="Graminoid", y=NULL)
 
-growthhabit_line <- ggpubr::ggarrange(forb_line_kbs, forb_line_umbs,
-                                    graminoid_line_kbs, graminoid_line_umbs,
+growthhabit_line <- ggpubr::ggarrange(forb_line_kbs, graminoid_line_kbs,
+                                    forb_line_umbs, graminoid_line_umbs,
                           nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 png("growthhabit_relative_abundance_plots_L2.png", units="in", width=9, height=8, res=300)
 annotate_figure(growthhabit_line,
