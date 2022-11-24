@@ -36,6 +36,7 @@ library(labdsv) # used with Vegan package, the matrify() and matrify2() function
 library(agricolae) # HSD.test() function
 library(bbmle)
 library(jtools) # summ() function
+library(knitr)
 
 # Set working directory
 Sys.getenv("L1DIR")
@@ -235,7 +236,7 @@ Simpson's Index
 KBS
 ```{r, warning=F}
 ### KBS ###
-hist(kbs_diversity$simpson) # skewed to the left
+hist(kbs_diversity$simpson)
 qqnorm(kbs_diversity$simpson)
 shapiro.test(kbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
@@ -291,7 +292,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "We
 UMBS
 ```{r, warning=F}
 ### UMBS ###
-hist(umbs_diversity$simpson) # skewed to the left
+hist(umbs_diversity$simpson)
 qqnorm(umbs_diversity$simpson)
 shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
@@ -351,7 +352,7 @@ KBS
 ### KBS ###
 hist(kbs_diversity$shannon) 
 qqnorm(kbs_diversity$shannon)
-shapiro.test(kbs_diversity$shannon) # pvalue is > 0.05 so we do not reject the null hypothesis that the data is normal (aka not normally distributed)
+shapiro.test(kbs_diversity$shannon) # pvalue is > 0.05 - normally distributed
 
 # Visualizing plot average totals for kbs at the PLOT LEVEL
 ggplot(kbs_diversity, aes(shannon, fill = plot)) + 
@@ -521,7 +522,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "We
 UMBS
 ```{r, warning=F}
 ### UMBS ###
-hist(umbs_diversity$richness) # skewed to the right
+hist(umbs_diversity$richness) 
 qqnorm(umbs_diversity$richness)
 shapiro.test(umbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
@@ -809,6 +810,36 @@ plot_model(mod3, type = "re", terms = c("species"))
 # mod3 <- lmer(log(simpson) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
 summ(mod3)
 emmeans(mod3, list(pairwise ~ state + year + insecticide*year), adjust = "tukey")
+
+mod1 <- lmer(log(simpson) ~ state + (1|plot), kbs_diversity, REML=FALSE)
+mod2 <- lmer(log(simpson) ~ insecticide + (1|plot), kbs_diversity, REML=FALSE)
+mod3 <- lmer(log(simpson) ~ insecticide + state + (1|plot), kbs_diversity, REML=FALSE)
+mod4 <- lmer(log(simpson) ~ insecticide * state + (1|plot), kbs_diversity, REML=FALSE)
+mod5 <- lmer(log(simpson) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod6 <- lmer(log(simpson) ~ state + year_factor + insecticide + (1|plot), kbs_diversity, REML=FALSE)
+mod7 <- lmer(log(simpson) ~ state * year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod8 <- lmer(log(simpson) ~ state * year_factor + insecticide + (1|plot), kbs_diversity, REML=FALSE)
+mod9 <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod10 <- lmer(log(simpson) ~ state + insecticide * year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod11 <- lmer(log(simpson) ~ state * year_factor * insecticide + (1|plot), kbs_diversity, REML=FALSE)
+AICctab(mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8, mod9, mod10, mod11, weights=T) 
+anova(mod10, mod5)
+AICctab(mod10, mod5, weights=T) #10p
+summary(mod10)
+summ(mod10)
+anova(mod10)
+emmeans(mod10, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod10, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
+emmeans(mod10, list(pairwise ~ year_factor), adjust = "tukey")
+
+# with herb reduction as interactive term
+anova(mod9)
+
+# code to get table information for manuscript
+table <- anova(mod10, mod9)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod10pu, mod9pu, weights=T)
+
 ```
 
 UMBS

@@ -324,43 +324,54 @@ mod14p_o <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), kbs_ori
 mod15p_o <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
 mod16p_o <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
 mod17p_o <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod18p_o <- lmer(relabun ~ state * year_factor * insecticide * origin + (1|plot), kbs_origin_plot, REML=FALSE)
+mod18p_o <- lmer(relabun ~ state * insecticide + year_factor + origin + (1|plot), kbs_origin_plot, REML=FALSE) 
+mod19p_o <- lmer(relabun ~ state * year_factor * insecticide * origin + (1|plot), kbs_origin_plot, REML=FALSE)
+mod20p_o <- lmer(relabun ~ state * origin + year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE) # hypothesis
+
+AICtab(modfull_o, mod1p_o, mod2p_o, mod3p_o, mod4p_o, mod5p_o, mod6p_o, mod7p_o, mod8p_o, mod9p_o, mod10p_o, mod11p_o, mod12p_o, mod13p_o, mod14p_o, mod15p_o, mod16p_o, mod17p_o, mod18p_o, mod19p_o, mod20p_o, weights=T)
+anova(mod11p_o, mod20p_o)
+AICtab(mod11p_o, mod20p_o, weights=T)
+anova(mod11p_o)
+summary(mod11p_o)
+
+# with herb reduction as interactive term
+anova(mod20p_o)
+
+# code to get table information for manuscript
+table <- anova(mod11p_o, mod20p_o)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod11p_o, mod20p_o, weights=T)
 ```
 
 ```{r}
-# plot-level models using the re-summarized data frame
-modfull_o <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_origin_plot, REML=F)
-mod1p_o <- lmer(relabun ~ state + (1|plot), kbs_origin_plot, REML=FALSE)
-mod2p_o <- lmer(relabun ~ insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod3p_o <- lmer(relabun ~ insecticide + state + (1|plot), kbs_origin_plot, REML=FALSE)
-mod4p_o <- lmer(relabun ~ insecticide * state + (1|plot), kbs_origin_plot, REML=FALSE)
-mod5p_o <- lmer(relabun ~ state + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-mod6p_o <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod7p_o <- lmer(relabun ~ state * year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-mod8p_o <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod9p_o <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-mod10p_o <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-mod11p_o <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-AICtab(modfull_o, mod1p_o, mod2p_o, mod3p_o, mod4p_o, mod5p_o, mod6p_o, mod7p_o, mod8p_o, mod9p_o, mod10p_o, mod11p_o, weights=T)
-anova(mod5p_o, mod6p_o)
-AICctab(mod5p_o, mod6p_o, weights=T) #5p_o
-summ(mod5p_o)
-summary(mod5p_o)
-anova(mod5p_o)
-emmeans(mod5p_o, list(pairwise ~ state + year_factor), adjust = "tukey")
+modfull_o <- lmer(relabun ~ state*year_factor + insecticide*year_factor + origin*year_factor + (1|plot), kbs_origin_plot, REML=F)
+mod1p_o <- lmer(relabun ~ origin + (1|plot), kbs_origin_plot, REML=FALSE)
+mod2p_o <- lmer(relabun ~ state + (1|plot), kbs_origin_plot, REML=FALSE)
+mod3p_o <- lmer(relabun ~ state + origin + (1|plot), kbs_origin_plot, REML=FALSE)
+mod4p_o <- lmer(relabun ~ state * origin + (1|plot), kbs_origin_plot, REML=FALSE)
+mod5p_o <- lmer(relabun ~ state + year_factor + insecticide + origin + (1|plot), kbs_origin_plot, REML=FALSE)
+mod6p_o <- lmer(relabun ~ state * insecticide + year_factor + origin + (1|plot), kbs_origin_plot, REML=FALSE) 
+mod7p_o <- lmer(relabun ~ state * insecticide + year_factor * origin + (1|plot), kbs_origin_plot, REML=FALSE) 
+mod8p_o <- lmer(relabun ~ state * year_factor * insecticide * origin + (1|plot), kbs_origin_plot, REML=FALSE)
+mod9p_o <- lmer(relabun ~ state * origin + year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE) # hypothesis
+mod10p_o <- lmer(relabun ~ state * origin + year_factor * insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
+mod11p_o <- lmer(relabun ~ state * origin + year_factor * origin + insecticide * origin + (1|plot), kbs_origin_plot, REML=FALSE) 
 
-# calculating effect size
-7.09411 +  0.29494*0 # 1204.85 warmed
-7.09411 +  0.29494*1 # 1618.168 ambient
-# effect:
-1618.168 - 1204.85 # warmed plots had 413.318 more cover than ambient
-# this might be flipped?
+AICtab(modfull_o, mod1p_o, mod2p_o, mod3p_o, mod4p_o, mod5p_o, mod6p_o, mod7p_o, mod8p_o, mod9p_o, mod10p_o, mod11p_o, weights=T)
+anova(mod11p_o, mod5p_o)
+AICtab(mod11p_o, mod5p_o, weights=T)
+anova(mod11p_o)
+summary(mod11p_o)
+
+# with herb reduction as interactive term
+anova(mod20p_o)
 
 # code to get table information for manuscript
-table <- anova(mod5p_o, mod9p_o)
+table <- anova(mod9p_o, mod20p_o)
 kable(table) %>% kableExtra::kable_styling()
-AICctab(mod5p_o, mod9p_o, weights=T)
+AICctab(mod11p_o, mod20p_o, weights=T)
 ```
+
 
 KBS Growth Plot Level
 ```{r}
@@ -453,26 +464,43 @@ outlierTest(modfull_g) # no outliers
 ```
 
 ```{r}
-# plot-level models using the re-summarized data frame
-modfull_g <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_growth_plot, REML=F)
+modfull_g <- lmer(relabun ~ state*year_factor + insecticide*year_factor + growth_habit*year_factor + (1|plot), kbs_growth_plot, REML=F)
 mod1p_g <- lmer(relabun ~ state + (1|plot), kbs_growth_plot, REML=FALSE)
 mod2p_g <- lmer(relabun ~ insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
-mod3p_g <- lmer(relabun ~ insecticide + state + (1|plot), kbs_growth_plot, REML=FALSE)
-mod4p_g <- lmer(relabun ~ insecticide * state + (1|plot), kbs_growth_plot, REML=FALSE)
-mod5p_g <- lmer(relabun ~ state + year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
-mod6p_g <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
-mod7p_g <- lmer(relabun ~ state * year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
-mod8p_g <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
-mod9p_g <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
-mod10p_g <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
-mod11p_g <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
-AICtab(modfull_g, mod1p_g, mod2p_g, mod3p_g, mod4p_g, mod5p_g, mod6p_g, mod7p_g, mod8p_g, mod9p_g, mod10p_g, mod11p_g, weights=T)
-anova(mod1p_g, mod5p_g)
-AICctab(mod1p_g, mod5p_g, weights=T) #5p_o
-summ(mod1p_g)
-summary(mod1p_g)
-anova(mod1p_g)
+mod3p_g <- lmer(relabun ~ growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
+mod4p_g <- lmer(relabun ~ insecticide + state + (1|plot), kbs_growth_plot, REML=FALSE)
+mod5p_g <- lmer(relabun ~ insecticide * state + (1|plot), kbs_growth_plot, REML=FALSE)
+mod6p_g <- lmer(relabun ~ insecticide + growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
+mod7p_g <- lmer(relabun ~ insecticide * growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
+mod8p_g <- lmer(relabun ~ state + year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
+mod9p_g <- lmer(relabun ~ state + growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
+mod10p_g <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
+mod11p_g <- lmer(relabun ~ state + year_factor + insecticide + growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
+mod12p_g <- lmer(relabun ~ state * year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
+mod13p_g <- lmer(relabun ~ state * growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
+mod14p_g <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
+mod15p_g <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
+mod16p_g <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
+mod17p_g <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
+mod18p_g <- lmer(relabun ~ state * insecticide + year_factor + growth_habit + (1|plot), kbs_growth_plot, REML=FALSE) 
+mod19p_g <- lmer(relabun ~ state * year_factor * insecticide * growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
+mod20p_g <- lmer(relabun ~ state * growth_habit + year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE) # hypothesis
+
+AICtab(modfull_g, mod1p_g, mod2p_g, mod3p_g, mod4p_g, mod5p_g, mod6p_g, mod7p_g, mod8p_g, mod9p_g, mod10p_g, mod11p_g, mod12p_g, mod13p_g, mod14p_g, mod15p_g, mod16p_g, mod17p_g, mod18p_g, mod19p_g, mod20p_g, weights=T)
+anova(mod19p_g, mod13p_g)
+AICtab(mod19p_g, mod13p_g, weights=T)
+anova(mod19p_g)
+summary(mod19p_g)
+
+# with herb reduction as interactive term
+anova(mod20p_g)
+
+# code to get table information for manuscript
+table <- anova(mod11p_g, mod20p_g)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod11p_g, mod20p_g, weights=T)
 ```
+
 
 UMBS Plot Level
 ```{r}
