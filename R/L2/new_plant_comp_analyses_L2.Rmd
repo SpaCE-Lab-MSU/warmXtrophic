@@ -267,13 +267,13 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 fit3 <- lm(relabun ~ state * year_factor, data = kbs_origin_plot)
-interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+interact_plot(fit3, pred = year_factor, modx = state) 
 ```
 
 Mixed Effects Model
 ```{r}
 # KBS origin plot level
-modfull_o <- lmer(relabun ~ state*year_factor + insecticide*year_factor + origin*year_factor + (1|plot), kbs_origin_plot, REML = FALSE)
+modfull_o <- lmer(relabun ~ state*origin + insecticide*origin + year_factor*origin + (1|plot), kbs_origin_plot, REML=F)
 ggplot(kbs_origin_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
@@ -289,7 +289,7 @@ leveneTest(residuals(modfull_o) ~ kbs_origin_plot$state)
 # Assumption not met
 kbs_origin_plot$insecticide <- as.factor(kbs_origin_plot$insecticide)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$insecticide) 
-# Assumption not met
+# Assumption met
 kbs_origin_plot$plot <- as.factor(kbs_origin_plot$plot)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$plot)
 # Assumption not met
@@ -306,70 +306,31 @@ outlierTest(modfull_o) # no outliers
 ```
 
 ```{r}
-modfull_o <- lmer(relabun ~ state*year_factor + insecticide*year_factor + origin*year_factor + (1|plot), kbs_origin_plot, REML=F)
-mod1p_o <- lmer(relabun ~ state + (1|plot), kbs_origin_plot, REML=FALSE)
-mod2p_o <- lmer(relabun ~ insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod3p_o <- lmer(relabun ~ origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod4p_o <- lmer(relabun ~ insecticide + state + (1|plot), kbs_origin_plot, REML=FALSE)
-mod5p_o <- lmer(relabun ~ insecticide * state + (1|plot), kbs_origin_plot, REML=FALSE)
-mod6p_o <- lmer(relabun ~ insecticide + origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod7p_o <- lmer(relabun ~ insecticide * origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod8p_o <- lmer(relabun ~ state + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-mod9p_o <- lmer(relabun ~ state + origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod10p_o <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod11p_o <- lmer(relabun ~ state + year_factor + insecticide + origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod12p_o <- lmer(relabun ~ state * year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-mod13p_o <- lmer(relabun ~ state * origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod14p_o <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod15p_o <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-mod16p_o <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-mod17p_o <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod18p_o <- lmer(relabun ~ state * insecticide + year_factor + origin + (1|plot), kbs_origin_plot, REML=FALSE) 
-mod19p_o <- lmer(relabun ~ state * year_factor * insecticide * origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod20p_o <- lmer(relabun ~ state * origin + year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE) # hypothesis
+# modfull_cont <- lmer(relabun ~ state*origin + insecticide*origin + as.numeric(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
+# year should be continuous not a factor
+# need to plot final model selected - interpreting the model - reduced herbivory = more relative abundance
+modfull_o <- lmer(relabun ~ state*origin + insecticide*origin + year_factor*origin + (1|plot), kbs_origin_plot, REML=F)
+mod1p_o <- lmer(relabun ~ state*origin + insecticide*origin + year_factor + origin + (1|plot), kbs_origin_plot, REML=F)
+mod2p_o <- lmer(relabun ~ state + insecticide*origin + year_factor + origin + (1|plot), kbs_origin_plot, REML=F)
+mod3p_o <- lmer(relabun ~ state + insecticide + year_factor + origin + (1|plot), kbs_origin_plot, REML=F)
+mod4p_o <- lmer(relabun ~ state + year_factor + origin + (1|plot), kbs_origin_plot, REML=F)
+mod5p_o <- lmer(relabun ~ state + origin + (1|plot), kbs_origin_plot, REML=F)
+mod6p_o <- lmer(relabun ~ state * origin + (1|plot), kbs_origin_plot, REML=F)
+mod7p_o <- lmer(relabun ~ state*origin + insecticide*origin + (1|plot), kbs_origin_plot, REML=F) # hypothesis?
 
-AICtab(modfull_o, mod1p_o, mod2p_o, mod3p_o, mod4p_o, mod5p_o, mod6p_o, mod7p_o, mod8p_o, mod9p_o, mod10p_o, mod11p_o, mod12p_o, mod13p_o, mod14p_o, mod15p_o, mod16p_o, mod17p_o, mod18p_o, mod19p_o, mod20p_o, weights=T)
-anova(mod11p_o, mod20p_o)
-AICtab(mod11p_o, mod20p_o, weights=T)
-anova(mod11p_o)
-summary(mod11p_o)
+AICtab(modfull_o, mod1p_o, mod2p_o, mod3p_o, mod4p_o, mod5p_o, mod6p_o, mod7p_o, weights=T)
+anova(mod2p_o, mod1p_o)
+AICtab(mod2p_o, mod1p_o, weights=T)
+anova(mod2p_o)
+summary(mod2p_o)
 
 # with herb reduction as interactive term
-anova(mod20p_o)
+anova()
 
 # code to get table information for manuscript
-table <- anova(mod11p_o, mod20p_o)
+table <- anova(mod2p_o, mod9p_o)
 kable(table) %>% kableExtra::kable_styling()
-AICctab(mod11p_o, mod20p_o, weights=T)
-```
-
-```{r}
-modfull_o <- lmer(relabun ~ state*year_factor + insecticide*year_factor + origin*year_factor + (1|plot), kbs_origin_plot, REML=F)
-mod1p_o <- lmer(relabun ~ origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod2p_o <- lmer(relabun ~ state + (1|plot), kbs_origin_plot, REML=FALSE)
-mod3p_o <- lmer(relabun ~ state + origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod4p_o <- lmer(relabun ~ state * origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod5p_o <- lmer(relabun ~ state + year_factor + insecticide + origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod6p_o <- lmer(relabun ~ state * insecticide + year_factor + origin + (1|plot), kbs_origin_plot, REML=FALSE) 
-mod7p_o <- lmer(relabun ~ state * insecticide + year_factor * origin + (1|plot), kbs_origin_plot, REML=FALSE) 
-mod8p_o <- lmer(relabun ~ state * year_factor * insecticide * origin + (1|plot), kbs_origin_plot, REML=FALSE)
-mod9p_o <- lmer(relabun ~ state * origin + year_factor + insecticide + (1|plot), kbs_origin_plot, REML=FALSE) # hypothesis
-mod10p_o <- lmer(relabun ~ state * origin + year_factor * insecticide + (1|plot), kbs_origin_plot, REML=FALSE)
-mod11p_o <- lmer(relabun ~ state * origin + year_factor * origin + insecticide * origin + (1|plot), kbs_origin_plot, REML=FALSE) 
-
-AICtab(modfull_o, mod1p_o, mod2p_o, mod3p_o, mod4p_o, mod5p_o, mod6p_o, mod7p_o, mod8p_o, mod9p_o, mod10p_o, mod11p_o, weights=T)
-anova(mod11p_o, mod5p_o)
-AICtab(mod11p_o, mod5p_o, weights=T)
-anova(mod11p_o)
-summary(mod11p_o)
-
-# with herb reduction as interactive term
-anova(mod20p_o)
-
-# code to get table information for manuscript
-table <- anova(mod9p_o, mod20p_o)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod11p_o, mod20p_o, weights=T)
+AICctab(mod2p_o, mod9p_o, weights=T)
 ```
 
 
@@ -420,7 +381,7 @@ leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(relabun ~ state + year_factor, data = kbs_growth_plot)
+fit_plot_stateyear_kbs <- lm(relabun ~ state + growth_habit, data = kbs_growth_plot)
 outlierTest(fit_plot_stateyear_kbs) # no outliers 
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
@@ -429,14 +390,14 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(relabun ~ state * year_factor, data = kbs_growth_plot)
-interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+fit3 <- lm(relabun ~ state * growth_habit, data = kbs_growth_plot)
+interact_plot(fit3, pred = growth_habit, modx = state) # this looks very strange to me
 ```
 
 Mixed Effects Model
 ```{r}
-# KBS origin plot level
-modfull_g <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_growth_plot, REML = FALSE)
+# KBS growth habit plot level
+modfull_g <- lmer(relabun ~ state*growth_habit + insecticide*growth_habit + year_factor*growth_habit + (1|plot), kbs_growth_plot, REML = FALSE)
 ggplot(kbs_growth_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
@@ -450,9 +411,14 @@ plot(modfull_g) # the ones in the data are making this look weird - idk this doe
 
 leveneTest(residuals(modfull_g) ~ kbs_growth_plot$state)
 # Assumption not met
+kbs_growth_plot$insecticide <- as.factor(kbs_growth_plot$insecticide)
 leveneTest(residuals(modfull_g) ~ kbs_growth_plot$insecticide) 
 # Assumption not met
-leveneTest(residuals(modfull_g) ~ kbs_origin_plot$plot)
+kbs_growth_plot$plot <- as.factor(kbs_growth_plot$plot)
+leveneTest(residuals(modfull_g) ~ kbs_growth_plot$plot)
+# Assumption not met
+kbs_growth_plot$growth_habit <- as.factor(kbs_growth_plot$growth_habit)
+leveneTest(residuals(modfull_g) ~ kbs_growth_plot$growth_habit)
 # Assumption not met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
@@ -464,41 +430,44 @@ outlierTest(modfull_g) # no outliers
 ```
 
 ```{r}
-modfull_g <- lmer(relabun ~ state*year_factor + insecticide*year_factor + growth_habit*year_factor + (1|plot), kbs_growth_plot, REML=F)
-mod1p_g <- lmer(relabun ~ state + (1|plot), kbs_growth_plot, REML=FALSE)
-mod2p_g <- lmer(relabun ~ insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
-mod3p_g <- lmer(relabun ~ growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
-mod4p_g <- lmer(relabun ~ insecticide + state + (1|plot), kbs_growth_plot, REML=FALSE)
-mod5p_g <- lmer(relabun ~ insecticide * state + (1|plot), kbs_growth_plot, REML=FALSE)
-mod6p_g <- lmer(relabun ~ insecticide + growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
-mod7p_g <- lmer(relabun ~ insecticide * growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
-mod8p_g <- lmer(relabun ~ state + year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
-mod9p_g <- lmer(relabun ~ state + growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
-mod10p_g <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
-mod11p_g <- lmer(relabun ~ state + year_factor + insecticide + growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
-mod12p_g <- lmer(relabun ~ state * year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
-mod13p_g <- lmer(relabun ~ state * growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
-mod14p_g <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
-mod15p_g <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
-mod16p_g <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), kbs_growth_plot, REML=FALSE)
-mod17p_g <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), kbs_growth_plot, REML=FALSE)
-mod18p_g <- lmer(relabun ~ state * insecticide + year_factor + growth_habit + (1|plot), kbs_growth_plot, REML=FALSE) 
-mod19p_g <- lmer(relabun ~ state * year_factor * insecticide * growth_habit + (1|plot), kbs_growth_plot, REML=FALSE)
-mod20p_g <- lmer(relabun ~ state * growth_habit + year_factor + insecticide + (1|plot), kbs_growth_plot, REML=FALSE) # hypothesis
+modfull_g <- lmer(relabun ~ state*growth_habit + insecticide*growth_habit + year_factor*growth_habit + (1|plot), kbs_growth_plot, REML=F)
+anova(modfull_g) # significant interaction term with state and growth_habit
 
-AICtab(modfull_g, mod1p_g, mod2p_g, mod3p_g, mod4p_g, mod5p_g, mod6p_g, mod7p_g, mod8p_g, mod9p_g, mod10p_g, mod11p_g, mod12p_g, mod13p_g, mod14p_g, mod15p_g, mod16p_g, mod17p_g, mod18p_g, mod19p_g, mod20p_g, weights=T)
-anova(mod19p_g, mod13p_g)
-AICtab(mod19p_g, mod13p_g, weights=T)
-anova(mod19p_g)
-summary(mod19p_g)
 
-# with herb reduction as interactive term
-anova(mod20p_g)
+mod1p_g <- lmer(relabun ~ state*growth_habit + insecticide*growth_habit + year_factor + growth_habit + (1|plot), kbs_growth_plot, REML=F)
+anova(mod1p_g)
+anova(mod1p_g, modfull_g)
+
+mod2p_g <- lmer(relabun ~ state*growth_habit + insecticide + year_factor*growth_habit + growth_habit + (1|plot), kbs_growth_plot, REML=F)
+anova(mod2p_g)
+
+mod3p_g <- lmer(relabun ~ state*growth_habit + insecticide + year_factor + growth_habit + (1|plot), kbs_growth_plot, REML=F)
+anova(mod3p_g)
+
+mod4p_g <- lmer(relabun ~ state + year_factor + insecticide + growth_habit + (1|plot), kbs_growth_plot, REML=F)
+mod5p_g <- lmer(relabun ~ state + year_factor + growth_habit + (1|plot), kbs_growth_plot, REML=F) 
+anova(mod4p_g, mod5p_g) # including insecticide in the model does not improve it
+
+mod6p_g <- lmer(relabun ~ state + growth_habit + (1|plot), kbs_growth_plot, REML=F)
+mod7p_g <- lmer(relabun ~ state*growth_habit + (1|plot), kbs_growth_plot, REML=F)
+mod8p_g <- lmer(relabun ~ state*growth_habit + insecticide*growth_habit + (1|plot), kbs_growth_plot, REML=F) #hypothesis?
+
+
+AICtab(modfull_g, mod1p_g, mod2p_g, mod3p_g, mod4p_g, mod5p_g, mod6p_g, mod7p_g,  weights=T)
+anova(mod3p_g, mod7p_g)
+AICtab(mod3p_g, mod7p_g, weights=T)
+anova(mod7p_g)
+summary(mod7p_g)
+
+plot_model(mod7p_g)
+
+# testing model that matched our hypothesis
+anova(mod8p_g)
 
 # code to get table information for manuscript
-table <- anova(mod11p_g, mod20p_g)
+table <- anova(mod7p_g, mod8p_g)
 kable(table) %>% kableExtra::kable_styling()
-AICctab(mod11p_g, mod20p_g, weights=T)
+AICctab(mod7p_g, mod8p_g, weights=T)
 ```
 
 
@@ -688,7 +657,7 @@ interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange 
 Mixed Effects Model
 ```{r}
 # UMBS origin plot level
-modfull_o_u <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_origin_plot, REML = FALSE)
+modfull_o_u <- lmer(relabun ~ state*origin + insecticide*origin+ year_factor*origin + (1|plot), umbs_origin_plot, REML = FALSE)
 ggplot(umbs_origin_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
@@ -702,16 +671,20 @@ plot(modfull_o_u) # the ones in the data are making this look weird - idk this d
 
 leveneTest(residuals(modfull_o_u) ~ umbs_origin_plot$state)
 # Assumption not met
+umbs_origin_plot$insecticide <- as.factor(umbs_origin_plot$insecticide)
 leveneTest(residuals(modfull_o_u) ~ umbs_origin_plot$insecticide) 
 # Assumption not met
+umbs_origin_plot$plot <- as.factor(umbs_origin_plot$plot)
 leveneTest(residuals(modfull_o_u) ~ umbs_origin_plot$plot)
 # Assumption not met
+umbs_origin_plot$origin <- as.factor(umbs_origin_plot$origin)
+leveneTest(residuals(modfull_o_u) ~ umbs_origin_plot$origin)
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
 qqPlot(resid(modfull_o_u))
 hist(residuals(modfull_o_u))
-shapiro.test(resid(modfull_o_u)) # normally distributed resids bc p>0.05
+shapiro.test(resid(modfull_o_u)) # not normally distributed resids bc p<0.05
 outlierTest(modfull_o_u) # no outliers
 ```
 
@@ -801,7 +774,7 @@ interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange 
 Mixed Effects Model
 ```{r}
 # UMBS growth habit plot level
-modfull_g_u <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_growth_plot, REML = FALSE)
+modfull_g_u <- lmer(relabun ~ state*growth_habit + insecticide*growth_habit + year_factor*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
 ggplot(umbs_growth_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
@@ -815,10 +788,14 @@ plot(modfull_g_u) # the ones in the data are making this look weird - idk this d
 
 leveneTest(residuals(modfull_g_u) ~ umbs_growth_plot$state)
 # Assumption not met
+umbs_growth_plot$insecticide <- as.factor(umbs_growth_plot$insecticide)
 leveneTest(residuals(modfull_g_u) ~ umbs_growth_plot$insecticide) 
 # Assumption not met
-leveneTest(residuals(modfull_g_u) ~ umbs_origin_plot$plot)
-# Assumption not met
+umbs_growth_plot$plot <- as.factor(umbs_growth_plot$plot)
+leveneTest(residuals(modfull_g_u) ~ umbs_growth_plot$plot)
+# Assumption met
+umbs_growth_plot$growth_habit <- as.factor(umbs_growth_plot$growth_habit)
+leveneTest(residuals(modfull_g_u) ~ umbs_growth_plot$growth_habit)
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -830,23 +807,38 @@ outlierTest(modfull_g_u) # no outliers
 
 ```{r}
 # plot-level models using the re-summarized data frame
-modfull_g_u <- lmer(relabun ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_growth_plot, REML=F)
-mod1p_g_u <- lmer(relabun ~ state + (1|plot), umbs_growth_plot, REML=FALSE)
-mod2p_g_u <- lmer(relabun ~ insecticide + (1|plot), umbs_growth_plot, REML=FALSE)
-mod3p_g_u <- lmer(relabun ~ insecticide + state + (1|plot), umbs_growth_plot, REML=FALSE)
-mod4p_g_u <- lmer(relabun ~ insecticide * state + (1|plot), umbs_growth_plot, REML=FALSE)
-mod5p_g_u <- lmer(relabun ~ state + year_factor + (1|plot), umbs_growth_plot, REML=FALSE)
-mod6p_g_u <- lmer(relabun ~ state + year_factor + insecticide + (1|plot), umbs_growth_plot, REML=FALSE)
-mod7p_g_u <- lmer(relabun ~ state * year_factor + (1|plot), umbs_growth_plot, REML=FALSE)
-mod8p_g_u <- lmer(relabun ~ state * year_factor + insecticide + (1|plot), umbs_growth_plot, REML=FALSE)
-mod9p_g_u <- lmer(relabun ~ state * insecticide + year_factor + (1|plot), umbs_growth_plot, REML=FALSE)
-mod10p_g_u <- lmer(relabun ~ state + insecticide * year_factor + (1|plot), umbs_growth_plot, REML=FALSE)
-mod11p_g_u <- lmer(relabun ~ state * year_factor * insecticide + (1|plot), umbs_growth_plot, REML=FALSE)
-AICtab(modfull_g_u, mod1p_g_u, mod2p_g_u, mod3p_g_u, mod4p_g_u, mod5p_g_u, mod6p_g_u, mod7p_g_u, mod8p_g_u, mod9p_g_u, mod10p_g_u, mod11p_g_u, weights=T)
-anova(mod1p_g_u, mod5p_g_u)
-AICctab(mod1p_g_u, mod5p_g_u, weights=T) #5p_o
-summ(mod1p_g_u)
-summary(mod1p_g_u)
-anova(mod1p_g_u)
+modfull_g_u <- lmer(relabun ~ state*growth_habit + insecticide*growth_habit + year_factor*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
+anova(modfull_g_u) # significant interaction term with growth habit and year
+mod1p_g_u <- lmer(relabun ~ state*growth_habit + insecticide + growth_habit + year_factor*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
+anova(mod1p_g_u) # significant interaction term with growth habit and year
+
+mod2p_g_u <- lmer(relabun ~ state + insecticide + growth_habit + year_factor*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
+anova(mod2p_g_u)
+
+mod3p_g_u <- lmer(relabun ~ state + growth_habit + year_factor*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
+anova(mod3p_g_u)
+
+mod3p_g_u <- lmer(relabun ~ state + growth_habit + year_factor*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
+anova(mod3p_g_u)
+mod3p_g_u <- lmer(relabun ~ state + insecticide + year_factor + growth_habit + (1|plot), umbs_growth_plot, REML=F)
+mod4p_g_u <- lmer(relabun ~ state + growth_habit + (1|plot), umbs_growth_plot, REML=F)
+mod5p_g_u <- lmer(relabun ~ state * growth_habit + (1|plot), umbs_growth_plot, REML=F)
+mod6p_g_u <- lmer(relabun ~ state*growth_habit + insecticide*growth_habit + (1|plot), umbs_growth_plot, REML=F) # hypothesis?
+
+
+AICtab(modfull_g_u, mod1p_g_u, mod2p_g_u, mod3p_g_u, mod4p_g_u, mod5p_g_u, mod6p_g_u, weights=T)
+anova(mod2p_g_u, mod1p_g_u)
+AICtab(mod2p_g_u, mod1p_g_u, weights=T)
+anova(mod2p_g_u)
+summary(mod2p_g_u)
+plot_model(mod2p_g_u)
+
+# with herb reduction as interactive term
+anova(mod6p_g_u)
+
+# code to get table information for manuscript
+table <- anova(mod2p_g_u, mod6p_g_u)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod2p_g_u, mod6p_g_u, weights=T)
 ```
 

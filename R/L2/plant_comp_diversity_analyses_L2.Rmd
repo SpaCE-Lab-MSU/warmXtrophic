@@ -836,9 +836,9 @@ emmeans(mod10, list(pairwise ~ year_factor), adjust = "tukey")
 anova(mod9)
 
 # code to get table information for manuscript
-table <- anova(mod10, mod9)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod10pu, mod9pu, weights=T)
+# table <- anova(mod10, mod9)
+# kable(table) %>% kableExtra::kable_styling()
+# AICctab(mod10pu, mod9pu, weights=T)
 
 ```
 
