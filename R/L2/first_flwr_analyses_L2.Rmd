@@ -183,6 +183,11 @@ anova(mod7p)
 summary(mod7p)
 emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
 
+kbs_plot$year_factor <- as.factor(kbs_plot$year_factor)
+mod7p %>%
+  emmeans(pairwise ~ state | year_factor) %>%
+  pluck("contrasts")
+
 #including herb reduction
 anova(mod8p)
 #including herb reduction as interactive term
