@@ -65,6 +65,7 @@ We focused on the nitrogen content (%N drymass) of leaves rather than the C:N ra
 ```{r}
 # Subset to 2017, species
 cn17<-cn %>% filter(year == 2017)
+cn17$plant_id <- paste(cn17$plot, cn17$plant_number, sep = "_")
 cn17_soca<-cn17 %>% filter(species == "Soca")
 cn17_cest<-cn17 %>% filter(species == "Cest")
 cn17_acmi<-cn17 %>% filter(species == "Acmi")
@@ -182,6 +183,8 @@ summary(n.m1)
 Based on the above investigation, we don't need to account for variation among replicate runs of the pooled tissue for an individual. So we will take the mean by plant and move forward.
 
 ```{r}
+cn$plant_id <- paste(cn$plot, cn$plant_number, sep = "_")
+
 cn1 <- cn %>%
     group_by(plot,site,year,species,treatment, insecticide, plant_id) %>%
     summarize(nitrogen = mean(nitrogen), carbon = mean(carbon), weight_mg = mean(weight_mg)) 
@@ -354,7 +357,7 @@ anova(n.m3,n.m12) #m3
 anova(n.m3,n.m13) #m13
 anova(n.m13,n.m14) #m13
 
-anova(n.m12)
+anova(n.m13)
 summary(n.m4)
 
 # making table
@@ -397,7 +400,7 @@ anova(n.m3u,n.m12u) #m3
 anova(n.m3u,n.m13u) #m3
 anova(n.m3u,n.m14u) #m3
 
-anova(n.m12u)
+anova(n.m3u)
 summary(n.m3u)
 
 # making table
