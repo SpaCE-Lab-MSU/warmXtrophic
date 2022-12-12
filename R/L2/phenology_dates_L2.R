@@ -25,7 +25,7 @@ library(tidyverse)
 
 # Source in needed functions from the github repo - could add this to Renviron?
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Moriah's location
-#source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
+source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 #source("~/Documents/GitHub/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
@@ -87,8 +87,21 @@ greenup <- greenup[!(greenup$species=="Bare_Ground" |
                      greenup$species=="Vert_Litter" | 
                      greenup$species=="Animal_Disturbance"), ]
 sort(unique(greenup$species))
+str(greenup)
+# converting cover to a numeric column instead of character
+greenup$cover <- as.numeric(greenup$cover)
+str(greenup)
 
-
+# determining the date when the last species greened-up for the first time
+greenup_kbs <- greenup %>%
+        filter(site == "kbs" & year == "2018")
+greenup_umbs <- greenup %>%
+        filter(site == "umbs" % year == "2016")
+greenup_check <- greenup_kbs %>% 
+        group_by(species) %>% 
+        filter(julian == min(julian)) %>% 
+        dplyr::slice(1) %>% # takes the first occurrence if there is a tie
+        ungroup()
 
 # Note: we went with approach 2, below
 ###### For Approach (1): Greenup Window: % Cover Dates ######
@@ -185,14 +198,35 @@ dataus <- dataus[sapply(dataus, nrow)>0] # removing the dataframes that contain 
 dataup <- split(x = greenup, f = greenup[, c("plot", "site", "year")])
 dataup <- dataup[sapply(dataup, nrow)>0]
 
+# KD 2022: adding in this bit of code below
+# previously, without this code, "max cover" for plot level was determined as the max cover that a
+# single species showed per plot, site, and year. So for example: if the max cover recorded for any species was
+# 95, that was considered the date of "max cover", which doesn't make sense
+# so below, I made a function to sum up all of the percent cover measurements per date, to actually be able to determine max cover per plot
+# summing perc cover measurements by date to get total % cover on a date
+sum_func <- function(df) {
+        df <- df %>%
+                group_by(site, plot, julian, year, state, insecticide) %>%
+                summarize(total_cover = sum(cover))
+        return(df)
+}
+dataup <- lapply(dataup, sum_func)
+
 ### making a csv for greenup at the growth form level ###
 dataug <- split(x = greenup, f = greenup[, c("plot","growth_habit","site","year")])
 dataug <- dataug[sapply(dataug, nrow)>0]
+# summing perc cover measurements by date to get total % cover on a date
+dataug <- lapply(dataug, sum_func)
 
 ### making a csv for greenup at the origin level ###
 datauo <- split(x = greenup, f = greenup[, c("plot","origin","site","year")])
 datauo <- datauo[sapply(datauo, nrow)>0]
+# summing perc cover measurements by date to get total % cover on a date
+datauo <- lapply(datauo, sum_func)
 
+
+# KD 2022: I don't think the code below works correctly
+# it doesn't seem to be picking the date of half the max cover, not sure what its picking
 
 # SPECIES LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
@@ -208,35 +242,42 @@ half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
 # PLOT LEVEL
 # Determine dates for each plot where the value of `cover` is at the max value
 max_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
-  x[which.max(x[["cover"]]), "julian"]
+  x[which.max(x[["total_cover"]]), "julian"]
 }))
 
 # Determine dates for each plot where the value of `cover` is at least half the max value
 half_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
-  x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
+  x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
 }))
 
 # GROWTH HABIT LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
 max_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
-        x[which.max(x[["cover"]]), "julian"]
+        x[which.max(x[["total_cover"]]), "julian"]
 }))
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
-        x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
+        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
 }))
 
 # ORIGIN LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
 max_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
-        x[which.max(x[["cover"]]), "julian"]
+        x[which.max(x[["total_cover"]]), "julian"]
 }))
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
-        x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
+        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
 }))
+
+# attempt at re-coding the half max cover data
+half_max <- function(df) {
+        new.df<-uniroot(approxfun(julian, total_cover - max(total_cover) / 2), range(julian))$root 
+        return(new.df)
+}
+lapply(dataup, half_max) # doesn't work
 
 
 # make each into a dataframe
@@ -353,12 +394,12 @@ green_half_mino <- merge(half_cover_dateo_df, min_dateo, by=c("site","plot","ori
 
 # calculate correlation
 cor.test(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date) 
-# yes cor = 0.8065159; t = 66.914, df = 2406, p-value < 2.2e-16
+# yes cor = 0.7538698 ; t = 54.655, df = 2269, p-value < 2.2e-16
 plot(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date)
 
 # calculate correlation
 cor.test(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
-# yes cor = 0.1597517; t = 2.732, df = 285, p-value = 0.006688 -- Moriah got different numbers 7/12/21
+# yes cor = 0.7553344  ; t = 18.621, df = 261, p-value < 2.2e-16
 plot(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
 
 # change taxon column name for merging
