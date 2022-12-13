@@ -94,14 +94,36 @@ str(greenup)
 
 # determining the date when the last species greened-up for the first time
 greenup_kbs <- greenup %>%
-        filter(site == "kbs" & year == "2018")
+        filter(site == "kbs" & year == "2021")
 greenup_umbs <- greenup %>%
-        filter(site == "umbs" % year == "2016")
-greenup_check <- greenup_kbs %>% 
+        filter(site == "umbs" & year == "2020")
+greenup_check <- greenup_umbs %>% 
         group_by(species) %>% 
         filter(julian == min(julian)) %>% 
         dplyr::slice(1) %>% # takes the first occurrence if there is a tie
         ungroup()
+
+# remove species that were recorded as greening up for the first time in August or later
+greenup <- greenup %>%
+        filter(!(site == "kbs" & species == "Assp" & year == "2016" |
+                         site == "kbs" & species == "Assp" & year == "2020")) %>%
+        filter(!(site == "kbs" & species == "Eugr" & year == "2017" |
+                         site == "kbs" & species == "Eugr" & year == "2019")) %>%
+        filter(!(site == "kbs" & species == "Arel" & year == "2018")) %>%
+        filter(!(site == "kbs" & species == "Ceor" & year == "2018" |
+                         site == "kbs" & species == "Ceor" & year == "2020")) %>%
+        filter(!(site == "kbs" & species == "Elre" & year == "2018")) %>%
+        filter(!(site == "kbs" & species == "Trsp" & year == "2018")) %>%
+        filter(!(site == "kbs" & species == "Asun" & year == "2020")) %>%
+        filter(!(site == "umbs" & species == "Ptaq" & year == "2018")) %>%
+        filter(!(site == "umbs" & species == "Syla" & year == "2018"))
+
+# restrict green-up data to the green-up window
+# this was determined using the latest date of first green-up, which was julian day 178 at KBS 2017
+greenup <- greenup %>%
+        filter(julian <= 178)
+
+
 
 # Note: we went with approach 2, below
 ###### For Approach (1): Greenup Window: % Cover Dates ######
@@ -225,8 +247,21 @@ datauo <- datauo[sapply(datauo, nrow)>0]
 datauo <- lapply(datauo, sum_func)
 
 
-# KD 2022: I don't think the code below works correctly
-# it doesn't seem to be picking the date of half the max cover, not sure what its picking
+# function to find the julian date that corresponds with half the max total_cover
+find_julian_spp <- function(df){
+        #calculate the distance from half of the maximum
+        distance <- df[["cover"]]- max(df[["cover"]])/2
+        #select smallest value greater than half of the maximum,
+        #select corresponding julian
+        df[distance==min(distance[distance>0]),"julian"]
+}
+find_julian <- function(df){
+        #calculate the distance from half of the maximum
+        distance <- df[["total_cover"]]- max(df[["total_cover"]])/2
+        #select smallest value greater than half of the maximum,
+        #select corresponding julian
+        df[distance==min(distance[distance>0]),"julian"]
+}
 
 # SPECIES LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
@@ -235,9 +270,7 @@ max_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
 }))
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
-half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
-  x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
-}))
+half_cover_dates <- unlist(lapply(X = dataus, FUN = find_julian_spp))
 
 # PLOT LEVEL
 # Determine dates for each plot where the value of `cover` is at the max value
@@ -246,9 +279,7 @@ max_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
 }))
 
 # Determine dates for each plot where the value of `cover` is at least half the max value
-half_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
-  x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
-}))
+half_cover_datep <- unlist(lapply(X = dataup, FUN = find_julian))
 
 # GROWTH HABIT LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
@@ -257,9 +288,7 @@ max_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
 }))
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
-half_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
-        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
-}))
+half_cover_dateg <- unlist(lapply(X = dataug, FUN = find_julian))
 
 # ORIGIN LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
@@ -268,16 +297,7 @@ max_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
 }))
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
-half_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
-        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
-}))
-
-# attempt at re-coding the half max cover data
-half_max <- function(df) {
-        new.df<-uniroot(approxfun(julian, total_cover - max(total_cover) / 2), range(julian))$root 
-        return(new.df)
-}
-lapply(dataup, half_max) # doesn't work
+half_cover_dateo <- unlist(lapply(X = datauo, FUN = find_julian))
 
 
 # make each into a dataframe
@@ -477,6 +497,7 @@ write.csv(finalgreeng, file.path(L2_dir, "greenup/final_greenup_growthhabit_L2.c
 write.csv(finalgreeno, file.path(L2_dir, "greenup/final_greenup_origin_L2.csv"))
 
 
+# KD 2022: note that the code below has not been updated recently & may not be accurate
 ## Finding species whose mean half cover was within the window of green-up observations each year
 # First, finding the mean half cover date per species
 half_cover_mean <- half_cover_dates_df %>%
