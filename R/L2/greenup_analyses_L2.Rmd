@@ -131,20 +131,19 @@ green_umbsp <- subset(greenupp, site == "umbs")
 
 # Add in GDD and temp data for each year + treatment
 green_kbsp <- left_join(green_kbsp, temps, by=c('year','state'))
-# basing cutoff for GDD at julian date 210
-green_kbsp$GDD <- NA
-green_kbsp$GDD[green_kbsp$year == 2016 & green_kbsp$state == "ambient"] = 941
-green_kbsp$GDD[green_kbsp$year == 2016 & green_kbsp$state == "warmed"] = 1162
-green_kbsp$GDD[green_kbsp$year == 2017 & green_kbsp$state == "ambient"] = 967
-green_kbsp$GDD[green_kbsp$year == 2017 & green_kbsp$state == "warmed"] = 1250
-green_kbsp$GDD[green_kbsp$year == 2018 & green_kbsp$state == "ambient"] = 1035
-green_kbsp$GDD[green_kbsp$year == 2018 & green_kbsp$state == "warmed"] = 1261
-green_kbsp$GDD[green_kbsp$year == 2019 & green_kbsp$state == "ambient"] = 965
-green_kbsp$GDD[green_kbsp$year == 2019 & green_kbsp$state == "warmed"] = 1134
-green_kbsp$GDD[green_kbsp$year == 2020 & green_kbsp$state == "ambient"] = 943
-green_kbsp$GDD[green_kbsp$year == 2020 & green_kbsp$state == "warmed"] = 1152
-green_kbsp$GDD[green_kbsp$year == 2021 & green_kbsp$state == "ambient"] = 996
-green_kbsp$GDD[green_kbsp$year == 2021 & green_kbsp$state == "warmed"] = 1226
+# basing cutoff for GDD at julian date 178
+GDD_green <- GDD %>%
+        filter(julian == 178) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+green_kbsp <- left_join(green_kbsp, GDD_green, by=c('year','state'))
+
+# looking to see which temp variable best correlates with greenup dates
+ggplot(green_kbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', alpha = .15, aes(fill = state)) + 
+        scale_color_manual(values = c("blue","red")) +
+        scale_fill_manual(values = c("blue","red")) +
+        theme_bw()
 ```
 
 # Data Exploration:
@@ -584,10 +583,10 @@ anova(mod5p, mod7p)
 AICctab(mod5p, mod7p)
 table <- anova(mod5p, mod9p)
 summary(mod5p)
-anova(mod5p)
+anova(mod7p)
 # calculating effect size - accounting for reciprocal transformation
-1/(1.109e-02 + -7.050e-04*0) # 90.17133 warmed
-1/(1.109e-02 + -7.050e-04*1) # 96.29273 ambient
+1/(6.988e-03 + 1.126e-03*0) # 143.1025 ambient
+1/(6.988e-03 + 1.126e-03*1) # 123.2438 warmed
 # effect:
 96.29273 - 90.17133 # warmed plots green-up 6.1214 days earlier than ambient
 emmeans(mod5p, list(pairwise ~ state*year_factor), adjust = "tukey")
