@@ -61,10 +61,16 @@ KBS_GDD <- KBS_GDD_calc %>%
 
 # new dataframes for temp mean, median, and max for each year + treatment
 # specific for each response variable
+
+# notes from meeting: determine range for each as spring equinox -> date of latest date for each phenological event
+# may have to be a bit earlier than the spring equinox to account for green-up
+# note: using julian day 59 instead of spring equinox because the earliest recorded green-up occurs on 59
+# latest occurring green-up: 178 (determined in phenology_dates_L2.R)
+
 # green-up:
 KBS_avg_greenup <- KBS_dates %>%  # by year, 1m temp only
         gather(key = "treatment", value = "temp", -year, -month, -day, -hour, -julian, -Date_Time, -sensor) %>%
-        filter(julian > "060", julian < "210") %>%
+        filter(julian > "059", julian < "178") %>%
         group_by(year, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm=T),
                   median_temp = median(temp, na.rm=T),
@@ -74,7 +80,7 @@ KBS_avg_greenup <- KBS_dates %>%  # by year, 1m temp only
 # flowering:
 KBS_avg_flower <- KBS_dates %>%  # by year, 1m temp only
         gather(key = "treatment", value = "temp", -year, -month, -day, -hour, -julian, -Date_Time, -sensor) %>%
-        filter(julian > "140", julian < "230") %>%
+        filter(julian > "059", julian < "230") %>%
         group_by(year, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm=T),
                   median_temp = median(temp, na.rm=T),
@@ -84,7 +90,7 @@ KBS_avg_flower <- KBS_dates %>%  # by year, 1m temp only
 # seed set:
 KBS_avg_seed <- KBS_dates %>%  # by year, 1m temp only
         gather(key = "treatment", value = "temp", -year, -month, -day, -hour, -julian, -Date_Time, -sensor) %>%
-        filter(julian > "160", julian < "260") %>%
+        filter(julian > "059", julian < "260") %>%
         group_by(year, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm=T),
                   median_temp = median(temp, na.rm=T),
