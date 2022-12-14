@@ -119,9 +119,10 @@ greenup <- greenup %>%
         filter(!(site == "umbs" & species == "Syla" & year == "2018"))
 
 # restrict green-up data to the green-up window
-# this was determined using the latest date of first green-up, which was julian day 178 at KBS 2017
+# this was determined using the latest date of first green-up, which was julian day 178 at KBS and 167 UMBS
 greenup <- greenup %>%
-        filter(julian <= 178)
+        filter(site == "kbs" & julian <= 178 |
+                       site == "umbs" & julian <= 167)
 
 
 
@@ -271,6 +272,9 @@ max_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dates <- unlist(lapply(X = dataus, FUN = find_julian_spp))
+#half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
+#        x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
+#}))
 
 # PLOT LEVEL
 # Determine dates for each plot where the value of `cover` is at the max value
@@ -280,6 +284,9 @@ max_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
 
 # Determine dates for each plot where the value of `cover` is at least half the max value
 half_cover_datep <- unlist(lapply(X = dataup, FUN = find_julian))
+#half_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
+#        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
+#}))
 
 # GROWTH HABIT LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
@@ -289,6 +296,9 @@ max_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dateg <- unlist(lapply(X = dataug, FUN = find_julian))
+#half_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
+#        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
+#}))
 
 # ORIGIN LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
@@ -298,7 +308,9 @@ max_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
 half_cover_dateo <- unlist(lapply(X = datauo, FUN = find_julian))
-
+#half_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
+#        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
+#}))
 
 # make each into a dataframe
 max_cover_dates_df <- data.frame("plot.species.site.year" = names(max_cover_dates),
@@ -414,12 +426,12 @@ green_half_mino <- merge(half_cover_dateo_df, min_dateo, by=c("site","plot","ori
 
 # calculate correlation
 cor.test(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date) 
-# yes cor = 0.7538698 ; t = 54.655, df = 2269, p-value < 2.2e-16
+# yes cor = 0.5831715  ; t = 24.397, df = 1155, p-value < 2.2e-16
 plot(green_half_mins$min_green_date, green_half_mins$spp_half_cover_date)
 
 # calculate correlation
 cor.test(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
-# yes cor = 0.7553344  ; t = 18.621, df = 261, p-value < 2.2e-16
+# yes cor = 0.3191613   ; t = 5.6754, df = 284, p-value = 3.412e-08
 plot(green_half_minp$min_green_date, green_half_minp$plot_half_cover_date)
 
 # change taxon column name for merging
