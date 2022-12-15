@@ -87,8 +87,10 @@ greenupp <- read.csv(file.path(L2_dir, "greenup/final_greenup_plot_L2.csv")) # p
 greenupp <- greenupp %>% dplyr::select(-X) # get rid of "X" column that shows up
 
 # read in GDD and temp data
-GDD <- read.csv(file.path(L1_dir, "HOBO_data/KBS_GDD_L1.csv"))
-temps <- read.csv(file.path(L1_dir, "HOBO_data/KBS_greenup_temps_L1.csv"))
+GDD_KBS <- read.csv(file.path(L1_dir, "HOBO_data/KBS_GDD_L1.csv"))
+temps_KBS <- read.csv(file.path(L1_dir, "HOBO_data/KBS_greenup_temps_L1.csv"))
+GDD_UMBS <- read.csv(file.path(L1_dir, "HOBO_data/UMBS_GDD_L1.csv"))
+temps_UMBS <- read.csv(file.path(L1_dir, "HOBO_data/UMBS_greenup_temps_L1.csv"))
 
 # check variable types
 str(greenup)
@@ -130,15 +132,29 @@ green_kbsp <- subset(greenupp, site == "kbs")
 green_umbsp <- subset(greenupp, site == "umbs")
 
 # Add in GDD and temp data for each year + treatment
-green_kbsp <- left_join(green_kbsp, temps, by=c('year','state'))
-# basing cutoff for GDD at julian date 178
-GDD_green <- GDD %>%
+green_kbsp <- left_join(green_kbsp, temps_KBS, by=c('year','state'))
+green_umbsp <- left_join(green_umbsp, temps_UMBS, by=c('year','state'))
+# basing cutoff for GDD KBS at julian date 178
+GDD_green_KBS <- GDD_KBS %>%
         filter(julian == 178) %>%
         select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
-green_kbsp <- left_join(green_kbsp, GDD_green, by=c('year','state'))
+green_kbsp <- left_join(green_kbsp, GDD_green_KBS, by=c('year','state'))
+# basing cutoff for GDD UMBS at julian date 167
+GDD_green_UMBS <- GDD_UMBS %>%
+        filter(julian == 167) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+green_umbsp <- left_join(green_umbsp, GDD_green_UMBS, by=c('year','state'))
 
 # looking to see which temp variable best correlates with greenup dates
+# note: when testing this for min dates, there are less data points because all plots had the same 
+# min date of greenup per site, per year, whereas the plots had different half cover dates
 ggplot(green_kbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', alpha = .15, aes(fill = state)) + 
+        scale_color_manual(values = c("blue","red")) +
+        scale_fill_manual(values = c("blue","red")) +
+        theme_bw()
+ggplot(green_umbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', alpha = .15, aes(fill = state)) + 
         scale_color_manual(values = c("blue","red")) +
@@ -579,20 +595,29 @@ mod9p <- lmer(1/(plot_half_cover_date) ~ state * insecticide + as.factor(year_fa
 mod10p <- lmer(1/(plot_half_cover_date) ~ state + insecticide * as.factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
 mod11p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) * insecticide + (1|plot), green_kbsp, REML=FALSE)
 AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
-anova(mod5p, mod7p)
-AICctab(mod5p, mod7p)
+anova(modfull, mod1p) #modfull
+anova(modfull, mod2p) #modfull
+anova(modfull, mod3p) #modfull
+anova(modfull, mod4p) #modfull
+anova(modfull, mod5p) #mod5p
+anova(mod5p, mod6p) #mod5p
+anova(mod5p, mod7p) #mod7p
+anova(mod7p, mod8p) #mod7p
+anova(mod7p, mod9p) #mod9p barely
+anova(mod9p, mod10p) #mod9p
+anova(mod9p, mod11p) #mod9p
 table <- anova(mod5p, mod9p)
-summary(mod5p)
+summary(mod7p)
 anova(mod7p)
 # calculating effect size - accounting for reciprocal transformation
 1/(6.988e-03 + 1.126e-03*0) # 143.1025 ambient
 1/(6.988e-03 + 1.126e-03*1) # 123.2438 warmed
 # effect:
 96.29273 - 90.17133 # warmed plots green-up 6.1214 days earlier than ambient
-emmeans(mod5p, list(pairwise ~ state*year_factor), adjust = "tukey")
-mod5p.emm <- emmeans(mod5p, ~ state * year_factor)
-contrast(mod5p.emm, "consec", simple = "each", combine = F, adjust = "mvt") # for mod5p, this won't show differences between years bc there is not an interaction term in the model
-emmip(mod5p, year_factor~state)
+emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
+mod7p.emm <- emmeans(mod7p, ~ state * year_factor)
+contrast(mod7p.emm, "consec", simple = "each", combine = F, adjust = "mvt") # for mod5p, this won't show differences between years bc there is not an interaction term in the model
+emmip(mod7p, year_factor~state)
 
 # making a table with best-fit model and hypothesized model
 kable(table) %>% kableExtra::kable_styling()
@@ -669,12 +694,22 @@ mod9p_u <- lmer(1/(plot_half_cover_date) ~ state * insecticide + as.factor(year_
 mod10p_u <- lmer(1/(plot_half_cover_date) ~ state + insecticide * as.factor(year_factor) + (1|plot), green_umbsp, REML=FALSE)
 mod11p_u <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) * insecticide + (1|plot), green_umbsp, REML=FALSE)
 AICtab(modfull_u, mod1p_u, mod2p_u, mod3p_u, mod4p_u, mod5p_u, mod6p_u, mod7p_u, mod8p_u, mod9p_u, mod10p_u, mod11p_u, weights=T)
-AICctab(mod7p_u, mod9p_u)
-anova(mod5p_u, mod8p_u)
+anova(modfull_u, mod1p_u) #modfull
+anova(modfull_u, mod2p_u) #modfull
+anova(modfull_u, mod3p_u) #modfull
+anova(modfull_u, mod4p_u) #modfull
+anova(modfull_u, mod5p_u) #mod5p
+anova(mod5p_u, mod6p_u) #mod5p
+anova(mod5p_u, mod7p_u) #mod5p
+anova(mod5p_u, mod8p_u) #mod5p
+anova(mod5p_u, mod9p_u) #mod95p
+anova(mod5p_u, mod10p_u) #mod5p
+anova(mod5p_u, mod11p_u) #mod5p
 table2 <- anova(mod9p_u, mod7p_u)
-summary(mod7p_u)
-anova(mod9p_u)
+summary(mod5p_u)
+anova(mod5p_u)
 emmeans(mod7p_u, list(pairwise ~ state*as.factor(year_factor)), adjust = "tukey")
+# the code below only works for models with state*year
 mod7p_u.emm <- emmeans(mod7p_u, ~ state * year_factor)
 contrast(mod7p_u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod7p_u, year_factor~state)
