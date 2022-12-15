@@ -23,11 +23,9 @@ UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
 
 # add in columns with date information
 KBS_dates <- KBS
-KBS_dates$month <- format(KBS_dates$Date_Time,format="%m")
-KBS_dates$day <- format(KBS_dates$Date_Time,format="%d")
-KBS_dates$year <- format(KBS_dates$Date_Time,format="%Y")
-KBS_dates$hour <- format(KBS_dates$Date_Time, format="%H")
 KBS_dates$julian <- format(KBS_dates$Date_Time, "%j")
+UMBS_dates <- UMBS
+UMBS_dates$julian <- format(UMBS_dates$Date_Time, "%j")
 
 # remove all columns except 1m air temps + date info
 KBS_dates <-dplyr::select(KBS_dates, -c('X', 'X.1',
@@ -36,10 +34,24 @@ KBS_dates <-dplyr::select(KBS_dates, -c('X', 'X.1',
                                         'XU_warmed_air_10cm','XU_ambient_air_10cm',
                                         'XU_warmed_soil_temp_5cm','XU_ambient_soil_temp_5cm',
                                         'site'))
+UMBS_dates <-dplyr::select(UMBS_dates, -c('X', 'X.1',
+                                       'XH_warmed_soil_moisture_5cm','XH_ambient_soil_moisture_5cm',
+                                       'XH_warmed_RH_1m','XH_ambient_RH_1m',
+                                       'XU_warmed_air_10cm','XU_ambient_air_10cm',
+                                       'XU_warmed_soil_temp_5cm','XU_ambient_soil_temp_5cm',
+                                       'site'))
 
 # take calculations for each year+treatment
 KBS_GDD_calc <- KBS_dates %>%  # by year, 1m temp only
-        gather(key = "treatment", value = "temp", -year, -month, -day, -hour, -julian, -Date_Time, -sensor) %>%
+        gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
+        group_by(year, julian, treatment) %>%
+        summarize(max_temp = max(temp, na.rm = TRUE),
+                  min_temp = min(temp, na.rm=TRUE),
+                  mean_GDD_temp = (max_temp+min_temp)/2, # using these guidelines: https://www.canr.msu.edu/uploads/files/Research_Center/NW_Mich_Hort/General/CalculatingGrowingDegreeDays.pdf
+                  GDD_base_10 = mean_GDD_temp-10) %>% # using a base temp of 10C, commonly used for plants
+        na.omit()
+UMBS_GDD_calc <- UMBS_dates %>%  # by year, 1m temp only
+        gather(key = "treatment", value = "temp", -year, -month, -julian, -Date_Time, -sensor) %>%
         group_by(year, julian, treatment) %>%
         summarize(max_temp = max(temp, na.rm = TRUE),
                   min_temp = min(temp, na.rm=TRUE),
@@ -49,12 +61,16 @@ KBS_GDD_calc <- KBS_dates %>%  # by year, 1m temp only
 
 # setting all negative GDD to 0
 KBS_GDD_calc$GDD_base_10 <- ifelse(KBS_GDD_calc$GDD_base_10 < 0, 0, KBS_GDD_calc$GDD_base_10)
+UMBS_GDD_calc$GDD_base_10 <- ifelse(UMBS_GDD_calc$GDD_base_10 < 0, 0, UMBS_GDD_calc$GDD_base_10)
 
 # column for cumulative GDD per year
 # this can be used for all response variables:
 # determine the julian "end date" of that response variable, and look in this dataframe to see
 # the cumulative number of GDD by that end date for each year + treatment
 KBS_GDD <- KBS_GDD_calc %>%
+        group_by(year, treatment) %>%
+        mutate(GDD_cumulative = cumsum(GDD_base_10))
+UMBS_GDD <- UMBS_GDD_calc %>%
         group_by(year, treatment) %>%
         mutate(GDD_cumulative = cumsum(GDD_base_10))
 
@@ -64,13 +80,21 @@ KBS_GDD <- KBS_GDD_calc %>%
 
 # notes from meeting: determine range for each as spring equinox -> date of latest date for each phenological event
 # may have to be a bit earlier than the spring equinox to account for green-up
-# note: using julian day 59 instead of spring equinox because the earliest recorded green-up occurs on 59
-# latest occurring green-up: 178 (determined in phenology_dates_L2.R)
+# note: using julian day 59 and 96 instead of spring equinox because the earliest recorded green-up occurs on 59 at KBS, and 96 at UMBS
+# latest occurring green-up: KBS 178, UMBS 167 (determined in phenology_dates_L2.R)
 
 # green-up:
 KBS_avg_greenup <- KBS_dates %>%  # by year, 1m temp only
-        gather(key = "treatment", value = "temp", -year, -month, -day, -hour, -julian, -Date_Time, -sensor) %>%
+        gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(julian > "059", julian < "178") %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm=T),
+                  median_temp = median(temp, na.rm=T),
+                  max_temp = max(temp, na.rm=T)) %>% # using a base temp of 10C, commonly used for plants
+        na.omit()
+UMBS_avg_greenup <- UMBS_dates %>%  # by year, 1m temp only
+        gather(key = "treatment", value = "temp", -year, -month, -julian, -Date_Time, -sensor) %>%
+        filter(julian > "096", julian < "167") %>%
         group_by(year, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm=T),
                   median_temp = median(temp, na.rm=T),
@@ -102,6 +126,8 @@ names(KBS_GDD)[names(KBS_GDD) == 'treatment'] <- 'state'
 names(KBS_avg_greenup)[names(KBS_avg_greenup) == 'treatment'] <- 'state'
 names(KBS_avg_flower)[names(KBS_avg_flower) == 'treatment'] <- 'state'
 names(KBS_avg_seed)[names(KBS_avg_seed) == 'treatment'] <- 'state'
+names(UMBS_GDD)[names(UMBS_GDD) == 'treatment'] <- 'state'
+names(UMBS_avg_greenup)[names(UMBS_avg_greenup) == 'treatment'] <- 'state'
 
 # fixing state treatment names
 KBS_GDD$state[KBS_GDD$state == "XH_ambient_air_1m"] <- "ambient"
@@ -112,10 +138,16 @@ KBS_avg_flower$state[KBS_avg_flower$state == "XH_ambient_air_1m"] <- "ambient"
 KBS_avg_flower$state[KBS_avg_flower$state == "XH_warmed_air_1m"] <- "warmed"
 KBS_avg_seed$state[KBS_avg_seed$state == "XH_ambient_air_1m"] <- "ambient"
 KBS_avg_seed$state[KBS_avg_seed$state == "XH_warmed_air_1m"] <- "warmed"
+UMBS_GDD$state[UMBS_GDD$state == "XH_ambient_air_1m"] <- "ambient"
+UMBS_GDD$state[UMBS_GDD$state == "XH_warmed_air_1m"] <- "warmed"
+UMBS_avg_greenup$state[UMBS_avg_greenup$state == "XH_ambient_air_1m"] <- "ambient"
+UMBS_avg_greenup$state[UMBS_avg_greenup$state == "XH_warmed_air_1m"] <- "warmed"
 
 # save dataframes to L1 folder
 write.csv(KBS_GDD, file.path(L1_dir,"HOBO_data/KBS_GDD_L1.csv"), row.names = F)
 write.csv(KBS_avg_greenup, file.path(L1_dir,"HOBO_data/KBS_greenup_temps_L1.csv"), row.names = F)
 write.csv(KBS_avg_flower, file.path(L1_dir,"HOBO_data/KBS_flower_temps_L1.csv"), row.names = F)
 write.csv(KBS_avg_seed, file.path(L1_dir,"HOBO_data/KBS_seed_temps_L1.csv"), row.names = F)
+write.csv(UMBS_GDD, file.path(L1_dir,"HOBO_data/UMBS_GDD_L1.csv"), row.names = F)
+write.csv(UMBS_avg_greenup, file.path(L1_dir,"HOBO_data/UMBS_greenup_temps_L1.csv"), row.names = F)
           
