@@ -120,6 +120,8 @@ greenup <- greenup %>%
 
 # restrict green-up data to the green-up window
 # this was determined using the latest date of first green-up, which was julian day 178 at KBS and 167 UMBS
+# ^ to get those dates, I checked each year at KBS and UMBS (above) in greenup_check, and found the latest 
+# ocurrence of the first green-up recorded for each site over the years
 greenup <- greenup %>%
         filter(site == "kbs" & julian <= 178 |
                        site == "umbs" & julian <= 167)
@@ -556,7 +558,7 @@ unique(flwr_sd$action)
 phen_flwr <- subset(flwr_sd, action == "flower")
 phen_sd <- subset(flwr_sd, action == "seed")
 
-# Kara - looking at species w/ earliest and latest flowering time
+# KD edits: - looking at species w/ earliest and latest flowering time
 # note: didn't end up using this data for anything, this was just to see a rough estimate of early vs. late flowering spp.
 # this dataframe was only used to determine these species
 phen_flwr_control_kbs <- subset(phen_flwr, state == "ambient" & site == "kbs")
@@ -569,6 +571,30 @@ early_late_umbs <- phen_flwr_control_umbs %>%
         add_count(species) %>%
         group_by(species, n) %>%
         summarize(julian_min = min(julian, na.rm=T)) # n = number of observations for that species
+
+# determining the latest date when a species flowered for the first time
+flwr_kbs <- phen_flwr %>%
+        filter(site == "kbs" & year == "2021")
+flwr_umbs <- phen_flwr %>%
+        filter(site == "umbs" & year == "2019")
+flwr_check <- flwr_umbs %>% 
+        group_by(species) %>% 
+        filter(julian == min(julian)) %>% 
+        dplyr::slice(1) %>% # takes the first occurrence if there is a tie
+        ungroup()
+# 262 at KBS, 252 at UMBS
+
+# determining the latest date when a species set seed for the first time
+sd_kbs <- phen_sd %>%
+        filter(site == "kbs" & year == "2021")
+sd_umbs <- phen_sd %>%
+        filter(site == "umbs" & year == "2019")
+sd_check <- sd_umbs %>% 
+        group_by(species) %>% 
+        filter(julian == min(julian)) %>% 
+        dplyr::slice(1) %>% # takes the first occurrence if there is a tie
+        ungroup()
+# 283 at KBS, 245 at UMBS
 
 
 ### Create a data frame at the SPECIES LEVEL that includes median date of flower, first flower date, and duration
