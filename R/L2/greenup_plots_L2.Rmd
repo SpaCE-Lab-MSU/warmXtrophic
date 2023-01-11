@@ -44,6 +44,12 @@ flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"))
 sd_spp <- read.csv(file.path(L2_dir, "phenology/final_sd_species_L2.csv"))
 sd_plot <- read.csv(file.path(L2_dir, "phenology/final_sd_plot_L2.csv"))
 
+# read in GDD and temp data
+GDD_KBS <- read.csv(file.path(L1_dir, "HOBO_data/KBS_GDD_L1.csv"))
+temps_KBS <- read.csv(file.path(L1_dir, "HOBO_data/KBS_greenup_temps_L1.csv"))
+GDD_UMBS <- read.csv(file.path(L1_dir, "HOBO_data/UMBS_GDD_L1.csv"))
+temps_UMBS <- read.csv(file.path(L1_dir, "HOBO_data/UMBS_greenup_temps_L1.csv"))
+
 # making site names capital for cleaner plots
 change_site <- function(df){
   df$site[df$site == "umbs"] <- "UMBS"
@@ -57,6 +63,8 @@ gr_species <- change_site(gr_species)
 
 # creating a vector with cleaned up insecticide labels for plotting
 insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
+
+# note: figures for GDD and temp comparisons are at the end of the script
 
 # filter data to contain the averages and std error for each site & species
 sum_green_spp <- gr_species %>%
@@ -777,5 +785,146 @@ annotate_figure(green_overall_merge,
                 left = text_grob("Julian date of green-up", color = "black", rot = 90, size=15),
                 bottom = text_grob("State", color = "black", size=15))
 dev.off()
+```
+
+# GDD and temp figure
+```{r, echo = F}
+green_kbsp <- subset(gr_plot, site == "KBS")
+green_umbsp <- subset(gr_plot, site == "UMBS")
+
+# Add in GDD and temp data for each year + treatment
+green_kbsp <- left_join(green_kbsp, temps_KBS, by=c('year','state'))
+green_umbsp <- left_join(green_umbsp, temps_UMBS, by=c('year','state'))
+# cutoff dates based on HOBO_GDD_L1.R script
+# basing cutoff for GDD KBS at julian date 178
+GDD_green_KBS <- GDD_KBS %>%
+        filter(julian == 178) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+green_kbsp <- left_join(green_kbsp, GDD_green_KBS, by=c('year','state'))
+# basing cutoff for GDD UMBS at julian date 167
+GDD_green_UMBS <- GDD_UMBS %>%
+        filter(julian == 167) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+green_umbsp <- left_join(green_umbsp, GDD_green_UMBS, by=c('year','state'))
+
+# looking to see which temp variable best correlates with greenup dates
+# note: when testing this for min dates, there are less data points because all plots had the same 
+# min date of greenup per site, per year, whereas the plots had different half cover dates
+kbs_gdd <- ggplot(green_kbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+       theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_gdd <- ggplot(green_umbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_mean <- ggplot(green_kbsp, aes(x = mean_temp, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_mean <- ggplot(green_umbsp, aes(x = mean_temp, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_med <- ggplot(green_kbsp, aes(x = median_temp, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Median temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_med <- ggplot(green_umbsp, aes(x = median_temp, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Median temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_max <- ggplot(green_kbsp, aes(x = max_temp, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Max temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_max <- ggplot(green_umbsp, aes(x = max_temp, y = plot_half_cover_date, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Max temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+
+gdd_temp_merge <- ggpubr::ggarrange(kbs_gdd,umbs_gdd,
+                                    kbs_mean,umbs_mean,
+                                    kbs_med,umbs_med,
+                                    kbs_max,umbs_max,
+                          ncol = 2, nrow=4,common.legend=T,legend="bottom")
+png("greenup_gdd_temp.png", units="in", width=7, height=8, res=300)
+annotate_figure(gdd_temp_merge,
+                left = text_grob("Green-up half cover julian date", color = "black", rot = 90, size=15),
+                top = text_grob("KBS                                                      UMBS", color = "black", size=15))
+dev.off()
+
 ```
 

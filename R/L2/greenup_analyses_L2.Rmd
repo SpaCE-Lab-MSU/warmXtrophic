@@ -134,6 +134,7 @@ green_umbsp <- subset(greenupp, site == "umbs")
 # Add in GDD and temp data for each year + treatment
 green_kbsp <- left_join(green_kbsp, temps_KBS, by=c('year','state'))
 green_umbsp <- left_join(green_umbsp, temps_UMBS, by=c('year','state'))
+# cutoff dates based on HOBO_GDD_L1.R script
 # basing cutoff for GDD KBS at julian date 178
 GDD_green_KBS <- GDD_KBS %>%
         filter(julian == 178) %>%
@@ -146,6 +147,7 @@ GDD_green_UMBS <- GDD_UMBS %>%
 green_umbsp <- left_join(green_umbsp, GDD_green_UMBS, by=c('year','state'))
 
 # looking to see which temp variable best correlates with greenup dates
+# final versions of these plots are in greenup_plots_L2.Rmd
 # note: when testing this for min dates, there are less data points because all plots had the same 
 # min date of greenup per site, per year, whereas the plots had different half cover dates
 ggplot(green_kbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
