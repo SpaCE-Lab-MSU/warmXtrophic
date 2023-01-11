@@ -540,18 +540,24 @@ half_cover_kbs <- unique(half_cover_kbs[c("species", "year")])
 
 ###### FLOWERING ###### (Moriah did this)
 
+# KD edits:
+# checking action column
+unique(flwr_sd$action)
+# renaming misspelled actions
+flwr_sd$action[flwr_sd$action == "Flower"] <- "flower"
+flwr_sd$action[flwr_sd$action == "floer"] <- "flower"
+flwr_sd$action[flwr_sd$action == "flwoer"] <- "flower"
+flwr_sd$action[flwr_sd$action == "Seed"] <- "seed"
+flwr_sd$action[flwr_sd$action == "speed"] <- "seed"
+flwr_sd$action[flwr_sd$action == "fruit"] <- "seed" # counting fruit as seed here - can remove this if needed
+unique(flwr_sd$action)
+
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(flwr_sd, action == "flower")
 phen_sd <- subset(flwr_sd, action == "seed")
 
-### Create a data frame at the SPECIES LEVEL that includes median date of flower, first flower date, and duration
-
-# First Flower by SPECIES LEVEL - filter data to contain the date of first flower for each species at each plot
-FirstFlwr_spp <- phen_flwr %>%
-  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
-  summarize(julian_min = min(julian, na.rm=T))
-
 # Kara - looking at species w/ earliest and latest flowering time
+# note: didn't end up using this data for anything, this was just to see a rough estimate of early vs. late flowering spp.
 # this dataframe was only used to determine these species
 phen_flwr_control_kbs <- subset(phen_flwr, state == "ambient" & site == "kbs")
 phen_flwr_control_umbs <- subset(phen_flwr, state == "ambient" & site == "umbs")
@@ -563,6 +569,14 @@ early_late_umbs <- phen_flwr_control_umbs %>%
         add_count(species) %>%
         group_by(species, n) %>%
         summarize(julian_min = min(julian, na.rm=T)) # n = number of observations for that species
+
+
+### Create a data frame at the SPECIES LEVEL that includes median date of flower, first flower date, and duration
+
+# First Flower by SPECIES LEVEL - filter data to contain the date of first flower for each species at each plot
+FirstFlwr_spp <- phen_flwr %>%
+  group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
+  summarize(julian_min = min(julian, na.rm=T))
 
 # Median Flower Date by SPECIES LEVEL - filter data to contain the median date of flower for each species at each plot
 MedianFlwr_spp <- phen_flwr %>%
@@ -582,12 +596,22 @@ phen_flwr_spp <- merge(phen_flwr_spp, flwr_dur_s)
 # write a new csv with flowering data at the SPECIES LEVEL and upload to the shared google drive
 write.csv(phen_flwr_spp, file.path(L2_dir, "phenology/final_flwr_species_L2.csv"), row.names = F)
 
+
 ### Create a data frame at the PLOT LEVEL that includes median date of flower, first flower date, and duration
 
 # Average first Flower Date by PLOT LEVEL
 FirstFlwr_plot <- phen_flwr_spp %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
   summarize(julian_min = mean(julian_min, na.rm=T))
+
+# KD edits:
+# the code below finds the first flowering date of any species in each plot
+# whereas the code above finds the mean of first flowering for all species in a plot
+# not sure which option makes sense to use
+# Average first Flower Date by PLOT LEVEL
+FirstFlwr_plot <- phen_flwr %>%
+        group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+        summarize(julian_min = min(julian, na.rm=T))
 
 # Average median Flower Date by PLOT LEVEL
 MedianFlwr_plot <- phen_flwr_spp %>%
