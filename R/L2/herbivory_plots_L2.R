@@ -256,7 +256,7 @@ binom_plot_k <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = interaction(sta
                                   c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
                           labels = 
                                   c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
-                          name="Percentage") +
+                          name=NULL) +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         labs(y="Percent eaten or not (%)", x=NULL, title="KBS",subtitle="A", fill=NULL) +
         theme_classic() +
@@ -275,7 +275,7 @@ binom_plot_u <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = interaction(sta
                                   c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
                           labels = 
                                   c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
-                          name="Percentage") +
+                          name=NULL) +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         labs(y=NULL, x=NULL, title="UMBS",subtitle="B", fill=NULL) +
         theme_classic() +
@@ -300,6 +300,7 @@ sum_herb_overall_u <- herb %>%
         filter(site == "UMBS",
                insecticide == "insects")
 sum_herb_overall_u <- sum_herb_overall_u[sum_herb_overall_u$p_eaten != 0, ]
+sum_herb_overall_u_jitter <- sum_herb_overall_u[sum_herb_overall_u$p_eaten != 0, ] # raw data w/o 0's for jitter on figure
 sum_herb_overall_u <- sum_herb_overall_u %>%
         group_by(state) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
@@ -322,8 +323,10 @@ eaten_u <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = state
         geom_bar(position = "identity", stat = "identity", col = "black") +
         geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
                       position = "identity") +
+        #geom_jitter(data=sum_herb_overall_u_jitter,aes(x=state,y=p_eaten,color=state)) +
         labs(x = NULL, y = NULL, title=NULL, subtitle="D") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        #scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         ylim(0,21) +
         theme_classic() +
@@ -338,6 +341,125 @@ binary_overall <- ggarrange(binom_plot_k, binom_plot_u,
                             nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 png("binary_combined_plot.png", units="in", width=8, height=8, res=300)
 annotate_figure(binary_overall,
+                bottom = text_grob("Treatment", color = "black",size=15))
+dev.off()
+
+
+### Binomial response + amount eaten barplot with insecticide ###
+# selecting KBS, making binary response for if eaten or not overall
+herb_binom_k_i <- herb %>%
+        filter(site == "KBS") %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_k_i$p_eaten[herb_binom_k_i$p_eaten == 1] <- "Eaten"
+herb_binom_k_i$p_eaten[herb_binom_k_i$p_eaten == 0] <- "Not Eaten"
+herb_binom_sumk_i <- herb_binom_k_i %>%
+        group_by(state, insecticide, p_eaten) %>%
+        count(state, insecticide, p_eaten) %>%
+        group_by(state, insecticide) %>%
+        mutate(n = n/sum(n) * 100)
+# selecting UMBS & herbivory plots =, making binary response for if eaten or not overall
+herb_binom_u_i <- herb %>%
+        filter(site == "UMBS") %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_u_i$p_eaten[herb_binom_u_i$p_eaten == 1] <- "Eaten"
+herb_binom_u_i$p_eaten[herb_binom_u_i$p_eaten == 0] <- "Not Eaten"
+herb_binom_sumu_i <- herb_binom_u_i %>%
+        group_by(state, insecticide,p_eaten) %>%
+        count(state, insecticide,p_eaten) %>%
+        group_by(state,insecticide) %>%
+        mutate(n = n/sum(n) * 100)
+# plotting binary response
+binom_plot_k_i <- ggplot(herb_binom_sumk_i, aes(x=state, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_col(col="black") +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name="Percentage") +
+        geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
+        labs(y="Percent eaten or not (%)", x=NULL, title="KBS",subtitle="A", fill=NULL) +
+        theme_classic() +
+        theme(legend.position="none") +
+        theme(plot.title = element_text(size = 17),
+              plot.subtitle = element_text(size=16),
+              axis.text.y = element_text(size=13),
+              axis.text.x=element_blank(),
+              axis.title.y=element_text(size=15),
+              legend.title=element_text(size=14), 
+              legend.text=element_text(size=12))
+binom_plot_u_i <- ggplot(herb_binom_sumu_i, aes(x=state, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_col(col="black") +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name="Percentage") +
+        geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
+        labs(y=NULL, x=NULL, title="UMBS",subtitle="B", fill=NULL) +
+        theme_classic() +
+        theme(plot.title = element_text(size = 17),
+              plot.subtitle = element_text(size=16),
+              axis.text.x=element_blank(),
+              axis.text.y = element_blank(),
+              legend.title=element_text(size=14), 
+              legend.text=element_text(size=12))
+
+
+# amount eaten plot
+sum_herb_overall_k_i <- herb %>%
+        filter(site == "KBS")
+sum_herb_overall_k_i <- sum_herb_overall_k_i[sum_herb_overall_k_i$p_eaten != 0, ]
+sum_herb_overall_k_i <- sum_herb_overall_k_i %>%
+        group_by(state, insecticide) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_overall_u_i <- herb %>%
+        filter(site == "UMBS")
+sum_herb_overall_u_i <- sum_herb_overall_u_i[sum_herb_overall_u_i$p_eaten != 0, ]
+sum_herb_overall_u_i <- sum_herb_overall_u_i %>%
+        group_by(state,insecticide) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+eaten_k_i <- ggplot(sum_herb_overall_k_i, aes(x = state, y = avg_eaten, fill = state)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(0,21) +
+        theme_classic() +
+        theme(legend.position="none") +
+        theme(axis.text.y = element_text(size=13),
+              plot.subtitle = element_text(size=16),
+              axis.text.x=element_text(size=13),
+              axis.title.y=element_text(size=15))
+eaten_u_i <- ggplot(sum_herb_overall_u_i, aes(x = state, y = avg_eaten, fill = state)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = NULL, y = NULL, title=NULL, subtitle="D") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(0,21) +
+        theme_classic() +
+        theme(legend.position="none") +
+        theme(axis.text.y = element_blank(),
+              plot.subtitle = element_text(size=16),
+              axis.text.x=element_text(size=13))
+
+# plotting binary response & amount eaten on same figure
+binary_overall_i <- ggarrange(binom_plot_k_i, binom_plot_u_i,
+                            eaten_k_i, eaten_u_i,
+                            nrow = 2, ncol = 2, common.legend = T, legend="bottom")
+png("binary_combined_plot_insecticide.png", units="in", width=8, height=8, res=300)
+annotate_figure(binary_overall_i,
                 bottom = text_grob("Treatment", color = "black",size=15))
 dev.off()
 
@@ -530,33 +652,33 @@ herb_binom_sumu2 <- herb_binom_u %>%
         group_by(species, state) %>%
         mutate(n = n/sum(n) * 100)
 # plotting binary response
-binom_plot_k2 <- ggplot(herb_binom_sumk2, aes(x=state, y=n, fill =state, label = paste0(round(n, 2), "%"))) +
-        geom_col(col="black",aes(alpha=p_eaten)) +
+binom_plot_k2 <- ggplot(herb_binom_sumk2, aes(x=state, y=n, fill=interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        geom_col(col="black") +
         facet_wrap(~species, ncol=4) +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          guide="none") +
-        scale_alpha_manual(values=c(0.3, 1),
-                           labels = c("Eaten","Not Eaten"),
-                           name = "Proportion") +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
         labs(y=NULL, x=NULL,title="KBS", fill=NULL) +
         theme_bw() +
         theme(legend.position="none")
-binom_plot_u2 <- ggplot(herb_binom_sumu2, aes(x=state, y=n, fill = state, label = paste0(round(n, 2), "%"))) +
-        geom_col(col="black",aes(alpha=p_eaten)) +
+binom_plot_u2 <- ggplot(herb_binom_sumu2, aes(x=state, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        geom_col(col="black") +
         facet_wrap(~species, ncol=4) +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          guide="none") +
-        scale_alpha_manual(values=c(0.3, 1),
-                           labels = c("Eaten","Not Eaten"),
-                           name = "Proportion") +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
         labs(y=NULL, x=NULL, title="UMBS",fill=NULL) +
         theme_bw()
 herb_spp_binom_merge <- ggpubr::ggarrange(binom_plot_k2, binom_plot_u2,
-                                        ncol = 2, common.legend=T, legend="right")
+                                        ncol = 2, common.legend=T, legend="bottom")
 png("herb_species_binom.png", units="in", width=12, height=8, res=300)
 annotate_figure(herb_spp_binom_merge,
                 left = text_grob("Proportion eaten or not (%)", color = "black", rot = 90, size=15),
@@ -611,15 +733,15 @@ herb_binom_u_org2$Treatment <- factor(herb_binom_u_org2$Treatment,
                                       levels=c("Native _ warmed", "Exotic _ warmed", "Native _ ambient","Exotic _ ambient"))
 
 binom_plot_k_org <- ggplot(herb_binom_k_org2,
-                           aes(x= Treatment,y=n, fill = state, label = paste0(round(n, 2), "%"))) +
-        geom_col(col="black",aes(alpha=p_eaten)) +
+                           aes(x= Treatment,y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        geom_col(col="black") +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         #scale_x_discrete(limits=c("Native_warmed","Exotic_warmed","Native_ambient","Exotic_ambient")) +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          guide="none") +
-        scale_alpha_manual(values=c(0.3, 1),
-                           labels = c("Eaten","Not Eaten"),
-                           name = "Proportion") +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
         labs(y="Proportion eaten or not (%)", x=NULL,title="KBS", subtitle="A",fill=NULL) +
         theme_classic() +
         theme(plot.title = element_text(size = 17),
@@ -631,14 +753,14 @@ binom_plot_k_org <- ggplot(herb_binom_k_org2,
               legend.text=element_text(size=14)) +
         theme(legend.position="none")
 binom_plot_u_org <- ggplot(herb_binom_u_org2,
-                           aes(x=Treatment, y=n, fill = state, label = paste0(round(n, 2), "%"))) +
-        geom_col(col="black",aes(alpha=p_eaten)) +
+                           aes(x=Treatment, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        geom_col(col="black") +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          guide="none") +
-        scale_alpha_manual(values=c(0.3, 1),
-                           labels = c("Eaten","Not Eaten"),
-                           name = "Proportion") +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
         labs(y=NULL, x=NULL, title="UMBS",subtitle="B",fill=NULL) +
         theme_classic() +
         theme(plot.title = element_text(size = 17),
@@ -736,11 +858,174 @@ eaten_u_org <- ggplot(sum_herb_org_u, aes(x = Treatment, y = avg_eaten, fill = s
 # plotting binary response & amount eaten on same figure
 binary_org_overall <- ggarrange(binom_plot_k_org, binom_plot_u_org,
                             eaten_k_org, eaten_u_org,
-                            nrow = 2, ncol = 2, common.legend = T, legend="top")
+                            nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 png("binary_org_combined_plot.png", units="in", width=8, height=8, res=300)
 annotate_figure(binary_org_overall,
                 bottom = text_grob("Treatment", color = "black",size=15))
 dev.off()
+
+
+
+### Origin - binomial with insecticide ###
+# plotting binary response
+# selecting KBS, making binary response for if eaten or not overall
+herb_org_rem <- herb %>%
+        filter(!(origin == 'Both' |
+                         origin == ""))
+herb_binom_k_org_i <- herb_org_rem %>%
+        filter(site == "KBS") %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_k_org_i$p_eaten[herb_binom_k_org_i$p_eaten == 1] <- "Eaten"
+herb_binom_k_org_i$p_eaten[herb_binom_k_org_i$p_eaten == 0] <- "Not Eaten"
+herb_binom_k_org2_i <- herb_binom_k_org_i %>%
+        group_by(state, insecticide, origin, p_eaten) %>%
+        count(p_eaten) %>%
+        group_by(origin, state, insecticide) %>%
+        mutate(n = n/sum(n) * 100)
+# selecting UMBS, making binary response for if eaten or not overall
+herb_binom_u_org_i <- herb_org_rem %>%
+        filter(site == "UMBS") %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_u_org_i$p_eaten[herb_binom_u_org_i$p_eaten == 1] <- "Eaten"
+herb_binom_u_org_i$p_eaten[herb_binom_u_org_i$p_eaten == 0] <- "Not Eaten"
+herb_binom_u_org2_i <- herb_binom_u_org_i %>%
+        group_by(state, insecticide, origin, p_eaten) %>%
+        count(p_eaten) %>%
+        group_by(origin, state,insecticide) %>%
+        mutate(n = n/sum(n) * 100)
+# merging both categorical variables (state and origin)
+herb_binom_k_org2_i$Treatment <- paste(herb_binom_k_org2_i$origin, "_", herb_binom_k_org2_i$state)
+herb_binom_u_org2_i$Treatment <- paste(herb_binom_u_org2_i$origin, "_", herb_binom_u_org2_i$state)
+
+# plot
+#Turn your 'treatment' column into a character vector
+herb_binom_k_org2_i$Treatment <- as.character(herb_binom_k_org2_i$Treatment)
+herb_binom_u_org2_i$Treatment <- as.character(herb_binom_u_org2_i$Treatment)
+#Then turn it back into a factor with the levels in the correct order
+herb_binom_k_org2_i$Treatment <- factor(herb_binom_k_org2_i$Treatment, levels=unique(herb_binom_k_org2_i$Treatment))
+herb_binom_k_org2_i$Treatment <- factor(herb_binom_k_org2_i$Treatment,
+                                      levels=c("Native _ warmed", "Exotic _ warmed", "Native _ ambient","Exotic _ ambient"))
+herb_binom_u_org2_i$Treatment <- factor(herb_binom_u_org2_i$Treatment, levels=unique(herb_binom_u_org2_i$Treatment))
+herb_binom_u_org2_i$Treatment <- factor(herb_binom_u_org2_i$Treatment,
+                                      levels=c("Native _ warmed", "Exotic _ warmed", "Native _ ambient","Exotic _ ambient"))
+
+binom_plot_k_org_i <- ggplot(herb_binom_k_org2_i,
+                           aes(x= Treatment,y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_col(col="black") +
+        geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
+        #scale_x_discrete(limits=c("Native_warmed","Exotic_warmed","Native_ambient","Exotic_ambient")) +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
+        labs(y="Proportion eaten or not (%)", x=NULL,title="KBS", subtitle="A",fill=NULL) +
+        theme_classic() +
+        theme(plot.title = element_text(size = 17),
+              plot.subtitle = element_text(size=13),
+              axis.text.y = element_text(size=13),
+              axis.text.x=element_blank(),
+              axis.title.y=element_text(size=15),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=14)) +
+        theme(legend.position="none")
+binom_plot_u_org_i <- ggplot(herb_binom_u_org2_i,
+                           aes(x=Treatment, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_col(col="black") +
+        geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
+        labs(y=NULL, x=NULL, title="UMBS",subtitle="B",fill=NULL) +
+        theme_classic() +
+        theme(plot.title = element_text(size = 17),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_blank(),
+              axis.text.y = element_blank(),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=14))
+
+# amount eaten plot
+sum_herb_org_k_i <- herb_org_rem %>%
+        filter(site == "KBS")
+sum_herb_org_k_i <- sum_herb_org_k_i[sum_herb_org_k_i$p_eaten != 0, ]
+sum_herb_org_k_i <- sum_herb_org_k_i %>%
+        group_by(state, insecticide,origin) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_org_u_i <- herb_org_rem %>%
+        filter(site == "UMBS")
+sum_herb_org_u_i <- sum_herb_org_u_i[sum_herb_org_u_i$p_eaten != 0, ]
+sum_herb_org_u_i <- sum_herb_org_u_i %>%
+        group_by(state,insecticide, origin) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+# merging both categorical variables (state and origin)
+sum_herb_org_k_i$Treatment <- paste(sum_herb_org_k_i$origin, "_", sum_herb_org_k_i$state)
+sum_herb_org_u_i$Treatment <- paste(sum_herb_org_u_i$origin, "_", sum_herb_org_u_i$state)
+
+# plot
+#Turn your 'treatment' column into a character vector
+sum_herb_org_k_i$Treatment <- as.character(sum_herb_org_k_i$Treatment)
+sum_herb_org_u_i$Treatment <- as.character(sum_herb_org_u_i$Treatment)
+#Then turn it back into a factor with the levels in the correct order
+sum_herb_org_k_i$Treatment <- factor(sum_herb_org_k_i$Treatment, levels=unique(sum_herb_org_k_i$Treatment))
+sum_herb_org_k_i$Treatment <- factor(sum_herb_org_k_i$Treatment,
+                                   levels=c("Native _ warmed", "Exotic _ warmed", "Native _ ambient","Exotic _ ambient"))
+sum_herb_org_u_i$Treatment <- factor(sum_herb_org_u_i$Treatment, levels=unique(sum_herb_org_u_i$Treatment))
+sum_herb_org_u_i$Treatment <- factor(sum_herb_org_u_i$Treatment,
+                                   levels=c("Native _ warmed", "Exotic _ warmed", "Native _ ambient","Exotic _ ambient"))
+
+eaten_k_org_i <- ggplot(sum_herb_org_k_i, aes(x = Treatment, y = avg_eaten, fill = state)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_classic() +
+        ylim(0,20) + 
+        scale_x_discrete(labels=c("Native _ warmed" = "Native \n Warmed",
+                                  "Exotic _ warmed" = "Exotic \n Warmed",
+                                  "Native _ ambient" = "Native \n Ambient",
+                                  "Exotic _ ambient" = "Exotic \n Ambient")) +
+        theme(legend.position="none") +
+        theme(axis.text.y = element_text(size=13),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_text(size=13),
+              axis.title.y=element_text(size=15))
+eaten_u_org_i <- ggplot(sum_herb_org_u_i, aes(x = Treatment, y = avg_eaten, fill = state)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = NULL, y = NULL, title=NULL, subtitle="D") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_classic() +
+        ylim(0,20) +
+        scale_x_discrete(labels=c("Native _ warmed" = "Native \n Warmed",
+                                  "Exotic _ warmed" = "Exotic \n Warmed",
+                                  "Native _ ambient" = "Native \n Ambient",
+                                  "Exotic _ ambient" = "Exotic \n Ambient")) +
+        theme(legend.position="none") +
+        theme(axis.text.y = element_blank(),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_text(size=13))
+
+# plotting binary response & amount eaten on same figure
+binary_org_overall_i <- ggarrange(binom_plot_k_org_i, binom_plot_u_org_i,
+                                eaten_k_org_i, eaten_u_org_i,
+                                nrow = 2, ncol = 2, common.legend = T, legend="bottom")
+png("binary_org_combined_plot_insecticide.png", units="in", width=13, height=8, res=300)
+annotate_figure(binary_org_overall_i,
+                bottom = text_grob("Treatment", color = "black",size=15))
+dev.off()
+
+
 
 ### Growth form - binomial ###
 # plotting binary response
@@ -791,15 +1076,15 @@ herb_binom_u_gr2$Treatment <- factor(herb_binom_u_gr2$Treatment,
                                       levels=c("Forb _ warmed", "Graminoid _ warmed", "Forb _ ambient","Graminoid _ ambient"))
 
 binom_plot_k_gr <- ggplot(herb_binom_k_gr2,
-                           aes(x= Treatment,y=n, fill = state, label = paste0(round(n, 2), "%"))) +
-        geom_col(col="black",aes(alpha=p_eaten)) +
+                           aes(x= Treatment,y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        geom_col(col="black") +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
         #scale_x_discrete(limits=c("Native_warmed","Exotic_warmed","Native_ambient","Exotic_ambient")) +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          guide="none") +
-        scale_alpha_manual(values=c(0.3, 1),
-                           labels = c("Eaten","Not Eaten"),
-                           name = "Proportion") +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
         labs(y="Proportion eaten or not (%)", x=NULL,title="KBS",subtitle="A", fill=NULL) +
         theme_classic() +
         theme(plot.title = element_text(size = 17),
@@ -811,14 +1096,14 @@ binom_plot_k_gr <- ggplot(herb_binom_k_gr2,
               legend.text=element_text(size=14)) +
         theme(legend.position="none")
 binom_plot_u_gr <- ggplot(herb_binom_u_gr2,
-                           aes(x=Treatment, y=n, fill = state, label = paste0(round(n, 2), "%"))) +
-        geom_col(col="black",aes(alpha=p_eaten)) +
+                           aes(x=Treatment, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        geom_col(col="black") +
         geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          guide="none") +
-        scale_alpha_manual(values=c(0.3, 1),
-                           labels = c("Eaten","Not Eaten"),
-                           name = "Proportion") +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
         labs(y=NULL, x=NULL, title="UMBS",subtitle="B",fill=NULL) +
         theme_classic() +
         theme(plot.title = element_text(size = 17),
@@ -898,11 +1183,176 @@ eaten_u_gr <- ggplot(sum_herb_gr_u, aes(x = Treatment, y = avg_eaten, fill = sta
 # plotting binary response & amount eaten on same figure
 binary_gr_overall <- ggarrange(binom_plot_k_gr, binom_plot_u_gr,
                                 eaten_k_gr, eaten_u_gr,
-                                nrow = 2, ncol = 2, common.legend = T, legend="top")
+                                nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 png("binary_gr_combined_plot.png", units="in", width=8, height=8, res=300)
 annotate_figure(binary_gr_overall,
                 bottom = text_grob("Treatment", color = "black",size=15))
 dev.off()
+
+
+### Growth form - binomial with insecticide ###
+# plotting binary response
+# selecting KBS, making binary response for if eaten or not overall
+herb_gr_rem <- herb %>%
+        filter(!(growth_habit == 'Vine' |
+                         growth_habit == "Shrub/tree" |
+                         growth_habit == "Shrub" |
+                         growth_habit == "Tree" |
+                         growth_habit == ""))
+herb_binom_k_gr_i <- herb_gr_rem %>%
+        filter(site == "KBS") %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_k_gr_i$p_eaten[herb_binom_k_gr_i$p_eaten == 1] <- "Eaten"
+herb_binom_k_gr_i$p_eaten[herb_binom_k_gr_i$p_eaten == 0] <- "Not Eaten"
+herb_binom_k_gr2_i <- herb_binom_k_gr_i %>%
+        group_by(state, insecticide,growth_habit, p_eaten) %>%
+        count(p_eaten) %>%
+        group_by(growth_habit, state,insecticide) %>%
+        mutate(n = n/sum(n) * 100)
+# selecting UMBS & herbivory plots =, making binary response for if eaten or not overall
+herb_binom_u_gr_i <- herb_gr_rem %>%
+        filter(site == "UMBS") %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_u_gr_i$p_eaten[herb_binom_u_gr_i$p_eaten == 1] <- "Eaten"
+herb_binom_u_gr_i$p_eaten[herb_binom_u_gr_i$p_eaten == 0] <- "Not Eaten"
+herb_binom_u_gr2_i <- herb_binom_u_gr_i %>%
+        group_by(state, insecticide,growth_habit, p_eaten) %>%
+        count(p_eaten) %>%
+        group_by(growth_habit, state,insecticide) %>%
+        mutate(n = n/sum(n) * 100)
+# merging both categorical variables (state and origin)
+herb_binom_k_gr2_i$Treatment <- paste(herb_binom_k_gr2_i$growth_habit, "_", herb_binom_k_gr2_i$state)
+herb_binom_u_gr2_i$Treatment <- paste(herb_binom_u_gr2_i$growth_habit, "_", herb_binom_u_gr2_i$state)
+
+# plot
+#Turn your 'treatment' column into a character vector
+herb_binom_k_gr2_i$Treatment <- as.character(herb_binom_k_gr2_i$Treatment)
+herb_binom_u_gr2_i$Treatment <- as.character(herb_binom_u_gr2_i$Treatment)
+#Then turn it back into a factor with the levels in the correct order
+herb_binom_k_gr2_i$Treatment <- factor(herb_binom_k_gr2_i$Treatment, levels=unique(herb_binom_k_gr2_i$Treatment))
+herb_binom_k_gr2_i$Treatment <- factor(herb_binom_k_gr2_i$Treatment,
+                                     levels=c("Forb _ warmed", "Graminoid _ warmed", "Forb _ ambient","Graminoid _ ambient"))
+herb_binom_u_gr2_i$Treatment <- factor(herb_binom_u_gr2_i$Treatment, levels=unique(herb_binom_u_gr2_i$Treatment))
+herb_binom_u_gr2_i$Treatment <- factor(herb_binom_u_gr2_i$Treatment,
+                                     levels=c("Forb _ warmed", "Graminoid _ warmed", "Forb _ ambient","Graminoid _ ambient"))
+
+binom_plot_k_gr_i <- ggplot(herb_binom_k_gr2_i,
+                          aes(x= Treatment,y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_col(col="black") +
+        geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
+        #scale_x_discrete(limits=c("Native_warmed","Exotic_warmed","Native_ambient","Exotic_ambient")) +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
+        labs(y="Proportion eaten or not (%)", x=NULL,title="KBS",subtitle="A", fill=NULL) +
+        theme_classic() +
+        theme(plot.title = element_text(size = 17),
+              plot.subtitle = element_text(size=13),
+              axis.text.y = element_text(size=13),
+              axis.text.x=element_blank(),
+              axis.title.y=element_text(size=15),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=14)) +
+        theme(legend.position="none")
+binom_plot_u_gr_i <- ggplot(herb_binom_u_gr2_i,
+                          aes(x=Treatment, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_col(col="black") +
+        geom_text(position=position_stack(0.5), aes(group=p_eaten)) +
+        scale_fill_manual(values = 
+                                  c(alpha("#a6bddb",1), alpha("#fb6a4a",1),alpha("#a6bddb",0.3),alpha("#fb6a4a",0.3)),
+                          labels = 
+                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                          name=NULL) +
+        labs(y=NULL, x=NULL, title="UMBS",subtitle="B",fill=NULL) +
+        theme_classic() +
+        theme(plot.title = element_text(size = 17),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_blank(),
+              axis.text.y = element_blank(),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=14))
+
+# amount eaten plot
+sum_herb_gr_k_i <- herb_gr_rem %>%
+        filter(site == "KBS")
+sum_herb_gr_k_i <- sum_herb_gr_k_i[sum_herb_gr_k_i$p_eaten != 0, ]
+sum_herb_gr_k_i <- sum_herb_gr_k_i %>%
+        group_by(state, insecticide,growth_habit) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_gr_u_i <- herb_gr_rem %>%
+        filter(site == "UMBS")
+sum_herb_gr_u_i <- sum_herb_gr_u_i[sum_herb_gr_u_i$p_eaten != 0, ]
+sum_herb_gr_u_i <- sum_herb_gr_u_i %>%
+        group_by(state, insecticide,growth_habit) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+# merging both categorical variables (state and origin)
+sum_herb_gr_k_i$Treatment <- paste(sum_herb_gr_k_i$growth_habit, "_", sum_herb_gr_k_i$state)
+sum_herb_gr_u_i$Treatment <- paste(sum_herb_gr_u_i$growth_habit, "_", sum_herb_gr_u_i$state)
+
+# plot
+#Turn your 'treatment' column into a character vector
+sum_herb_gr_k_i$Treatment <- as.character(sum_herb_gr_k_i$Treatment)
+sum_herb_gr_u_i$Treatment <- as.character(sum_herb_gr_u_i$Treatment)
+#Then turn it back into a factor with the levels in the correct order
+sum_herb_gr_k_i$Treatment <- factor(sum_herb_gr_k_i$Treatment, levels=unique(sum_herb_gr_k_i$Treatment))
+sum_herb_gr_k_i$Treatment <- factor(sum_herb_gr_k_i$Treatment,
+                                  levels=c("Forb _ warmed", "Graminoid _ warmed", "Forb _ ambient","Graminoid _ ambient"))
+sum_herb_gr_u_i$Treatment <- factor(sum_herb_gr_u_i$Treatment, levels=unique(sum_herb_gr_u_i$Treatment))
+sum_herb_gr_u_i$Treatment <- factor(sum_herb_gr_u_i$Treatment,
+                                  levels=c("Forb _ warmed", "Graminoid _ warmed", "Forb _ ambient","Graminoid _ ambient"))
+
+eaten_k_gr_i <- ggplot(sum_herb_gr_k_i, aes(x = Treatment, y = avg_eaten, fill = state)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_classic() +
+        ylim(0,30) + 
+        scale_x_discrete(labels=c("Forb _ warmed" = "Forb \n Warmed",
+                                  "Graminoid _ warmed" = "Graminoid \n Warmed",
+                                  "Forb _ ambient" = "Forb \n Ambient",
+                                  "Graminoid _ ambient" = "Graminoid \n Ambient")) +
+        theme(legend.position="none") +
+        theme(axis.text.y = element_text(size=13),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_text(size=13),
+              axis.title.y=element_text(size=15))
+eaten_u_gr_i <- ggplot(sum_herb_gr_u_i, aes(x = Treatment, y = avg_eaten, fill = state)) +
+        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_bar(position = "identity", stat = "identity", col = "black") +
+        geom_errorbar(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), width = 0.2,
+                      position = "identity") +
+        labs(x = NULL, y = NULL, title=NULL, subtitle="D") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_classic() +
+        ylim(0,30) +
+        scale_x_discrete(labels=c("Forb _ warmed" = "Forb \n Warmed",
+                                  "Graminoid _ warmed" = "Graminoid \n Warmed",
+                                  "Forb _ ambient" = "Forb \n Ambient",
+                                  "Graminoid _ ambient" = "Graminoid \n Ambient")) +
+        theme(legend.position="none") +
+        theme(axis.text.y = element_blank(),
+              plot.subtitle = element_text(size=13),
+              axis.text.x=element_text(size=13))
+
+# plotting binary response & amount eaten on same figure
+binary_gr_overall_i <- ggarrange(binom_plot_k_gr_i, binom_plot_u_gr_i,
+                               eaten_k_gr_i, eaten_u_gr_i,
+                               nrow = 2, ncol = 2, common.legend = T, legend="bottom")
+png("binary_gr_combined_plot_insecticide.png", units="in", width=13, height=8, res=300)
+annotate_figure(binary_gr_overall_i,
+                bottom = text_grob("Treatment", color = "black",size=15))
+dev.off()
+
+
 
 ### dont need this one by treatment key
 #### Total herb by site and species with separated insecticide and no insecticide####
