@@ -224,6 +224,9 @@ comp_diversity <- comp_diversity[,c("site", "plot", "year", "year_factor", "trea
 
 comp_diversity <- comp_diversity[-c(135, 140, 142, 167),] # remove this row with zero values for shannon diversity and species richness - this zero is from there not being any data in plot D5 in 2021 due to a large ground hog hole
 
+comp_diversity$year_factor <- as.factor(comp_diversity$year_factor)
+comp_diversity$year <- as.numeric(as.character(comp_diversity$year))
+
 # write a new csv with diversity indices and upload to the shared google drive L2 data folder
 write.csv(comp_diversity, file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"))
 
@@ -583,7 +586,7 @@ SIMPSON
 ```{r}
 # KBS State-only model
 fit_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity)
-outlierTest(fit_state_kbs) # yes row 60, 152, 148
+outlierTest(fit_state_kbs) # yes row 60 (2017), 152 (2021), 148 (2021)
 qqPlot(fit_state_kbs, main="QQ Plot") 
 hist(fit_state_kbs$residuals)
 leveragePlots(fit_state_kbs)
@@ -599,14 +602,14 @@ ols_test_normality(fit_stateyear_kbs)
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(log(simpson) ~ state + year_factor, data = kbs_diversity)
+fit3 <- lm(log(simpson) ~ state*year_factor, data = kbs_diversity)
 interact_plot(fit3, pred = year_factor, modx = state)
-
 ```
+
 ```{r}
 # UMBS State-only model
 fit_state_umbs <- lm(log(simpson) ~ state, data = umbs_diversity)
-outlierTest(fit_state_umbs) # yes, row 202
+outlierTest(fit_state_umbs) # yes, row 178, 190
 qqPlot(fit_state_umbs, main="QQ Plot") 
 hist(fit_state_umbs$residuals)
 leveragePlots(fit_state_umbs)
@@ -623,8 +626,8 @@ ols_test_normality(fit_stateyear_umbs)
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 # I can't get these to work
-fit3 <- lm(log(simpson) ~ state + year, data = umbs_diversity)
-#interact_plot(fit3, pred = year_factor, modx = state)
+fit3 <- lm(log(simpson) ~ state*year, data = umbs_diversity)
+interact_plot(fit3, pred = year, modx = state)
 ```
 
 SHANNON
@@ -764,8 +767,8 @@ shapiro.test(r_int)
 
 ```{r}
 # Do we need to include plot as a random effect with the KBS models?   
-mod1 <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
-mod2 <- lmer(log(simpson) ~ state*year + insecticide + year + (1|plot), kbs_diversity, REML=FALSE)
+mod1 <- lmer(log(simpson) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
+mod2 <- lmer(log(simpson) ~ state*year_factor + insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
 # Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
 anova(mod1)
 anova(mod2)

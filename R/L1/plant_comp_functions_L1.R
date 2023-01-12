@@ -31,41 +31,6 @@ site_name <- function(df){
   return(spp)
 }
 
-# OPTIONAL: remove species that are very rare in the data
-remove_spp <- function(df){
-        df <- df[!grepl("Alpe",df$Species),]
-        df <- df[!grepl("Apca",df$Species),]
-        df <- df[!grepl("Brin",df$Species),]
-        df <- df[!grepl("Juni",df$Species),]
-        df <- df[!grepl("Plla",df$Species),]
-        df <- df[!grepl("Romu",df$Species),]
-        df <- df[!grepl("Stme",df$Species),]
-        df <- df[!grepl("Umsp",df$Species),]
-        df <- df[!grepl("Ulsp",df$Species),]
-        df <- df[!grepl("Spsp",df$Species),]
-        df <- df[!grepl("Acru",df$Species),]
-        df <- df[!grepl("Oebi",df$Species),]
-        df <- df[!grepl("Besp",df$Species),]
-        df <- df[!grepl("Prse",df$Species),]
-        df <- df[!grepl("Quru",df$Species),]
-        df <- df[!grepl("Prpe",df$Species),]
-        df <- df[!grepl("Veth",df$Species),]
-        df <- df[!grepl("Anma",df$Species),]
-        df <- df[!grepl("Vaan",df$Species),]
-        df <- df[!grepl("Gnul",df$Species),]
-        df <- df[!grepl("Trdu",df$Species),]
-        df <- df[!grepl("Alpe",df$Species),]
-        df <- df[!grepl("Sypi",df$Species),]
-        df <- df[!grepl("Hipi",df$Species),]
-        df <- df[!grepl("Popsp",df$Species),]
-        df <- df[!grepl("Acsy",df$Species),]
-        df <- df[!grepl("Lampu",df$Species),]
-        df <- df[!grepl("Lapu",df$Species),]
-        df <- df[!grepl("Sysa",df$Species),]
-        df <- df[!grepl("WILD_RASP?",df$Species),]
-        return(df)
-}
-
 # change species names
 change_spp <- function(df){
   df$Species[df$Species == "Rubsp"] <- "Rusp"
@@ -84,6 +49,7 @@ change_spp <- function(df){
   df$Species[df$Species == "Syal"] <- "Syla"
   df$Species[df$Species == "phpr"] <- "Phpr"
   df$Species[df$Species == "Elrre"] <- "Elre"
+  df$Species[df$Species == "Piau"] <- "Hisp"
   df$Species[df$Species == "Lepidium campestre"] <- "Leca"
   df$Species[df$Species == "Evening Primrose"] <- "Oebi"
   df$Species[df$Species == "Milkweed"] <- "Assp"
@@ -115,8 +81,8 @@ change_spp <- function(df){
   df$Species[df$Species == "UNKNOWN!"] <- "Unknown"
   df$Species[df$Species == "UNK_2"] <- "Unknown"
   df$Species[df$Species == "Grass"] <- "Unknown_Grass"
-  df$Species[df$Species == "Thin_Blade_Grass"] <- "Unknown_Thin_Blade_Grass"
-  df$Species[df$Species == "Wide bladed grass"] <- "Unknown_Wide_Blade_Grass"
+  df$Species[df$Species == "Thin_Blade_Grass"] <- "Unknown_Grass"
+  df$Species[df$Species == "Wide bladed grass"] <- "Unknown_Grass"
   df$Species[df$Species == "Chickweed"] <- "Stme"
   df$Species[df$Species == "Animal"] <- "Animal_Disturbance"
   df$Species[df$Species == "Groundhog hole/sand"] <- "Animal_Disturbance"
@@ -126,7 +92,7 @@ change_spp <- function(df){
   df$Species[df$Species == "UNK_Assy"] <- "Assp"
   df$Species[df$Species == "Dogbane"] <- "Apsp"
   df$Species[df$Species == "Ramu"] <- "Romu"
-  df$Species[df$Species == "moss"] <- "Moss"
+  df$Species[df$Species == "moss"] <- "Umsp"
   df$Species[df$Species == "Anspp"] <- "Ansp"
   df$Species[df$Species == "Smooth_oat"] <- "Arel"
   df$Species[df$Species == "Bown"] <- "Brown"
@@ -142,6 +108,20 @@ change_spp <- function(df){
   df$Species[df$Species == "LItter"] <- "Litter"
   df$Species[df$Species == "Standing Dead"] <- "Vert_Litter"
   df$Species[df$Species == "Total "] <- "Total"
+  df$Species[df$Species == "WILD_RASP?"] <- "Rusp"
+  df$Species[df$Species == "Lampu"] <- "Lapu"
+  df$Species[df$Species == "Hipr"] <- "Hisp"
+  df$Species[df$Species == "Lichen"] <- "Lisp"
+  df$Species[df$Species == "Ulsp"] <- "Lisp"
+  df$Species[df$Species == "Moss"] <- "Umsp"
+  df$Species[df$Species == "Mullen"] <- "Veth"
+  df$Species[df$Species == "Uhsp"] <- "Unknown_Forb"
+  df$Species[df$Species == "Des"] <- "Desp"
+  df$Species[df$Species == "Posp2"] <- "Posp"
+  df$Species[df$Species == "Posp3"] <- "Posp"
+  df$Species[df$Species == "Sand"] <- "Bare_Ground"
+  df$Species[df$Species == "Hipi"] <- "Hisp"
+  df$Species[df$Species == "Soil"] <- "Bare_Ground"
   return(df)
 }
 
@@ -154,3 +134,66 @@ change_site <- function(df){
   return(df)
 }
 
+# OPTIONAL: remove species that are very rare in the data + those that aren't technically species, like "Bare_Ground"
+remove_spp <- function(df){
+        df <- df[!grepl("Alpe",df$species),]
+        df <- df[!grepl("Apca",df$species),]
+        df <- df[!grepl("Brin",df$species),]
+        df <- df[!grepl("Juni",df$species),]
+        df <- df[!grepl("Plla",df$species),]
+        df <- df[!grepl("Romu",df$species),]
+        df <- df[!grepl("Stme",df$species),]
+        df <- df[!grepl("Umsp",df$species),]
+        df <- df[!grepl("Ulsp",df$species),]
+        df <- df[!grepl("Spsp",df$species),]
+        df <- df[!grepl("Acru",df$species),]
+        df <- df[!grepl("Oebi",df$species),]
+        df <- df[!grepl("Besp",df$species),]
+        df <- df[!grepl("Prse",df$species),]
+        df <- df[!grepl("Quru",df$species),]
+        df <- df[!grepl("Prpe",df$species),]
+        df <- df[!grepl("Veth",df$species),]
+        df <- df[!grepl("Anma",df$species),]
+        df <- df[!grepl("Vaan",df$species),]
+        df <- df[!grepl("Gnul",df$species),]
+        df <- df[!grepl("Trdu",df$species),]
+        df <- df[!grepl("Alpe",df$species),]
+        df <- df[!grepl("Sypi",df$species),]
+        df <- df[!grepl("Hipi",df$species),]
+        df <- df[!grepl("Popsp",df$species),]
+        df <- df[!grepl("Acsy",df$species),]
+        df <- df[!grepl("Lampu",df$species),]
+        df <- df[!grepl("Lapu",df$species),]
+        df <- df[!grepl("Sysa",df$species),]
+        df <- df[!grepl("Leca",df$species),]
+        df <- df[!grepl("Erci",df$species),]
+        df <- df[!grepl("Pesp",df$species),]
+        df <- df[!grepl("Crsp",df$species),]
+        df <- df[!grepl("Cofo",df$species),]
+        df <- df[!grepl("Thar",df$species),]
+        df <- df[!grepl("Asun",df$species),]
+        df <- df[!grepl("Amla",df$species),]
+        df <- df[!grepl("Soju",df$species),]
+        df <- df[!grepl("Ruag",df$species),]
+        df <- df[!grepl("Grme",df$species),]
+        df <- df[!grepl("WILD_RASP?",df$species),]
+        df <- df[!grepl("Total",df$species),]
+        df <- df[!grepl("Bare_Ground",df$species),]
+        df <- df[!grepl("Vert_Litter",df$species),]
+        df <- df[!grepl("Animal_Disturbance",df$species),]
+        df <- df[!grepl("Litter",df$species),]
+        df <- df[!grepl("Brown",df$species),]
+        df <- df[!grepl("Moss/Lichen",df$species),]
+        df <- df[!grepl("Lisp",df$species),]
+        df <- df[!grepl("Herbicide",df$species),]
+        df <- df[!grepl("Live",df$species),]
+        df <- df[!grepl("Alive",df$species),]
+        df <- df[!grepl("Nonlive",df$species),]
+        df <- df[!grepl("Unknown",df$species),]
+        df <- df[!grepl("Unknown_Dicot",df$species),]
+        df <- df[!grepl("Unknown_Forb",df$species),]
+        df <- df[!grepl("Unknown_Grass",df$species),]
+        df <- df[!grepl("Unknown_Shrub_Tree",df$species),]
+        df <- df[!grepl("Unknown_Shrub",df$species),]
+        return(df)
+}
