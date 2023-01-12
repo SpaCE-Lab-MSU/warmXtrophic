@@ -47,15 +47,14 @@ list.files(L1_dir)
 
 # read in plant comp data
 comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
-comp <- comp %>% select(-X) # get rid of "X" column that shows up
 
 # Remove non-plant data
-comp <- comp[!(comp$species=="Bare_Ground" | 
-                       comp$species=="Unknown" | 
-                       comp$species=="Brown" | 
-                       comp$species=="Litter" | 
-                       comp$species=="Vert_Litter" | 
-                       comp$species=="Animal_Disturbance"), ]
+#comp <- comp[!(comp$species=="Bare_Ground" | 
+#                       comp$species=="Unknown" | 
+#                       comp$species=="Brown" | 
+#                       comp$species=="Litter" | 
+#                       comp$species=="Vert_Litter" | 
+#                       comp$species=="Animal_Disturbance"), ]
 
 # select peak biomass dates - for this I'm choosing August % cover date
 peak_comp <- dplyr::filter(comp, month %in% c(8))

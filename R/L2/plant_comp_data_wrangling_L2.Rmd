@@ -27,8 +27,7 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L1_dir)
 
 # read in plant comp data
-comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
-comp <- comp %>% select(-X) # get rid of "X" column that shows up
+comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_species_removed_L1.csv"))
 
 # delete 2021 UMBS data from dataframe 
 comp <- comp[-which(comp$year == "2021" & comp$site == "umbs"),]
@@ -36,7 +35,7 @@ comp <- comp[-which(comp$year == "2021" & comp$site == "umbs"),]
 # read in meta data
 meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
 taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
-taxon <- taxon %>% select(-c(old_name, old_code, site, note1, note2)) # get rid of columns that arent necessary
+taxon <- taxon %>% select(-c(old_name, old_code, site, note1, note2, rhizomatous, MH_rhizomatous_suggestion)) # get rid of columns that arent necessary
 names(taxon)[names(taxon) == "code"] <- "species" # change "code" column name to "species" so this can be merged with another dateframe below
 ```
 
@@ -50,17 +49,30 @@ comp$year_factor[comp$year == 2019] <- 5
 comp$year_factor[comp$year == 2020] <- 6
 comp$year_factor[comp$year == 2021] <- 7
 
+comp$year_factor <- as.factor(comp$year_factor)
+
+str(comp)
+
 #comp$year_factor <- as.factor(as.character(comp$year_factor))
 
 # Remove non-plant data
-comp <- comp[!(comp$species=="Bare_Ground" | 
-                       comp$species=="Unknown" | 
-                       comp$species=="Brown" | 
-                       comp$species=="Litter" | 
-                       comp$species=="Vert_Litter" | 
-                       comp$species=="Animal_Disturbance"), ]
+#comp <- comp[!(comp$species=="Bare_Ground" | 
+#                       comp$species=="Unknown" | 
+#                       comp$species=="Brown" | 
+#                       comp$species=="Litter" | 
+#                       comp$species=="Vert_Litter" | 
+#                       comp$species=="Animal_Disturbance"), ]
 
 ```
+
+Peak biomass
+```{r}
+# select peak biomass dates 
+june_comp <- dplyr::filter(comp, month %in% c(6))
+july_comp <- dplyr::filter(comp, month %in% c(7))
+august_comp <- dplyr::filter(comp, month %in% c(8))
+```
+
 
 Calculating Absolute Abundance
 ```{r}
