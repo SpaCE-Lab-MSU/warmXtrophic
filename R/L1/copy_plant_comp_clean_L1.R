@@ -149,4 +149,4 @@ sort(unique(plant_comp_merge5$species))
 
 
 # Upload clean data csv to google drive without the index column - this has species that have been removed
-write.csv(plant_comp_merge3, file.path(L1_dir, "plant_composition/final_plantcomp_species_removed_L1.csv"), row.names=F)
+write.csv(plant_comp_merge5, file.path(L1_dir, "plant_composition/final_plantcomp_species_removed_L1.csv"), row.names=F)

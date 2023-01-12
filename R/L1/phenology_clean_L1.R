@@ -107,10 +107,15 @@ lapply(phen_list, spp_name) # look over species code to see what needs to be fix
 lapply(phen_list, site_name) # need to make these all the same for each site
 lapply(phen_list, date_check) # see if any dates were entered incorrectly, like the year
 lapply(phen_list, plot_check) # see if there are any repeat plot IDs
+lapply(phen_list, action_check) # see if there are any repeat plot IDs
 
 # Fixing species names
 phen_list <- lapply(phen_list, change_spp)
 lapply(phen_list, spp_name) # looks good
+
+# Fixing action names
+phen_list <- lapply(phen_list, change_action)
+lapply(phen_list, action_check) # looks good
 
 # Would be great to write some code where you can compare the species codes in the data with
 # our species list

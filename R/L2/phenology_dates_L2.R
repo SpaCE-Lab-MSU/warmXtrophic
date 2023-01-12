@@ -25,7 +25,7 @@ library(tidyverse)
 
 # Source in needed functions from the github repo - could add this to Renviron?
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Moriah's location
-source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
+#source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 #source("~/Documents/GitHub/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
@@ -47,7 +47,6 @@ colnames(taxon) <- sub("code", "species", colnames(taxon))
 
 # read in plant composition data
 plantcomp <- read.csv(file.path(L1_dir,"/plant_composition/final_plantcomp_L1.csv"))
-plantcomp <- plantcomp %>% select(-X) # get rid of "X" column that shows up
 str(plantcomp)
 # delete 2021 data from dataframe -doesn't make sense to have bc 2021 UMBS data was not collected at the same frequency as previous years
 plantcomp <- plantcomp[-which(plantcomp$year == "2021" & plantcomp$site == "umbs"),]
@@ -543,16 +542,16 @@ half_cover_kbs <- unique(half_cover_kbs[c("species", "year")])
 ###### FLOWERING ###### (Moriah did this)
 
 # KD edits:
-# checking action column
-unique(flwr_sd$action)
-# renaming misspelled actions
-flwr_sd$action[flwr_sd$action == "Flower"] <- "flower"
-flwr_sd$action[flwr_sd$action == "floer"] <- "flower"
-flwr_sd$action[flwr_sd$action == "flwoer"] <- "flower"
-flwr_sd$action[flwr_sd$action == "Seed"] <- "seed"
-flwr_sd$action[flwr_sd$action == "speed"] <- "seed"
-flwr_sd$action[flwr_sd$action == "fruit"] <- "seed" # counting fruit as seed here - can remove this if needed
-unique(flwr_sd$action)
+# checking action column - Moriah went back and edited this in the phenology cleaning script Jan 2023
+#unique(flwr_sd$action)
+## renaming misspelled actions
+#flwr_sd$action[flwr_sd$action == "Flower"] <- "flower"
+#flwr_sd$action[flwr_sd$action == "floer"] <- "flower"
+#flwr_sd$action[flwr_sd$action == "flwoer"] <- "flower"
+#flwr_sd$action[flwr_sd$action == "Seed"] <- "seed"
+#flwr_sd$action[flwr_sd$action == "speed"] <- "seed"
+#flwr_sd$action[flwr_sd$action == "fruit"] <- "seed" # counting fruit as seed here - can remove this if needed
+#unique(flwr_sd$action)
 
 # Create separate data frames for flowering and seeding
 phen_flwr <- subset(flwr_sd, action == "flower")
@@ -573,6 +572,7 @@ early_late_umbs <- phen_flwr_control_umbs %>%
         summarize(julian_min = min(julian, na.rm=T)) # n = number of observations for that species
 
 # determining the latest date when a species flowered for the first time
+# GDD/temp data Kara did Jan 2023
 flwr_kbs <- phen_flwr %>%
         filter(site == "kbs" & year == "2021")
 flwr_umbs <- phen_flwr %>%
@@ -704,33 +704,6 @@ phen_flwr_plot_growthhabit <- merge(phen_flwr_plot_growthhabit, flwr_dur_plot_gr
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
 write.csv(phen_flwr_plot_growthhabit, file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv"), row.names=F)
-
-
-# Create some plots to visualize these data (NOT FINISHED - MY 7/11/21)
-# histograms for each year - look at them together:
-p1 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p1 + facet_wrap(~year) + labs(title="Plot-level First Flower")
-
-p1 <- ggplot(data = phen_flwr_spp, aes(x = julian_min, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p1 + facet_wrap(~year) + labs(title="Species-level First Flower")
-
-# this will just show sampling date artifact
-p2 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p2 + facet_wrap(~year)
-
-p2 <- ggplot(data = phen_flwr_spp, aes(x = julian_min, fill=state)) + geom_histogram(alpha=0.5, binwidth=10)
-p2 + facet_wrap(~year) + labs(title="Species-level first Flower")
-
-# Density plot
-p3 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_density(alpha=0.5)
-p3 + facet_wrap(~year) + labs(title="Plot-level First Flower")
-
-p3 <- ggplot(data = phen_flwr_spp, aes(x = julian_min, fill=state)) + geom_density(alpha=0.5)
-p3 + facet_wrap(~year) + labs(title="Species-level First Flower")
-
-# this will just show sampling date artifact
-p4 <- ggplot(data = phen_flwr_plot, aes(x = julian_min, fill=state)) + geom_density(alpha=0.5)
-p4 + facet_wrap(~year)
 
 
 ###### SEED SET ###### (Moriah did this) 

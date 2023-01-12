@@ -43,6 +43,12 @@ plot_check <- function(df){
         return(ID)
 }
 
+action_check <- function(df){
+        ID <- unique(sort(df[["Action"]]))
+        return(ID)
+}
+
+
 #function to change column names
 change_colnames <- function(df){
         names(df)[names(df) == "site"] <- "Site"
@@ -50,6 +56,17 @@ change_colnames <- function(df){
         names(df)[names(df) == "plot"] <- "Plot"
         names(df)[names(df) == "species"] <- "Species"
         names(df)[names(df) == "action"] <- "Action"
+        return(df)
+}
+
+# change action names
+change_action <- function(df){
+        df$Action[df$Action == "speed"] <- "seed"
+        df$Action[df$Action == "floer"] <- "flower"
+        df$Action[df$Action == "flwoer"] <- "flower"
+        df$Action[df$Action == "Flower"] <- "flower"
+        df$Action[df$Action == "Seed"] <- "seed"
+        df$Action[df$Action == "fruit"] <- "seed"
         return(df)
 }
 
