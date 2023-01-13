@@ -53,26 +53,128 @@ comp$year_factor <- as.factor(comp$year_factor)
 
 str(comp)
 
-#comp$year_factor <- as.factor(as.character(comp$year_factor))
-
-# Remove non-plant data
-#comp <- comp[!(comp$species=="Bare_Ground" | 
-#                       comp$species=="Unknown" | 
-#                       comp$species=="Brown" | 
-#                       comp$species=="Litter" | 
-#                       comp$species=="Vert_Litter" | 
-#                       comp$species=="Animal_Disturbance"), ]
-
 ```
 
 Peak biomass
 ```{r}
 # select peak biomass dates 
-june_comp <- dplyr::filter(comp, month %in% c(6))
+# select for all June dates
+june_comp <- dplyr::filter(comp, month %in% c(6)) 
+june_comp$date <- as.Date(june_comp$date)
+unique(june_comp$date)
+str(june_comp)
+#june_comp1 <- dplyr::select(june_comp, date %in% -c("2016-06-02", "2019-06-01", "2019-06-04", "2019-06-07", #"2019-06-10", "2019-06-13", "2019-06-16")) 
+#unique(june_comp1$date)
+# need to be deleted:
+# "2016-06-02" "2019-06-01" "2019-06-04" "2019-06-07" "2019-06-10" "2019-06-13" "2019-06-16"
+
+# select the max date in the month per year
+june_comp1 <- june_comp %>% group_by(site, year, month) %>% slice_max(julian)
+unique(june_comp1$date)
+
+# select for all July dates
 july_comp <- dplyr::filter(comp, month %in% c(7))
+july_comp$date <- as.Date(july_comp$date)
+unique(july_comp$date)
+july_comp1 <- july_comp %>% group_by(site, year, month) %>% slice_max(julian)
+unique(july_comp1$date)
+
+# select for all August dates
 august_comp <- dplyr::filter(comp, month %in% c(8))
+august_comp$date <- as.Date(august_comp$date)
+unique(august_comp$date)
+august_comp1 <- august_comp %>% group_by(site, year, month) %>% slice_max(julian)
+unique(august_comp1$date)
+
+# merge the june, july, and august data frames together
+peak_comp <- full_join(august_comp1, july_comp1, by = c("site", "plot", "species", "cover", "date", "julian", "year", "month", "treatment_key", "state", "insecticide", "scientific_name", "common_name", "USDA_code", "LTER_code", "origin", "group", "family", "duration", "growth_habit", "year_factor"))
+
+peak_comp <- full_join(peak_comp, june_comp1, by = c("site", "plot", "species", "cover", "date", "julian", "year", "month", "treatment_key", "state", "insecticide", "scientific_name", "common_name", "USDA_code", "LTER_code", "origin", "group", "family", "duration", "growth_habit", "year_factor"))
 ```
 
+```{r}
+peak_comp1 <- peak_comp %>% 
+        select(species, site, year_factor, month, date, year, julian, plot, cover, state, insecticide)
+peak_comp1$cover <- as.numeric(as.character(peak_comp1$cover))
+
+# first get summed cover for all plants per plot
+plot_cover_total = aggregate(cover ~ plot*year_factor*year*date*month*site*state*insecticide, data = peak_comp1, FUN = sum, na.rm = T)
+names(plot_cover_total)[names(plot_cover_total) == "cover"] <- "plot_cover_total"
+peak_comp2 <- merge(peak_comp1, plot_cover_total, by = c("plot","year_factor", "year", "date", "month", "site", "state", "insecticide"))
+
+#calculate absolute percent cover per species in each plot
+peak_comp2$absolute <- peak_comp2$cover/100
+
+#calculate relative percent cover per species in each plot
+peak_comp2$relative <- peak_comp2$cover/peak_comp2$plot_cover_total
+
+write.csv(peak_comp2, file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"), row.names = F)
+```
+
+Origin
+```{r}
+origin_comp <- peak_comp %>% 
+        select(species, site, year_factor, month, date, year, julian, plot, cover, state, insecticide, origin)
+origin_comp$cover <- as.numeric(as.character(origin_comp$cover))
+
+# first get summed cover for all plants per plot
+origin_cover_total = aggregate(cover ~ plot*year_factor*year*date*month*site*state*insecticide*origin, data = origin_comp, FUN = sum, na.rm = T)
+names(origin_cover_total)[names(origin_cover_total) == "cover"] <- "origin_cover_total"
+
+origin_cover_total1 <- merge(origin_cover_total, plot_cover_total, by = c("plot","year_factor", "year", "date", "month", "site", "state", "insecticide"))
+
+#calculate relative percent cover
+origin_cover_total1$relative <- origin_cover_total1$origin_cover_total/origin_cover_total1$plot_cover_total
+
+# subset data to just include forbs and graminoids
+origin_cover_total1 <- subset(origin_cover_total1, origin == "Exotic" | origin == "Native")
+
+write.csv(origin_cover_total1, file.path(L2_dir, "plant_composition/final_plant_comp_origin_L2.csv"), row.names = F)
+```
+
+Growth Habit
+```{r}
+growth_comp <- peak_comp %>% 
+        select(species, site, year_factor, month, date, year, julian, plot, cover, state, insecticide, growth_habit)
+growth_comp$cover <- as.numeric(as.character(growth_comp$cover))
+
+# first get summed cover for all plants per plot
+growth_cover_total = aggregate(cover ~ plot*year_factor*year*date*month*site*state*insecticide*growth_habit, data = growth_comp, FUN = sum, na.rm = T)
+names(growth_cover_total)[names(growth_cover_total) == "cover"] <- "growth_cover_total"
+
+growth_cover_total1 <- merge(growth_cover_total, plot_cover_total, by = c("plot","year_factor", "year", "date", "month", "site", "state", "insecticide"))
+
+#calculate relative percent cover
+growth_cover_total1$relative <- growth_cover_total1$growth_cover_total/growth_cover_total1$plot_cover_total
+
+# subset data to just include forbs and graminoids
+growth_cover_total1 <- subset(growth_cover_total1, growth_habit == "Forb" | growth_habit == "Graminoid")
+
+write.csv(growth_cover_total1, file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_L2.csv"), row.names = F)
+```
+
+```{r}
+august_comp1 <- august_comp %>% 
+        select(species, site, year_factor, month, date, year, julian, plot, cover, state, insecticide)
+august_comp1$cover <- as.numeric(as.character(august_comp1$cover))
+
+# first get summed cover for all plants per plot
+plot_cover_total = aggregate(cover ~ plot*year_factor*month*site*state*insecticide, data = august_comp1, FUN = sum, na.rm = T)
+names(plot_cover_total)[names(plot_cover_total) == "cover"] <- "plot_cover_total"
+View(plot_cover_total)
+august_comp2 <- merge(august_comp1, plot_cover_total, by = c("plot","year_factor","site", "state", "insecticide"))
+
+#calculate absolute percent cover per species in each plot
+august_comp2$absolute <- august_comp2$cover/100
+
+#calculate relative percent cover per species in each plot
+august_comp2$relative <- august_comp2$cover/august_comp2$plot_cover_total
+
+#write.csv(comp4, file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"), row.names = F)
+```
+
+
+######### old code below ############
 
 Calculating Absolute Abundance
 ```{r}
