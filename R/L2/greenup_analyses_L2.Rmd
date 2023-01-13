@@ -73,6 +73,7 @@ library(glmmTMB)
 library(bbmle)
 library(emmeans)
 library(gtsummary)
+library(knitr)
 #install.packages('TMB',type='source')
 
 # Set ggplot2 plots to bw: see here for more options: http://www.sthda.com/english/wiki/ggplot2-themes-and-background-colors-the-3-elements
@@ -132,6 +133,8 @@ green_kbsp <- subset(greenupp, site == "kbs")
 green_umbsp <- subset(greenupp, site == "umbs")
 
 # Add in GDD and temp data for each year + treatment
+# note: we decided to use GDD and mean temp for analyses based on their correlation w/ green-up
+# those correlation figs can be found in the greenup_plots_L2.R script
 green_kbsp <- left_join(green_kbsp, temps_KBS, by=c('year','state'))
 green_umbsp <- left_join(green_umbsp, temps_UMBS, by=c('year','state'))
 # cutoff dates based on HOBO_GDD_L1.R script
@@ -145,23 +148,6 @@ GDD_green_UMBS <- GDD_UMBS %>%
         filter(julian == 167) %>%
         select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
 green_umbsp <- left_join(green_umbsp, GDD_green_UMBS, by=c('year','state'))
-
-# looking to see which temp variable best correlates with greenup dates
-# final versions of these plots are in greenup_plots_L2.Rmd
-# note: when testing this for min dates, there are less data points because all plots had the same 
-# min date of greenup per site, per year, whereas the plots had different half cover dates
-ggplot(green_kbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', alpha = .15, aes(fill = state)) + 
-        scale_color_manual(values = c("blue","red")) +
-        scale_fill_manual(values = c("blue","red")) +
-        theme_bw()
-ggplot(green_umbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', alpha = .15, aes(fill = state)) + 
-        scale_color_manual(values = c("blue","red")) +
-        scale_fill_manual(values = c("blue","red")) +
-        theme_bw()
 ```
 
 # Data Exploration:
@@ -218,14 +204,6 @@ p3.2u + facet_wrap(~year_factor) + labs(title="Species-level half cover date")
 # this will just show sampling date artifact
 p4 <- ggplot(data = green_kbsp, aes(x = min_green_date, fill=state)) + geom_density(alpha=0.5)
 p4 + facet_wrap(~year_factor)
-
-# KD: not sure what this code below was for 
-# code below won't run:
-# Or try with tidyverse format
-#green_kbsp.t<-as_tibble(green_kbsp)
-#green_kbsp.t %>%
-#    gather(state, plot_half_cover_date, year_factor) %>%
-#    ggplot(aes(plot_half_cover_date, fill = state)) + geom_histogram() + facet_wrap(~year_factor)
 
 # looks like the 225 spike is from 2018 and 2020 - what's going on here is that you are treating all species-plot records as independent observations, so the influence of species differences is likely coming through here.
 kbs_2018 <- subset(green_kbs, year == 4) # many records on 235
@@ -354,32 +332,38 @@ shapiro.test(resid(fitu2_trans))
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 # KBS
+# plot half cover
 fit3 <- lm(1/(plot_half_cover_date) ~ state + year, data = green_kbsp)
 interact_plot(fit3, pred = year, modx = state)
 fit4 <- lm(1/(plot_half_cover_date) ~ state * year, data = green_kbsp)
 interact_plot(fit4, pred = year, modx = state)
 
+# species half cover
 fit5 <- lm(spp_half_cover_date ~ state + year + species, data = green_kbs)
 interact_plot(fit5, pred = year, modx = state)
 fit6 <- lm(spp_half_cover_date ~ state * year + species, data = green_kbs)
 interact_plot(fit6, pred = year, modx = state, mod2 = species)
 
+# species first date of green-up
 fit7 <- lm(min_green_date ~ state + year + species, data = green_kbs)
 interact_plot(fit7, pred = year, modx = state)
 fit8 <- lm(min_green_date ~ state * year + species, data = green_kbs)
 interact_plot(fit8, pred = year, modx = state, mod2 = species)
 
 # UMBS
+# plot half cover date
 fit3u <- lm(1/(plot_half_cover_date) ~ state + year, data = green_umbsp)
 interact_plot(fit3u, pred = year, modx = state)
 fit4u <- lm(1/(plot_half_cover_date) ~ state * year, data = green_umbsp)
 interact_plot(fit4u, pred = year, modx = state)
 
+# species half cover date
 fit5u <- lm(spp_half_cover_date ~ state + year + species, data = green_umbs)
 interact_plot(fit5u, pred = year, modx = state)
 fit6u <- lm(spp_half_cover_date ~ state * year + species, data = green_umbs)
 interact_plot(fit6u, pred = year, modx = state, mod2 = species)
 
+# species first date of green-up
 fit7u <- lm(min_green_date ~ state + year + species, data = green_umbs)
 interact_plot(fit7u, pred = year, modx = state)
 fit8u <- lm(min_green_date ~ state * year + species, data = green_umbs)
@@ -563,6 +547,7 @@ emmeans(mod11a, list(pairwise ~ year_factor + growth_habit), adjust = "tukey")
 
 # KBS Plot-level Mixed Effects Models:
 ```{r}
+# KD note: these models are commented out because we re-summarized the data into plot-level dataframes (below)
 # plot-level models using the species summarized data frame with specific random effects
 # note: we decided this was not the best approach - better to use the summarized dataframes
 #mod1ps <- lmer(spp_half_cover_date ~ state + (1|plot/species), green_kbs, REML=FALSE)
@@ -583,6 +568,13 @@ emmeans(mod11a, list(pairwise ~ year_factor + growth_habit), adjust = "tukey")
 #summary(mod5ps)
 #anova(mod4ps)
 
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.test1 <- lmer(1/(plot_half_cover_date) ~ state + year_factor+(1|plot), green_kbsp, REML=FALSE)
+year.mod.test2 <- lmer(1/(plot_half_cover_date) ~ state + as.factor(year_factor)+(1|plot), green_kbsp, REML=FALSE)
+anova(year.mod.test1,year.mod.test2)
+# going to use year as a factor
+# I also think this makes the most sense because I don't think we expect there to be a much of a trend over time for green-up; maybe if we had a longer time span, but I don't think 6 years is enough to detect a trend over time and the results will be more influenced by between year variation in temp, precip, etc.
+
 # plot-level models using the re-summarized data frame
 modfull <- lmer(1/(plot_half_cover_date) ~ state*as.factor(year_factor) + insecticide*as.factor(year_factor) + (1|plot), green_kbsp, REML=F)
 mod1p <- lmer(1/(plot_half_cover_date) ~ state + (1|plot), green_kbsp, REML=FALSE)
@@ -595,7 +587,7 @@ mod7p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) + (1|plo
 mod8p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) + insecticide + (1|plot), green_kbsp, REML=FALSE)
 mod9p <- lmer(1/(plot_half_cover_date) ~ state * insecticide + as.factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
 mod10p <- lmer(1/(plot_half_cover_date) ~ state + insecticide * as.factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
-mod11p <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) * insecticide + (1|plot), green_kbsp, REML=FALSE)
+mod11p <- lmer(1/(plot_half_cover_date) ~ state * insecticide * as.factor(year_factor) + (1|plot), green_kbsp, REML=FALSE)
 AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
 anova(modfull, mod1p) #modfull
 anova(modfull, mod2p) #modfull
@@ -605,21 +597,25 @@ anova(modfull, mod5p) #mod5p
 anova(mod5p, mod6p) #mod5p
 anova(mod5p, mod7p) #mod7p
 anova(mod7p, mod8p) #mod7p
-anova(mod7p, mod9p) #mod9p barely
+anova(mod7p, mod9p) #mod9p 
 anova(mod9p, mod10p) #mod9p
 anova(mod9p, mod11p) #mod9p
-table <- anova(mod5p, mod9p)
-summary(mod7p)
-anova(mod7p)
+table <- anova(mod9p, mod7p)
+summary(mod9p)
+anova(mod9p)
+
+# note: this effect size calculation is for mod 5p
 # calculating effect size - accounting for reciprocal transformation
-1/(6.988e-03 + 1.126e-03*0) # 143.1025 ambient
-1/(6.988e-03 + 1.126e-03*1) # 123.2438 warmed
+1/(7.697e-03 + 4.575e-04*0) # 129.9207 ambient
+1/(7.697e-03 + 4.575e-04*1) # 122.6317 warmed
 # effect:
-96.29273 - 90.17133 # warmed plots green-up 6.1214 days earlier than ambient
-emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
-mod7p.emm <- emmeans(mod7p, ~ state * year_factor)
-contrast(mod7p.emm, "consec", simple = "each", combine = F, adjust = "mvt") # for mod5p, this won't show differences between years bc there is not an interaction term in the model
-emmip(mod7p, year_factor~state)
+129.9207 - 122.6317 # warmed plots green-up 7.289 days earlier than ambient
+
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ insecticide * state)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
 
 # making a table with best-fit model and hypothesized model
 kable(table) %>% kableExtra::kable_styling()
@@ -627,6 +623,7 @@ kable(table) %>% kableExtra::kable_styling()
 
 # Analyses for species who reached half cover within the green-up observation window
 ```{r}
+# KD note: didn't use these analyses for anything
 # Selecting species (these were determined in the half_cover_kbs dataframe made in the phenology_dates_L2.R script)
 species_kbs <- subset(green_kbs, species == "Taof") # can change/add more species 
 mod_spp <- lmer(spp_half_cover_date ~ state + factor(year_factor) + (1|plot), species_kbs, REML=FALSE)
@@ -682,6 +679,12 @@ emmeans(umod11a, list(pairwise ~ state + growth_habit), adjust = "tukey")
 
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.test1u <- lmer(1/(plot_half_cover_date) ~ state + year_factor+(1|plot), green_umbsp, REML=FALSE)
+year.mod.test2u <- lmer(1/(plot_half_cover_date) ~ state + as.factor(year_factor)+(1|plot), green_umbsp, REML=FALSE)
+anova(year.mod.test1u,year.mod.test2u)
+# going to use year as a factor
+
 # plot-level models using the re-summarized data frame
 modfull_u <- lmer(1/(plot_half_cover_date) ~ state*as.factor(year_factor) + insecticide*as.factor(year_factor) + (1|plot), green_umbsp, REML=F)
 mod1p_u <- lmer(1/(plot_half_cover_date) ~ state + (1|plot), green_umbsp, REML=FALSE)
@@ -694,7 +697,7 @@ mod7p_u <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) + (1|p
 mod8p_u <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) + insecticide + (1|plot), green_umbsp, REML=FALSE)
 mod9p_u <- lmer(1/(plot_half_cover_date) ~ state * insecticide + as.factor(year_factor) + (1|plot), green_umbsp, REML=FALSE)
 mod10p_u <- lmer(1/(plot_half_cover_date) ~ state + insecticide * as.factor(year_factor) + (1|plot), green_umbsp, REML=FALSE)
-mod11p_u <- lmer(1/(plot_half_cover_date) ~ state * as.factor(year_factor) * insecticide + (1|plot), green_umbsp, REML=FALSE)
+mod11p_u <- lmer(1/(plot_half_cover_date) ~ state * insecticide * as.factor(year_factor) + (1|plot), green_umbsp, REML=FALSE)
 AICtab(modfull_u, mod1p_u, mod2p_u, mod3p_u, mod4p_u, mod5p_u, mod6p_u, mod7p_u, mod8p_u, mod9p_u, mod10p_u, mod11p_u, weights=T)
 anova(modfull_u, mod1p_u) #modfull
 anova(modfull_u, mod2p_u) #modfull
@@ -704,7 +707,7 @@ anova(modfull_u, mod5p_u) #mod5p
 anova(mod5p_u, mod6p_u) #mod5p
 anova(mod5p_u, mod7p_u) #mod5p
 anova(mod5p_u, mod8p_u) #mod5p
-anova(mod5p_u, mod9p_u) #mod95p
+anova(mod5p_u, mod9p_u) #mod5p
 anova(mod5p_u, mod10p_u) #mod5p
 anova(mod5p_u, mod11p_u) #mod5p
 table2 <- anova(mod9p_u, mod7p_u)
@@ -720,6 +723,7 @@ emmip(mod7p_u, year_factor~state)
 # making a table with best-fit model and hypothesized model
 kable(table2) %>% kableExtra::kable_styling()
 ```
+
 
 
 # *ORIGINAL CODE BELOW; not edited by Phoebe* ##
