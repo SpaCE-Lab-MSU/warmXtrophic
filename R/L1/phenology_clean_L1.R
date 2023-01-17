@@ -6,7 +6,7 @@
 # DATA OUTPUT:    A csv file containing phenology data for all sites & years is uploaded
 #                 to the L1 plant comp folder
 # PROJECT:        warmXtrophic
-# DATE:           December, 2020
+# DATE:           December, 2020; updated January 2023
 
 # Clear all existing data
 rm(list=ls())
@@ -214,3 +214,4 @@ levels(phen_data$state)
 
 # write a new csv with the cleaned and merge data and upload to the shared google drive
 write.csv(phen_data, file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"), row.names = F)
+
