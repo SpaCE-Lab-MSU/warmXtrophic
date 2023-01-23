@@ -35,6 +35,9 @@ L2_dir<-Sys.getenv("L2DIR")
 
 # Read in data
 gr_plot <- read.csv(file.path(L2_dir, "greenup/final_greenup_plot_L2.csv"))
+# plot-level green-up V2 (below) takes the median half cover date of all species per plot
+# whereas the first plot-level file finds the overall half cover date for the entire plot, regardless of species
+gr_plot_v2 <- read.csv(file.path(L2_dir, "greenup/final_greenup_plot_V2_L2.csv"))
 gr_species <- read.csv(file.path(L2_dir, "greenup/final_greenup_species_L2.csv"))
 gr_growth <- read.csv(file.path(L2_dir, "greenup/final_greenup_growthhabit_L2.csv"))
 gr_origin <- read.csv(file.path(L2_dir, "greenup/final_greenup_origin_L2.csv"))
@@ -57,6 +60,7 @@ change_site <- function(df){
   return(df)
 }
 gr_plot <- change_site(gr_plot)
+gr_plot_v2 <- change_site(gr_plot_v2)
 sd_plot <- change_site(sd_plot)
 flwr_plot <- change_site(flwr_plot)
 gr_species <- change_site(gr_species)
@@ -77,6 +81,10 @@ sum_green_plot <- gr_plot %>%
   group_by(site, state, year) %>%
   summarize(avg_julian = mean(plot_half_cover_date, na.rm = TRUE),
             se = std.error(plot_half_cover_date, na.rm = TRUE))
+sum_green_plot_v2 <- gr_plot_v2 %>%
+  group_by(site, state, year) %>%
+  summarize(avg_julian = mean(med_half_cover_date, na.rm = TRUE),
+            se = std.error(med_half_cover_date, na.rm = TRUE))
 sum_flwr_plot <- flwr_plot %>%
   group_by(site, state, year) %>%
   summarize(avg_julian = mean(julian_median, na.rm = TRUE),
@@ -91,6 +99,10 @@ sum_green_plot_i <- gr_plot %>%
   group_by(site, state, insecticide, year) %>%
   summarize(avg_julian = mean(plot_half_cover_date, na.rm = TRUE),
             se = std.error(plot_half_cover_date, na.rm = TRUE))
+sum_green_plot_i_v2 <- gr_plot_v2 %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_julian = mean(med_half_cover_date, na.rm = TRUE),
+            se = std.error(med_half_cover_date, na.rm = TRUE))
 sum_flwr_plot_i <- flwr_plot %>%
   group_by(site, state, insecticide, year) %>%
   summarize(avg_julian = mean(julian_median, na.rm = TRUE),
@@ -139,6 +151,19 @@ sum_green_plot_i2 <- gr_plot3 %>%
   group_by(site, state, insecticide, year) %>%
   summarize(avg_julian = mean(plot_half_cover_date, na.rm = TRUE),
             se = std.error(plot_half_cover_date, na.rm = TRUE))
+
+gr_plot_v2.2 <- gr_plot_v2
+de2<-data.frame(NA,"KBS",NA,"2015","ambient","insects",NA)
+names(de2)<-c("X","site","plot","year","state","insecticide","med_half_cover_date")
+gr_plot_v2.3 <- rbind(gr_plot_v2.2, de2)
+sum_green_plot2_v2 <- gr_plot_v2.3 %>%
+  group_by(site, year, state) %>%
+  summarize(avg_julian = mean(med_half_cover_date, na.rm = TRUE),
+            se = std.error(med_half_cover_date, na.rm = TRUE))
+sum_green_plot_i2_v2 <- gr_plot_v2.3 %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_julian = mean(med_half_cover_date, na.rm = TRUE),
+            se = std.error(med_half_cover_date, na.rm = TRUE))
 ```
 
 ## Bar plot for greenup for KBS and UMBS - Species half cover date
@@ -556,10 +581,10 @@ dev.off()
 ## Line plot with insecticide - code from Moriah
 ```{r}
 # greenup
-sum_green_plot_i2$year <- as.factor(sum_green_plot_i2$year)
-sum_green_plot_i2$full_treat <- paste(sum_green_plot_i2$state, sum_green_plot_i2$insecticide, sep="_")
+sum_green_plot_i2_v2$year <- as.factor(sum_green_plot_i2_v2$year)
+sum_green_plot_i2_v2$full_treat <- paste(sum_green_plot_i2_v2$state, sum_green_plot_i2_v2$insecticide, sep="_")
 gr_line_i <- function(loc) { 
-        gr_plot <- subset(sum_green_plot_i2, site == loc)
+        gr_plot <- subset(sum_green_plot_i2_v2, site == loc)
         return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat)) +
                        geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
@@ -571,15 +596,15 @@ gr_line_i <- function(loc) {
                                              values = c("solid", "dotdash", "solid", "dotdash"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Green-up", title = loc) +
-                       ylim(100,165) +
+                       #ylim(100,165) +
                        theme_bw(14))
 }
 gr_line_i_kbs <- gr_line_i("KBS")
 gr_line_i_kbs <- gr_line_i_kbs + theme(axis.text.x=element_blank())
 gr_line_i_umbs <- gr_line_i("UMBS")
 gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + theme(axis.text.x=element_blank(),
-                                                        axis.title.y=element_blank(),
-                                                        axis.text.y=element_blank())
+                                                        axis.title.y=element_blank())
+                                                        #axis.text.y=element_blank())
 #flower
 sum_flwr_plot_i$year <- as.factor(sum_flwr_plot_i$year)
 sum_flwr_plot_i$full_treat <- paste(sum_flwr_plot_i$state, sum_flwr_plot_i$insecticide, sep="_")
@@ -596,15 +621,15 @@ flwr_line_i <- function(loc) {
                                              values = c("solid", "dotdash", "solid", "dotdash"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Flowering", title = loc) +
-                       ylim(160,215) +
+                       #ylim(160,215) +
                        theme_bw(14))
 }
 flwr_line_i_kbs <- flwr_line_i("KBS")
 flwr_line_i_kbs <- flwr_line_i_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
 flwr_line_i_umbs <- flwr_line_i("UMBS")
 flwr_line_i_umbs <- flwr_line_i_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
-                                                        axis.title.y=element_blank(),
-                                                        axis.text.y=element_blank())
+                                                        axis.title.y=element_blank())
+                                                        #axis.text.y=element_blank())
 
 #seed
 sum_sd_plot_i$year <- as.factor(sum_sd_plot_i$year)
@@ -622,14 +647,14 @@ sd_line_i <- function(loc) {
                                              values = c("solid", "dotdash", "solid", "dotdash"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Seed set", title = loc) +
-                       ylim(175,255) +
+                       #ylim(175,255) +
                        theme_bw(14))
 }
 sd_line_i_kbs <- sd_line_i("KBS")
 sd_line_i_kbs <- sd_line_i_kbs + labs(title=NULL)
 sd_line_i_umbs <- sd_line_i("UMBS")
-sd_line_i_umbs <- sd_line_i_umbs + labs(y=NULL, title=NULL)+ theme(axis.title.y=element_blank(),
-                                                        axis.text.y=element_blank())
+sd_line_i_umbs <- sd_line_i_umbs + labs(y=NULL, title=NULL)+ theme(axis.title.y=element_blank())
+                                                        #axis.text.y=element_blank())
 
 phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                           flwr_line_i_kbs, flwr_line_i_umbs,
