@@ -25,7 +25,7 @@ library(tidyverse)
 
 # Source in needed functions from the github repo - could add this to Renviron?
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Moriah's location
-#source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
+source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 #source("~/Documents/GitHub/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 
@@ -46,7 +46,7 @@ taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
 colnames(taxon) <- sub("code", "species", colnames(taxon))
 
 # read in plant composition data
-plantcomp <- read.csv(file.path(L1_dir,"/plant_composition/final_plantcomp_L1.csv"))
+plantcomp <- read.csv(file.path(L1_dir,"/plant_composition/final_plantcomp_species_removed_L1.csv"))
 str(plantcomp)
 # delete 2021 data from dataframe -doesn't make sense to have bc 2021 UMBS data was not collected at the same frequency as previous years
 plantcomp <- plantcomp[-which(plantcomp$year == "2021" & plantcomp$site == "umbs"),]
@@ -108,6 +108,11 @@ greenup <- greenup %>%
                          site == "kbs" & species == "Assp" & year == "2020")) %>%
         filter(!(site == "kbs" & species == "Eugr" & year == "2017" |
                          site == "kbs" & species == "Eugr" & year == "2019")) %>%
+        filter(!(site == "kbs" & species == "Desp" & year == "2017" |
+                         site == "kbs" & species == "Desp" & year == "2018" |
+                         site == "kbs" & species == "Desp" & year == "2019" |
+                         site == "kbs" & species == "Desp" & year == "2020")) %>%
+        filter(!(site == "kbs" & species == "Cesp" & year == "2017")) %>%
         filter(!(site == "kbs" & species == "Arel" & year == "2018")) %>%
         filter(!(site == "kbs" & species == "Ceor" & year == "2018" |
                          site == "kbs" & species == "Ceor" & year == "2020")) %>%
@@ -115,12 +120,13 @@ greenup <- greenup %>%
         filter(!(site == "kbs" & species == "Trsp" & year == "2018")) %>%
         filter(!(site == "kbs" & species == "Asun" & year == "2020")) %>%
         filter(!(site == "umbs" & species == "Ptaq" & year == "2018")) %>%
-        filter(!(site == "umbs" & species == "Syla" & year == "2018"))
+        filter(!(site == "umbs" & species == "Syla" & year == "2018")) %>%
+        filter(!(site == "umbs" & species == "Coca" & year == "2020")) # recorded in July for the first time, rare species
 
 # restrict green-up data to the green-up window
 # this was determined using the latest date of first green-up, which was julian day 178 at KBS and 167 UMBS
 # ^ to get those dates, I checked each year at KBS and UMBS (above) in greenup_check, and found the latest 
-# ocurrence of the first green-up recorded for each site over the years
+# occurrence of the first green-up recorded for each site over the years
 greenup <- greenup %>%
         filter(site == "kbs" & julian <= 178 |
                        site == "umbs" & julian <= 167)
@@ -248,22 +254,22 @@ datauo <- datauo[sapply(datauo, nrow)>0]
 # summing perc cover measurements by date to get total % cover on a date
 datauo <- lapply(datauo, sum_func)
 
-
+# note: removed this because it didn't work if there were two dates with the same half cover value
 # function to find the julian date that corresponds with half the max total_cover
-find_julian_spp <- function(df){
-        #calculate the distance from half of the maximum
-        distance <- df[["cover"]]- max(df[["cover"]])/2
-        #select smallest value greater than half of the maximum,
-        #select corresponding julian
-        df[distance==min(distance[distance>0]),"julian"]
-}
-find_julian <- function(df){
-        #calculate the distance from half of the maximum
-        distance <- df[["total_cover"]]- max(df[["total_cover"]])/2
-        #select smallest value greater than half of the maximum,
-        #select corresponding julian
-        df[distance==min(distance[distance>0]),"julian"]
-}
+#find_julian_spp <- function(df){
+#        #calculate the distance from half of the maximum
+#        distance <- df[["cover"]]- max(df[["cover"]])/2
+#        #select smallest value greater than half of the maximum,
+#        #select corresponding julian
+#        df[distance==min(distance[distance>0]),"julian"]
+#}
+#find_julian <- function(df){
+#        #calculate the distance from half of the maximum
+#        distance <- df[["total_cover"]]- max(df[["total_cover"]])/2
+#        #select smallest value greater than half of the maximum,
+#        #select corresponding julian
+#        df[distance==min(distance[distance>0]),"julian"]
+#}
 
 # SPECIES LEVEL
 # Determine dates for each plot-species combination where the value of `cover` is the max value
@@ -272,7 +278,13 @@ max_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
 }))
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
-half_cover_dates <- unlist(lapply(X = dataus, FUN = find_julian_spp))
+half_cover_dates <- sapply(dataus, \(x) {
+        half_max <- max(x$cover)/2
+        d <- abs(x$cover - half_max)
+        is.na(d) <- x$cover < half_max
+        x$julian[which.min(d)]
+})
+#half_cover_dates <- unlist(lapply(X = dataus, FUN = find_julian_spp))
 #half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
 #        x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
 #}))
@@ -284,7 +296,13 @@ max_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
 }))
 
 # Determine dates for each plot where the value of `cover` is at least half the max value
-half_cover_datep <- unlist(lapply(X = dataup, FUN = find_julian))
+half_cover_datep <- sapply(dataup, \(x) {
+        half_max <- max(x$total_cover)/2
+        d <- abs(x$total_cover - half_max)
+        is.na(d) <- x$total_cover < half_max
+        x$julian[which.min(d)]
+})
+#half_cover_datep <- unlist(lapply(X = dataup, FUN = find_julian))
 #half_cover_datep <- unlist(lapply(X = dataup, FUN = function(x){
 #        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
 #}))
@@ -296,7 +314,13 @@ max_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
 }))
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
-half_cover_dateg <- unlist(lapply(X = dataug, FUN = find_julian))
+half_cover_dateg <- sapply(dataug, \(x) {
+        half_max <- max(x$total_cover)/2
+        d <- abs(x$total_cover - half_max)
+        is.na(d) <- x$total_cover < half_max
+        x$julian[which.min(d)]
+})
+#half_cover_dateg <- unlist(lapply(X = dataug, FUN = find_julian))
 #half_cover_dateg <- unlist(lapply(X = dataug, FUN = function(x){
 #        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
 #}))
@@ -308,7 +332,13 @@ max_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
 }))
 
 # Determine dates for each plot-species combination where the value of `cover` is at least half the max value
-half_cover_dateo <- unlist(lapply(X = datauo, FUN = find_julian))
+half_cover_dateo <- sapply(datauo, \(x) {
+        half_max <- max(x$total_cover)/2
+        d <- abs(x$total_cover - half_max)
+        is.na(d) <- x$total_cover < half_max
+        x$julian[which.min(d)]
+})
+#half_cover_dateo <- unlist(lapply(X = datauo, FUN = find_julian))
 #half_cover_dateo <- unlist(lapply(X = datauo, FUN = function(x){
 #        x[which.max(x[["total_cover"]] >= which.max(x[["total_cover"]])/2), "julian"]
 #}))
@@ -509,6 +539,11 @@ write.csv(finalgreenp, file.path(L2_dir, "greenup/final_greenup_plot_L2.csv"))
 write.csv(finalgreeng, file.path(L2_dir, "greenup/final_greenup_growthhabit_L2.csv"))
 write.csv(finalgreeno, file.path(L2_dir, "greenup/final_greenup_origin_L2.csv"))
 
+# re-making plot-level green-up to be the median of each species' half-cover green-up date
+finalgreens2 <- finalgreens %>%
+        group_by(site,plot,year,state,insecticide) %>%
+        summarize(med_half_cover_date = median(spp_half_cover_date))
+write.csv(finalgreens2, file.path(L2_dir, "greenup/final_greenup_plot_V2_L2.csv"))
 
 # KD 2022: note that the code below has not been updated recently & may not be accurate
 ## Finding species whose mean half cover was within the window of green-up observations each year
