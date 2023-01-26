@@ -170,13 +170,35 @@ UMBS_avg_flower$state[UMBS_avg_flower$state == "XH_warmed_air_1m"] <- "warmed"
 UMBS_avg_seed$state[UMBS_avg_seed$state == "XH_ambient_air_1m"] <- "ambient"
 UMBS_avg_seed$state[UMBS_avg_seed$state == "XH_warmed_air_1m"] <- "warmed"
 
+# add site column and merge
+KBS_GDD$site <- "kbs"
+UMBS_GDD$site <- "umbs"
+GDD <- rbind(KBS_GDD,UMBS_GDD)
+KBS_avg_greenup$site <- "kbs"
+UMBS_avg_greenup$site <- "umbs"
+greenup_temps <- rbind(KBS_avg_greenup, UMBS_avg_greenup)
+KBS_avg_flower$site <- "kbs"
+UMBS_avg_flower$site <- 'umbs'
+flower_temps <- rbind(KBS_avg_flower, UMBS_avg_flower)
+KBS_avg_seed$site <- "kbs"
+UMBS_avg_seed$site <- 'umbs'
+seed_temps <- rbind(KBS_avg_seed, UMBS_avg_seed)
+
 # save dataframes to L1 folder
 write.csv(KBS_GDD, file.path(L1_dir,"HOBO_data/KBS_GDD_L1.csv"), row.names = F)
 write.csv(KBS_avg_greenup, file.path(L1_dir,"HOBO_data/KBS_greenup_temps_L1.csv"), row.names = F)
 write.csv(KBS_avg_flower, file.path(L1_dir,"HOBO_data/KBS_flower_temps_L1.csv"), row.names = F)
 write.csv(KBS_avg_seed, file.path(L1_dir,"HOBO_data/KBS_seed_temps_L1.csv"), row.names = F)
+
 write.csv(UMBS_GDD, file.path(L1_dir,"HOBO_data/UMBS_GDD_L1.csv"), row.names = F)
 write.csv(UMBS_avg_greenup, file.path(L1_dir,"HOBO_data/UMBS_greenup_temps_L1.csv"), row.names = F)
 write.csv(UMBS_avg_flower, file.path(L1_dir,"HOBO_data/UMBS_flower_temps_L1.csv"), row.names = F)
 write.csv(UMBS_avg_seed, file.path(L1_dir,"HOBO_data/UMBS_seed_temps_L1.csv"), row.names = F)
+
+write.csv(GDD, file.path(L1_dir,"HOBO_data/GDD_L1.csv"), row.names = F)
+write.csv(greenup_temps, file.path(L1_dir,"HOBO_data/greenup_temps_L1.csv"), row.names = F)
+write.csv(flower_temps, file.path(L1_dir,"HOBO_data/flower_temps_L1.csv"), row.names = F)
+write.csv(seed_temps, file.path(L1_dir,"HOBO_data/seed_temps_L1.csv"), row.names = F)
+
+
           
