@@ -12,7 +12,7 @@
 #                 "final_sd_species_L2.csv" = minimum Julian date of seed set by species,
 #                 "final_sd_plot_L2.csv" = minimum Julian date of seed set by plot
 # PROJECT:        warmXtrophic
-# DATE:           March 2021; modified July 9, 2021; modified Oct. 5 2021; modified Oct. 19th 2021
+# DATE:           March 2021; modified July 9, 2021; modified Oct. 5 2021; modified Oct. 19th 2021; modified Jan '23
 # NOTE:           We decided to add in L2 portion of "phenology_clean_L1.R" into this script
 #                 to organize by metric: (1) Julian Date Calculation, (2) Duration of days of each
 #                 event, (3) Julian Date of 50% (cover for greenup, obs for flower & seed)
@@ -24,10 +24,11 @@ rm(list=ls())
 library(tidyverse)
 
 # Source in needed functions from the github repo - could add this to Renviron?
-source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Moriah's location
+#source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Moriah's location
 source("~/warmXtrophic/R/L1/plant_comp_functions_L1.R") # Kara's location
 #source("~/DATA/git/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
 #source("~/Documents/GitHub/warmXtrophic/scripts/plant_comp_scripts/plant_comp_functions.R") # PLZ's location
+
 
 # Set working directory
 Sys.getenv("L0DIR")
@@ -35,36 +36,43 @@ L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
 
+
 # Read in data
 # read in meta data for plots
 plot_info <- read.csv(file.path(L0_dir, "plot.csv"))
-
 # read in meta taxon list
 taxon <- read.csv(file.path(L0_dir, "taxon.csv"))
-
 # change column name for from "code" to "Species" to match cleaned plant comp data
 colnames(taxon) <- sub("code", "species", colnames(taxon))
 
 # read in plant composition data
 plantcomp <- read.csv(file.path(L1_dir,"/plant_composition/final_plantcomp_species_removed_L1.csv"))
 str(plantcomp)
-# delete 2021 data from dataframe -doesn't make sense to have bc 2021 UMBS data was not collected at the same frequency as previous years
-plantcomp <- plantcomp[-which(plantcomp$year == "2021" & plantcomp$site == "umbs"),]
 
 # read in flower and seed set data
 flwr_sd <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
 str(flwr_sd)
 
-# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
-# flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
+# delete 2021 data from dataframe from umbs - doesn't make sense to have bc 2021 UMBS data was not collected at the same frequency as previous years
+plantcomp <- plantcomp[-which(plantcomp$year == "2021" & plantcomp$site == "umbs"),]
 flwr_sd <- flwr_sd[-which(flwr_sd$year == "2021" & flwr_sd$site == "umbs"),]
+
+# reading in GDD and temp data, to merge into the final L2 version of these dataframes
+# read in GDD and temp data
+GDD <- read.csv(file.path(L1_dir, "HOBO_data/GDD_L1.csv"))
+greenup_temps <- read.csv(file.path(L1_dir, "HOBO_data/greenup_temps_L1.csv"))
+flower_temps <- read.csv(file.path(L1_dir, "HOBO_data/flower_temps_L1.csv"))
+seed_temps <- read.csv(file.path(L1_dir, "HOBO_data/seed_temps_L1.csv"))
+
 
 #### **** JULIAN DATE **** #### 
 # Computing various Julian dates of importance by species and plot
-# For greenup: Julian date of first % cover and Julian days until 50% percent cover is reached by species and by 
+# For greenup: Julian date of first % cover and Julian date when 50% percent cover is reached by species and by 
 # by plot
 # For flowering: first Julian date of flower, median Julian date of flower, and duration of flowering
 # For seed set: first Julian date of seed set
+
+
 
 # GREENUP
 # Greenup can be computed in a few ways by extracting information from % cover data:
@@ -92,6 +100,10 @@ greenup$cover <- as.numeric(greenup$cover)
 str(greenup)
 
 # determining the date when the last species greened-up for the first time
+# to do this, I would edit the year for each site + then plug that dataframe in to greenup_check
+# then sort the julian day largest to smallest to see when last green-up occurred per site, per year
+# I used this to know which species to remove from each site/year (if they greened up in late July/August)
+# and I also used this to determine the latest date a species greened up for the first time, per site
 greenup_kbs <- greenup %>%
         filter(site == "kbs" & year == "2021")
 greenup_umbs <- greenup %>%
@@ -103,6 +115,8 @@ greenup_check <- greenup_umbs %>%
         ungroup()
 
 # remove species that were recorded as greening up for the first time in August or later
+# so, the green-up window makes more sense (these species recorded for the first time in August
+# were likely just not notcied prior)
 greenup <- greenup %>%
         filter(!(site == "kbs" & species == "Assp" & year == "2016" |
                          site == "kbs" & species == "Assp" & year == "2020")) %>%
@@ -133,7 +147,8 @@ greenup <- greenup %>%
 
 
 
-# Note: we went with approach 2, below
+################ Note: we went with approach 2, below ######################
+# ^ so, we don't use any code here; code for green-up starts in approach 2
 ###### For Approach (1): Greenup Window: % Cover Dates ######
 # KBS Greenup % cover ~ every 3 days. Duration: greenup observations ended on Julian Day:
 # 2016: 104
@@ -474,7 +489,7 @@ taxon$site<-NULL
 
 # re-merge data with meta data info for species-level 
 finalgreens <- left_join(plot_info, green_half_mins, by = "plot","site")
-finalgreens <- left_join(taxon, finalgreens, by = "species")
+finalgreens <- left_join(finalgreens, taxon, by = "species")
 # re-merge data with meta data info for plot-level 
 finalgreenp <- left_join(plot_info, green_half_minp, by = c("plot"))
 finalgreeng <- left_join(plot_info, green_half_ming, by = c("plot"))
@@ -485,6 +500,11 @@ finalgreens$old_code <- NULL
 finalgreens$old_name <- NULL
 finalgreens$old_species <- NULL
 finalgreens$resolution <- NULL
+finalgreens$MH_rhizomatous_suggestion <- NULL
+finalgreens$note2 <- NULL
+finalgreens$note1 <- NULL
+finalgreens$USDA_species <- NULL
+finalgreens$LTER_species <- NULL
 
 # remove NA values for species in the taxon table that do not exist in these data
 finalgreens<-finalgreens[complete.cases(finalgreens), ]
@@ -524,8 +544,7 @@ p4 + facet_wrap(~year)
 # reorganize order of column names 
 finalgreens <- finalgreens[, c("site", "plot", "year", "species", "spp_half_cover_date", "min_green_date",
                                "treatment_key", "state", "insecticide", "scientific_name", "common_name", 
-                               "USDA_species", "LTER_species", "origin", "group", "family", "duration", 
-                               "growth_habit")]
+                               "origin", "group", "family", "duration", "growth_habit")]
 finalgreenp <- finalgreenp[, c("site", "plot", "year", "treatment_key", "state", "insecticide", 
                                "plot_half_cover_date", "min_green_date" )]
 finalgreeng <- finalgreeng[, c("site", "plot", "year", "growth_habit", "treatment_key", "state", "insecticide", 
@@ -533,17 +552,48 @@ finalgreeng <- finalgreeng[, c("site", "plot", "year", "growth_habit", "treatmen
 finalgreeno <- finalgreeno[, c("site", "plot", "year", "origin", "treatment_key", "state", "insecticide", 
                                "origin_half_cover_date", "min_green_date" )]
 
-# upload greenup species-plot level csv to google drive
-write.csv(finalgreens, file.path(L2_dir, "greenup/final_greenup_species_L2.csv"))
-write.csv(finalgreenp, file.path(L2_dir, "greenup/final_greenup_plot_L2.csv"))
-write.csv(finalgreeng, file.path(L2_dir, "greenup/final_greenup_growthhabit_L2.csv"))
-write.csv(finalgreeno, file.path(L2_dir, "greenup/final_greenup_origin_L2.csv"))
-
 # re-making plot-level green-up to be the median of each species' half-cover green-up date
 finalgreens2 <- finalgreens %>%
         group_by(site,plot,year,state,insecticide) %>%
         summarize(med_half_cover_date = median(spp_half_cover_date))
+finalgreens2 <- merge(finalgreens2, min_datep, by=c("site","plot","year"))
+# calculate correlation
+cor.test(finalgreens2$min_green_date, finalgreens2$med_half_cover_date) 
+plot(finalgreens2$min_green_date, finalgreens2$med_half_cover_date)
+
+# merging this data with temperature data
+# Add in GDD and temp data for each year + treatment
+# make year an integer
+finalgreens$year <- as.integer(finalgreens$year)
+finalgreens2$year <- as.integer(finalgreens2$year)
+finalgreenp$year <- as.integer(finalgreenp$year)
+finalgreeng$year <- as.integer(finalgreeng$year)
+finalgreeno$year <- as.integer(finalgreeno$year)
+# merge temps
+finalgreens <- left_join(finalgreens, greenup_temps, by=c('site','year','state'))
+finalgreens2 <- left_join(finalgreens2, greenup_temps, by=c('site','year','state'))
+finalgreenp <- left_join(finalgreenp, greenup_temps, by=c('site','year','state'))
+finalgreeng <- left_join(finalgreeng, greenup_temps, by=c('site','year','state'))
+finalgreeno <- left_join(finalgreeno, greenup_temps, by=c('site','year','state'))
+# merge GDD - first, select the right julian date for GDD (based on HOBO_GDD_L1.R script)
+GDD_green <- GDD %>%
+        filter(site == "kbs" & julian == 178 |
+                       site == "umbs" & julian == 167) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+finalgreens <- left_join(finalgreens, GDD_green, by=c('site','year','state'))
+finalgreens2 <- left_join(finalgreens2, GDD_green, by=c('site','year','state'))
+finalgreenp <- left_join(finalgreenp, GDD_green, by=c('site','year','state'))
+finalgreeng <- left_join(finalgreeng, GDD_green, by=c('site','year','state'))
+finalgreeno <- left_join(finalgreeno, GDD_green, by=c('site','year','state'))
+
+# upload greenup species-plot level csv to google drive
+write.csv(finalgreens, file.path(L2_dir, "greenup/final_greenup_species_L2.csv"))
 write.csv(finalgreens2, file.path(L2_dir, "greenup/final_greenup_plot_V2_L2.csv"))
+write.csv(finalgreenp, file.path(L2_dir, "greenup/final_greenup_plot_L2.csv"))
+write.csv(finalgreeng, file.path(L2_dir, "greenup/final_greenup_growthhabit_L2.csv"))
+write.csv(finalgreeno, file.path(L2_dir, "greenup/final_greenup_origin_L2.csv"))
+
+
 
 # KD 2022: note that the code below has not been updated recently & may not be accurate
 ## Finding species whose mean half cover was within the window of green-up observations each year
@@ -654,6 +704,15 @@ flwr_dur_s <- phen_flwr %>%
 phen_flwr_spp <- merge(FirstFlwr_spp, MedianFlwr_spp)
 phen_flwr_spp <- merge(phen_flwr_spp, flwr_dur_s)
 
+#KD: merge in temp and GDD data
+phen_flwr_spp <- left_join(phen_flwr_spp, flower_temps, by=c('site','year','state'))
+# select cumulative GDD on the end date of the flowering period
+GDD_flwr <- GDD %>%
+        filter(site == "kbs" & julian == 262 |
+                       site == "umbs" & julian == 252) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+phen_flwr_spp <- left_join(phen_flwr_spp, GDD_flwr, by=c('site','year','state'))
+
 # write a new csv with flowering data at the SPECIES LEVEL and upload to the shared google drive
 write.csv(phen_flwr_spp, file.path(L2_dir, "phenology/final_flwr_species_L2.csv"), row.names = F)
 
@@ -670,9 +729,9 @@ FirstFlwr_plot <- phen_flwr_spp %>%
 # whereas the code above finds the mean of first flowering for all species in a plot
 # not sure which option makes sense to use
 # Average first Flower Date by PLOT LEVEL
-FirstFlwr_plot <- phen_flwr %>%
-        group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
-        summarize(julian_min = min(julian, na.rm=T))
+#FirstFlwr_plot <- phen_flwr %>%
+#        group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
+#        summarize(julian_min = min(julian, na.rm=T))
 
 # Average median Flower Date by PLOT LEVEL
 MedianFlwr_plot <- phen_flwr_spp %>%
@@ -688,6 +747,15 @@ flwr_dur_plot <- phen_flwr_spp %>%
 # of flower, and duration of flowering at PLOT LEVEL
 phen_flwr_plot <- merge(FirstFlwr_plot, MedianFlwr_plot)
 phen_flwr_plot <- merge(phen_flwr_plot, flwr_dur_plot)
+
+#KD: merge in temp and GDD data
+phen_flwr_plot <- left_join(phen_flwr_plot, flower_temps, by=c('site','year','state'))
+# select cumulative GDD on the end date of the flowering period
+GDD_flwr <- GDD %>%
+        filter(site == "kbs" & julian == 262 |
+                       site == "umbs" & julian == 252) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+phen_flwr_plot <- left_join(phen_flwr_plot, GDD_flwr, by=c('site','year','state'))
 
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
 write.csv(phen_flwr_plot, file.path(L2_dir, "phenology/final_flwr_plot_L2.csv"), row.names=F)
@@ -713,6 +781,15 @@ flwr_dur_plot_origin <- phen_flwr_spp %>%
 phen_flwr_plot_origin <- merge(FirstFlwr_plot_origin, MedianFlwr_plot_origin)
 phen_flwr_plot_origin <- merge(phen_flwr_plot_origin, flwr_dur_plot_origin)
 
+#KD: merge in temp and GDD data
+phen_flwr_plot_origin <- left_join(phen_flwr_plot_origin, flower_temps, by=c('site','year','state'))
+# select cumulative GDD on the end date of the flowering period
+GDD_flwr <- GDD %>%
+        filter(site == "kbs" & julian == 262 |
+                       site == "umbs" & julian == 252) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+phen_flwr_plot_origin <- left_join(phen_flwr_plot_origin, GDD_flwr, by=c('site','year','state'))
+
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
 write.csv(phen_flwr_plot_origin, file.path(L2_dir, "phenology/final_flwr_plot_origin_L2.csv"), row.names=F)
 
@@ -737,6 +814,15 @@ flwr_dur_plot_growthhabit <- phen_flwr_spp %>%
 phen_flwr_plot_growthhabit <- merge(FirstFlwr_plot_growthhabit, MedianFlwr_plot_growthhabit)
 phen_flwr_plot_growthhabit <- merge(phen_flwr_plot_growthhabit, flwr_dur_plot_growthhabit)
 
+#KD: merge in temp and GDD data
+phen_flwr_plot_growthhabit <- left_join(phen_flwr_plot_growthhabit, flower_temps, by=c('site','year','state'))
+# select cumulative GDD on the end date of the flowering period
+GDD_flwr <- GDD %>%
+        filter(site == "kbs" & julian == 262 |
+                       site == "umbs" & julian == 252) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+phen_flwr_plot_growthhabit <- left_join(phen_flwr_plot_growthhabit, GDD_flwr, by=c('site','year','state'))
+
 # write a new csv with flowering data at the PLOT LEVEL and upload to the shared google drive
 write.csv(phen_flwr_plot_growthhabit, file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv"), row.names=F)
 
@@ -747,22 +833,39 @@ write.csv(phen_flwr_plot_growthhabit, file.path(L2_dir, "phenology/final_flwr_pl
 FirstSd_spp <- phen_sd %>%
   group_by(plot, year, species, state, site, action, origin, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarize(julian_min = min(julian, na.rm=T))
+#KD: merge in temp and GDD data
+FirstSd_spp <- left_join(FirstSd_spp, flower_temps, by=c('site','year','state'))
+# select cumulative GDD on the end date of the flowering period
+GDD_sd <- GDD %>%
+        filter(site == "kbs" & julian == 283 |
+                       site == "umbs" & julian == 245) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+FirstSd_spp <- left_join(FirstSd_spp, GDD_sd, by=c('site','year','state'))
 
 ### Create a data frame at the PLOT LEVEL that includes first date of seed
 # First Seed Date by PLOT LEVEL
 FirstSd_plot <- FirstSd_spp  %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor) %>%
   summarize(julian_min = mean(julian_min, na.rm=T))
+#KD: merge in temp and GDD data
+FirstSd_plot <- left_join(FirstSd_plot, seed_temps, by=c('site','year','state'))
+FirstSd_plot <- left_join(FirstSd_plot, GDD_sd, by=c('site','year','state'))
 
 # First Seed Date by PLOT LEVEL for ORIGIN
 FirstSd_plot_origin <- FirstSd_spp  %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor, origin) %>%
   summarize(julian_min = mean(julian_min, na.rm=T))
+#KD: merge in temp and GDD data
+FirstSd_plot_origin <- left_join(FirstSd_plot_origin, seed_temps, by=c('site','year','state'))
+FirstSd_plot_origin <- left_join(FirstSd_plot_origin, GDD_sd, by=c('site','year','state'))
 
 # First Seed Date by PLOT LEVEL for GROWTH HABIT
 FirstSd_plot_growthhabit <- FirstSd_spp  %>%
   group_by(plot, year, state, site, action, insecticide, treatment_key, year_factor, growth_habit) %>%
   summarize(julian_min = mean(julian_min, na.rm=T))
+#KD: merge in temp and GDD data
+FirstSd_plot_growthhabit <- left_join(FirstSd_plot_growthhabit, seed_temps, by=c('site','year','state'))
+FirstSd_plot_growthhabit <- left_join(FirstSd_plot_growthhabit, GDD_sd, by=c('site','year','state'))
 
 # write a new csv with first seed date at the SPECIES LEVEL and upload to the shared google drive
 write.csv(FirstSd_spp, file.path(L2_dir, "phenology/final_sd_species_L2.csv"), row.names=F)
