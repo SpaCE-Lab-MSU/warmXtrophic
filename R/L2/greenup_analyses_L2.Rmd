@@ -84,18 +84,19 @@ L1_dir<-Sys.getenv("L1DIR")
 L2_dir<-Sys.getenv("L2DIR")
 greenup <- read.csv(file.path(L2_dir, "greenup/final_greenup_species_L2.csv")) # spp level greenup dates
 greenup <- greenup %>% dplyr::select(-X) # get rid of "X" column that shows up (could fix this in cleaning script)
+
 greenupp <- read.csv(file.path(L2_dir, "greenup/final_greenup_plot_L2.csv")) # plot level greenup dates
 greenupp <- greenupp %>% dplyr::select(-X) # get rid of "X" column that shows up
 
-# read in GDD and temp data
-GDD_KBS <- read.csv(file.path(L1_dir, "HOBO_data/KBS_GDD_L1.csv"))
-temps_KBS <- read.csv(file.path(L1_dir, "HOBO_data/KBS_greenup_temps_L1.csv"))
-GDD_UMBS <- read.csv(file.path(L1_dir, "HOBO_data/UMBS_GDD_L1.csv"))
-temps_UMBS <- read.csv(file.path(L1_dir, "HOBO_data/UMBS_greenup_temps_L1.csv"))
+# V2 below is plot level, but is the median half cover date for all species per plot
+# calculated in phenology_dates_L2
+greenupp2 <- read.csv(file.path(L2_dir,"greenup/final_greenup_plot_V2_L2.csv")) # V2 plot level greenup dates
+greenupp2 <- greenupp2 %>% dplyr::select(-X) # get rid of "X" column that shows up
 
 # check variable types
 str(greenup)
 str(greenupp)
+str(greenupp2)
 
 # Order warm and ambient so that warm shows up first in plotting
 greenup$state<-as.factor(greenup$state)
@@ -125,6 +126,14 @@ greenupp$year_factor[greenupp$year == 2020] <- 5
 greenupp$year_factor[greenupp$year == 2021] <- 6
 #greenupp$year_factor <- as.factor(greenupp$year_factor)
 
+greenupp2$year_factor[greenupp2$year == 2016] <- 1
+greenupp2$year_factor[greenupp2$year == 2017] <- 2
+greenupp2$year_factor[greenupp2$year == 2018] <- 3
+greenupp2$year_factor[greenupp2$year == 2019] <- 4
+greenupp2$year_factor[greenupp2$year == 2020] <- 5
+greenupp2$year_factor[greenupp2$year == 2021] <- 6
+#greenupp$year_factor <- as.factor(greenupp$year_factor)
+
 # create dataframes for kbs and umbs - remember that these contain species within plots
 green_kbs <- subset(greenup, site == "kbs")
 green_umbs <- subset(greenup, site == "umbs")
@@ -132,22 +141,8 @@ green_umbs <- subset(greenup, site == "umbs")
 green_kbsp <- subset(greenupp, site == "kbs")
 green_umbsp <- subset(greenupp, site == "umbs")
 
-# Add in GDD and temp data for each year + treatment
-# note: we decided to use GDD and mean temp for analyses based on their correlation w/ green-up
-# those correlation figs can be found in the greenup_plots_L2.R script
-green_kbsp <- left_join(green_kbsp, temps_KBS, by=c('year','state'))
-green_umbsp <- left_join(green_umbsp, temps_UMBS, by=c('year','state'))
-# cutoff dates based on HOBO_GDD_L1.R script
-# basing cutoff for GDD KBS at julian date 178
-GDD_green_KBS <- GDD_KBS %>%
-        filter(julian == 178) %>%
-        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
-green_kbsp <- left_join(green_kbsp, GDD_green_KBS, by=c('year','state'))
-# basing cutoff for GDD UMBS at julian date 167
-GDD_green_UMBS <- GDD_UMBS %>%
-        filter(julian == 167) %>%
-        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
-green_umbsp <- left_join(green_umbsp, GDD_green_UMBS, by=c('year','state'))
+green_kbsp2 <- subset(greenupp2, site == "kbs")
+green_umbsp2 <- subset(greenupp2, site == "umbs")
 ```
 
 # Data Exploration:
@@ -166,6 +161,15 @@ shapiro.test(green_kbsp$plot_half_cover_date)
 hist(green_umbsp$plot_half_cover_date)
 qqnorm(green_umbsp$plot_half_cover_date)
 shapiro.test(green_umbsp$plot_half_cover_date)
+
+hist(green_kbsp2$med_half_cover_date)
+qqnorm(green_kbsp2$med_half_cover_date)
+shapiro.test(green_kbsp2$med_half_cover_date)
+
+hist(green_umbsp2$med_half_cover_date)
+qqnorm(green_umbsp2$med_half_cover_date)
+shapiro.test(green_umbsp2$med_half_cover_date)
+
 
 # histograms for each treatment separately - plot level
 hist(green_kbsp$plot_half_cover_date[green_kbsp$state == "ambient"])
@@ -268,6 +272,16 @@ leveneTest(residuals(fitp) ~ green_kbsp$state)
 ols_test_normality(fitp)
 shapiro.test(resid(fitp))
 
+fitp2<- lm(med_half_cover_date~state, data = green_kbsp2)
+outlierTest(fitp2) # one outlier - 85
+green_kbsp2 <- green_kbsp2[-(85),] # removing the outlier
+qqPlot(fitp2, main="QQ Plot") 
+hist(fitp2$residuals)
+leveragePlots(fitp2)
+leveneTest(residuals(fitp2) ~ green_kbsp2$state)
+ols_test_normality(fitp2)
+shapiro.test(resid(fitp2))
+
 # UMBS State-only model
 fitpu<- lm(plot_half_cover_date~state, data = green_umbsp)
 outlierTest(fitpu) # no outliers
@@ -278,29 +292,58 @@ leveneTest(residuals(fitpu) ~ green_umbsp$state)
 ols_test_normality(fitpu)
 shapiro.test(resid(fitpu))
 
+fitpu2<- lm(med_half_cover_date~state, data = green_umbsp2)
+outlierTest(fitpu2) # no outliers
+qqPlot(fitpu2, main="QQ Plot") 
+hist(fitpu2$residuals)
+leveragePlots(fitpu2)
+leveneTest(residuals(fitpu2) ~ green_umbsp2$state)
+ols_test_normality(fitpu2)
+shapiro.test(resid(fitpu2))
+
 # KBS State and year model
-fitp2<- lm(plot_half_cover_date~state+year_factor, data = green_kbsp)
-outlierTest(fitp2) # no outliers
-qqPlot(fitp2, main="QQ Plot") 
-hist(fitp2$residuals)
-leveragePlots(fitp2)
-leveneTest(residuals(fitp2) ~ green_kbsp$state)
-leveneTest(residuals(fitp2) ~ green_kbsp$year_factor) # doesn't work with numerical year
-ols_test_normality(fitp2)
-shapiro.test(resid(fitp2))
+fitp_y<- lm(plot_half_cover_date~state+year_factor, data = green_kbsp)
+outlierTest(fitp_y) # no outliers
+qqPlot(fitp_y, main="QQ Plot") 
+hist(fitp_y$residuals)
+leveragePlots(fitp_y)
+leveneTest(residuals(fitp_y) ~ green_kbsp$state)
+leveneTest(residuals(fitp_y) ~ green_kbsp$year_factor) # doesn't work with numerical year
+ols_test_normality(fitp_y)
+shapiro.test(resid(fitp_y))
+
+fitp2_y<- lm(med_half_cover_date~state+year_factor, data = green_kbsp2)
+outlierTest(fitp2_y) # no outliers
+qqPlot(fitp2_y, main="QQ Plot") 
+hist(fitp2_y$residuals)
+leveragePlots(fitp2_y)
+leveneTest(residuals(fitp2_y) ~ green_kbsp2$state)
+leveneTest(residuals(fitp2_y) ~ green_kbsp2$year_factor) # doesn't work with numerical year
+ols_test_normality(fitp2_y)
+shapiro.test(resid(fitp2_y))
 
 # UMBS State and year model
-fitp2u<- lm(plot_half_cover_date~state+year, data = green_umbsp)
-outlierTest(fitp2u)
-qqPlot(fitp2u, main="QQ Plot") 
-hist(fitp2u$residuals)
-leveragePlots(fitp2u)
-leveneTest(residuals(fitp2u) ~ green_umbsp$state)
-ols_test_normality(fitp2u)
-shapiro.test(resid(fitp2u))
+fitpu_y<- lm(plot_half_cover_date~state+year, data = green_umbsp)
+outlierTest(fitpu_y)
+qqPlot(fitpu_y, main="QQ Plot") 
+hist(fitpu_y$residuals)
+leveragePlots(fitpu_y)
+leveneTest(residuals(fitpu_y) ~ green_umbsp$state)
+ols_test_normality(fitpu_y)
+shapiro.test(resid(fitpu_y))
+
+fitpu2_y<- lm(med_half_cover_date~state+year, data = green_umbsp2)
+outlierTest(fitpu2_y)
+qqPlot(fitpu2_y, main="QQ Plot") 
+hist(fitpu2_y$residuals)
+leveragePlots(fitpu2_y)
+leveneTest(residuals(fitpu2_y) ~ green_umbsp2$state)
+ols_test_normality(fitpu2_y)
+shapiro.test(resid(fitpu2_y))
 
 
 ### trying transformations
+# note: the greenup vs data is normal and doesn't need transformed
 # KBS State and year model - reciprocal transformation
 fitp2_trans<- lm(1/(plot_half_cover_date)~state+year_factor, data = green_kbsp)
 outlierTest(fitp2_trans) # no outliers
@@ -619,6 +662,93 @@ emmip(mod9p, insecticide~state)
 
 # making a table with best-fit model and hypothesized model
 kable(table) %>% kableExtra::kable_styling()
+
+
+
+###### green-up V2 models #####
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.test1 <- lmer(1/(med_half_cover_date) ~ state + year_factor+(1|plot), green_kbsp2, REML=FALSE)
+year.mod.test2 <- lmer(1/(med_half_cover_date) ~ state + as.factor(year_factor)+(1|plot), green_kbsp2, REML=FALSE)
+anova(year.mod.test1,year.mod.test2)
+# going to use year as a factor
+# I also think this makes the most sense because I don't think we expect there to be a much of a trend over time for green-up; maybe if we had a longer time span, but I don't think 6 years is enough to detect a trend over time and the results will be more influenced by between year variation in temp, precip, etc.
+
+# plot-level models using the re-summarized data frame
+modfull <- lmer(med_half_cover_date ~ state*as.factor(year_factor) + insecticide*as.factor(year_factor) + (1|plot), green_kbsp2, REML=F)
+mod1p <- lmer(med_half_cover_date ~ state + (1|plot), green_kbsp2, REML=FALSE)
+mod2p <- lmer(med_half_cover_date ~ insecticide + (1|plot), green_kbsp2, REML=FALSE)
+mod3p <- lmer(med_half_cover_date ~ insecticide + state + (1|plot), green_kbsp2, REML=FALSE)
+mod4p <- lmer(med_half_cover_date ~ insecticide * state + (1|plot), green_kbsp2, REML=FALSE)
+mod5p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
+mod6p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + insecticide + (1|plot), green_kbsp2, REML=FALSE)
+mod7p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
+mod8p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + insecticide + (1|plot), green_kbsp2, REML=FALSE)
+mod9p <- lmer(med_half_cover_date ~ state * insecticide + as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
+mod10p <- lmer(med_half_cover_date ~ state + insecticide * as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
+mod11p <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
+# adding in our temp data into some models
+mod12p <- lmer(med_half_cover_date ~ state + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod13p <- lmer(med_half_cover_date ~ state + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod14p <- lmer(med_half_cover_date ~ state + GDD_cumulative + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod15p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod16p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod17p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod18p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) * GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod19p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod20p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) * mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod21p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + mean_temp + insecticide +(1|plot), green_kbsp2, REML=FALSE)
+mod22p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + GDD_cumulative + insecticide +(1|plot), green_kbsp2, REML=FALSE)
+mod23p <- lmer(med_half_cover_date ~ state * mean_temp + insecticide +(1|plot), green_kbsp2, REML=FALSE)
+mod24p <- lmer(med_half_cover_date ~ state * GDD_cumulative + insecticide +(1|plot), green_kbsp2, REML=FALSE)
+
+
+AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p,
+       mod12p,mod13p,mod14p,mod15p,mod16p,mod17p,mod18p,mod19p,mod20p,mod21p,mod22p,mod23p,mod24p,weights=T)
+
+anova(modfull, mod1p) #modfull
+anova(modfull, mod2p) #modfull
+anova(modfull, mod3p) #modfull
+anova(modfull, mod4p) #modfull
+anova(modfull, mod5p) #modfull
+anova(modfull, mod6p) #modfull
+anova(modfull, mod7p) #mod7p
+anova(mod7p, mod8p) #mod8p
+anova(mod8p, mod9p) #mod8p 
+anova(mod8p, mod10p) #mod8p
+anova(mod8p, mod11p) #mod8p
+anova(mod8p, mod12p) #mod8p
+anova(mod8p, mod13p) #mod8p
+anova(mod8p, mod14p) #mod8p
+anova(mod8p, mod15p) #mod8p
+anova(mod8p, mod16p) #mod8p
+anova(mod8p, mod17p) #mod8p
+anova(mod8p, mod18p) #mod8p
+anova(mod8p, mod19p) #mod8p
+anova(mod8p, mod20p) #mod8p
+anova(mod8p, mod21p) #either
+anova(mod8p, mod22p) #either
+anova(mod8p, mod23p) #mod8p
+anova(mod8p, mod24p) #mod8p
+anova(mod21p,mod21p)
+table <- anova(mod9p, mod7p)
+summary(mod21p)
+anova(mod21p)
+
+# note: this effect size calculation is for mod 5p
+# calculating effect size - accounting for reciprocal transformation
+1/(7.697e-03 + 4.575e-04*0) # 129.9207 ambient
+1/(7.697e-03 + 4.575e-04*1) # 122.6317 warmed
+# effect:
+129.9207 - 122.6317 # warmed plots green-up 7.289 days earlier than ambient
+
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ insecticide * state)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
+# making a table with best-fit model and hypothesized model
+kable(table) %>% kableExtra::kable_styling()
 ```
 
 # Analyses for species who reached half cover within the green-up observation window
@@ -722,6 +852,94 @@ emmip(mod7p_u, year_factor~state)
 # comparing models in a table output
 # making a table with best-fit model and hypothesized model
 kable(table2) %>% kableExtra::kable_styling()
+
+
+
+##### green-u V2 models #####
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.test1u <- lmer(med_half_cover_date ~ state + year_factor+(1|plot), green_umbsp2, REML=FALSE)
+year.mod.test2u <- lmer(med_half_cover_date ~ state + as.factor(year_factor)+(1|plot), green_umbsp2, REML=FALSE)
+anova(year.mod.test1u,year.mod.test2u)
+# going to use year as a factor
+
+# plot-level models using the re-summarized data frame
+modfull_u <- lmer(med_half_cover_date ~ state*as.factor(year_factor) + insecticide*as.factor(year_factor) + (1|plot), green_umbsp2, REML=F)
+mod1p_u <- lmer(med_half_cover_date ~ state + (1|plot), green_umbsp2, REML=FALSE)
+mod2p_u <- lmer(med_half_cover_date ~ insecticide + (1|plot), green_umbsp2, REML=FALSE)
+mod3p_u <- lmer(med_half_cover_date ~ insecticide + state + (1|plot), green_umbsp2, REML=FALSE)
+mod4p_u <- lmer(med_half_cover_date ~ insecticide * state + (1|plot), green_umbsp2, REML=FALSE)
+mod5p_u <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + (1|plot), green_umbsp2, REML=FALSE)
+mod6p_u <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + insecticide + (1|plot), green_umbsp2, REML=FALSE)
+mod7p_u <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + (1|plot), green_umbsp2, REML=FALSE)
+mod8p_u <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + insecticide + (1|plot), green_umbsp2, REML=FALSE)
+mod9p_u <- lmer(med_half_cover_date ~ state * insecticide + as.factor(year_factor) + (1|plot), green_umbsp2, REML=FALSE)
+mod10p_u <- lmer(med_half_cover_date ~ state + insecticide * as.factor(year_factor) + (1|plot), green_umbsp2, REML=FALSE)
+mod11p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + (1|plot), green_umbsp2, REML=FALSE)
+# adding in our temp data into some models
+mod12p_u <- lmer(med_half_cover_date ~ state + GDD_cumulative + (1|plot), green_umbsp2, REML=FALSE)
+mod13p_u <- lmer(med_half_cover_date ~ state + mean_temp + (1|plot), green_umbsp2, REML=FALSE)
+mod14p_u <- lmer(med_half_cover_date ~ state + GDD_cumulative + mean_temp + (1|plot), green_umbsp2, REML=FALSE)
+mod15p_u <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + GDD_cumulative + (1|plot), green_umbsp2, REML=FALSE)
+mod16p_u <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + mean_temp + (1|plot), green_umbsp2, REML=FALSE)
+mod17p_u <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + GDD_cumulative + (1|plot), green_umbsp2, REML=FALSE)
+mod18p_u <- lmer(med_half_cover_date ~ state + as.factor(year_factor) * GDD_cumulative + (1|plot), green_umbsp2, REML=FALSE)
+mod19p_u <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + mean_temp + (1|plot), green_umbsp2, REML=FALSE)
+mod20p_u <- lmer(med_half_cover_date ~ state + as.factor(year_factor) * mean_temp + (1|plot), green_umbsp2, REML=FALSE)
+mod21p_u <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + mean_temp + insecticide +(1|plot), green_umbsp2, REML=FALSE)
+mod22p_u <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + GDD_cumulative + insecticide +(1|plot), green_umbsp2, REML=FALSE)
+mod23p_u <- lmer(med_half_cover_date ~ state * mean_temp + insecticide +(1|plot), green_umbsp2, REML=FALSE)
+mod24p_u <- lmer(med_half_cover_date ~ state * GDD_cumulative + insecticide +(1|plot), green_umbsp2, REML=FALSE)
+mod25p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + GDD_cumulative + (1|plot), green_umbsp2, REML=FALSE)
+mod26p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + mean_temp + (1|plot), green_umbsp2, REML=FALSE)
+
+
+AICtab(modfull_u, mod1p_u, mod2p_u, mod3p_u, mod4p_u, mod5p_u, mod6p_u, mod7p_u, mod8p_u, mod9p_u, mod10p_u, mod11p_u,mod12p_u,mod13p_u,mod14p_u,mod15p_u,mod16p_u,mod17p_u,mod18p_u,mod19p_u,mod20p_u,mod21p_u,mod22p_u,mod23p_u,mod24p_u,mod25p_u,mod26p_u,weights=T)
+
+anova(modfull_u, mod1p_u) #modfull
+anova(modfull_u, mod2p_u) #modfull
+anova(modfull_u, mod3p_u) #modfull
+anova(modfull_u, mod4p_u) #modfull
+anova(modfull_u, mod5p_u) #mod5p
+anova(mod5p_u, mod6p_u) #mod6p
+anova(mod6p_u, mod7p_u) #mod6p_u
+anova(mod6p_u, mod8p_u) #mod6p_u
+anova(mod6p_u, mod9p_u) #mod6p_u 
+anova(mod6p_u, mod10p_u) #mod6p_u
+anova(mod6p_u, mod11p_u) #mod11p_u
+anova(mod11p_u, mod12p_u) #mod11p_u
+anova(mod11p_u, mod13p_u) #mod11p_u
+anova(mod11p_u, mod14p_u) #mod11p_u
+anova(mod11p_u, mod15p_u) #mod11p_u
+anova(mod11p_u, mod16p_u) #mod11p_u
+anova(mod11p_u, mod17p_u) #mod11p_u
+anova(mod11p_u, mod18p_u) #mod11p_u
+anova(mod11p_u, mod19p_u) #mod11p_u
+anova(mod11p_u, mod20p_u) #mod11p_u
+anova(mod11p_u, mod21p_u) #mod11p_u
+anova(mod11p_u, mod22p_u) #11
+anova(mod11p_u, mod23p_u) #11
+anova(mod11p_u, mod24p_u) #11
+anova(mod11p_u, mod25p_u) #11
+anova(mod11p_u, mod26p_u) #11
+table <- anova(mod9p_u, mod7p_u)
+summary(mod26p_u)
+anova(mod26p_u)
+
+# note: this effect size calculation is for mod 5p
+# calculating effect size - accounting for reciprocal transformation
+1/(7.697e-03 + 4.575e-04*0) # 129.9207 ambient
+1/(7.697e-03 + 4.575e-04*1) # 122.6317 warmed
+# effect:
+129.9207 - 122.6317 # warmed plots green-up 7.289 days earlier than ambient
+
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ insecticide * state)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
+# making a table with best-fit model and hypothesized model
+kable(table) %>% kableExtra::kable_styling()
 ```
 
 
