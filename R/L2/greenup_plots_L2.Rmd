@@ -26,6 +26,7 @@ library(plotrix)
 library(tidyverse)
 library(ggpubr)
 library(hrbrthemes)
+library(ggpattern)
 
 # Set working directory
 #Sys.getenv("L1DIR")
@@ -37,6 +38,7 @@ L2_dir<-Sys.getenv("L2DIR")
 gr_plot <- read.csv(file.path(L2_dir,"greenup/final_greenup_plot_L2.csv"))
 # plot-level green-up V2 (below) takes the median half cover date of all species per plot
 # whereas the first plot-level file finds the overall half cover date for the entire plot, regardless of species
+# using v2 for plots
 gr_plot_v2 <- read.csv(file.path(L2_dir,"greenup/final_greenup_plot_V2_L2.csv"))
 gr_species <- read.csv(file.path(L2_dir,"greenup/final_greenup_species_L2.csv"))
 gr_growth <- read.csv(file.path(L2_dir,"greenup/final_greenup_growthhabit_L2.csv"))
@@ -67,6 +69,10 @@ insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 # filter data to contain the averages and std error for each site & species
 sum_green_spp <- gr_species %>%
   group_by(site, state, species) %>%
+  summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
+            se = std.error(spp_half_cover_date, na.rm = TRUE))
+sum_green_spp_i <- gr_species %>%
+  group_by(site, state, insecticide,species) %>%
   summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
             se = std.error(spp_half_cover_date, na.rm = TRUE))
 
@@ -134,8 +140,8 @@ sum_green_habit <- subset(sum_green_habit, growth_habit == "Forb" | growth_habit
 
 # trying to add empty values for 2015 to kbs greenup so the x-axis matches the other plots
 gr_plot2 <- gr_plot
-de<-data.frame(NA,"KBS",NA,"2015",NA,"ambient","insects",NA,NA)
-names(de)<-c("X","site","plot","year","treatment_key","state","insecticide","plot_half_cover_date","min_green_date")
+de<-data.frame(NA,"KBS",NA,"2015",NA,"ambient","insects",NA,NA,NA,NA,NA,NA)
+names(de)<-c("X","site","plot","year","treatment_key","state","insecticide","plot_half_cover_date","min_green_date","mean_temp","median_temp","max_temp","GDD_cumulative")
 gr_plot3 <- rbind(gr_plot2, de)
 sum_green_plot2 <- gr_plot3 %>%
   group_by(site, year, state) %>%
@@ -147,8 +153,8 @@ sum_green_plot_i2 <- gr_plot3 %>%
             se = std.error(plot_half_cover_date, na.rm = TRUE))
 
 gr_plot_v2.2 <- gr_plot_v2
-de2<-data.frame(NA,"KBS",NA,"2015","ambient","insects",NA)
-names(de2)<-c("X","site","plot","year","state","insecticide","med_half_cover_date")
+de2<-data.frame(NA,"KBS",NA,"2015","ambient","insects",NA,NA,NA,NA,NA,NA)
+names(de2)<-c("X","site","plot","year","state","insecticide","med_half_cover_date","min_green_date","mean_temp","median_temp","max_temp","GDD_cumulative")
 gr_plot_v2.3 <- rbind(gr_plot_v2.2, de2)
 sum_green_plot2_v2 <- gr_plot_v2.3 %>%
   group_by(site, year, state) %>%
@@ -498,9 +504,9 @@ annotate_figure(phen_violin,
 ## Line plot - code from Moriah
 ```{r}
 # greenup
-sum_green_plot2$year <- as.factor(sum_green_plot2$year)
+sum_green_plot2_v2$year <- as.factor(sum_green_plot2_v2$year)
 gr_line <- function(loc) { 
-  gr_plot <- subset(sum_green_plot2, site == loc)
+  gr_plot <- subset(sum_green_plot2_v2, site == loc)
   return(ggplot(gr_plot, aes(x = year, y = avg_julian, group = state)) +
                  geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), position=position_dodge(0.1), width=.25) +
            geom_line(aes(color=state), size = 1) +
@@ -675,7 +681,7 @@ greenup_plot_all <- function(loc) {
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-greenup_plot_all("kbs")
+greenup_plot_all("KBS")
 greenup_plot_all("umbs")
 ```
 
@@ -691,7 +697,7 @@ greenup_plot_box <- function(loc) {
            scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
            theme_classic())
 }
-greenup_plot_box("kbs")
+greenup_plot_box("KBS")
 greenup_plot_box("umbs")
 ```
 
@@ -788,28 +794,30 @@ greenup_plot("Cest", "umbs")
 
 ## Greenup plot for a given site
 ```{r, echo = F}
+sum_green_spp_i$full_treat <- paste(sum_green_spp_i$state, sum_green_spp_i$insecticide, sep="_")
 greenup_plot_overall <- function(loc) { 
-  greenup_spp <- subset(sum_green_spp, site == loc)
-  return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = state)) +
+  greenup_spp <- subset(sum_green_spp_i, site == loc)
+  return(ggplot(greenup_spp, aes(x = full_treat, y = avg_julian, fill = full_treat)) +
                  facet_wrap(~species, ncol=4) +
            geom_bar(position = "identity", stat = "identity", color = "black") +
            geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
                          position = "identity") +
            labs(x = NULL, y = NULL, title=loc) +
-           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           #coord_cartesian(ylim = c(100, 250)) +
-           scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-           theme_bw()) +
-          theme(legend.position = "none")
+           scale_fill_manual(name="Treatment",
+                             labels=c("Ambient, herbivory","Ambient, reduced herbivory",
+                             "Warmed, herbivory","Warmed, reduced herbivory"),
+                             values = c("#a6bddb", "#687689", "#fb6a4a", "#9D422E")) +
+           theme_bw() +
+           theme(axis.text.x = element_blank(),
+                 axis.ticks.x = element_blank()))
 }
 kbs_green_spp <- greenup_plot_overall("KBS")
 umbs_green_spp <- greenup_plot_overall("UMBS")
 green_overall_merge <- ggpubr::ggarrange(kbs_green_spp, umbs_green_spp,
-                          ncol = 2, legend="none")
+                          ncol = 2, common.legend = T,legend="right")
 png("greenup_species.png", units="in", width=12, height=8, res=300)
 annotate_figure(green_overall_merge,
-                left = text_grob("Julian date of green-up", color = "black", rot = 90, size=15),
-                bottom = text_grob("State", color = "black", size=15))
+                left = text_grob("Julian date of green-up", color = "black", rot = 90, size=15))
 dev.off()
 ```
 
@@ -941,8 +949,8 @@ dev.off()
 
 
 # re-calculated green-up
-green_kbsp <- subset(gr_plot_v2, site == "kbs")
-green_umbsp <- subset(gr_plot_v2, site == 'umbs')
+green_kbsp <- subset(gr_plot_v2, site == "KBS")
+green_umbsp <- subset(gr_plot_v2, site == 'UMBS')
 
 # looking to see which temp variable best correlates with greenup dates
 # note: when testing this for min dates, there are less data points because all plots had the same 
