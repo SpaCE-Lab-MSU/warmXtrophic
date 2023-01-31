@@ -380,6 +380,10 @@ fit3 <- lm(1/(plot_half_cover_date) ~ state + year, data = green_kbsp)
 interact_plot(fit3, pred = year, modx = state)
 fit4 <- lm(1/(plot_half_cover_date) ~ state * year, data = green_kbsp)
 interact_plot(fit4, pred = year, modx = state)
+fit3.2 <- lm(med_half_cover_date ~ state + year, data = green_kbsp2)
+interact_plot(fit3.2, pred = year, modx = state)
+fit4.2 <- lm(med_half_cover_date ~ state * year, data = green_kbsp2)
+interact_plot(fit4.2, pred = year, modx = state)
 
 # species half cover
 fit5 <- lm(spp_half_cover_date ~ state + year + species, data = green_kbs)
@@ -667,8 +671,8 @@ kable(table) %>% kableExtra::kable_styling()
 
 ###### green-up V2 models #####
 # testing if year as continuous or year as a factor makes more sense (test models)
-year.mod.test1 <- lmer(1/(med_half_cover_date) ~ state + year_factor+(1|plot), green_kbsp2, REML=FALSE)
-year.mod.test2 <- lmer(1/(med_half_cover_date) ~ state + as.factor(year_factor)+(1|plot), green_kbsp2, REML=FALSE)
+year.mod.test1 <- lmer(med_half_cover_date ~ state + year_factor+(1|plot), green_kbsp2, REML=FALSE)
+year.mod.test2 <- lmer(med_half_cover_date ~ state + as.factor(year_factor)+(1|plot), green_kbsp2, REML=FALSE)
 anova(year.mod.test1,year.mod.test2)
 # going to use year as a factor
 # I also think this makes the most sense because I don't think we expect there to be a much of a trend over time for green-up; maybe if we had a longer time span, but I don't think 6 years is enough to detect a trend over time and the results will be more influenced by between year variation in temp, precip, etc.
@@ -689,21 +693,31 @@ mod11p <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor
 # adding in our temp data into some models
 mod12p <- lmer(med_half_cover_date ~ state + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
 mod13p <- lmer(med_half_cover_date ~ state + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
-mod14p <- lmer(med_half_cover_date ~ state + GDD_cumulative + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
-mod15p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
-mod16p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
-mod17p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
-mod18p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) * GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
-mod19p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
-mod20p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) * mean_temp + (1|plot), green_kbsp2, REML=FALSE)
-mod21p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + mean_temp + insecticide +(1|plot), green_kbsp2, REML=FALSE)
-mod22p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + GDD_cumulative + insecticide +(1|plot), green_kbsp2, REML=FALSE)
-mod23p <- lmer(med_half_cover_date ~ state * mean_temp + insecticide +(1|plot), green_kbsp2, REML=FALSE)
-mod24p <- lmer(med_half_cover_date ~ state * GDD_cumulative + insecticide +(1|plot), green_kbsp2, REML=FALSE)
+mod14p <- lmer(med_half_cover_date ~ state * GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod15p <- lmer(med_half_cover_date ~ state * mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod16p <- lmer(med_half_cover_date ~ state + GDD_cumulative + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod17p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod18p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod19p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod20p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) * GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod21p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod22p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) * mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod23p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + insecticide + mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+mod24p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + insecticide + GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+mod25p <- lmer(med_half_cover_date ~ state * mean_temp + insecticide + (1|plot), green_kbsp2, REML=FALSE)
+mod26p <- lmer(med_half_cover_date ~ state * GDD_cumulative + insecticide + (1|plot), green_kbsp2, REML=FALSE)
 
+# testing - does mean temp or state fit better in a model?
+modtest1 <- lmer(med_half_cover_date ~ mean_temp * as.factor(year_factor) + insecticide + (1|plot), green_kbsp2, REML=FALSE)
+modtest2 <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + insecticide + (1|plot), green_kbsp2, REML=FALSE)
+modtest3 <- lmer(med_half_cover_date ~ GDD_cumulative * as.factor(year_factor) + insecticide + (1|plot), green_kbsp2, REML=FALSE)
+AICtab(modtest1,modtest2,modtest3)
+anova(modtest1)
+summary(modtest1)
 
 AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p,
-       mod12p,mod13p,mod14p,mod15p,mod16p,mod17p,mod18p,mod19p,mod20p,mod21p,mod22p,mod23p,mod24p,weights=T)
+       mod12p,mod13p,mod14p,mod15p,mod16p,mod17p,mod18p,mod19p,mod20p,mod21p,mod22p,mod23p,mod24p,
+       mod25p,mod26p,weights=T)
 
 anova(modfull, mod1p) #modfull
 anova(modfull, mod2p) #modfull
@@ -725,14 +739,15 @@ anova(mod8p, mod17p) #mod8p
 anova(mod8p, mod18p) #mod8p
 anova(mod8p, mod19p) #mod8p
 anova(mod8p, mod20p) #mod8p
-anova(mod8p, mod21p) #either
-anova(mod8p, mod22p) #either
-anova(mod8p, mod23p) #mod8p
-anova(mod8p, mod24p) #mod8p
-anova(mod21p,mod21p)
+anova(mod8p, mod21p) #8p
+anova(mod8p, mod22p) #8p
+anova(mod8p, mod23p) #either
+anova(mod8p, mod24p) #either
+anova(mod8p, mod25p) #8
+anova(mod8p, mod26p) #8
 table <- anova(mod9p, mod7p)
-summary(mod21p)
-anova(mod21p)
+summary(mod8p)
+anova(mod8p)
 
 # note: this effect size calculation is for mod 5p
 # calculating effect size - accounting for reciprocal transformation
@@ -742,9 +757,9 @@ anova(mod21p)
 129.9207 - 122.6317 # warmed plots green-up 7.289 days earlier than ambient
 
 # comparisons
-emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p, ~ insecticide * state)
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmeans(mod21p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod21p.emm <- emmeans(mod8p, ~ state*year_factor)
+contrast(mod21p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
 
 # making a table with best-fit model and hypothesized model
