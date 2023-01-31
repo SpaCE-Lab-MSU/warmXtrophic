@@ -240,7 +240,7 @@ dataus <- split(x = greenup, f = greenup[, c("plot","species","site","year")])
 dataus <- dataus[sapply(dataus, nrow)>0] # removing the dataframes that contain no data
 
 ### making a csv for greenup at the plot level ###
-dataup <- split(x = greenup, f = greenup[, c("plot", "site", "year")])
+dataup <- split(x = greenup, f = greenup[, c("plot","site", "year")])
 dataup <- dataup[sapply(dataup, nrow)>0]
 
 # KD 2022: adding in this bit of code below
@@ -299,6 +299,14 @@ half_cover_dates <- sapply(dataus, \(x) {
         is.na(d) <- x$cover < half_max
         x$julian[which.min(d)]
 })
+
+# what is half the cover? note this isn't perfect because exactly half of max cover might not exist in the 
+# dataframe, but this is close enough for now
+half_covers <- unlist(lapply(X = dataus, FUN = function(x){
+        half_max <- max(x$cover)/2
+        return(half_max)
+}))
+
 #half_cover_dates <- unlist(lapply(X = dataus, FUN = find_julian_spp))
 #half_cover_dates <- unlist(lapply(X = dataus, FUN = function(x){
 #        x[which.max(x[["cover"]] >= which.max(x[["cover"]])/2), "julian"]
