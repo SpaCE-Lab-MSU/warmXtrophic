@@ -273,8 +273,8 @@ ols_test_normality(fitp)
 shapiro.test(resid(fitp))
 
 fitp2<- lm(med_half_cover_date~state, data = green_kbsp2)
-outlierTest(fitp2) # one outlier - 85
-green_kbsp2 <- green_kbsp2[-(85),] # removing the outlier
+outlierTest(fitp2) # one outlier - 85; leaving for now because it seems true
+#green_kbsp2 <- green_kbsp2[-(85),] # removing the outlier
 qqPlot(fitp2, main="QQ Plot") 
 hist(fitp2$residuals)
 leveragePlots(fitp2)
@@ -343,7 +343,7 @@ shapiro.test(resid(fitpu2_y))
 
 
 ### trying transformations
-# note: the greenup vs data is normal and doesn't need transformed
+# note: the greenup v2 data is normal and doesn't need transformed
 # KBS State and year model - reciprocal transformation
 fitp2_trans<- lm(1/(plot_half_cover_date)~state+year_factor, data = green_kbsp)
 outlierTest(fitp2_trans) # no outliers
@@ -502,8 +502,6 @@ emmeans(mod7a, list(pairwise ~ state+year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ year_factor), adjust = "tukey")
 emmeans(mod7a, list(pairwise ~ species), adjust = "tukey")
 
-# using model 7a for overall species - level greenup model #
-
 # Take a look at the estimates for each fixed effect. These are the estimates from summary(mod7a). You'll see that species vary a lot - and many of them are different from zero (meaning their half cover date is significantly different from zero).
 plot_model(mod7a, sort.est = TRUE)
 # if you want to standardize the estimates:
@@ -516,7 +514,6 @@ plot_model(mod7a, type = "re")
 
 # Start KD models - listed out possible models all at once, then compared (some of these are duplicates of models above):
 # KD: I did this just to sort out (in my mind) model formulation with diff combos of effects - not the best method here
-# also, note all random effects are plot - I have diff models in plot-level section below
 mod_kd1 <- lmer(spp_half_cover_date ~ state + (1|plot), green_kbs, REML=FALSE)
 mod_kd2 <- lmer(spp_half_cover_date ~ state + (1|year_factor), green_kbs, REML=FALSE)
 mod_kd3 <- lmer(spp_half_cover_date ~ state + (1+year_factor|plot), green_kbs, REML=FALSE)
@@ -532,7 +529,7 @@ mod_kd11 <- lmer(spp_half_cover_date ~ state + year_factor + species + (1|plot),
 mod_kd12 <- lmer(spp_half_cover_date ~ state + year_factor + species + insecticide + (1|plot), green_kbs, REML=FALSE)
 mod_kd13 <- lmer(spp_half_cover_date ~ insecticide + (1|plot), green_kbs, REML=FALSE)
 AICctab(mod_kd1, mod_kd2, mod_kd3, mod_kd4, mod_kd5, mod_kd6, mod_kd7, mod_kd8, mod_kd9, mod_kd10, mod_kd11, mod_kd12, mod_kd13, weights=T)
-summary(mod_kd11) # same as model 7a - confirm this model as the best 
+summary(mod_kd11)
 
 # including native vs. exotic
 # just swapped species out for origin, using the same model forms as above for species
@@ -594,27 +591,6 @@ emmeans(mod11a, list(pairwise ~ year_factor + growth_habit), adjust = "tukey")
 
 # KBS Plot-level Mixed Effects Models:
 ```{r}
-# KD note: these models are commented out because we re-summarized the data into plot-level dataframes (below)
-# plot-level models using the species summarized data frame with specific random effects
-# note: we decided this was not the best approach - better to use the summarized dataframes
-#mod1ps <- lmer(spp_half_cover_date ~ state + (1|plot/species), green_kbs, REML=FALSE)
-#mod2ps <- lmer(spp_half_cover_date ~ state + insecticide + (1|plot/species), green_kbs, REML=FALSE)
-#mod3ps <- lmer(spp_half_cover_date ~ state + insecticide + year_factor + (1|plot/species), green_kbs, #REML=FALSE)
-#mod4ps <- lmer(spp_half_cover_date ~ state + year_factor + (1|plot/species), green_kbs, REML=FALSE)
-#mod5ps <- lmer(spp_half_cover_date ~ state + year_factor + (1|species) + (1|plot), green_kbs, REML=FALSE)
-#mod6ps <- lmer(spp_half_cover_date ~ state + year_factor + insecticide + (1|species) + (1|plot), #green_kbs, REML=FALSE)
-#mod7ps <- lmer(spp_half_cover_date ~ state + year_factor + insecticide + (1|species), green_kbs, #REML=FALSE)
-#
-#anova(mod1ps,mod2ps) #1
-#anova(mod1ps,mod3ps) #3
-#anova(mod4ps,mod3ps) #4
-#anova(mod4ps,mod5ps) #5
-#anova(mod6ps,mod5ps) #5
-#anova(mod5ps,mod7ps) # the same...? 
-#AICctab(mod1ps, mod2ps, mod3ps, mod4ps, mod5ps, mod6ps, mod7ps,weights=T)
-#summary(mod5ps)
-#anova(mod4ps)
-
 # testing if year as continuous or year as a factor makes more sense (test models)
 year.mod.test1 <- lmer(1/(plot_half_cover_date) ~ state + year_factor+(1|plot), green_kbsp, REML=FALSE)
 year.mod.test2 <- lmer(1/(plot_half_cover_date) ~ state + as.factor(year_factor)+(1|plot), green_kbsp, REML=FALSE)
@@ -691,7 +667,7 @@ mod9p <- lmer(med_half_cover_date ~ state * insecticide + as.factor(year_factor)
 mod10p <- lmer(med_half_cover_date ~ state + insecticide * as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
 mod11p <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
 
-AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p,weights=T)
+AICctab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p,weights=T)
 
 anova(modfull, mod1p) #modfull
 anova(modfull, mod2p) #modfull
@@ -701,11 +677,11 @@ anova(modfull, mod5p) #modfull
 anova(modfull, mod6p) #modfull
 anova(modfull, mod7p) #mod7p
 anova(mod7p, mod8p) #mod8p
-anova(mod8p, mod9p) #mod8p 
+anova(mod8p, mod9p) #mod8p (note: 9p is hypothesized model)
 anova(mod8p, mod10p) #mod8p
 anova(mod8p, mod11p) #mod8p
 
-table <- anova(mod9p, mod7p)
+table <- anova(mod8p, mod9p)
 summary(mod8p)
 anova(mod8p)
 
@@ -713,10 +689,11 @@ anova(mod8p)
 emmeans(mod8p, list(pairwise ~ state*year_factor), adjust = "tukey")
 mod8p.emm <- emmeans(mod8p, ~ state*year_factor)
 contrast(mod8p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
+emmip(mod8p, insecticide~state)
 
 # making a table with best-fit model and hypothesized model
 kable(table) %>% kableExtra::kable_styling()
+AICctab(mod8p,mod9p)
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -870,9 +847,9 @@ anova(mod6p_u, mod9p_u) #mod6p_u
 anova(mod6p_u, mod10p_u) #mod6p_u
 anova(mod6p_u, mod11p_u) #mod11p_u
 
-table <- anova(mod9p_u, mod7p_u)
+table <- anova(mod9p_u, mod6p_u)
 summary(mod6p_u)
-anova(mod6p_u)
+anova(mod9p_u)
 
 # comparisons
 emmeans(mod11p_u, list(pairwise ~ state*insecticide), adjust = "tukey")
@@ -882,6 +859,7 @@ emmip(mod9p, insecticide~state)
 
 # making a table with best-fit model and hypothesized model
 kable(table) %>% kableExtra::kable_styling()
+AICctab(mod6p_u,mod9p_u)
 
 
 # adding in our temp data into some models
