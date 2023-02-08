@@ -36,6 +36,19 @@ herb <- change_site(herb)
 # clean insecticide labels for plotting
 insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 
+# only keep species that were recorded in both warmed and ambient plots
+herb <- herb %>%
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+
+# keeping only one date per site, per year to avoid replication
+# can keep >1 date per year if species/plots are unique for each date
+# notes for how I determined these are in herbivory analyses L2 script
+herb <- herb %>%
+        filter(!(site == "KBS" & date == "2015-09-04" |
+                 site == "UMBS" & date == "2015-08-12" |
+                 site == "UMBS" & date == "2020-08-24" & plot == "B4")) 
+
 
 #### Total herb by site and year w/o insecticide treatment####
 sum_herb_in <- herb %>%

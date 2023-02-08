@@ -23,8 +23,9 @@ library(lmtest)
 library(emmeans)
 library(bbmle)
 library(AER)
-library(countreg)
+#library(countreg)
 library(sjPlot)
+library(glmmTMB)
 
 # Get data
 Sys.getenv("L1DIR")
@@ -96,7 +97,36 @@ herb_kbs_in %>% count(state, species)
 herb_umbs_in %>% count(state, species)
 
 # removing rare species
-herb_kbs_in <- herb_kbs_in[!grepl("Pore",herb_kbs_in$species),]
+# not doing this for now
+# herb_kbs_in <- herb_kbs_in[!grepl("Pore",herb_kbs_in$species),]
+
+# making date column a date
+herb_kbs$date <- as.Date(herb_kbs$date)
+herb_umbs$date <- as.Date(herb_umbs$date)
+herb_kbs_in$date <- as.Date(herb_kbs_in$date)
+herb_umbs_in$date <- as.Date(herb_umbs_in$date)
+
+# determine one date per year to avoid replication (also bc some years only measured once while others didn't)
+# can have multiple dates per year if measurements were taken over 2 days & have diff plots/species
+unique(herb_kbs$date)
+kbs_date <- unique(herb_kbs[c("species","date", "plot")])
+herb_kbs <- herb_kbs %>%
+        filter(!(date == "2015-09-04")) # keeping two 2019's because they're diff species
+
+unique(herb_umbs$date)
+umbs_date <- unique(herb_umbs[c("species","date", "plot")])
+herb_umbs <- herb_umbs %>%
+        filter(!(date == "2015-08-12" | date == "2020-08-24" & plot == "B4")) # keeping two 2020's bc diff plots
+
+unique(herb_kbs_in$date)
+kbs_in_date <- unique(herb_kbs_in[c("species","date", "plot")])
+herb_kbs_in <- herb_kbs_in %>%
+        filter(!(date == "2015-09-04")) # keeping two 2017s and 2019s because diff species/plots
+
+unique(herb_umbs_in$date) 
+umbs_in_date <- unique(herb_umbs_in[c("species","date", "plot")])
+herb_umbs_in <- herb_umbs_in %>%
+        filter(!(date == "2015-08-12")) # keeping two 2020's because diff plots
 
 
 ###################### KBS herbivory distribution check ########################
@@ -364,6 +394,12 @@ exp(0.54184 +  0.33766*1) # 2.409695
 
 
 ############### KBS herbivory hurdle model - no insecticide ################
+# making a column for decimal version of herbivory
+# I thought this would work for my test ofa  diff binomial hurdle model below, but it doesn't
+herb_kbs$p_eaten_dec <- paste0("0.", herb_kbs$p_eaten)
+herb_kbs$p_eaten_dec <- as.numeric(herb_kbs$p_eaten_dec)
+
+# hurdle models
 k.m1.h <- hurdle(p_eaten ~ state + species + year, data = herb_kbs, dist = "negbin", 
                  zero.dist = "binomial")
 k.m2.h <- hurdle(p_eaten ~ state * species + year, data = herb_kbs, dist = "negbin", 
@@ -373,7 +409,22 @@ k.m3.h <- hurdle(p_eaten ~ state + year, data = herb_kbs, dist = "negbin",
 lrtest(k.m1.h,k.m2.h, k.m3.h)
 AICtab(k.m1.h,k.m2.h,k.m3.h) #m1
 
+# different package w/ random effects
+# trying this structure to see if I can include random effects, but I can't
+# figure out how to specify a negative binomial dist to the count data and a binomial dist to the second model
+# could run two models, one with negative binomial and one with binomial?
+# note: these don't work
+fit_hurdle_random1 <- glmmTMB(p_eaten_dec ~ state + species + year + (1|plant_number),
+                             data=herb_kbs,
+                             ziformula=~.,
+                             family="binomial")
+fit_hurdle_random2 <- glmmTMB(p_eaten ~ state + species + year + (1|plant_number),
+                             data=herb_kbs,
+                             ziformula=~.,
+                             family=truncated_nbinom1)
+
 summary(k.m1.h) #*used this output in the paper*#
+summary(fit_hurdle_random2)
 means <- emmeans(k.m1.h, ~ state)
 pairs(means, adjust = "none")
 # calculating effect size for count model - accounting for log link
