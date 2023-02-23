@@ -133,7 +133,7 @@ write.csv(plant_comp_merge4, file.path(L1_dir, "plant_composition/final_plantcom
 # The below code removes species that are rare in the data set or were only recorded once or twice. It also removes
 # those that aren't species, like "Bare_Ground" or "Litter"
 
-# species that were removed previously
+# species that were removed previously - figure out why these were removed maybe some of them shouldn't be 
 # Alpe, Apca, Brin, Juni, Plla, Romu, Stme, Umsp, Ulsp, Spsp, Acru, Oebi, Besp, Prse, Quru, Prpe, 
 # Veth, Anma, Vaan, Gnul, Trdu, Alpe, Sypi, Hipi, Pops, Acsy, Lapu, Sysa
 

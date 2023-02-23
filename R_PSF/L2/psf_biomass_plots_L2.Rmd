@@ -19,34 +19,104 @@ library(tidyverse)
 library(plotrix)
 
 # Set working directory to Google Drive
-# .Renviron not working for MLY; hard-coding in here
-L0_dir <- "/Users/moriahyoung/Library/CloudStorage/GoogleDrive-youngmor@msu.edu/Shared drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L0"
-L1_dir <- "/Users/moriahyoung/Library/CloudStorage/GoogleDrive-youngmor@msu.edu/Shared drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L1"
+PSF<-Sys.getenv("PSF")
 
 # Read in data
-biomass <- read.csv(file.path(L1_dir, "psf_biomass_2021_L1.csv"))
+biomass <- read.csv(file.path(PSF, "/data/L1/psf_biomass_2021_L1.csv"))
+
+str(biomass)
+```
+
+Total Biomass
+```{r}
+# first by block
+avg_total_biomass <- biomass %>%
+        group_by(treatment, species, block) %>%
+        summarize(avg_biomass = mean(total_biomass, na.rm = TRUE),
+            se = std.error(total_biomass, na.rm = TRUE))
+# then average over blocks
+avg_total_biomass2 <- avg_total_biomass %>%
+        group_by(treatment, species) %>%
+        summarize(average_biomass = mean(avg_biomass, na.rm = TRUE),
+            se = std.error(avg_biomass, na.rm = TRUE))
 
 # filter the data to contain the mean and std error for julian date of each site & species
 sum_biomass <- biomass %>%
   group_by(treatment, species) %>%
   summarize(avg_biomass = mean(total_biomass, na.rm = TRUE),
             se = std.error(total_biomass, na.rm = TRUE))
-```
 
-```{r}
-### biomass ###
-ggplot(sum_biomass, aes(x = treatment, y = avg_biomass, fill = treatment)) +
-        labs(x = "Treatent", y = "Total Biomass") +
-        facet_grid(.~species) +
+# plot
+total <- ggplot(avg_total_biomass2, aes(x=factor(treatment, level=c('control', 'ambient', 'warmed')), y = average_biomass, fill = treatment)) +
+        facet_wrap(.~species, 
+                   scales = "free") +
         geom_bar(position = "identity", stat = "identity") +
-        geom_errorbar(aes(ymin = avg_biomass - se, ymax = avg_biomass + se), width = 0.2, position = "identity") +
-        labs(x = "Treatment", y = "Biomass", title = "Average Total Biomass") +
-        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a", "green")) +
-        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W", "control" = "C"))
-        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a", "control" = "green")) +
-        #coord_cartesian(ylim = c(42, 53)) +
-        #theme_classic()
+        geom_errorbar(aes(ymin = average_biomass - se, ymax = average_biomass + se), width = 0.2, position = "identity") +
+        labs(x = "Treatment", y = "Biomass (g)", title = "Average Total Biomass") +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W", "control" = "C")) +
+        scale_fill_manual(values = c("ambient" = "deepskyblue", "warmed" = "firebrick", "control" = "goldenrod"))
 ```
 
+Aboveground Biomass
+```{r}
+# first by block
+avg_above <- biomass %>%
+        group_by(treatment, species, block) %>%
+        summarize(avg_biomass = mean(biomass_above, na.rm = TRUE),
+            se = std.error(biomass_above, na.rm = TRUE))
+# then average over blocks
+avg_above_biomass2 <- avg_above %>%
+        group_by(treatment, species) %>%
+        summarize(average_biomass = mean(avg_biomass, na.rm = TRUE),
+            se = std.error(avg_biomass, na.rm = TRUE))
 
+# plot
+above <- ggplot(avg_above_biomass2, aes(x=factor(treatment, level=c('control', 'ambient', 'warmed')), y = average_biomass, fill = treatment)) +
+        facet_wrap(.~species, 
+                   scales = "free") +
+        geom_bar(position = "identity", stat = "identity") +
+        geom_errorbar(aes(ymin = average_biomass - se, ymax = average_biomass + se), width = 0.2, position = "identity") +
+        labs(x = "Treatment", y = "Biomass (g)", title = "Average Aboveground Biomass") +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W", "control" = "C")) +
+        scale_fill_manual(values = c("ambient" = "deepskyblue", "warmed" = "firebrick", "control" = "goldenrod"))
+```
+
+Belowground Biomass
+```{r}
+# first by block
+avg_below <- biomass %>%
+        group_by(treatment, species, block) %>%
+        summarize(avg_biomass = mean(biomass_below, na.rm = TRUE),
+            se = std.error(biomass_below, na.rm = TRUE))
+# then average over blocks
+avg_below_biomass2 <- avg_below %>%
+        group_by(treatment, species) %>%
+        summarize(average_biomass = mean(avg_biomass, na.rm = TRUE),
+            se = std.error(avg_biomass, na.rm = TRUE))
+
+# plot
+below <- ggplot(avg_below_biomass2, aes(x=factor(treatment, level=c('control', 'ambient', 'warmed')), y = average_biomass, fill = treatment)) +
+        facet_wrap(.~species, 
+                   scales = "free") +
+        geom_bar(position = "identity", stat = "identity") +
+        geom_errorbar(aes(ymin = average_biomass - se, ymax = average_biomass + se), width = 0.2, position = "identity") +
+        labs(x = "Treatment", y = "Biomass (g)", title = "Average Belowground Biomass") +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W", "control" = "C")) +
+        scale_fill_manual(values = c("ambient" = "deepskyblue", "warmed" = "firebrick", "control" = "goldenrod"))
+below
+```
+
+Combine graphs above into one figure
+```{r}
+total2 <- total + labs(x = NULL)
+below2 <- below + labs(y = NULL, x = NULL)
+above2 <- above + labs(y = NULL, x = NULL)
+
+biomass_plot <- ggpubr::ggarrange(total2, above2, below2,
+                          nrow = 1, ncol = 3, legend = "none")
+
+png("psf_biomass_bar_plots_L2.png", units="in", width=12, height=6, res=300)
+biomass_plot
+dev.off()
+```
 
