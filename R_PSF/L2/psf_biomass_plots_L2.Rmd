@@ -40,12 +40,6 @@ avg_total_biomass2 <- avg_total_biomass %>%
         summarize(average_biomass = mean(avg_biomass, na.rm = TRUE),
             se = std.error(avg_biomass, na.rm = TRUE))
 
-# filter the data to contain the mean and std error for julian date of each site & species
-sum_biomass <- biomass %>%
-  group_by(treatment, species) %>%
-  summarize(avg_biomass = mean(total_biomass, na.rm = TRUE),
-            se = std.error(total_biomass, na.rm = TRUE))
-
 # plot
 total <- ggplot(avg_total_biomass2, aes(x=factor(treatment, level=c('control', 'ambient', 'warmed')), y = average_biomass, fill = treatment)) +
         facet_wrap(.~species, 

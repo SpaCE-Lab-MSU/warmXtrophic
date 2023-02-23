@@ -49,7 +49,7 @@ ggplot(avg_height2, aes(x=treatment,y=average_height, color=treatment)) +
         theme_classic()
 
 png("psf_height_bar_plot_L2.png", units="in", width=8, height=8, res=300)
-ggplot(avg_height2, aes(x = treatment, y = average_height, fill = treatment)) +
+ggplot(avg_height2, aes(x=factor(treatment, level=c('control', 'ambient', 'warmed')), y = average_height, fill = treatment)) +
         labs(x = "Treatment", y = "Average Height (cm)", title = "Average Height (cm)") +
         facet_wrap(.~species, 
                    scales = "free") +
