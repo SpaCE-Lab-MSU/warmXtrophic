@@ -35,6 +35,10 @@ umbs_2018 <- read.csv(file.path(L0_dir, "UMBS/2018/umbs_leaf_herbivory_2018.csv"
 umbs_2019 <- read.csv(file.path(L0_dir, "UMBS/2019/umbs_herbivory_2019.csv"))
 umbs_2020 <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_herbivory_2020.csv"))
 
+GDD <- read.csv(file.path(L1_dir, "HOBO_data/GDD_L1.csv"))
+temps <- read.csv(file.path(L1_dir, "HOBO_data/herb_temps_L1.csv"))
+
+
 # add site column for kbs & umbs 2016
 kbs_2016$Site <- "kbs"
 umbs_2016$Site <- "umbs"
@@ -124,6 +128,25 @@ herb3$p_eaten_bins[herb3$p_eaten >= 11] = "level2"
 herb3$p_eaten_bins[herb3$p_eaten >= 50] = "level3"
 str(herb3)
 
+# merge in temp data
+# first, make year an integer
+str(herb3)
+str(temps)
+herb3$year <- as.integer(herb3$year)
+# merge temps
+herb_temp <- left_join(herb3, temps, by=c('site','year','state'))
+# merge GDD - first, select the right julian date for GDD (based on HOBO_GDD_L1.R script)
+GDD_herb <- GDD %>%
+        filter(site == "kbs" & julian == 291 |
+                       site == "umbs" & julian == 255) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+herb_temp_GDD <- left_join(herb_temp, GDD_herb, by=c('site','year','state'))
+
+# remove columns
+herb_temp_GDD$note1 <- NULL
+herb_temp_GDD$MH_rhizomatous_suggestion <- NULL
+herb_temp_GDD$note2 <- NULL
+
 # adding a column for p_eaten with equal bins
 # this doesn't work - the data has so many 0's it can't equally make >1 bin
 #library(Hmisc)
@@ -132,4 +155,4 @@ str(herb3)
 #        count(p_eaten_bins2)
 
 # Upload clean csv to google drive
-write.csv(herb3, file.path(L1_dir,"herbivory/final_herbivory_L1.csv"), row.names=F)
+write.csv(herb_temp_GDD, file.path(L1_dir,"herbivory/final_herbivory_L1.csv"), row.names=F)
