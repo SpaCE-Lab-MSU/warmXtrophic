@@ -25,10 +25,11 @@ L1_dir<-Sys.getenv("L1DIR")
 L2_dir<-Sys.getenv("L2DIR")
 PSF<-Sys.getenv("PSF")
 # .Renviron not working for MLY; hard-coding in here
-L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L0"
-L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L1"
+L0_dir <- "/Users/moriahyoung/Library/CloudStorage/GoogleDrive-youngmor@msu.edu/Shared drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L0"
+L1_dir <- "/Users/moriahyoung/Library/CloudStorage/GoogleDrive-youngmor@msu.edu/Shared drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L1"
 
 # Read in data
+height <- read.csv(file.path(L1_dir, "psf_height_2021_L1.csv"))
 height <- read.csv(file.path(PSF, "/data/L1/psf_height_2021_L1.csv"))
 
 # filter the data to contain the mean and std error for each spp + block on one date (picked arbitrarily for now)
@@ -36,7 +37,7 @@ str(height)
 height$height_cm <- as.numeric(height$height_cm)
 # first by block
 avg_height <- height %>%
-        filter(date == "7/10/2021") %>%
+        filter(date == "7/16/2021") %>% # changed it to this date bc it includes both species
         group_by(treatment, species, block) %>%
         summarize(avg_height = mean(height_cm, na.rm = TRUE),
             se = std.error(height_cm, na.rm = TRUE))
@@ -50,6 +51,16 @@ ggplot(avg_height2, aes(x=treatment,y=average_height, color=treatment)) +
         geom_errorbar(aes(ymin=average_height-se, ymax=average_height+se), color="black",linetype="solid",width=.3)+
         geom_point(size = 2) +
         theme_classic()
-        
+
+ggplot(avg_height2, aes(x = treatment, y = average_height, fill = treatment)) +
+        labs(x = "Treatent", y = "Average Height (cm)", title = "Average Height (cm)") +
+        facet_grid(.~species) +
+        geom_bar(position = "identity", stat = "identity") +
+        geom_errorbar(aes(ymin = average_height - se, ymax = average_height + se), width = 0.2, position = "identity") +
+        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a", "green")) +
+        scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W", "control" = "C"))
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a", "control" = "green")) +
+        #coord_cartesian(ylim = c(42, 53)) +
+        #theme_classic()
         
 ```
