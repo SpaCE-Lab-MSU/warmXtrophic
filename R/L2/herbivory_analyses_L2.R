@@ -131,11 +131,11 @@ herb_umbs_in <- herb_umbs_in %>%
 
 ###################### KBS herbivory distribution check ########################
 # How much of the data is zeros?
-100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #68% - thats a lot! probably have to use some type of zero-inflated model,
+100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #69% - thats a lot! probably have to use some type of zero-inflated model,
 # but I'll still check for normality & try some transformations below
 100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #61%
-100*sum(herb_kbs_in$p_eaten == 0)/nrow(herb_kbs_in) #70.5%
-100*sum(herb_umbs_in$p_eaten == 0)/nrow(herb_umbs_in) #69.6%
+100*sum(herb_kbs_in$p_eaten == 0)/nrow(herb_kbs_in) #72%
+100*sum(herb_umbs_in$p_eaten == 0)/nrow(herb_umbs_in) #70%
 
 ### determining distribution ###
 descdist(herb_kbs$p_eaten, discrete = FALSE)
@@ -393,9 +393,10 @@ exp(0.54184 +  0.33766*1) # 2.409695
 
 
 
+
 ############### KBS herbivory hurdle model - no insecticide ################
 # making a column for decimal version of herbivory
-# I thought this would work for my test ofa  diff binomial hurdle model below, but it doesn't
+# I thought this would work for my test of a  iff binomial hurdle model below, but it doesn't
 herb_kbs$p_eaten_dec <- paste0("0.", herb_kbs$p_eaten)
 herb_kbs$p_eaten_dec <- as.numeric(herb_kbs$p_eaten_dec)
 
@@ -836,6 +837,54 @@ ggplot(herb_umbs_plottest, aes(x=growth_habit, y=mean_eaten, fill=state)) +
         geom_bar(stat="identity",position="dodge")
 ggplot(herb_umbs_test2, aes(x=growth_habit, y=sum_eaten, fill=state)) +
         geom_bar(stat="identity",position="dodge")
+
+
+
+##### temp hurdle models - both sites ####
+# merging kbs and umbs data
+herb_comb <- rbind(herb_kbs,herb_umbs)
+
+# testing the effect of temp
+comb.m1.h <- hurdle(p_eaten ~ GDD_cumulative, data = herb_comb, dist = "negbin", 
+                 zero.dist = "binomial")
+comb.m2.h <- hurdle(p_eaten ~ mean_temp, data = herb_comb, dist = "negbin", 
+                    zero.dist = "binomial")
+comb.m3.h <- hurdle(p_eaten ~ GDD_cumulative + site, data = herb_comb, dist = "negbin", 
+                    zero.dist = "binomial")
+comb.m4.h <- hurdle(p_eaten ~ mean_temp + site, data = herb_comb, dist = "negbin", 
+                    zero.dist = "binomial")
+comb.m5.h <- hurdle(p_eaten ~ GDD_cumulative * site, data = herb_comb, dist = "negbin", 
+                    zero.dist = "binomial")
+comb.m6.h <- hurdle(p_eaten ~ mean_temp * site, data = herb_comb, dist = "negbin", 
+                    zero.dist = "binomial")
+
+AICtab(comb.m1.h,comb.m2.h,comb.m3.h,comb.m4.h,comb.m5.h,comb.m6.h)
+
+# mod 4
+summary(comb.m6.h)
+
+
+### temp models - kbs ###
+# testing the effect of temp w/ both models
+kbstemp.m1.h <- hurdle(p_eaten ~ GDD_cumulative, data = herb_kbs, dist = "negbin", 
+             zero.dist = "binomial")
+kbstemp.m2.h <- hurdle(p_eaten ~ mean_temp, data = herb_kbs, dist = "negbin", 
+             zero.dist = "binomial")
+
+AICtab(kbstemp.m1.h,kbstemp.m2.h)
+summary(kbstemp.m2.h)
+
+
+### temp models - umbs ###
+# testing the effect of temp w/ both models
+umbstemp.m1.h <- hurdle(p_eaten ~ GDD_cumulative, data = herb_umbs, dist = "negbin", 
+                       zero.dist = "binomial")
+umbstemp.m2.h <- hurdle(p_eaten ~ mean_temp, data = herb_umbs, dist = "negbin", 
+                       zero.dist = "binomial")
+
+AICtab(umbstemp.m1.h,umbstemp.m2.h)
+summary(umbstemp.m2.h)
+
 
 ################# KBS plot-level analyses #####################
 # first, checking for normality
