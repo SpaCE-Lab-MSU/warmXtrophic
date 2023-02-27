@@ -893,6 +893,30 @@ anova(modtest_merge2,modtest_merge4)
 # the model w/ GDD performs the best
 anova(modtest_merge2)
 summary(modtest_merge2)
+
+
+### just kbs
+# testing the effect of temp w/ both models
+modtest_merge1_kbs <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_kbsp2, REML=FALSE)
+modtest_merge2_kbs <- lmer(med_half_cover_date ~ GDD_cumulative + (1|plot), green_kbsp2, REML=FALSE)
+
+AICtab(modtest_merge1_kbs,modtest_merge2_kbs)
+
+# the model w/ GDD performs the best
+anova(modtest_merge2_kbs)
+summary(modtest_merge1_kbs)
+
+
+### just umbs
+# testing the effect of temp w/ both models
+modtest_merge1_umbs <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_umbsp2, REML=FALSE)
+modtest_merge2_umbs <- lmer(med_half_cover_date ~ GDD_cumulative + (1|plot), green_umbsp2, REML=FALSE)
+
+AICtab(modtest_merge1_umbs,modtest_merge2_umbs)
+
+# the model w/ GDD performs the best
+anova(modtest_merge1_umbs)
+summary(modtest_merge1_umbs)
 ```
 
 
