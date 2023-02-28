@@ -64,9 +64,7 @@ change_pair_names <- function(df){
 #Change 2017, 2018, and 2019 dataframes to celsius for paired sensors
 f_to_c <- function(df){
   df[["XH_warmed_air_1m"]] <- fahrenheit.to.celsius(df[["XH_warmed_air_1m"]])
-  df[["XH_warmed_RH_1m"]] <- fahrenheit.to.celsius(df[["XH_warmed_RH_1m"]])
   df[["XH_ambient_air_1m"]] <- fahrenheit.to.celsius(df[["XH_ambient_air_1m"]])
-  df[["XH_ambient_RH_1m"]] <- fahrenheit.to.celsius(df[["XH_ambient_RH_1m"]])
   df[["XU_warmed_air_10cm"]] <- fahrenheit.to.celsius(df[["XU_warmed_air_10cm"]])
   df[["XU_warmed_soil_temp_5cm"]] <- fahrenheit.to.celsius(df[["XU_warmed_soil_temp_5cm"]])
   df[["XU_ambient_air_10cm"]] <- fahrenheit.to.celsius(df[["XU_ambient_air_10cm"]])
@@ -137,21 +135,44 @@ remove_col <- function(df,name){
 }
 
 # removing outliers from paired sensors
-remove_outliers = function(df){
-  is.na(df[["XU_warmed_soil_temp_5cm"]]) <- df[["XU_warmed_soil_temp_5cm"]] >= 40
-  is.na(df[["XU_ambient_soil_temp_5cm"]]) <- df[["XU_ambient_soil_temp_5cm"]] >= 40
-  is.na(df[["XU_warmed_soil_temp_5cm"]]) <- df[["XU_warmed_soil_temp_5cm"]] <= -40
-  is.na(df[["XU_ambient_soil_temp_5cm"]]) <- df[["XU_ambient_soil_temp_5cm"]] <= -40
-  is.na(df[["XH_warmed_soil_moisture_5cm"]]) <- df[["XH_warmed_soil_moisture_5cm"]] <= 0
-  is.na(df[["XH_ambient_soil_moisture_5cm"]]) <- df[["XH_ambient_soil_moisture_5cm"]] <= 0
-  is.na(df[["XH_ambient_air_1m"]]) <- df[["XH_ambient_air_1m"]] <= -30
-  is.na(df[["XH_warmed_air_1m"]]) <- df[["XH_warmed_air_1m"]] <= -30
-  is.na(df[["XH_warmed_RH_1m"]]) <- df[["XH_warmed_RH_1m"]] <= -30
-  is.na(df[["XH_ambient_RH_1m"]]) <- df[["XH_ambient_RH_1m"]] <= -30
-  is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] >= 49
-  is.na(df[["XU_ambient_air_10cm"]]) <- df[["XU_ambient_air_10cm"]] >= 49
-  is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] <= -30
-  is.na(df[["XU_ambient_air_10cm"]]) <- df[["XU_ambient_air_10cm"]] <= -30
-  return(df)
-}
+#remove_outliers = function(df){
+#  is.na(df[["XU_warmed_soil_temp_5cm"]]) <- df[["XU_warmed_soil_temp_5cm"]] >= 40
+#  is.na(df[["XU_ambient_soil_temp_5cm"]]) <- df[["XU_ambient_soil_temp_5cm"]] >= 40
+#  is.na(df[["XU_warmed_soil_temp_5cm"]]) <- df[["XU_warmed_soil_temp_5cm"]] <= -40
+#  is.na(df[["XU_ambient_soil_temp_5cm"]]) <- df[["XU_ambient_soil_temp_5cm"]] <= -40
+#  is.na(df[["XH_warmed_soil_moisture_5cm"]]) <- df[["XH_warmed_soil_moisture_5cm"]] <= 0
+#  is.na(df[["XH_ambient_soil_moisture_5cm"]]) <- df[["XH_ambient_soil_moisture_5cm"]] <= 0
+#  is.na(df[["XH_ambient_air_1m"]]) <- df[["XH_ambient_air_1m"]] <= -30
+#  is.na(df[["XH_warmed_air_1m"]]) <- df[["XH_warmed_air_1m"]] <= -30
+#  is.na(df[["XH_warmed_RH_1m"]]) <- df[["XH_warmed_RH_1m"]] <= -30
+#  is.na(df[["XH_ambient_RH_1m"]]) <- df[["XH_ambient_RH_1m"]] <= -30
+#  is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] >= 49
+#  is.na(df[["XU_ambient_air_10cm"]]) <- df[["XU_ambient_air_10cm"]] >= 49
+#  is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] <= -30
+#  is.na(df[["XU_ambient_air_10cm"]]) <- df[["XU_ambient_air_10cm"]] <= -30
+#  return(df)
+#}
 
+remove_outliers = function(df){
+        # first removing common error values
+        is.na(df) <- df == -888.88
+        is.na(df) <- df == 537.327
+        is.na(df) <- df == 537.33
+        is.na(df) <- df == 316.524
+        is.na(df) <- df == 304.306
+        # then removing data > 2SD
+        df[["XU_warmed_soil_temp_5cm"]] <- replace(df[["XU_warmed_soil_temp_5cm"]],abs(scale(df[["XU_warmed_soil_temp_5cm"]]))>2,NA)
+        df[["XU_ambient_soil_temp_5cm"]] <- replace(df[["XU_ambient_soil_temp_5cm"]],abs(scale(df[["XU_ambient_soil_temp_5cm"]]))>2,NA)
+        df[["XH_warmed_soil_moisture_5cm"]] <- replace(df[["XH_warmed_soil_moisture_5cm"]],abs(scale(df[["XH_warmed_soil_moisture_5cm"]]))>2,NA)
+        df[["XH_ambient_soil_moisture_5cm"]] <- replace(df[["XH_ambient_soil_moisture_5cm"]],abs(scale(df[["XH_ambient_soil_moisture_5cm"]]))>2,NA)
+        df[["XH_ambient_air_1m"]] <- replace(df[["XH_ambient_air_1m"]],abs(scale(df[["XH_ambient_air_1m"]]))>2,NA)
+        df[["XH_warmed_air_1m"]] <- replace(df[["XH_warmed_air_1m"]],abs(scale(df[["XH_warmed_air_1m"]]))>2,NA)
+        df[["XH_warmed_RH_1m"]] <- replace(df[["XH_warmed_RH_1m"]],abs(scale(df[["XH_warmed_RH_1m"]]))>2,NA)
+        df[["XH_ambient_RH_1m"]] <- replace(df[["XH_ambient_RH_1m"]],abs(scale(df[["XH_ambient_RH_1m"]]))>2,NA)
+        df[["XU_warmed_air_10cm"]] <- replace(df[["XU_warmed_air_10cm"]],abs(scale(df[["XU_warmed_air_10cm"]]))>2,NA)
+        df[["XU_ambient_air_10cm"]] <- replace(df[["XU_ambient_air_10cm"]],abs(scale(df[["XU_ambient_air_10cm"]]))>2,NA)
+        return(df)
+}
+        
+        
+        
