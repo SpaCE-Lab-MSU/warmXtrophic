@@ -4,7 +4,8 @@
 # DATA INPUT:     Data imported as clean L1 files from the Google drive
 # DATA OUTPUT:    Clean L1 files are exported with bad data removed
 #                 Outliers were removed in the clean-up script, but here I'm removing larger chunks
-#                 of data that are still bad (based on what I found in the data_checks R script)
+#                 of data that are still bad (based on what I found in the clean-up and data_checks R script)
+#                 A note is added for each data removal as to why that data is being removed
 # PROJECT:        warmXtrophic
 # DATE:           May 2022
 
@@ -69,4 +70,6 @@ UMBS <- UMBS[!(UMBS$sensor == 1 & UMBS$year =="2021" & UMBS$month == "11"),]
 write.csv(KBS, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_dataremoved_L1.csv"))
 write.csv(UMBS, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_dataremoved_L1.csv"))
 
+write.csv(KBS, "KBS_pairedsensors_dataremoved_L1.csv")
+write.csv(UMBS, "UMBS_pairedsensors_dataremoved_L1.csv")
 

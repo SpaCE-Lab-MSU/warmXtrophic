@@ -64,10 +64,7 @@ list_pairk1 <- lapply(list_pairk1, change_POSIX)
 list_pairk1 <- lapply(list_pairk1, remove_col, name=c('X', 'X..x', 'X..y'))
 list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
 list_pairk1 <- lapply(list_pairk1, remove_outliers)
-list_pairk1 <- lapply(list_pairk1, remove_outliers)
-# notes 2/27/23: above, I'm redoing the outlier removal to be anything > 2SD; the function is ran twice because
-# the first round doesn't remove all outliers
-# the variables that contain bad errors (e.g., warmed soil) are removed in HOBO_data_removal
+
 
 ############ KBS Pair 2
 #Read in H
@@ -106,7 +103,6 @@ names(list_pairk2$KBS_2_2019)[names(list_pairk2$KBS_2_2019)=="Water.Content..m..
 names(list_pairk2$KBS_2_2020)[names(list_pairk2$KBS_2_2020)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2021)[names(list_pairk2$KBS_2_2021)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 
-list_pairk2 <- lapply(list_pairk2, remove_outliers)
 list_pairk2 <- lapply(list_pairk2, remove_outliers)
 
 ############ KBS Pair 3
@@ -157,13 +153,12 @@ names(list_pairk3$KBS_3_2021)[names(list_pairk3$KBS_3_2021)=="Temp...C..LGR.S.N.
 
 list_pairk3[2:4] <- lapply(list_pairk3[2:4], f_to_c)
 list_pairk3 <- lapply(list_pairk3, remove_outliers)
-list_pairk3 <- lapply(list_pairk3, remove_outliers)
 
 #Create .RData file - this is used in the script that merges all of the clean data
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
 save(list_pairk1, list_pairk2, list_pairk3, file=file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.RData"))
-
+save(list_pairk1, list_pairk2, list_pairk3, file="KBS_pairedsensors_L1.RData")
 
 
 #######################################################################
@@ -238,7 +233,6 @@ names(list_pairu1$UMBS_1_2021)[names(list_pairu1$UMBS_1_2021)=="Temp...C..LGR.S.
 
 list_pairu1[2:4] <- lapply(list_pairu1[2:4], f_to_c)
 list_pairu1 <- lapply(list_pairu1, remove_outliers)
-list_pairu1 <- lapply(list_pairu1, remove_outliers)
 
 ############ UMBS Pair 2
 #2U was not logging from 7/28/2015 through 11/24/2015, when it was launched again
@@ -308,7 +302,6 @@ names(list_pairu2$UMBS_2_2021)[names(list_pairu2$UMBS_2_2021)=="Temp...C..LGR.S.
 
 list_pairu2[2:4] <- lapply(list_pairu2[2:4], f_to_c)
 list_pairu2 <- lapply(list_pairu2, remove_outliers)
-list_pairu2 <- lapply(list_pairu2, remove_outliers)
 
 ############ UMBS Pair 3
 #Read in H
@@ -360,7 +353,8 @@ list_pairu3 <- lapply(list_pairu3, change_POSIX)
 list_pairu3 <- lapply(list_pairu3, remove_col, name=c('X', 'X..x', 'X..y'))
 list_pairu3[2:4] <- lapply(list_pairu3[2:4], f_to_c)
 list_pairu3 <- lapply(list_pairu3, remove_outliers)
-list_pairu3 <- lapply(list_pairu3, remove_outliers)
 
 #Create .RData file
 save(list_pairu1, list_pairu2, list_pairu3, file=file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensors_L1.RData"))
+save(list_pairu1, list_pairu2, list_pairu3, file="UMBS_pairedsensors_L1.RData")
+

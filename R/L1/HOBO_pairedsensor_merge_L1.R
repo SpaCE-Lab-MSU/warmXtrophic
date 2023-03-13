@@ -70,7 +70,7 @@ KBS_2$sensor <- "2"
 KBS_3$sensor <- "3"
 KBS <- rbind(KBS_1, KBS_2, KBS_3)
 write.csv(KBS, file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensors_L1.csv"),row.names=F)
-write.csv(KBS, "KBS_pairedsensors_L1.csv", row.names=F)
+write.csv(KBS, "KBS_pairedsensors_L1_test.csv", row.names=F)
 
 
 ### UMBS ###

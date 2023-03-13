@@ -28,27 +28,30 @@ KBS$julian <- format(KBS$Date_Time,format="%j")
 UMBS$year <- format(UMBS$Date_Time,format="%Y")
 UMBS$julian <- format(UMBS$Date_Time,format="%j")
 
+KBS$julian <- as.numeric(KBS$julian)
+UMBS$julian <- as.numeric(UMBS$julian)
 
 ### checking for missing data
 ## 10cm air temps
 # KBS 2016
 KBS_2016_1_10 <- KBS %>%
         filter(year == 2016) %>%
-        select(Date_Time, year, julian, sensor, XU_ambient_air_10cm, XU_warmed_air_10cm) %>%
+        #filter(julian >= 091 & julian <= 243) %>% # summertime only
+        dplyr::select(Date_Time, year, julian, sensor, XU_ambient_air_10cm, XU_warmed_air_10cm) %>%
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(sensor == 1)
 KBS_2016_2_10 <- KBS %>%
         filter(year == 2016) %>%
-        select(Date_Time, year, julian, sensor, XU_ambient_air_10cm, XU_warmed_air_10cm) %>%
+        dplyr::select(Date_Time, year, julian, sensor, XU_ambient_air_10cm, XU_warmed_air_10cm) %>%
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(sensor == 2)
 KBS_2016_3_10 <- KBS %>%
         filter(year == 2016) %>%
-        select(Date_Time, year, julian, sensor, XU_ambient_air_10cm, XU_warmed_air_10cm) %>%
+        dplyr::select(Date_Time, year, julian, sensor, XU_ambient_air_10cm, XU_warmed_air_10cm) %>%
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(sensor == 3)
 # change sensor number in dataframe name here to see data for each sensor
-ggplot(KBS_2016_3_10, aes(x=julian, y=temp, group=treatment, color=treatment)) +
+ggplot(KBS_2016_2_10, aes(x=julian, y=temp, group=treatment, color=treatment)) +
         geom_point() +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
@@ -70,7 +73,7 @@ KBS_2017_3_10 <- KBS %>%
         select(Date_Time, year, julian, sensor, XU_ambient_air_10cm, XU_warmed_air_10cm) %>%
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(sensor == 3)
-ggplot(KBS_2017_2_10, aes(x=julian, y=temp, group=treatment, color=treatment)) +
+ggplot(KBS_2017_3_10, aes(x=julian, y=temp, group=treatment, color=treatment)) +
         geom_point() +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
@@ -182,7 +185,7 @@ KBS_2016_3_1 <- KBS %>%
         select(Date_Time, year, julian, sensor, XH_warmed_air_1m, XH_ambient_air_1m) %>%
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
         filter(sensor == 3)
-ggplot(KBS_2016_3_1, aes(x=julian, y=temp, group=treatment, color=treatment)) +
+ggplot(KBS_2016_2_1, aes(x=julian, y=temp, group=treatment, color=treatment)) +
         geom_point() +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
