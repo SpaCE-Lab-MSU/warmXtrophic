@@ -28,13 +28,13 @@ UMBS_dates <- UMBS
 UMBS_dates$julian <- format(UMBS_dates$Date_Time, "%j")
 
 # remove all columns except 1m air temps + date info
-KBS_dates <-dplyr::select(KBS_dates, -c('X', 'X.1',
+KBS_dates <-dplyr::select(KBS_dates, -c('X',
                                         'XH_warmed_soil_moisture_5cm','XH_ambient_soil_moisture_5cm',
                                         'XH_warmed_RH_1m','XH_ambient_RH_1m',
                                         'XU_warmed_air_10cm','XU_ambient_air_10cm',
                                         'XU_warmed_soil_temp_5cm','XU_ambient_soil_temp_5cm',
                                         'site'))
-UMBS_dates <-dplyr::select(UMBS_dates, -c('X', 'X.1',
+UMBS_dates <-dplyr::select(UMBS_dates, -c('X',
                                        'XH_warmed_soil_moisture_5cm','XH_ambient_soil_moisture_5cm',
                                        'XH_warmed_RH_1m','XH_ambient_RH_1m',
                                        'XU_warmed_air_10cm','XU_ambient_air_10cm',
