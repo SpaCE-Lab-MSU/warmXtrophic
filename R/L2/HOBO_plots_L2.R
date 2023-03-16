@@ -131,6 +131,10 @@ KBS_avg_year_soilmo2 <- KBS_avg_year_soilmo %>%  # summarizing over all sensors
         group_by(year, treatment) %>%
         summarize(average_moist = mean(average, na.rm = TRUE),
                   se = std.error(average, na.rm = TRUE))
+# converting soil moisture from m^3/m^3 to percentages
+KBS_avg_year_soilmo2 <- KBS_avg_year_soilmo2 %>%
+        mutate(average_moist = average_moist*100) %>%
+        mutate(se = se*100)
 
 KBS_soil_merged <- rbind(KBS_avg_year_soil2, KBS_avg_year_soilmo2)
 
@@ -212,7 +216,7 @@ Fig1_soil_moist_line_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_m
                            values = c("#a6bddb", "#fb6a4a"),
                            labels=c("Ambient","Warmed")) +
         labs(title="KBS",y=NULL, x=NULL) +
-        ylim(0.07,0.21) +
+        ylim(7,21) +
         theme_bw(14)
 
 Fig1_soil_kbs_dualy <- ggplot(KBS_soil_merged, aes(x=year, fill=treatment, shape=treatment)) +
@@ -594,6 +598,10 @@ UMBS_avg_year_soilmo2 <- UMBS_avg_year_soilmo %>%  # summarizing over all sensor
         group_by(year, treatment) %>%
         summarize(average_moist = mean(average, na.rm = TRUE),
                   se = std.error(average, na.rm = TRUE))
+# converting soil moisture from m^3/m^3 to percentages
+UMBS_avg_year_soilmo2 <- UMBS_avg_year_soilmo2 %>%
+        mutate(average_moist = average_moist*100) %>%
+        mutate(se = se*100)
 
 UMBS_soil_merged <- rbind(UMBS_avg_year_soil2, UMBS_avg_year_soilmo2)
 
@@ -669,7 +677,7 @@ Fig1_soil_moist_line_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average
                            values = c("#a6bddb", "#fb6a4a"),
                            labels=c("Ambient","Warmed")) +
         labs(title="UMBS",y=NULL, x=NULL) +
-        ylim(0.07,0.21) +
+        ylim(7,21) +
         theme_bw(14)
 
 Fig1_soil_umbs_dualy <- ggplot(UMBS_soil_merged, aes(x=year, fill=treatment, shape=treatment)) +
@@ -885,7 +893,7 @@ dev.off()
 Fig1.7 <- ggarrange(Fig1_soil_moist_line_kbs, Fig1_soil_moist_line_umbs, ncol = 2, common.legend = T, legend = "right")
 png("HOBO_plots_L2_soil_moist_line.png", units="in", width=10, height=5, res=300)
 annotate_figure(Fig1.7,
-                left = text_grob("Average Soil Moisture", color = "black", rot = 90),
+                left = text_grob("Average Soil Moisture (%)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
 dev.off()
 
