@@ -32,6 +32,12 @@ UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d")
 KBS$month <- format(KBS$Date_Time,format="%m")
 KBS$year <- format(KBS$Date_Time,format="%Y")
 
+# t-tests
+over_t.test <- t.test(Overstory~state,data=KBS)
+over_t.test
+under_t.test <- t.test(Average_Ground~state,data=KBS)
+under_t.test
+
 # avg PAR overall
 KBS_avg_over <- KBS %>%
         group_by(state) %>%
@@ -86,6 +92,12 @@ KBS_avg_sun_late <- KBS %>%
 # add column for month and year
 UMBS$month <- format(UMBS$Date_Time,format="%m")
 UMBS$year <- format(UMBS$Date_Time,format="%Y")
+
+# t-tests
+over_umbs_t.test <- t.test(Overstory~state,data=UMBS)
+over_umbs_t.test
+under_umbs_t.test <- t.test(Average_Ground~state,data=UMBS)
+under_umbs_t.test
 
 # avg PAR overall
 UMBS_avg_over <- UMBS %>%
