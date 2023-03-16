@@ -82,6 +82,11 @@ outliers <- KBS_avg_year_10cm %>%
   identify_outliers(temp)
 view(outliers)
 
+# t-test
+avgyear_t.test <- t.test(temp~treatment,data=KBS_avg_year)
+avgyear_t.test
+avgyear10cm_t.test <- t.test(temp~treatment,data=KBS_avg_year_10cm)
+avgyear10cm_t.test
 
 # avg temps in the chambers during the daytime (over all years)
 KBS_avg_temp <- KBS_avg_year %>%
@@ -172,19 +177,26 @@ KBS_winter <- KBS_winter %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
         dplyr::select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, sensor)
+
+KBS_winter <- KBS_winter %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
+
+# t-test
+winter_t.test <- t.test(temp~treatment,data=KBS_winter)
+winter_t.test
+
 KBS_avg_winter <- KBS_winter %>%
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(year, sensor, treatment) %>%
+        group_by(sensor, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T)) %>%
-        group_by(year, treatment) %>%
+        group_by(treatment) %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
-KBS_avg_winter2 <- KBS_avg_winter %>%
-        select(-sd) %>%
-        pivot_wider(names_from = treatment, values_from = mean) %>%
-        group_by(year) %>%
-        summarize(diff = XH_warmed_air_1m-XH_ambient_air_1m)
-print(KBS_avg_winter2)
+#KBS_avg_winter2 <- KBS_avg_winter %>%
+#        select(-sd) %>%
+#        pivot_wider(names_from = treatment, values_from = mean) %>%
+#        group_by(year) %>%
+#        summarize(diff = XH_warmed_air_1m-XH_ambient_air_1m)
+print(KBS_avg_winter) 
 
 
 #nighttime warming?
@@ -196,19 +208,26 @@ KBS_night <- KBS_night %>%
         filter(month > "03" | month < "09") %>%
         filter(hour > "20" | hour < "06") %>%
         select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, sensor)
+
+KBS_night <- KBS_night %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
+
+# t-test
+night_t.test <- t.test(temp~treatment,data=KBS_night)
+night_t.test
+
 KBS_avg_night <- KBS_night %>%
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(year, sensor, treatment) %>%
+        group_by(sensor, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T)) %>%
-        group_by(year, treatment) %>%
+        group_by(treatment) %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
-KBS_avg_night2 <- KBS_avg_night %>%
-        select(-sd) %>%
-        pivot_wider(names_from = treatment, values_from = mean) %>%
-        group_by(year) %>%
-        summarize(diff = XH_warmed_air_1m-XH_ambient_air_1m)
-print(KBS_avg_night2)
+#KBS_avg_night2 <- KBS_avg_night %>%
+#        select(-sd) %>%
+#        pivot_wider(names_from = treatment, values_from = mean) %>%
+#        group_by(year) %>%
+#        summarize(diff = XH_warmed_air_1m-XH_ambient_air_1m)
+print(KBS_avg_night)
 ```
 
 ## UMBS air temperatures
@@ -249,6 +268,12 @@ outliers <- UMBS_avg_year_10cm %>%
   group_by(treatment, year) %>%
   identify_outliers(temp)
 View(outliers)
+
+# t-test
+avgyear_umbs_t.test <- t.test(temp~treatment,data=UMBS_avg_year)
+avgyear_umbs_t.test
+avgyear10cm_umbs_t.test <- t.test(temp~treatment,data=UMBS_avg_year_10cm)
+avgyear10cm_umbs_t.test
 
 
 # avg temps in the chambers during the daytime
@@ -340,19 +365,24 @@ UMBS_winter <- UMBS_winter %>%
         filter(hour > "06") %>%
         filter(hour < "20") %>%
         select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, sensor)
+UMBS_winter <- UMBS_winter %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
+
+winter_umbs_t.test <- t.test(temp~treatment,data=UMBS_winter)
+winter_umbs_t.test
+
 UMBS_avg_winter <- UMBS_winter %>%
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(year, sensor, treatment) %>%
+        group_by(sensor, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T))  %>%
-        group_by(year, treatment) %>%
+        group_by(treatment) %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
-UMBS_avg_winter2 <- UMBS_avg_winter %>%
-        select(-sd) %>%
-        pivot_wider(names_from = treatment, values_from = mean) %>%
-        group_by(year) %>%
-        summarize(diff = XH_warmed_air_1m-XH_ambient_air_1m)
-print(UMBS_avg_winter2)
+#UMBS_avg_winter2 <- UMBS_avg_winter %>%
+#        select(-sd) %>%
+#        pivot_wider(names_from = treatment, values_from = mean) %>%
+#        group_by(year) %>%
+#        summarize(diff = XH_warmed_air_1m-XH_ambient_air_1m)
+print(UMBS_avg_winter)
 
 
 #nighttime warming?
@@ -364,19 +394,24 @@ UMBS_night <- UMBS_night %>%
         filter(month > "03" | month < "09") %>%
         filter(hour > "20" | hour < "06") %>%
         select(Date_Time, year, month, hour, XH_warmed_air_1m, XH_ambient_air_1m, sensor)
+UMBS_night <- UMBS_night %>%
+        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
+
+night_umbs_t.test <- t.test(temp~treatment,data=UMBS_night)
+night_umbs_t.test
+
 UMBS_avg_night <- UMBS_night %>%
-        gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor) %>%
-        group_by(year, sensor, treatment) %>%
+        group_by(sensor, treatment) %>%
         summarize(mean_temp = mean(temp, na.rm = T))  %>%
-        group_by(year, treatment) %>%
+        group_by(treatment) %>%
         summarize(mean = mean(mean_temp, na.rm = T),
                   sd = sd(mean_temp, na.rm = T))
-UMBS_avg_night2 <- UMBS_avg_night %>%
-        select(-sd) %>%
-        pivot_wider(names_from = treatment, values_from = mean) %>%
-        group_by(year) %>%
-        summarize(diff = XH_warmed_air_1m-XH_ambient_air_1m)
-print(UMBS_avg_night2)
+#UMBS_avg_night2 <- UMBS_avg_night %>%
+#        select(-sd) %>%
+#        pivot_wider(names_from = treatment, values_from = mean) %>%
+#        group_by(year) %>%
+#        summarize(diff = XH_warmed_air_1m-XH_ambient_air_1m)
+print(UMBS_avg_night)
 ```
 
 ## KBS soil temp & moisture
@@ -398,6 +433,9 @@ KBS_season_soil <- KBS_season_soil %>%
 # create new dataframes for temperatures averaged by year & averaged by month and year
 KBS_avg_soil <- KBS_season_soil %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
+
+soil_t.test <- t.test(temp~treatment,data=KBS_avg_soil)
+soil_t.test
 
 # avg soil temps in the chambers during the daytime
 KBS_avg_soil_temp <- KBS_avg_soil %>%
@@ -428,6 +466,9 @@ KBS_season_moist <- KBS_season_moist %>%
 KBS_avg_moist <- KBS_season_moist %>%
   gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
 
+moist_t.test <- t.test(temp~treatment,data=KBS_avg_moist)
+moist_t.test
+
 # avg soil temps in the chambers during the daytime
 KBS_avg_soil_moist <- KBS_avg_moist %>%
         group_by(sensor, treatment) %>%
@@ -457,6 +498,9 @@ UMBS_season_soil <- UMBS_season_soil1 %>%
 UMBS_avg_soil <- UMBS_season_soil %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
 
+soil_umbs_t.test <- t.test(temp~treatment,data=UMBS_avg_soil)
+soil_umbs_t.test
+
 # avg soil temps in the chambers during the daytime
 UMBS_avg_soil_temp <- UMBS_avg_soil %>%
         group_by(sensor, treatment) %>%
@@ -483,6 +527,9 @@ UMBS_season_moist <- UMBS_season_moist %>%
 # create new dataframes for temperatures averaged by year & averaged by month and year
 UMBS_avg_moist <- UMBS_season_moist %>%
         gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time, -sensor)
+
+moist_umbs_t.test <- t.test(temp~treatment,data=UMBS_avg_moist)
+moist_umbs_t.test
 
 # avg soil temps in the chambers during the daytime
 UMBS_avg_soil_moist <- UMBS_avg_moist %>%
