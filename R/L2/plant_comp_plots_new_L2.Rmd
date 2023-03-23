@@ -30,9 +30,9 @@ L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
 
 # Read in plant comp data and meta-data
-comp_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"))
-growth_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_growthhabit_L2.csv"))
-origin_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_origin_L2.csv"))
+comp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
+growth <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_L2.csv"))
+origin <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_origin_L2.csv"))
 
 # Set ggplot2 plotting
 # This code for ggplot2 sets the theme to mostly black and white 
@@ -42,49 +42,98 @@ theme_update(axis.text.x = element_text(size = 12, angle = 90),
              axis.text.y = element_text(size = 12))
 ```
 ```{r}
-# filter the data to contain the mean and std error for relabun of each site for origin
-plot_avg <- comp_plot %>%
-  group_by(site, state, year) %>%
-  summarize(avg_plot_total = mean(plot_total_cover_year, na.rm = TRUE),
-            se = std.error(plot_total_cover_year, na.rm = TRUE))
+# filter the data to contain the mean and std error for relabun of each site
+relabun_avg <- comp %>%
+  group_by(site, state, month, year) %>%
+  summarize(avg_relabun = mean(relative, na.rm = TRUE),
+            se = std.error(relative, na.rm = TRUE))
 
 # filter the data to contain the mean and std error for relabun of each site for origin
-origin_plot_avg <- origin_plot %>%
+origin_relabun_avg <- origin %>%
   group_by(site, state, origin, year) %>%
-  summarize(avg_relabun = mean(relabun, na.rm = TRUE),
-            se = std.error(relabun, na.rm = TRUE))
+  summarize(avg_relabun = mean(relative, na.rm = TRUE),
+            se = std.error(relative, na.rm = TRUE))
 
-# filter the data to contain the mean and std error for relabun of each site for origin
-growth_plot_avg <- growth_plot %>%
+# filter the data to contain the mean and std error for relabun of each site for growth habit
+growth_relabun_avg <- growth %>%
   group_by(site, state, growth_habit, year) %>%
-  summarize(avg_relabun = mean(relabun, na.rm = TRUE),
-            se = std.error(relabun, na.rm = TRUE))
+  summarize(avg_relabun = mean(relative, na.rm = TRUE),
+            se = std.error(relative, na.rm = TRUE))
 
 # trying to add empty values for 2021 to umbs so the x-axis matches the other plots
-plot_avg2 <- plot_avg
-de<-data.frame("umbs", NA, "2021", NA, NA)
-names(de)<-c("site","state", "year", "avg_plot_total", "se")
-de$year <- as.integer(de$year)
-plot_avg <- rbind(plot_avg2, de)
-
-origin_plot_avg2 <- origin_plot_avg
-de<-data.frame("umbs", NA, "Native", "2021", NA, NA)
-de2<-data.frame("umbs", NA, "Exotic", "2021", NA, NA)
-names(de)<-c("site","state", "origin", "year", "avg_relabun", "se")
-names(de2)<-c("site","state", "origin", "year", "avg_relabun", "se")
-de$year <- as.integer(de$year)
-de2$year <- as.integer(de2$year)
-origin_plot_avg <- rbind(origin_plot_avg2, de, de2)
-
-growth_plot_avg2 <- growth_plot_avg
-de<-data.frame("umbs", NA, "Graminoid", "2021", NA, NA)
-de2<-data.frame("umbs", NA, "Forb", "2021", NA, NA)
-names(de)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
-names(de2)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
-de$year <- as.integer(de$year)
-de2$year <- as.integer(de2$year)
-growth_plot_avg <- rbind(growth_plot_avg2, de, de2)
+#plot_avg2 <- plot_avg
+#de<-data.frame("umbs", NA, "2021", NA, NA)
+#names(de)<-c("site","state", "year", "avg_plot_total", "se")
+#de$year <- as.integer(de$year)
+#plot_avg <- rbind(plot_avg2, de)
+#
+#origin_plot_avg2 <- origin_plot_avg
+#de<-data.frame("umbs", NA, "Native", "2021", NA, NA)
+#de2<-data.frame("umbs", NA, "Exotic", "2021", NA, NA)
+#names(de)<-c("site","state", "origin", "year", "avg_relabun", "se")
+#names(de2)<-c("site","state", "origin", "year", "avg_relabun", "se")
+#de$year <- as.integer(de$year)
+#de2$year <- as.integer(de2$year)
+#origin_plot_avg <- rbind(origin_plot_avg2, de, de2)
+#
+#growth_plot_avg2 <- growth_plot_avg
+#de<-data.frame("umbs", NA, "Graminoid", "2021", NA, NA)
+#de2<-data.frame("umbs", NA, "Forb", "2021", NA, NA)
+#names(de)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
+#names(de2)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
+#de$year <- as.integer(de$year)
+#de2$year <- as.integer(de2$year)
+#growth_plot_avg <- rbind(growth_plot_avg2, de, de2)
 ```
+
+Plot June, July, and August relative abundances
+```{r}
+comp_umbs_19 <- subset(comp, year == "2019" & site == "umbs")
+
+avg_comp_umbs_19 <- comp_umbs_19 %>%
+  group_by(site, state, month) %>%
+  summarize(avg_plot_cover_total = mean(plot_cover_total, na.rm = TRUE),
+            se = std.error(plot_cover_total, na.rm = TRUE))
+
+ggplot(avg_comp_umbs_19, aes(x = month, y = avg_plot_cover_total, fill = state)) +
+        #facet_wrap(.~month) +
+        geom_line() +
+        geom_point() +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+        theme_classic()
+
+
+##############################################
+avg_comp <- comp %>%
+  group_by(site, state, month, year) %>%
+  summarize(avg_plot_cover_total = mean(plot_cover_total, na.rm = TRUE),
+            se = std.error(plot_cover_total, na.rm = TRUE))
+
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+avg_comp$state <- as.factor(avg_comp$state)
+levels(avg_comp$state)
+# [1] "ambient" "warmed" 
+avg_comp$state <- factor(avg_comp$state, levels(avg_comp$state)[c(2,1)])
+levels(avg_comp$state)
+# [1] "warmed"  "ambient"
+
+avg_comp_plot <- function(loc) { 
+  avg_comp <- subset(avg_comp, site == loc)
+  return(ggplot(avg_comp, aes(x = month, y = avg_plot_cover_total, fill = state)) +
+        facet_grid(.~year) +
+        geom_line(aes(color = state)) +
+        geom_point(aes(color = state)) +
+        labs(x = "Month", y = "Average Total Plot Cover", title = loc) +
+        theme_classic())
+}
+
+avg_comp_plot("umbs")
+avg_comp_plot("kbs")
+
+```
+
+
+###### Code below is from calculating total cover across the entire year - we don't want this ########
 
 General Plot Level
 ```{r}
