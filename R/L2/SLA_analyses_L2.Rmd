@@ -50,7 +50,7 @@ For a subset of species, per site, use scissors to collect 4-5 mature leaves wit
 unique(spla$species)
 with(spla,table(spla$site,spla$species))
 with(spla,table(spla$plot,spla$species))
-with(spla,table(spla$year,spla$plant_number)) # 2020 has odd entries of letters for plant_number - Chk w Mark
+with(spla,table(spla$year,spla$plant_number))
 ```
 Almost all species are only at one site, except Popr. Use species as fixed effect, and site as fixed effect. Plant_number and plot as random effects account for the pseudoreplication of observations within a plant and within a plot.
 
@@ -79,21 +79,24 @@ hist(sqrt(spla$sla))
 hist((spla$sla)^(1/3))
 hist(log(spla$sla))
 
-sqrt.test <- lmer(sqrt(sla) ~ state + (1 | plot/plant_number), data=spla,REML=F)
+sqrt.test <- lmer(sqrt(sla) ~ state + species + site + (1 | plot/plant_number), data=spla,REML=F)
 qqPlot(resid(sqrt.test), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(sqrt.test), main = "Specific Leaf Area (cm2/g)")
+outlierTest(sqrt.test) # some outliers
 shapiro.test(resid(sqrt.test)) # not normally distributed
 
-cubed.test <- lmer((sla^(1/3)) ~ state + (1 | plot/plant_number), data=spla,REML=F)
+cubed.test <- lmer((sla^(1/3)) ~ state + species + site + (1 | plot/plant_number), data=spla,REML=F)
 qqPlot(resid(cubed.test), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(cubed.test), main = "Specific Leaf Area (cm2/g)")
+outlierTest(cubed.test) # some outliers, but will remove these further down
 shapiro.test(resid(cubed.test)) # not normally distributed
+# this looks best
 
-log.test <- lmer(log(sla) ~ state + (1 | plot/plant_number), data=spla,REML=F)
+log.test <- lmer(log(sla) ~ state + species + site + (1 | plot/plant_number), data=spla,REML=F)
 qqPlot(resid(log.test), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(log.test), main = "Specific Leaf Area (cm2/g)")
+outlierTest(log.test) # no outliers
 shapiro.test(resid(log.test)) # not normally distributed
-# log looks the best out of the three
 
 
 # Exploring distributions for these right-skewed data:
@@ -125,7 +128,7 @@ ppcomp  (list(fit.gamma, fit.exp, fit.ln), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits (can't include the sqrt normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.exp, fit.ln), fitnames = c("Gamma", "Exponential", "Log Normal"))
-# Gamma is a winner so far (lowest AIC, BIC), but Lognormal is pretty close. *We will need to re-check this after investigating outliers.*
+# Log normal is a winner so far (lowest AIC, BIC), but going to start with cubed transformation
 ```
 
 
@@ -137,8 +140,8 @@ Random effect = plant_number, plot (bc observations are nested within plant and 
 
 Fit with ML (REML = FALSE) bc we are interested in estimating fixed effects more than random effects. See https://uoftcoders.github.io/rcourse/lec08-linear-mixed-effects-models.html for more details.
 ```{r}
-m1 <- lmer(log(sla) ~ state + species + year + insecticide + (1 | plot/plant_number), data = spla, REML=FALSE)
-ggplot(spla,aes(x=plot,y=log(sla),col=plant_number)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plant_number)
+m1 <- lmer(sla^(1/3) ~ state + species + year + insecticide + (1 | plot/plant_number), data = spla, REML=FALSE)
+ggplot(spla,aes(x=plot,y=(sla^(1/3)),col=plant_number)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plant_number)
 
 
 # Check Assumptions:
@@ -149,7 +152,7 @@ plot(m1, main = "Log Specific Leaf Area (cm2/g)")
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 leveneTest(residuals(m1) ~ spla$state)
-# Assumption met
+# Assumption not met
 leveneTest(residuals(m1) ~ spla$species)
 # Assumption not met - not surprising given the differences among species
 leveneTest(residuals(m1) ~ spla$insecticide)
@@ -162,44 +165,38 @@ leveneTest(residuals(m1) ~ spla$plot)
 qqPlot(resid(m1), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1), main = "Specific Leaf Area (cm2/g)")
 shapiro.test(resid(m1)) # not normally distributed because p < 0.05
-# Outliers from plots above:
-spla[1375,]
-spla[1406,]
-# These are extremely small numbers for area relative to mass; also an order of magnitude lower than other area measurements in 2020.
-# Outlier test - yes, these are outliers bc p<0.05 
-outlierTest(m1)
-# Remove these 2 points
-spla1<-spla[-c(1375, 1406),]
-m1.1 <- lmer(log(sla) ~ state + species + year + insecticide + (1|plot/plant_number), data = spla1, REML=FALSE)
+
+# check for outliers
+outlierTest(m1) # some outliers
+# Remove these points
+spla1<-spla[-c(1406,1375,835,557,590,558),]
+
+# re-run model
+m1.1 <- lmer(sla^(1/3) ~ state + species + year + insecticide + (1|plot/plant_number), data = spla1, REML=FALSE)
 qqPlot(resid(m1.1), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.1), main = "Specific Leaf Area (cm2/g)")
 shapiro.test(resid(m1.1)) # not normally distributed
 outlierTest(m1.1) # still outliers
-spla1[697,] # this data point is an order of magnitude higher for mass (0.164) than similar ones; likely recording error. Edit to appropriate magnitude.
-spla1$mass_g[697]=0.0164
-spla1[697,] 
-spla1[835,] # this data point is an order of magnitude lower for mass (0.0017) than similar ones for Popr with similar area; likely recording error. Edit to appropriate magnitude.
-spla1$mass_g[835]=0.017
-spla1[835,]
+# remove these points
+spla1[635,] # location of "638" in the dataframe
+spla1[266,]
+spla2<-spla1[-c(266,635),]
 
-# Re-compute SLA on these data without outliers:
-spla1$sla<-spla1$area_cm2/spla1$mass_g
-
-# Re-fit model without outliers
-m1.2 <- lmer(log(sla) ~ state + species + year + insecticide + (1|plot/plant_number), data = spla1, REML=FALSE)
+# re-run model
+m1.2 <- lmer(sla^(1/3) ~ state + species + year + insecticide + (1|plot/plant_number), data = spla2, REML=FALSE)
 qqPlot(resid(m1.2), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.2), main = "Specific Leaf Area (cm2/g)")
-outlierTest(m1.2) # no outliers (they are all below +-2 resids)
 shapiro.test(resid(m1.2)) # not normally distributed
+outlierTest(m1.2) # no outliers
 
 # Check homogeneity of variances again
-leveneTest(residuals(m1.2) ~ spla1$state)
-# Assumption met bc p>0.05
-leveneTest(residuals(m1.2) ~ spla1$species)
+leveneTest(residuals(m1.2) ~ spla2$state)
+# Assumption not met
+leveneTest(residuals(m1.2) ~ spla2$species)
 # Assumption not met - not surprising given the differences among species
-leveneTest(residuals(m1.2) ~ spla1$insecticide)
+leveneTest(residuals(m1.2) ~ spla2$insecticide)
 # Assumption met bc p>0.05
-leveneTest(residuals(m1.2) ~ spla1$plot)
+leveneTest(residuals(m1.2) ~ spla2$plot)
 # Assumption met bc p>0.05
 
 # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
@@ -215,26 +212,23 @@ shapiro.test(r_int)
 
 *Export* the "no outliers" SLA L1 dataframe as a CSV to ensure it is used for subsequent analyses. This is now the updated csv with the cleaned and merged SLA L0 data, lacking outliers, uploaded to the shared google drive L1 folder:
 ```{r}
-write.csv(spla1, file.path(L1_dir, "./SLA/SLA_L1_nooutliers.csv"), row.names=F)
-# KD saving a copy to working directory:
-write.csv(spla1, "SLA_L1_nooutliers.csv", row.names=F)
+write.csv(spla2, file.path(L1_dir, "SLA/SLA_L1_nooutliers.csv"), row.names=F)
 ```
 
-#SUMMARY SO FAR: 
-Model exploration from above determined log normal distribution doesn't work great, identified 4 outliers (dropped 2 outliers, and adjusting values in 2 others due to likely measurement error). Proceed with re-checking the distribution and assumptions as above with the outliers removed.
+# Moving on with model exploration
 ```{r}
-# based on the code above, we know log transformation doesn't work great (based on shapiro-wilk tests)
+# based on the code above, we know cubed root transformation doesn't work great (based on shapiro-wilk tests)
 # however, the residuals histograms still look decently normal (even if shapiro is <0.05)
-# I'm going to test different log-transformed models and see how they look before trying a different distribution
+# I'm going to test different cubed root-transformed models and see how they look before trying a different distribution
 
 # full non-outlier model
-m1.2 <- lmer(log(sla) ~ state + species + year + insecticide + (1|plot/plant_number), data = spla1, REML=FALSE)
+m1.2 <- lmer(sla^(1/3) ~ state + species + year + insecticide + (1|plot/plant_number), data = spla2, REML=FALSE)
 qqPlot(resid(m1.2), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.2), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.2) # no outliers (they are all below +-2 resids)
 shapiro.test(resid(m1.2)) # not normally distributed, but histogram looks good
 
-m1.3 <- lmer(log(sla) ~ state + species + year + (1|plot/plant_number), data = spla1, REML=FALSE)
+m1.3 <- lmer(sla^(1/3) ~ state + species + year + (1|plot/plant_number), data = spla2, REML=FALSE)
 qqPlot(resid(m1.3), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.3), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.3) # no outliers (they are all below +-2 resids)
@@ -243,25 +237,25 @@ anova(m1.2,m1.3)
 AICctab(m1.2,m1.3) # m1.3 slightly better
 summary(m1.3)
 
-m1.4 <- lmer(log(sla) ~ state + species + year + site + (1|plot/plant_number), data = spla1, REML=FALSE)
+m1.4 <- lmer(sla^(1/3) ~ state + species + year + site + (1|plot/plant_number), data = spla2, REML=FALSE)
 qqPlot(resid(m1.4), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.4), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.4) # no outliers (they are all below +-2 resids)
-shapiro.test(resid(m1.4)) # pretty close
+shapiro.test(resid(m1.4)) # not normally distributed, but histogram looks good
 anova(m1.3,m1.4)
 AICctab(m1.3,m1.4) # m1.4 better
 summary(m1.4)
 
-m1.5 <- lmer(log(sla) ~ state * species + year + site + (1|plot/plant_number), data = spla1, REML=FALSE)
+m1.5 <- lmer(sla^(1/3) ~ state * species + year + site + (1|plot/plant_number), data = spla2, REML=FALSE)
 qqPlot(resid(m1.5), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.5), main = "Specific Leaf Area (cm2/g)")
-outlierTest(m1.5) # no outliers (they are all below +-2 resids)
+outlierTest(m1.5) # some outliers
 shapiro.test(resid(m1.5)) # not normal, but histogram looks good
 anova(m1.4,m1.5)
 AICctab(m1.4,m1.5) # m1.5 better
 summary(m1.5)
 
-m1.6 <- lmer(log(sla) ~ state * species + site + (1|plot/plant_number) + (1|year), data = spla1, REML=FALSE)
+m1.6 <- lmer(sla^(1/3) ~ state * species + site + (1|plot/plant_number) + (1|year), data = spla2, REML=FALSE)
 qqPlot(resid(m1.6), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.6), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.6) # no outliers (they are all below +-2 resids)
@@ -271,7 +265,7 @@ AICctab(m1.5,m1.6) # m1.6 better
 
 
 # based on the above comparisons, I'm going with m1.6
-# shapiro-wilk is < 0.05, but the histogram looks normal so I'm continuing with log transformation in this model
+# shapiro-wilk is < 0.05, but the histogram looks normal so I'm continuing with cubed root transformation in this model
 anova(m1.6)
 summary(m1.6)
 emmeans(m1.6, list(pairwise ~ state*species), adjust = "tukey")
@@ -282,79 +276,114 @@ emmip(m1.6, species~state)
 
 Testing models for each site separately
 This might fit the format of our manuscript better, since all other models are ran separately for each site
+(However, species are mostly unique to each site, so one combined model could work - using these separate models in the paper for now)
 ```{r}
-sla_kbs <- spla1 %>%
+sla_kbs <- spla2 %>%
         filter(site == "kbs")
-sla_umbs <- spla1 %>%
+sla_umbs <- spla2 %>%
         filter(site == "umbs")
 
 
 ### KBS ###
 # full non-outlier model
-m1.2k <- lmer(log(sla) ~ state + species + year + insecticide + (1|plot/plant_number), data = sla_kbs, REML=FALSE)
+m1.2k <- lmer(sla^(1/3) ~ state + species + year + insecticide + (1|plot/plant_number), data = sla_kbs, REML=FALSE)
 qqPlot(resid(m1.2k), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.2k), main = "Specific Leaf Area (cm2/g)")
-outlierTest(m1.2k) # 543, 266, 557, 590 -> keeping for now because removing them makes things weird
-shapiro.test(resid(m1.2k)) # not normally distributed, but histogram looks good
+outlierTest(m1.2k) # one outlier
+shapiro.test(resid(m1.2k)) # not normally distributed, but histogram looks decent
 
-m1.3k <- lmer(log(sla) ~ state + species + year + (1|plot/plant_number), data = sla_kbs, REML=FALSE)
+m1.3k <- lmer(sla^(1/3) ~ state + species + year + (1|plot/plant_number), data = sla_kbs, REML=FALSE)
 qqPlot(resid(m1.3k), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.3k), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.3k) # same outliers as above
 shapiro.test(resid(m1.3k)) # not normally distributed, but histogram looks good
 anova(m1.2k,m1.3k)
-AICctab(m1.2k,m1.3k) # m1.3 slightly better
+AICctab(m1.2k,m1.3k) # almost equivalent - going with simpler model (m1.3)
 summary(m1.3k)
 
-m1.5k <- lmer(log(sla) ~ state * species + year + (1|plot/plant_number), data = sla_kbs, REML=FALSE)
+m1.5k <- lmer(sla^(1/3) ~ state * species + year + (1|plot/plant_number), data = sla_kbs, REML=FALSE)
 qqPlot(resid(m1.5k), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.5k), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.5k) # same as above
 shapiro.test(resid(m1.5k)) # not normal, but histogram looks good
 anova(m1.3k,m1.5k)
-AICctab(m1.3k,m1.5k) # m1.3 better
-summary(m1.3k)
+AICctab(m1.3k,m1.5k) # m1.5 better
+summary(m1.5k)
 
-m1.6k <- lmer(log(sla) ~ state + species + (1|plot/plant_number) + (1|year), data = sla_kbs, REML=FALSE)
+m1.6k <- lmer(sla^(1/3) ~ state * species + (1|plot/plant_number), data = sla_kbs, REML=FALSE)
 qqPlot(resid(m1.6k), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.6k), main = "Specific Leaf Area (cm2/g)")
-outlierTest(m1.6k) # same as above + a few more
-shapiro.test(resid(m1.6k)) # not normal, but histogram looks okay
-anova(m1.3k,m1.6k)
-AICctab(m1.3k,m1.6k) # m1.6 better
+outlierTest(m1.6k) # none
+shapiro.test(resid(m1.6k)) # pretty close
+anova(m1.5k,m1.6k)
+AICctab(m1.5k,m1.6k) # m1.5 better
+
+m1.7k <- lmer(sla^(1/3) ~ state * species + (1|plot/plant_number) + (1|year), data = sla_kbs, REML=FALSE) # changed to true here and above for comparing random effects
+qqPlot(resid(m1.7k), main = "Specific Leaf Area (cm2/g)")
+hist(residuals(m1.7k), main = "Specific Leaf Area (cm2/g)")
+outlierTest(m1.7k) # one
+shapiro.test(resid(m1.7k)) # pretty close
+anova(m1.7k,m1.5k)
+AICctab(m1.7k,m1.5k) # m1.7 better
+
+# going with model 1.7k for KBS
+anova(m1.7k)
+summary(m1.7k)
+emmeans(m1.7k, list(pairwise ~ state*species), adjust = "tukey")
+mod1.7k.emm <- emmeans(m1.7k, ~ state*species)
+contrast(mod1.7k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(m1.7k, species~state)
 
 
 ### UMBS ###
 # full non-outlier model
-m1.2u <- lmer(log(sla) ~ state + species + year + insecticide + (1|plot/plant_number), data = sla_umbs, REML=FALSE)
+m1.2u <- lmer(sla^(1/3) ~ state + species + year + insecticide + (1|plot/plant_number), data = sla_umbs, REML=FALSE)
 qqPlot(resid(m1.2u), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.2u), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.2u) # none
-shapiro.test(resid(m1.2u)) # pretty close
+shapiro.test(resid(m1.2u)) # no but histogram looks good
 
-m1.3u <- lmer(log(sla) ~ state + species + year + (1|plot/plant_number), data = sla_umbs, REML=FALSE)
+m1.3u <- lmer(sla^(1/3) ~ state + species + year + (1|plot/plant_number), data = sla_umbs, REML=FALSE)
 qqPlot(resid(m1.3u), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.3u), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.3u) # none
-shapiro.test(resid(m1.3u)) # pretty close
+shapiro.test(resid(m1.3u)) # no but histogram looks good
 anova(m1.2u,m1.3u)
 AICctab(m1.2u,m1.3u) # m1.3 slightly better
 summary(m1.3u)
 
-m1.5u <- lmer(log(sla) ~ state * species + year + (1|plot/plant_number), data = sla_umbs, REML=FALSE)
+m1.5u <- lmer(sla^(1/3) ~ state * species + year + (1|plot/plant_number), data = sla_umbs, REML=FALSE)
 qqPlot(resid(m1.5u), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.5u), main = "Specific Leaf Area (cm2/g)")
-outlierTest(m1.5u) # none
-shapiro.test(resid(m1.5u)) # pretty close
+outlierTest(m1.5u) # one
+shapiro.test(resid(m1.5u)) # no but histogram looks good
 anova(m1.3u,m1.5u)
 AICctab(m1.3u,m1.5u) # m1.5 better
 summary(m1.5u)
 
-m1.6u <- lmer(log(sla) ~ state * species + (1|plot/plant_number) + (1|year), data = sla_umbs, REML=FALSE)
+m1.6u <- lmer(sla^(1/3) ~ state * species + (1|plot/plant_number), data = sla_umbs, REML=FALSE)
 qqPlot(resid(m1.6u), main = "Specific Leaf Area (cm2/g)")
 hist(residuals(m1.6u), main = "Specific Leaf Area (cm2/g)")
 outlierTest(m1.6u) # none
-shapiro.test(resid(m1.6u)) # pretty close
+shapiro.test(resid(m1.6u)) # no but histogram looks good
 anova(m1.5u,m1.6u)
 AICctab(m1.5u,m1.6u) # m1.5 better
+
+m1.7u <- lmer(sla^(1/3) ~ state * species + (1|plot/plant_number) + (1|year), data = sla_umbs, REML=FALSE) # changed to true here and above for comparing random effects
+qqPlot(resid(m1.7u), main = "Specific Leaf Area (cm2/g)")
+hist(residuals(m1.7u), main = "Specific Leaf Area (cm2/g)")
+outlierTest(m1.7u) # one
+shapiro.test(resid(m1.7u)) # pretty close
+anova(m1.7u,m1.6u)
+anova(m1.7u,m1.5u)
+AICctab(m1.7u,m1.6u) # m1.7 better
+AICctab(m1.7u,m1.5u) # m1.5 better
+
+# going with model 1.5u for UMBS
+anova(m1.5u)
+summary(m1.5u)
+emmeans(m1.5u, list(pairwise ~ state*species), adjust = "tukey")
+mod1.5u.emm <- emmeans(m1.5u, ~ state*species)
+contrast(mod1.5u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(m1.5u, species~state)
 ```
