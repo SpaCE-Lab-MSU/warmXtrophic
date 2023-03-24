@@ -86,51 +86,6 @@ growth_relabun_avg <- growth %>%
 #growth_plot_avg <- rbind(growth_plot_avg2, de, de2)
 ```
 
-Plot June, July, and August relative abundances
-```{r}
-comp_umbs_19 <- subset(comp, year == "2019" & site == "umbs")
-
-avg_comp_umbs_19 <- comp_umbs_19 %>%
-  group_by(site, state, month) %>%
-  summarize(avg_plot_cover_total = mean(plot_cover_total, na.rm = TRUE),
-            se = std.error(plot_cover_total, na.rm = TRUE))
-
-ggplot(avg_comp_umbs_19, aes(x = month, y = avg_plot_cover_total, fill = state)) +
-        #facet_wrap(.~month) +
-        geom_line() +
-        geom_point() +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-        theme_classic()
-
-
-##############################################
-avg_comp <- comp %>%
-  group_by(site, state, month, year) %>%
-  summarize(avg_plot_cover_total = mean(plot_cover_total, na.rm = TRUE),
-            se = std.error(plot_cover_total, na.rm = TRUE))
-
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
-avg_comp$state <- as.factor(avg_comp$state)
-levels(avg_comp$state)
-# [1] "ambient" "warmed" 
-avg_comp$state <- factor(avg_comp$state, levels(avg_comp$state)[c(2,1)])
-levels(avg_comp$state)
-# [1] "warmed"  "ambient"
-
-avg_comp_plot <- function(loc) { 
-  avg_comp <- subset(avg_comp, site == loc)
-  return(ggplot(avg_comp, aes(x = month, y = avg_plot_cover_total, fill = state)) +
-        facet_grid(.~year) +
-        geom_line(aes(color = state)) +
-        geom_point(aes(color = state)) +
-        labs(x = "Month", y = "Average Total Plot Cover", title = loc) +
-        theme_classic())
-}
-
-avg_comp_plot("umbs")
-avg_comp_plot("kbs")
-
-```
 
 
 ###### Code below is from calculating total cover across the entire year - we don't want this ########
