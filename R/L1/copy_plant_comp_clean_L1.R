@@ -111,8 +111,6 @@ plant_comp_merge3 <- plant_comp_merge2[!is.na(plant_comp_merge2$cover),]
 sort(unique(plant_comp_merge3$species))
 
 # remove unnecessary columns
-#plant_comp_merge3$old_code <- NULL
-#plant_comp_merge3$old_name <- NULL
 plant_comp_merge3$resolution <- NULL
 plant_comp_merge3$rhizomatous <- NULL
 plant_comp_merge3$MH_rhizomatous_suggestion <- NULL
@@ -129,6 +127,8 @@ sort(unique(plant_comp_merge4$species))
 
 # Upload clean data csv to google drive without the index column
 write.csv(plant_comp_merge4, file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"), row.names=F)
+
+###############################################################################
 
 # The below code removes species that are rare in the data set or were only recorded once or twice. It also removes
 # those that aren't species, like "Bare_Ground" or "Litter"

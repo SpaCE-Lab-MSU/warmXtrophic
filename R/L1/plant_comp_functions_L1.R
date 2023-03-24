@@ -122,6 +122,7 @@ change_spp <- function(df){
   df$Species[df$Species == "Sand"] <- "Bare_Ground"
   df$Species[df$Species == "Hipi"] <- "Hisp"
   df$Species[df$Species == "Soil"] <- "Bare_Ground"
+  df$Species[df$Species == "Ptsp"] <- "Ptaq"
   return(df)
 }
 
@@ -154,7 +155,7 @@ remove_spp <- function(df){
         df <- df[!grepl("Prpe",df$species),]
         df <- df[!grepl("Veth",df$species),]
         df <- df[!grepl("Anma",df$species),]
-        df <- df[!grepl("Vaan",df$species),]
+        #df <- df[!grepl("Vaan",df$species),]
         df <- df[!grepl("Gnul",df$species),]
         df <- df[!grepl("Trdu",df$species),]
         df <- df[!grepl("Alpe",df$species),]
@@ -195,5 +196,8 @@ remove_spp <- function(df){
         df <- df[!grepl("Unknown_Grass",df$species),]
         df <- df[!grepl("Unknown_Shrub_Tree",df$species),]
         df <- df[!grepl("Unknown_Shrub",df$species),]
+        df <- df[!grepl("Acsa",df$species),]
+        df <- df[!grepl("Vesp",df$species),]
+        df <- df[!grepl("Prsp",df$species),]
         return(df)
 }
