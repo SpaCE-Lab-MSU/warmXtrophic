@@ -3,6 +3,8 @@ title: 'warmXtrophic Project: SLA Plots'
 author: "Phoebe Zarnetske"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -16,15 +18,20 @@ rm(list=ls())
 
 #Load packages
 library(tidyverse)
+library(plotrix)
 #library(plotrix)
 
 # Set working directory to Google Drive
 #setwd("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/")
 
 # Read in data
-sla <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/SLA/SLA_L1.csv")
+# load in the data
+Sys.getenv("L1DIR")
+L1_dir<-Sys.getenv("L1DIR")
+sla <- read.csv(file.path(L1_dir,"SLA/SLA_L1_nooutliers.csv")) # this L1 csv was made in the SLA_analyses script
+#sla <- read.csv("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/SLA/SLA_L1.csv")
 unique(sla$species)
-with(sla,table(sla$site,sla$species))
+with(sla,table(sla$site,sla$species)) # doesn't work (KD)
 
 # Set ggplot2 plotting
 # This code for ggplot2 sets the theme to mostly black and white 
@@ -33,13 +40,73 @@ theme_set(theme_bw(14))
 theme_update(axis.text.x = element_text(size = 12, angle = 90),
              axis.text.y = element_text(size = 12))
 
+# clean site labels for plotting
+site_label <- c("kbs" = "KBS", "umbs" = "UMBS")
+
+# take the plant-level mean
+sla1 <- sla %>%
+    group_by(plot,site,year,species,state, insecticide, plant_number) %>%
+    summarize(sla = mean(sla),
+              se = std.error(sla)) 
+# take the species yearly treatment-level mean
+sla_treatment <- sla1 %>%
+    group_by(site, plot, year, state) %>%
+    summarize(sla = mean(sla)) %>%    
+    group_by(site,year,state) %>%
+    summarize(sla_mean = mean(sla),
+              se = std.error(sla)) 
+# take the overall treatment-level mean
+sla_treatment2 <- sla1 %>%
+    group_by(site, plot, species, state) %>%
+    summarize(sla = mean(sla)) %>%    
+    group_by(site,species,state) %>%
+    summarize(sla_mean = mean(sla),
+              se = std.error(sla)) 
+
 ```
 
 # SLA data
-## UMBS: Cest, Dasp, Popr, Ruac; KBS: Hisp, Soca
 ```{r}
+# barplot for each species at kbs and umbs (no years)
+png("sla_spp_L2.png", units="in", width=7, height=4, res=300)
+ggplot(sla_treatment2, aes(x = species, y = sla_mean, fill = state)) +
+        facet_wrap(.~site, labeller = as_labeller(site_label)) +
+        geom_bar(position = "dodge", stat = "identity", color = 'black') +
+        geom_errorbar(aes(ymin = sla_mean - se, ymax = sla_mean + se), width = 0.2,
+                position = position_dodge(width = 0.9)) +
+        labs(x = "Species", y = "Specific leaf area (cm^2/g)", fill = "Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        theme_classic() +
+        theme(panel.background = element_rect(fill = NA, color = "black")) +
+        theme(axis.text=element_text(size=8),
+              axis.title=element_text(size=14),
+              strip.text = element_text(size = 14))
+dev.off()
 
-ggplot(sla, aes(x = species, y = area_cm2, fill = state)) +
+# barplot for each year at kbs and umbs
+png("sla_yr_L2.png", units="in", width=7, height=4, res=300)
+ggplot(sla_treatment, aes(x = year, y = sla_mean, fill = state)) +
+        facet_wrap(.~site, labeller = as_labeller(site_label)) +
+        geom_bar(position = "dodge", stat = "identity", color = 'black') +
+        geom_errorbar(aes(ymin = sla_mean - se, ymax = sla_mean + se), width = 0.2,
+                position = position_dodge(width = 0.9)) +
+        labs(x = "Year", y = "Specific leaf area (cm^2/g)", fill = "Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        theme_classic() +
+        theme(panel.background = element_rect(fill = NA, color = "black")) +
+        theme(axis.text=element_text(size=8),
+              axis.title=element_text(size=14),
+              strip.text = element_text(size = 14))
+dev.off()
+
+# old figures - boxplots
+ggplot(sla, aes(x = species, y = sla, fill = state)) +
         geom_boxplot() +
         labs(x = "Species", y = "Specific Leaf Area (cm2)") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
@@ -50,7 +117,7 @@ ggplot(sla, aes(x = species, y = area_cm2, fill = state)) +
  
 #ggsave(file="L2/SLA_KBS_UMBS_allyears.pdf", width=7,height=5) 
 
-ggplot(sla, aes(x = species, y = area_cm2, fill = state)) +
+ggplot(sla, aes(x = species, y = sla, fill = state)) +
         geom_boxplot() +
         labs(x = "Species", y = "Specific Leaf Area (cm2)") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
@@ -61,7 +128,7 @@ ggplot(sla, aes(x = species, y = area_cm2, fill = state)) +
  
 #ggsave(file="L2/SLA_KBS_UMBS_byyear.pdf", width=7,height=5) 
 
-ggplot(sla, aes(x = species, y = area_cm2, fill = state)) +
+ggplot(sla, aes(x = species, y = sla, fill = state)) +
         geom_boxplot() +
         labs(x = "Year", y = "Specific Leaf Area (cm2)") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
