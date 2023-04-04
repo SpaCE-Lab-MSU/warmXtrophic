@@ -410,6 +410,12 @@ k.m3.h <- hurdle(p_eaten ~ state + year, data = herb_kbs, dist = "negbin",
 lrtest(k.m1.h,k.m2.h, k.m3.h)
 AICtab(k.m1.h,k.m2.h,k.m3.h) #m1
 
+# effect of insecticide?
+k.m.i <- hurdle(p_eaten ~ insecticide, data = herb_kbs_in, dist = "negbin", 
+                 zero.dist = "binomial")
+summary(k.m.i)
+t.test(p_eaten~insecticide, data=herb_kbs_in)
+
 # different package w/ random effects
 # trying this structure to see if I can include random effects, but I can't
 # figure out how to specify a negative binomial dist to the count data and a binomial dist to the second model
@@ -766,6 +772,12 @@ exp(-1.6161 + 2.1877*1)/(1+exp(-1.6161 + 2.1877*1)) #0.6391323
 
 sum(predict(u.m1.h, type = "prob")[,1]) # total # of zeros in the data
 rootogram(u.m1.h) # where bins fall below the 0 line = underfitting (this seems okay though?)
+
+# effect of insecticide?
+u.m.i <- hurdle(p_eaten ~ insecticide, data = herb_umbs_in, dist = "negbin", 
+                zero.dist = "binomial")
+summary(u.m.i)
+t.test(p_eaten~insecticide, data=herb_umbs_in)
 
 # interpreting output: https://stackoverflow.com/questions/61847129/interpreting-zero-inflated-regression-summary
 # In sum, your zero model calculates the probability that an observations is not zero
