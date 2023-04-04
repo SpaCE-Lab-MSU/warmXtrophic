@@ -654,7 +654,6 @@ anova(year.mod.test1,year.mod.test2)
 # I also think this makes the most sense because I don't think we expect there to be a much of a trend over time for green-up; maybe if we had a longer time span, but I don't think 6 years is enough to detect a trend over time and the results will be more influenced by between year variation in temp, precip, etc.
 
 # plot-level models using the re-summarized data frame
-modfull <- lmer(med_half_cover_date ~ state*as.factor(year_factor) + insecticide*as.factor(year_factor) + (1|plot), green_kbsp2, REML=F)
 mod1p <- lmer(med_half_cover_date ~ state + (1|plot), green_kbsp2, REML=FALSE)
 mod2p <- lmer(med_half_cover_date ~ insecticide + (1|plot), green_kbsp2, REML=FALSE)
 mod3p <- lmer(med_half_cover_date ~ insecticide + state + (1|plot), green_kbsp2, REML=FALSE)
@@ -667,29 +666,28 @@ mod9p <- lmer(med_half_cover_date ~ state * insecticide + as.factor(year_factor)
 mod10p <- lmer(med_half_cover_date ~ state + insecticide * as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
 mod11p <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + (1|plot), green_kbsp2, REML=FALSE)
 
-AICctab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p,weights=T)
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p,weights=T)
 
-anova(modfull, mod1p) #modfull
-anova(modfull, mod2p) #modfull
-anova(modfull, mod3p) #modfull
-anova(modfull, mod4p) #modfull
-anova(modfull, mod5p) #modfull
-anova(modfull, mod6p) #modfull
-anova(modfull, mod7p) #mod7p
+anova(mod1p, mod2p) #same, 2p very slightly better
+anova(mod2p, mod3p) #3p
+anova(mod3p, mod4p) #3p
+anova(mod3p, mod5p) #5p
+anova(mod5p, mod6p) #6p
+anova(mod6p, mod7p) #7p
 anova(mod7p, mod8p) #mod8p
-anova(mod8p, mod9p) #mod8p (note: 9p is hypothesized model)
-anova(mod8p, mod10p) #mod8p
-anova(mod8p, mod11p) #mod8p
+anova(mod8p, mod9p) #mod8p (note: 9p is hypothesized model - going with 9 because it contains the interaction)
+anova(mod9p, mod10p) #mod9p
+anova(mod9p, mod11p) #mod11p slightly better - going with 9p for overall results, but can use 11p to talk about how these results vary by year
 
 table <- anova(mod8p, mod9p)
-summary(mod8p)
-anova(mod8p)
+summary(mod9p)
+anova(mod9p)
 
 # comparisons
-emmeans(mod8p, list(pairwise ~ state*year_factor), adjust = "tukey")
-mod8p.emm <- emmeans(mod8p, ~ state*year_factor)
-contrast(mod8p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod8p, insecticide~state)
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
 
 # making a table with best-fit model and hypothesized model
 kable(table) %>% kableExtra::kable_styling()
@@ -820,7 +818,6 @@ anova(year.mod.test1u,year.mod.test2u)
 # going to use year as a factor
 
 # plot-level models using the re-summarized data frame
-modfull_u <- lmer(med_half_cover_date ~ state*as.factor(year_factor) + insecticide*as.factor(year_factor) + (1|plot), green_umbsp2, REML=F)
 mod1p_u <- lmer(med_half_cover_date ~ state + (1|plot), green_umbsp2, REML=FALSE)
 mod2p_u <- lmer(med_half_cover_date ~ insecticide + (1|plot), green_umbsp2, REML=FALSE)
 mod3p_u <- lmer(med_half_cover_date ~ insecticide + state + (1|plot), green_umbsp2, REML=FALSE)
@@ -833,13 +830,12 @@ mod9p_u <- lmer(med_half_cover_date ~ state * insecticide + as.factor(year_facto
 mod10p_u <- lmer(med_half_cover_date ~ state + insecticide * as.factor(year_factor) + (1|plot), green_umbsp2, REML=FALSE)
 mod11p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + (1|plot), green_umbsp2, REML=FALSE)
 
-AICtab(modfull_u, mod1p_u, mod2p_u, mod3p_u, mod4p_u, mod5p_u, mod6p_u, mod7p_u, mod8p_u, mod9p_u, mod10p_u, mod11p_u,weights=T)
+AICtab(mod1p_u, mod2p_u, mod3p_u, mod4p_u, mod5p_u, mod6p_u, mod7p_u, mod8p_u, mod9p_u, mod10p_u, mod11p_u,weights=T)
 
-anova(modfull_u, mod1p_u) #modfull
-anova(modfull_u, mod2p_u) #modfull
-anova(modfull_u, mod3p_u) #modfull
-anova(modfull_u, mod4p_u) #modfull
-anova(modfull_u, mod5p_u) #mod5p
+anova(mod1p_u, mod2p_u) #2p
+anova(mod2p_u, mod3p_u) #2p
+anova(mod2p_u, mod4p_u) #2p
+anova(mod2p_u, mod5p_u) #mod5p
 anova(mod5p_u, mod6p_u) #mod6p
 anova(mod6p_u, mod7p_u) #mod6p_u
 anova(mod6p_u, mod8p_u) #mod6p_u
@@ -852,7 +848,7 @@ summary(mod6p_u)
 anova(mod9p_u)
 
 # comparisons
-emmeans(mod11p_u, list(pairwise ~ state*insecticide), adjust = "tukey")
+emmeans(mod9p_u, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod9p.emm <- emmeans(mod9p_u, ~ state*insecticide)
 contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
