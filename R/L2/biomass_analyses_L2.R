@@ -165,6 +165,7 @@ leveneTest(residuals(fit2_k) ~ kbs_biomass_live$species)
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals - did this above
 
+
 ### Data analyses ###
 # models with random effect - species included here #
 mod1_k <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
@@ -217,19 +218,14 @@ contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
 # plot-level analyses #
 mod1_kp <- lm(plot_sum_g ~ state+insecticide, data=kbs_plot_biomass)
-outlierTest(mod1_kp) # no outliers
-hist(mod1_kp$residuals)
-qqPlot(mod1_kp, main="QQ Plot") 
-leveragePlots(mod1_kp)
-leveneTest(residuals(mod1_kp) ~ kbs_plot_biomass$state)
-leveneTest(residuals(mod1_kp) ~ kbs_plot_biomass$insecticide)
-shapiro.test(resid(mod1_kp))
-# looks good
-anova(mod1_kp)
-summary(mod1_kp) ###* used this in paper *###
-
-# interaction btwn state and insecticide?
 mod2_kp <- lm(plot_sum_g ~ state*insecticide, data=kbs_plot_biomass)
+anova(mod1_kp, mod2_kp)
+AICctab(mod1_kp,mod2_kp) # 1 better, but using 2 to see pairwise comparisons
+
+table <- anova(mod1_kp,mod2_kp)
+kable(table) %>% kableExtra::kable_styling()
+AICctab(mod1_kp, mod2_kp)
+
 outlierTest(mod2_kp) # no outliers
 hist(mod2_kp$residuals)
 qqPlot(mod2_kp, main="QQ Plot") 
@@ -239,11 +235,13 @@ leveneTest(residuals(mod2_kp) ~ kbs_plot_biomass$insecticide)
 shapiro.test(resid(mod2_kp))
 # looks good
 anova(mod2_kp)
-summary(mod2_kp)
+summary(mod2_kp) ###* used this in paper *###
 
-table <- anova(mod1_kp,mod2_kp)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod1_kp, mod2_kp)
+# comparisons
+emmeans(mod2_kp, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod2kp.emm <- emmeans(mod2_kp, ~ state*insecticide)
+contrast(mod2kp.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+
 
 # regression #
 cor.test(kbs_biomass_reg$cover, kbs_biomass_reg$weight_g, method="pearson")
