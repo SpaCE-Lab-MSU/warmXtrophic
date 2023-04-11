@@ -19,7 +19,7 @@ library(tidyverse)
 library(plotrix)
 
 # Set working directory to Google Drive
-PSF<-Sys.getenv("PSF")
+PSF <- Sys.getenv("PSF")
 
 # Read in data
 biomass <- read.csv(file.path(PSF, "/data/L1/psf_biomass_2021_L1.csv"))

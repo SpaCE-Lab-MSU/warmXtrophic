@@ -36,12 +36,10 @@ library(bbmle)
 library(jtools) # summ() function
 
 # Set working directory to Google Drive
-# .Renviron not working for MLY; hard-coding in here
-L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L0"
-L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/PSF_greenhouse_2021/data/L1"
+PSF <- Sys.getenv("PSF")
 
 # Read in data
-biomass <- read.csv(file.path(L1_dir, "psf_biomass_2021_L1.csv"))
+biomass <- read.csv(file.path(PSF, "/data/L1/psf_biomass_2021_L1.csv"))
         
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 biomass$treatment <- as.factor(biomass$treatment)
@@ -58,17 +56,17 @@ phpr_biomass <- subset(biomass, species == "Phpr")
 # Data exploration: Trpr
 ```{r}
 descdist(trpr_biomass$total_biomass, discrete = FALSE)
-hist(trpr_biomass$total_biomass)
+hist(trpr_biomass$total_biomass) # right skewed
 qqnorm(trpr_biomass$total_biomass)
 shapiro.test(trpr_biomass$total_biomass) # not normal
 
 # logistic distribution?
 fit.logis <- fitdist(trpr_biomass$total_biomass, "logis")
-plot(b.fit.logis)
+plot(fit.logis)
 
 # normal distribution?
 fit.norm <- fitdist(trpr_biomass$total_biomass, "norm")
-plot(b.fit.norm)
+plot(fit.norm)
 
 # Gamma distribution?
 fit.gamma <- fitdist(trpr_biomass$total_biomass, "gamma")
@@ -86,7 +84,7 @@ plot(fit.ln)
 fit.exp <- fitdist(trpr_biomass$total_biomass, "exp")
 plot(fit.exp)
 
-par(mfrow=c(2,2))
+par(mfrow=c(3,3))
 plot.legend <- c("Logistic", "Normal", "Gamma", "Weibull", "Lognormal", "Exponential")
 denscomp(list(fit.logis, fit.norm, fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
 cdfcomp (list(fit.logis, fit.norm, fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
@@ -115,6 +113,7 @@ m2t <- lmer(log(total_biomass) ~ treatment + (1|rep) + (1|block), data = trpr_bi
 m3t <- lmer(log(total_biomass) ~ treatment + (1|block), data = trpr_biomass)
 AICctab(m1t, m2t, m3t, weights = T) # m1t
 summary(m1t)
+emmeans(m1t, list(pairwise ~ treatment), adjust = "tukey")
 
 # Phpr
 m1p <- lm(log(total_biomass) ~ treatment, data = phpr_biomass)
