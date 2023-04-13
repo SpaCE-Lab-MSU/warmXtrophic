@@ -854,11 +854,19 @@ gr_dot_i <- function(loc) {
                        theme_bw(14))
 }
 gr_dot_i_kbs <- gr_dot_i("KBS")
-gr_dot_i_kbs <- gr_dot_i_kbs + theme(axis.text.x = element_blank())
+gr_dot_i_kbs <- gr_dot_i_kbs + theme(axis.text.x = element_blank(),
+                                     plot.title = element_text(size=20),
+                                     axis.text.y = element_text(size=17),
+                                     axis.title.y = element_text(size=17),
+                                     legend.text = element_text(size=17),
+                                     legend.title = element_text(size=17))
 gr_dot_i_umbs <- gr_dot_i("UMBS")
 gr_dot_i_umbs <- gr_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
+                                                      plot.title = element_text(size=20),
                                                       axis.text.y = element_blank(),
-                                                      axis.text.x = element_blank())
+                                                      axis.text.x = element_blank(),
+                                                      legend.text = element_text(size=17),
+                                     legend.title = element_text(size=17))
                                                         #axis.text.y=element_blank())
 #flower
 sum_flwr_plot_i2$full_treat <- paste(sum_flwr_plot_i2$state, sum_flwr_plot_i2$insecticide, sep="_")
@@ -876,11 +884,17 @@ flwr_dot_i <- function(loc) {
                        theme_bw(14))
 }
 flwr_dot_i_kbs <- flwr_dot_i("KBS")
-flwr_dot_i_kbs <- flwr_dot_i_kbs + labs(title=NULL) + theme(axis.text.x = element_blank())
+flwr_dot_i_kbs <- flwr_dot_i_kbs + labs(title=NULL) + theme(axis.text.x = element_blank(),
+                                                            axis.text.y = element_text(size=17),
+                                                            axis.title.y = element_text(size=17),
+                                                            legend.text = element_text(size=17),
+                                     legend.title = element_text(size=17))
 flwr_dot_i_umbs <- flwr_dot_i("UMBS")
 flwr_dot_i_umbs <- flwr_dot_i_umbs + labs(y=NULL, title=NULL) + theme(axis.title.y=element_blank(),
                                                                       axis.text.y = element_blank(),
-                                                                      axis.text.x = element_blank())
+                                                                      axis.text.x = element_blank(),
+                                                                      legend.text = element_text(size=17),
+                                     legend.title = element_text(size=17))
                                                         #axis.text.y=element_blank())
 
 #seed
@@ -899,20 +913,27 @@ sd_dot_i <- function(loc) {
                        theme_bw(14))
 }
 sd_dot_i_kbs <- sd_dot_i("KBS")
-sd_dot_i_kbs <- sd_dot_i_kbs + labs(title=NULL)
+sd_dot_i_kbs <- sd_dot_i_kbs + labs(title=NULL) + theme(axis.text.y = element_text(size=17),
+                                                        axis.text.x = element_text(size=17),
+                                                        axis.title.y = element_text(size=17),
+                                                        legend.text = element_text(size=17),
+                                     legend.title = element_text(size=17))
 sd_dot_i_umbs <- sd_dot_i("UMBS")
 sd_dot_i_umbs <- sd_dot_i_umbs + labs(y=NULL, title=NULL) + theme(axis.title.y=element_blank(),
-                                                                  axis.text.y = element_blank())
+                                                                  axis.text.y = element_blank(),
+                                                                  axis.text.x = element_text(size=17),
+                                                                  legend.text = element_text(size=17),
+                                     legend.title = element_text(size=17))
                                                         #axis.text.y=element_blank())
 
 phen_dot_i <- ggpubr::ggarrange(gr_dot_i_kbs, gr_dot_i_umbs,
                           flwr_dot_i_kbs, flwr_dot_i_umbs,
                           sd_dot_i_kbs, sd_dot_i_umbs,
                           nrow = 3, ncol = 2, common.legend = T, legend="right",
-                          widths = c(1, 0.9,1,0.9,1,0.9))
+                          widths = c(1.1, 0.9,1.1,0.9,1.1,0.9))
 png("greenup_plots_L2_all_phenology_dot_insect.png", units="in", width=10, height=8, res=300)
 annotate_figure(phen_dot_i,
-                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15))
+                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=17))
 dev.off()
 ```
 
@@ -1079,9 +1100,9 @@ green_umbsp <- subset(gr_plot, site == "UMBS")
 # looking to see which temp variable best correlates with greenup dates
 # note: when testing this for min dates, there are less data points because all plots had the same 
 # min date of greenup per site, per year, whereas the plots had different half cover dates
-kbs_gdd <- ggplot(green_kbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color = state))+
+kbs_gdd <- ggplot(green_kbsp, aes(x = GDD_cumulative, y = plot_half_cover_date, color=state,fill=state))+
         geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
+        geom_smooth(method = 'lm') + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
         scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),

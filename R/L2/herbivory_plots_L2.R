@@ -359,13 +359,13 @@ binom_plot_k2 <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = p_eaten, label
         labs(y="Percent eaten or not (%)", x=NULL, title="KBS",subtitle="A", fill=NULL) +
         theme_classic() +
         theme(legend.position="none") +
-        theme(plot.title = element_text(size = 17),
-              plot.subtitle = element_text(size=16),
-              axis.text.y = element_text(size=13),
+        theme(plot.title = element_text(size = 20),
+              plot.subtitle = element_text(size=17),
+              axis.text.y = element_text(size=17),
               axis.text.x=element_blank(),
-              axis.title.y=element_text(size=15),
-              legend.title=element_text(size=14), 
-              legend.text=element_text(size=12)) +
+              axis.title.y=element_text(size=17),
+              legend.title=element_text(size=17), 
+              legend.text=element_text(size=17)) +
         guides(color = "none")
 binom_plot_u2 <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = p_eaten, label = paste0(round(n, 2), "%"))) +
         geom_col(col="black") +
@@ -379,13 +379,13 @@ binom_plot_u2 <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = p_eaten, label
         scale_colour_manual(values=c("white", "black")) +
         labs(y="Percent eaten or not (%)", x=NULL, title="UMBS",subtitle="B", fill=NULL) +
         theme_classic() +
-        theme(plot.title = element_text(size = 17),
-              plot.subtitle = element_text(size=16),
+        theme(plot.title = element_text(size = 20),
+              plot.subtitle = element_text(size=17),
               axis.text.x=element_blank(),
               axis.text.y = element_blank(),
               axis.title.y=element_blank(),
-              legend.title=element_text(size=14), 
-              legend.text=element_text(size=12)) +
+              legend.title=element_text(size=17), 
+              legend.text=element_text(size=17)) +
         guides(color = "none")
 # amount eaten plot
 sum_herb_overall_k <- herb %>%
@@ -412,10 +412,10 @@ eaten_k2 <- ggplot(sum_herb_overall_k, aes(x = state, y = avg_eaten, fill = stat
         ylim(8,21) +
         theme_bw(14) +
         theme(legend.position="none") +
-        theme(axis.text.y = element_text(size=13),
-              plot.subtitle = element_text(size=16),
-              axis.text.x=element_text(size=13),
-              axis.title.y=element_text(size=15))
+        theme(axis.text.y = element_text(size=17),
+              plot.subtitle = element_text(size=17),
+              axis.text.x=element_text(size=17),
+              axis.title.y=element_text(size=17))
 eaten_u2 <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = state)) +
         geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), color="black",linetype="solid",size=1,position=position_dodge(0.2)) +
         labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="D") +
@@ -424,9 +424,9 @@ eaten_u2 <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = stat
         theme_bw(14) +
         theme(legend.position="none") +
         theme(axis.text.y = element_blank(),
-              plot.subtitle = element_text(size=16),
+              plot.subtitle = element_text(size=17),
               axis.title.y=element_blank(),
-              axis.text.x=element_text(size=13))
+              axis.text.x=element_text(size=17))
 # plotting binary response & amount eaten on same figure
 png("binary_combined_plot_bw.png", units="in", width=8, height=8, res=300)
 ggarrange(binom_plot_k2, binom_plot_u2,
