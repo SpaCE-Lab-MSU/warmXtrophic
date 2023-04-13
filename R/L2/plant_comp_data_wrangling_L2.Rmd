@@ -125,6 +125,9 @@ origin_cover_total1 <- merge(origin_cover_total, plot_cover_total, by = c("plot"
 #calculate relative percent cover
 origin_cover_total1$relative <- origin_cover_total1$origin_cover_total/origin_cover_total1$plot_cover_total
 
+#calculate absolute percent cover
+origin_cover_total1$absolute <- origin_cover_total1$origin_cover_total/100
+
 # subset data to just include forbs and graminoids
 origin_cover_total1 <- subset(origin_cover_total1, origin == "Exotic" | origin == "Native")
 ```
@@ -143,6 +146,9 @@ growth_cover_total1 <- merge(growth_cover_total, plot_cover_total, by = c("plot"
 
 #calculate relative percent cover
 growth_cover_total1$relative <- growth_cover_total1$growth_cover_total/growth_cover_total1$plot_cover_total
+
+#calculate relative percent cover
+growth_cover_total1$absolute <- growth_cover_total1$growth_cover_total/100
 
 # subset data to just include forbs and graminoids
 growth_cover_total1 <- subset(growth_cover_total1, growth_habit == "Forb" | growth_habit == "Graminoid")
@@ -201,14 +207,55 @@ peak_comp_kbs <- peak_comp2[which(peak_comp2$month == "8" & peak_comp2$site == "
 peak_comp <- full_join(peak_comp_umbs, peak_comp_kbs, by = c("species", "site", "year_factor", "month", "date", "year", "julian", "plot", "cover", "state", "insecticide", "treatment_key", "plot_cover_total", "relative", "absolute"))
 write.csv(peak_comp, file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"), row.names = F)
 
+# Average relative abundance by PLOT LEVEL
+relative_plot <- peak_comp %>%
+  group_by(plot, year, state, site, month, insecticide, treatment_key, year_factor) %>%
+  summarize(avg_relative_abundance = mean(relative, na.rm=T))
+
+# Average absolute abundance by PLOT LEVEL
+absolute_plot <- peak_comp %>%
+  group_by(plot, year, state, site, month, insecticide, treatment_key, year_factor) %>%
+  summarize(avg_absolute_abundance = mean(absolute, na.rm=T))
+
+peak_comp_plot <- full_join(relative_plot, absolute_plot, by = c("site", "year_factor", "month", "year", "plot", "state", "insecticide", "treatment_key"))
+write.csv(peak_comp_plot, file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"), row.names = F)
+
+################ Origin ####################
 origin_peak_comp_umbs <- origin_cover_total1[which(origin_cover_total1$month == "7" & origin_cover_total1$site == "umbs"),]
 origin_peak_comp_kbs <- origin_cover_total1[which(origin_cover_total1$month == "8" & origin_cover_total1$site == "kbs"),]
-origin_peak_comp <- full_join(origin_peak_comp_umbs, origin_peak_comp_kbs, by = c("site", "year_factor", "month", "date", "year", "plot", "state", "insecticide", "treatment_key", "origin_cover_total", "plot_cover_total", "relative", "origin"))
-write.csv(origin_peak_comp, file.path(L2_dir, "plant_composition/final_plant_comp_origin_L2.csv"), row.names = F)
+origin_peak_comp <- full_join(origin_peak_comp_umbs, origin_peak_comp_kbs, by = c("site", "year_factor", "month", "date", "year", "plot", "state", "insecticide", "treatment_key", "origin_cover_total", "plot_cover_total", "relative", "absolute", "origin"))
+write.csv(origin_peak_comp, file.path(L2_dir, "plant_composition/final_plant_comp_origin_species_L2.csv"), row.names = F)
 
+# Average relative abundance by PLOT LEVEL
+origin_relative_plot <- origin_peak_comp %>%
+  group_by(plot, year, state, site, month, insecticide, treatment_key, year_factor, origin) %>%
+  summarize(avg_relative_abundance = mean(relative, na.rm=T))
+
+# Average absolute abundance by PLOT LEVEL
+origin_absolute_plot <- origin_peak_comp %>%
+  group_by(plot, year, state, site, month, insecticide, treatment_key, year_factor, origin) %>%
+  summarize(avg_absolute_abundance = mean(absolute, na.rm=T))
+
+origin_peak_comp_plot <- full_join(origin_relative_plot, origin_absolute_plot, by = c("site", "year_factor", "month", "year", "plot", "state", "insecticide", "treatment_key", "origin"))
+write.csv(origin_peak_comp_plot, file.path(L2_dir, "plant_composition/final_plant_comp_origin_plot_L2.csv"), row.names = F)
+
+################ Growth Habit ####################
 growth_peak_comp_umbs <- growth_cover_total1[which(growth_cover_total1$month == "7" & growth_cover_total1$site == "umbs"),]
 growth_peak_comp_kbs <- growth_cover_total1[which(growth_cover_total1$month == "8" & growth_cover_total1$site == "kbs"),]
-growth_peak_comp <- full_join(growth_peak_comp_umbs, growth_peak_comp_kbs, by = c("site", "year_factor", "month", "date", "year", "plot", "state", "insecticide", "treatment_key", "growth_cover_total", "relative", "growth_habit"))
-write.csv(growth_peak_comp, file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_L2.csv"), row.names = F)
+growth_peak_comp <- full_join(growth_peak_comp_umbs, growth_peak_comp_kbs, by = c("site", "year_factor", "month", "date", "year", "plot", "state", "insecticide", "treatment_key", "growth_cover_total", "relative", "absolute", "growth_habit"))
+write.csv(growth_peak_comp, file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_species_L2.csv"), row.names = F)
+
+# Average relative abundance by PLOT LEVEL
+growth_relative_plot <- growth_peak_comp %>%
+  group_by(plot, year, state, site, month, insecticide, treatment_key, year_factor, growth_habit) %>%
+  summarize(avg_relative_abundance = mean(relative, na.rm=T))
+
+# Average absolute abundance by PLOT LEVEL
+growth_absolute_plot <- growth_peak_comp %>%
+  group_by(plot, year, state, site, month, insecticide, treatment_key, year_factor, growth_habit) %>%
+  summarize(avg_absolute_abundance = mean(absolute, na.rm=T))
+
+growth_peak_comp_plot <- full_join(growth_relative_plot, growth_absolute_plot, by = c("site", "year_factor", "month", "year", "plot", "state", "insecticide", "treatment_key", "growth_habit"))
+write.csv(growth_peak_comp_plot, file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_plot_L2.csv"), row.names = F)
 ```
 
