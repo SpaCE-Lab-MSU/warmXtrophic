@@ -346,13 +346,13 @@ herb_binom_sumu <- herb_binom_u %>%
         group_by(state) %>%
         mutate(n = n/sum(n) * 100)
 # plotting binary response
-binom_plot_k2 <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+binom_plot_k2 <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = p_eaten, label = paste0(round(n, 2), "%"))) +
         geom_col(col="black") +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_fill_manual(values = 
-                                  c(alpha("black",1), alpha("black",1),alpha("grey",0.3),alpha("grey",0.3)),
+                                  c(alpha("black",1), alpha("grey",0.3)),
                           labels = 
-                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                                  c("Eaten","Not eaten"),
                           name=NULL) +
         geom_text(position=position_stack(0.5), aes(group=p_eaten, color = p_eaten)) +
         scale_colour_manual(values=c("white", "black")) +
@@ -367,13 +367,13 @@ binom_plot_k2 <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = interaction(st
               legend.title=element_text(size=14), 
               legend.text=element_text(size=12)) +
         guides(color = "none")
-binom_plot_u2 <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = interaction(state,p_eaten), label = paste0(round(n, 2), "%"))) +
+binom_plot_u2 <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = p_eaten, label = paste0(round(n, 2), "%"))) +
         geom_col(col="black") +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_fill_manual(values = 
-                                  c(alpha("black",1), alpha("black",1),alpha("grey",0.3),alpha("grey",0.3)),
+                                  c(alpha("black",1),alpha("grey",0.3)),
                           labels = 
-                                  c("Ambient, eaten","Warmed, eaten","Ambient, not eaten","Warmed, not eaten"),
+                                  c("Eaten","Not eaten"),
                           name=NULL) +
         geom_text(position=position_stack(0.5), aes(group=p_eaten, color = p_eaten)) +
         scale_colour_manual(values=c("white", "black")) +
@@ -428,12 +428,11 @@ eaten_u2 <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = stat
               axis.title.y=element_blank(),
               axis.text.x=element_text(size=13))
 # plotting binary response & amount eaten on same figure
-binary_overall2 <- ggarrange(binom_plot_k2, binom_plot_u2,
-                            eaten_k2, eaten_u2,
-                            nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 png("binary_combined_plot_bw.png", units="in", width=8, height=8, res=300)
-annotate_figure(binary_overall2,
-                bottom = text_grob("Treatment", color = "black",size=15))
+ggarrange(binom_plot_k2, binom_plot_u2,
+                            eaten_k2, eaten_u2,
+                            nrow = 2, ncol = 2, common.legend = T, legend="bottom",
+                            widths = c(1,0.9,1,0.9))
 dev.off()
 
 
