@@ -842,11 +842,14 @@ dev.off()
 sum_green_plot_i3_v2$full_treat <- paste(sum_green_plot_i3_v2$state, sum_green_plot_i3_v2$insecticide, sep="_")
 gr_dot_i <- function(loc) { 
         gr_plot <- subset(sum_green_plot_i3_v2, site == loc)
-        return(ggplot(gr_plot, aes(x = state, y = avg_julian, shape = insecticide)) +
+        return(ggplot(gr_plot, aes(x = state, y = avg_julian, fill=insecticide)) +
                        #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid",size=1,position=position_dodge(0.2)) +
-                       scale_shape_manual(name="Treatment",
-                                          values = c(1, 19),
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), ,pch=21,size=1,position=position_dodge(0.3)) +
+                       #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                          values = c("#FFB451", "#0b0055"),
                                           labels=c("Herbivory","Reduced Herbivory")) +
                        labs(x = NULL, y = "Green-up", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
@@ -872,11 +875,14 @@ gr_dot_i_umbs <- gr_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank
 sum_flwr_plot_i2$full_treat <- paste(sum_flwr_plot_i2$state, sum_flwr_plot_i2$insecticide, sep="_")
 flwr_dot_i <- function(loc) { 
         flwr_plot <- subset(sum_flwr_plot_i2, site == loc)
-        return(ggplot(flwr_plot, aes(x = state, y = avg_julian, shape = insecticide)) +
+        return(ggplot(flwr_plot, aes(x = state, y = avg_julian, fill = insecticide)) +
                        #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid",size=1,position=position_dodge(0.2)) +
-                       scale_shape_manual(name="Treatment",
-                                          values = c(1, 19),
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=1,position=position_dodge(0.3)) +
+                       #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                          values = c("#FFB451", "#0b0055"),
                                           labels=c("Herbivory","Reduced Herbivory")) +
                        labs(x = NULL, y = "Flowering", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
@@ -901,11 +907,14 @@ flwr_dot_i_umbs <- flwr_dot_i_umbs + labs(y=NULL, title=NULL) + theme(axis.title
 sum_sd_plot_i2$full_treat <- paste(sum_sd_plot_i2$state, sum_sd_plot_i2$insecticide, sep="_")
 sd_dot_i <- function(loc) { 
         sd_plot <- subset(sum_sd_plot_i2, site == loc)
-        return(ggplot(sd_plot, aes(x = state, y = avg_julian, shape = insecticide)) +
+        return(ggplot(sd_plot, aes(x = state, y = avg_julian, fill = insecticide)) +
                        #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid",size=1,position=position_dodge(0.2)) +
-                       scale_shape_manual(name="Treatment",
-                                          values = c(1, 19),
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=1,position=position_dodge(0.3)) +
+                       #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                          values = c("#FFB451", "#0b0055"),
                                           labels=c("Herbivory","Reduced Herbivory")) +
                        labs(x = NULL, y = "Seed set", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
