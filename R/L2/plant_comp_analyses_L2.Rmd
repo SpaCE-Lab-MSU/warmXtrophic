@@ -204,16 +204,21 @@ anova(mod5p)
 emmeans(mod5p, list(pairwise ~ state + year_factor), adjust = "tukey")
 emmeans(mod5p, list(pairwise ~ state), adjust = "tukey")
 
-# calculating effect size - accounting for log transformation
-exp((-2.02006) +  (-0.18808)*0) # 0.1326475 warmed
-exp((-2.02006) +  (-0.18808)*1) # 0.1099049 ambient
-# effect:
-0.1099049 - 0.1326475 # ambient plots had 0.0227426 less relative abundance than warmed plots
+#Our hypothesized model is  mod9p
+summary(mod9p)
+anova(mod9p)
 
-# code to get table information for manuscript
-table <- anova(mod5p, mod9p)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod5p, mod9p, weights=T)
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
+# calculating effect size - accounting for log transformation
+#exp((-2.02006) +  (-0.18808)*0) # 0.1326475 warmed
+#exp((-2.02006) +  (-0.18808)*1) # 0.1099049 ambient
+## effect:
+#0.1099049 - 0.1326475 # ambient plots had 0.0227426 less relative abundance than warmed plots
 ```
 
 #KBS Origin Plot Level
@@ -516,7 +521,7 @@ Leverage plots and detecting Outliers
 # Plot level data
 # UMBS State-only model
 fit_plot_state_umbs <- lm(log(avg_relative_abundance) ~ state, data = umbs_comp_plot)
-outlierTest(fit_plot_state_umbs) # no outliers
+outlierTest(fit_plot_state_umbs) 
 qqPlot(fit_plot_state_umbs, main="QQ Plot") 
 hist(fit_plot_state_umbs$residuals)
 leveragePlots(fit_plot_state_umbs)
@@ -533,7 +538,7 @@ ols_test_normality(fit_plot_stateyear_umbs)
 # Interaction plot - see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 fit3 <- lm(log(avg_relative_abundance) ~ state * year_factor, data = umbs_comp_plot)
-interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+interact_plot(fit3, pred = year_factor, modx = state) 
 ```
 
 Mixed Effects Model
@@ -583,15 +588,22 @@ mod9pu <- lmer(log(avg_relative_abundance) ~ state * insecticide + as.factor(yea
 mod10pu <- lmer(log(avg_relative_abundance) ~ state + insecticide * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
 mod11pu <- lmer(log(avg_relative_abundance) ~ state * as.factor(year_factor) * insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
 AICtab(modfullu, mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T)
-anova(mod5pu, mod7pu)
-AICctab(mod5pu, mod7pu, weights=T) # 5p
+anova(mod5pu, mod6pu)
+AICctab(mod5pu, mod6pu, weights=T) # 5p
 summ(mod5pu)
 summary(mod5pu)
 anova(mod5pu)
 emmeans(mod5pu, list(pairwise ~ state + as.factor(year_factor)), adjust = "tukey")
 
-anova(mod6pu) # including herbivory in model
-anova(mod9pu) # including herbivory as interaction term in model
+#Our hypothesized model is  mod9p
+summary(mod9pu)
+anova(mod9pu)
+
+# comparisons
+emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
+contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9pu, insecticide~state)
 
 # code to get table information for manuscript
 table <- anova(mod5pu, mod9pu)
