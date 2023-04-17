@@ -3,6 +3,8 @@ title: "Plant Comp Plots"
 author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 COLLABORATORS: Kara Dobson, Phoebe Zarnetske, Mark Hammond, Pat Bills 
@@ -39,9 +41,9 @@ Set ggplot2 plotting
 ```{r}
 # This code for ggplot2 sets the theme to mostly black and white 
 # (Arial font, and large font, base size=24)
-theme_set(theme_bw(14))
-theme_update(axis.text.x = element_text(size = 12, angle = 90),
-             axis.text.y = element_text(size = 12))
+#theme_set(theme_bw(14))
+#theme_update(axis.text.x = element_text(size = 12, angle = 90),
+#             axis.text.y = element_text(size = 12))
 
 # making site names capital for cleaner plots
 change_site <- function(df){
@@ -97,16 +99,16 @@ comp_dot_i <- function(loc) {
 }
 comp_dot_i_kbs <- comp_dot_i("KBS")
 comp_dot_i_kbs <- comp_dot_i_kbs + theme(plot.title = element_text(size=20),
-                                     axis.text.y = element_text(size=17),
-                                     axis.title.y = element_text(size=17),
-                                     legend.text = element_text(size=17),
-                                     legend.title = element_text(size=17))
+                                     axis.text.y = element_text(size=14),
+                                     axis.title.y = element_text(size=14),
+                                     legend.text = element_text(size=14),
+                                     legend.title = element_text(size=14))
 comp_dot_i_umbs <- comp_dot_i("UMBS")
 comp_dot_i_umbs <- comp_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
                                                       plot.title = element_text(size=20),
                                                       axis.text.y = element_blank(),
-                                                      legend.text = element_text(size=17),
-                                                      legend.title = element_text(size=17))
+                                                      legend.text = element_text(size=14),
+                                                      legend.title = element_text(size=14))
 
 comp_all_dot_i <- ggpubr::ggarrange(comp_dot_i_kbs, comp_dot_i_umbs,
                                 nrow = 1, ncol = 2, common.legend = T, legend="right",
@@ -117,81 +119,91 @@ annotate_figure(comp_all_dot_i,
 dev.off()
 ```
 
-Origin and Growth Habit
+Origin
 ```{r}
 # origin
 sum_origin_plot_i$full_treat <- paste(sum_origin_plot_i$state, sum_origin_plot_i$insecticide, sep="_")
 origin_dot_i <- function(loc) { 
        origin_plot <- subset(sum_origin_plot_i, site == loc)
-        return(ggplot(origin_plot, aes(x = state, y = avg_relabun, fill=insecticide)) +
+        return(ggplot(origin_plot, aes(x = state, y = avg_relabun, color=insecticide, shape=origin)) +
                        #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
-                       geom_pointrange(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), pch=21,size=1,position=position_dodge(0.3)) +
-                       scale_shape_manual(values = c(1, 19),
+                       geom_pointrange(aes(ymin=avg_relabun-se, ymax=avg_relabun+se),size=1,position=position_dodge(0.3)) +
+                       scale_shape_manual(name="Origin",
+                                          values = c(1, 19),
                                           labels=c("Exotic","Native")) +
-                       scale_fill_manual(name="Treatment",
+                       scale_color_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                               labs(x = NULL, y = "Native vs. Exotic", title = loc) +
+                               labs(x = NULL, y = "Origin", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-                       #coord_cartesian(ylim=c(110,145)) +
+                       coord_cartesian(ylim=c(0.1,0.7)) +
                        theme_bw(14))
 }
 origin_dot_i_kbs <- origin_dot_i("KBS")
 origin_dot_i_kbs
-origin_dot_i_kbs <- origin_dot_i_kbs + labs(title=NULL) + theme(axis.text.x = element_blank(),
-                                                            axis.text.y = element_text(size=17),
-                                                            axis.title.y = element_text(size=17),
-                                                            legend.text = element_text(size=17),
-                                                            legend.title = element_text(size=17))
+origin_dot_i_kbs <- origin_dot_i_kbs + theme(plot.title = element_text(size=20),
+                                     axis.text.y = element_text(size=14),
+                                     axis.title.y = element_text(size=14),
+                                     legend.text = element_text(size=14),
+                                     legend.title = element_text(size=14))
 origin_dot_i_umbs <- origin_dot_i("UMBS")
-origin_dot_i_umbs <- origin_dot_i_umbs + labs(y=NULL, title=NULL) + theme(axis.title.y=element_blank(),
-                                                                      axis.text.y = element_blank(),
-                                                                      axis.text.x = element_blank(),
-                                                                      legend.text = element_text(size=17),
-                                                                      legend.title = element_text(size=17))
+origin_dot_i_umbs <- origin_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
+                                                      plot.title = element_text(size=20),
+                                                      axis.text.y = element_blank(),
+                                                      legend.text = element_text(size=14),
+                                                      legend.title = element_text(size=14))
 
-# growth
-sum_growth_plot_i$full_treat <- paste(sum_growth_plot_i$state, sum_growth_plot_i$insecticide, sep="_")
-growth_dot_i <- function(loc) { 
-       growth_plot <- subset(sum_growth_plot_i, site == loc)
-        return(ggplot(growth_plot, aes(x = state, y = avg_relabun, fill=insecticide)) +
-                       #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
-                       geom_pointrange(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), pch=21,size=1,position=position_dodge(0.3)) +
-                       #scale_shape_manual(name="Treatment",
-                       #                   values = c(1, 19),
-                       #                   labels=c("Herbivory","Reduced Herbivory")) +
-                       scale_fill_manual(name="Treatment",
-                                         values = c("#FFB451", "#0b0055"),
-                                         labels=c("Herbivory","Reduced Herbivory")) +
-                               labs(x = NULL, y = "Growth Habit", title = loc) +
-                       scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-                       #coord_cartesian(ylim=c(110,145)) +
-                       theme_bw(14))
-}
-growth_dot_i_kbs <- growth_dot_i("KBS")
-growth_dot_i_kbs <- growth_dot_i_kbs + labs(title=NULL) + theme(axis.text.y = element_text(size=17),
-                                                        axis.text.x = element_text(size=17),
-                                                        axis.title.y = element_text(size=17),
-                                                        legend.text = element_text(size=17),
-                                                        legend.title = element_text(size=17))
-growth_dot_i_umbs <- growth_dot_i("UMBS")
-growth_dot_i_umbs <- growth_dot_i_umbs + labs(y=NULL, title=NULL) + theme(axis.title.y=element_blank(),
-                                                                  axis.text.y = element_blank(),
-                                                                  axis.text.x = element_text(size=17),
-                                                                  legend.text = element_text(size=17),
-                                                                  legend.title = element_text(size=17))
-
-comp_all_dot_i <- ggpubr::ggarrange(comp_dot_i_kbs, comp_dot_i_umbs,
-                                origin_dot_i_kbs, origin_dot_i_umbs,
-                                growth_dot_i_kbs, growth_dot_i_umbs,
-                                nrow = 3, ncol = 2, common.legend = T, legend="right",
-                                widths = c(1.1, 0.9,1.1,0.9,1.1,0.9))
-png("relative_abundance_plots_L2_all_plant_comp_dot_insect.png", units="in", width=10, height=10, res=300)
-annotate_figure(comp_all_dot_i,
+comp_origin_dot_i <- ggpubr::ggarrange(origin_dot_i_kbs, origin_dot_i_umbs,
+                                nrow = 1, ncol = 2, common.legend = T, legend="right",
+                                widths = c(1.1, 0.9))
+png("relative_abundance_plots_L2_origin_dot_insect.png", units="in", width=9, height=6, res=300)
+annotate_figure(comp_origin_dot_i,
                 left = text_grob("Relative Abundance", color = "black", rot = 90, size=17))
 dev.off()
 ```
 
+Growth Habit
+```{r}
+# growth
+sum_growth_plot_i$full_treat <- paste(sum_growth_plot_i$state, sum_growth_plot_i$insecticide, sep="_")
+growth_dot_i <- function(loc) { 
+       origin_plot <- subset(sum_growth_plot_i, site == loc)
+        return(ggplot(origin_plot, aes(x = state, y = avg_relabun, color=insecticide, shape=growth_habit)) +
+                       #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
+                       geom_pointrange(aes(ymin=avg_relabun-se, ymax=avg_relabun+se),size=1,position=position_dodge(0.3)) +
+                       scale_shape_manual(name="Growth Habit",
+                                          values = c(1, 19),
+                                          labels=c("Forb","Graminoid")) +
+                       scale_color_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+                               labs(x = NULL, y = "Growth Habit", title = loc) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+                       coord_cartesian(ylim=c(0.2,0.7)) +
+                       theme_bw(14))
+}
+growth_dot_i_kbs <- growth_dot_i("KBS")
+growth_dot_i_kbs
+growth_dot_i_kbs <- growth_dot_i_kbs + theme(plot.title = element_text(size=20),
+                                     axis.text.y = element_text(size=14),
+                                     axis.title.y = element_text(size=14),
+                                     legend.text = element_text(size=14),
+                                     legend.title = element_text(size=14))
+growth_dot_i_umbs <- growth_dot_i("UMBS")
+growth_dot_i_umbs <- growth_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
+                                                      plot.title = element_text(size=20),
+                                                      axis.text.y = element_blank(),
+                                                      legend.text = element_text(size=14),
+                                                      legend.title = element_text(size=14))
+
+comp_growth_dot_i <- ggpubr::ggarrange(growth_dot_i_kbs, growth_dot_i_umbs,
+                                nrow = 1, ncol = 2, common.legend = T, legend="right",
+                                widths = c(1.1, 0.9))
+png("relative_abundance_plots_L2_growth_dot_insect.png", units="in", width=8, height=6, res=300)
+annotate_figure(comp_growth_dot_i,
+                left = text_grob("Relative Abundance", color = "black", rot = 90, size=17))
+dev.off()
+```
 
 
 
