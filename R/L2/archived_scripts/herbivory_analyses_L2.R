@@ -26,6 +26,7 @@ library(AER)
 #library(countreg)
 library(sjPlot)
 library(glmmTMB)
+library(glmmADMB)
 
 # Get data
 Sys.getenv("L1DIR")
@@ -394,12 +395,27 @@ exp(0.54184 +  0.33766*1) # 2.409695
 
 
 
-############### KBS herbivory hurdle model - no insecticide ################
+############### KBS herbivory hurdle model  ################
 # making a column for decimal version of herbivory
-# I thought this would work for my test of a  iff binomial hurdle model below, but it doesn't
+# I thought this would work for my test of a diff binomial hurdle model below, but it doesn't
 herb_kbs$p_eaten_dec <- paste0("0.", herb_kbs$p_eaten)
 herb_kbs$p_eaten_dec <- as.numeric(herb_kbs$p_eaten_dec)
 
+# binomial response (1 eaten / 0 not eaten)
+herb_kbs_in$species <- as.factor(herb_kbs_in$species)
+binom.k <- glmmadmb(p_eaten ~ state * insecticide + year + (1 | species), 
+                  data = herb_kbs_in, family = "binomial")
+summary(binom.k)
+# truncated negative binomial (amount if > 0)
+trunc.k <- glmmadmb(p_eaten ~ state * insecticide + year + (1 | species), 
+                    data = herb_kbs_in, family = "truncnbinom")
+summary(trunc.k)
+
+# hypothesized model
+k.hyp <- hurdle(p_eaten ~ state * insecticide + year + species, data = herb_kbs_in, dist = "negbin", 
+                zero.dist = "binomial")
+summary(k.hyp)
+        
 # hurdle models
 k.m1.h <- hurdle(p_eaten ~ state + species + year, data = herb_kbs, dist = "negbin", 
                  zero.dist = "binomial")
@@ -409,10 +425,15 @@ k.m3.h <- hurdle(p_eaten ~ state + year, data = herb_kbs, dist = "negbin",
                  zero.dist = "binomial")
 lrtest(k.m1.h,k.m2.h, k.m3.h)
 AICtab(k.m1.h,k.m2.h,k.m3.h) #m1
+summary(k.m1.h) #*used this output in the paper*#
 
 # effect of insecticide?
 k.m.i <- hurdle(p_eaten ~ insecticide, data = herb_kbs_in, dist = "negbin", 
                  zero.dist = "binomial")
+k.m.i <- hurdle(p_eaten ~ state + insecticide, data = herb_kbs_in, dist = "negbin", 
+                zero.dist = "binomial")
+k.m.i <- hurdle(p_eaten ~ state + insecticide, data = herb_kbs_in, dist = "negbin", 
+                zero.dist = "binomial")
 summary(k.m.i)
 t.test(p_eaten~insecticide, data=herb_kbs_in)
 
@@ -423,14 +444,23 @@ t.test(p_eaten~insecticide, data=herb_kbs_in)
 # note: these don't work
 fit_hurdle_random1 <- glmmTMB(p_eaten_dec ~ state + species + year + (1|plant_number),
                              data=herb_kbs,
-                             ziformula=~.,
-                             family="binomial")
+                             zi=~state+species+year,
+                             family=nbinom1)
 fit_hurdle_random2 <- glmmTMB(p_eaten ~ state + species + year + (1|plant_number),
                              data=herb_kbs,
-                             ziformula=~.,
+                             zi=~state+species+year,
                              family=truncated_nbinom1)
 
-summary(k.m1.h) #*used this output in the paper*#
+binom.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|species),
+                              data=herb_kbs_in,
+                              zi=~state * insecticide,
+                              family=nbinom1)
+trunc.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|species),
+                              data=herb_kbs_in,
+                              zi=~state * insecticide,
+                              family=truncated_nbinom1)
+summary(binom.k)
+summary(trunc.k)
 summary(fit_hurdle_random2)
 means <- emmeans(k.m1.h, ~ state)
 pairs(means, adjust = "none")
@@ -754,6 +784,13 @@ exp(0.54184 +  0.33766*1) # 2.409695
 
 
 ############### UMBS herbivory hurdle model - no insecticide ################
+
+# hypothesized model
+u.hyp <- hurdle(p_eaten ~ state * insecticide + species + year, data = herb_umbs_in, dist = "negbin", 
+                zero.dist = "binomial")
+summary(u.hyp)
+
+# hurdle mdeols
 u.m1.h <- hurdle(p_eaten ~ state + species + year, data = herb_umbs, dist = "negbin", 
                  zero.dist = "binomial")
 u.m2.h <- hurdle(p_eaten ~ state * species + year, data = herb_umbs, dist = "negbin", 
