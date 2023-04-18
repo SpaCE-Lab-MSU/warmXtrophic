@@ -121,11 +121,14 @@ dev.off()
 
 ### Overall averages btwn treatments - dot plot
 # plot level KBS
-kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, shape = insecticide)) +
-        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), color="black",linetype="solid",size=1,position=position_dodge(0.2)) +
-        scale_shape_manual(name="Treatment",
-                           values = c(1, 19),
-                           labels=c("Herbivory","Reduced Herbivory")) +
+kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = insecticide)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), pch=21,size=1,position=position_dodge(0.2)) +
+        #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                          values = c("#FFB451", "#0b0055"),
+                                          labels=c("Herbivory","Reduced Herbivory")) +
         labs(title="KBS", y=NULL, x=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         ylim(90,200) +
@@ -134,11 +137,14 @@ kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, shape =
               axis.text.x = element_text(size=17),
               axis.text.y = element_text(size=17))
 # plot level UMBS
-umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, shape = insecticide)) +
-        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), color="black",linetype="solid",size=1,position=position_dodge(0.2)) +
-        scale_shape_manual(name="Treatment",
-                           values = c(1, 19),
-                           labels=c("Herbivory","Reduced Herbivory")) +
+umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = insecticide)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), pch=21,size=1,position=position_dodge(0.2)) +
+        #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                          values = c("#FFB451", "#0b0055"),
+                                          labels=c("Herbivory","Reduced Herbivory")) +
         labs(title="UMBS", y=NULL, x=NULL) +
         ylim(30,65) +
         theme_bw(14) +

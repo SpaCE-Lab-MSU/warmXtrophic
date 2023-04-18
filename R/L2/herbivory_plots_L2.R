@@ -320,7 +320,7 @@ dev.off()
 
 
 
-### Binomial response + amount eaten dot plot; b&w ###
+### Binomial response + amount eaten dot plot; orange and navy ###
 # selecting KBS & herbivory plots =, making binary response for if eaten or not overall
 herb_binom_k <- herb %>%
         filter(site == "KBS",
@@ -350,12 +350,12 @@ binom_plot_k2 <- ggplot(herb_binom_sumk, aes(x=state, y=n, fill = p_eaten, label
         geom_col(col="black") +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_fill_manual(values = 
-                                  c(alpha("black",1), alpha("grey",0.3)),
+                                  c(alpha("#FFB451",1), alpha("#0b0055",1)),
                           labels = 
                                   c("Eaten","Not eaten"),
                           name=NULL) +
         geom_text(position=position_stack(0.5), aes(group=p_eaten, color = p_eaten)) +
-        scale_colour_manual(values=c("white", "black")) +
+        scale_colour_manual(values=c("black", "white")) +
         labs(y="Percent eaten or not (%)", x=NULL, title="KBS",subtitle="A", fill=NULL) +
         theme_classic() +
         theme(legend.position="none") +
@@ -371,12 +371,12 @@ binom_plot_u2 <- ggplot(herb_binom_sumu, aes(x=state, y=n, fill = p_eaten, label
         geom_col(col="black") +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_fill_manual(values = 
-                                  c(alpha("black",1),alpha("grey",0.3)),
+                                  c(alpha("#FFB451",1), alpha("#0b0055",1)),
                           labels = 
                                   c("Eaten","Not eaten"),
                           name=NULL) +
         geom_text(position=position_stack(0.5), aes(group=p_eaten, color = p_eaten)) +
-        scale_colour_manual(values=c("white", "black")) +
+        scale_colour_manual(values=c("black", "white")) +
         labs(y="Percent eaten or not (%)", x=NULL, title="UMBS",subtitle="B", fill=NULL) +
         theme_classic() +
         theme(plot.title = element_text(size = 20),
@@ -405,8 +405,8 @@ sum_herb_overall_u <- sum_herb_overall_u %>%
         group_by(state) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
-eaten_k2 <- ggplot(sum_herb_overall_k, aes(x = state, y = avg_eaten, fill = state)) +
-        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), color="black",linetype="solid",size=1,position=position_dodge(0.2)) +
+eaten_k2 <- ggplot(sum_herb_overall_k, aes(x = state, y = avg_eaten)) +
+        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), fill="#FFB451",pch=21,size=1,position=position_dodge(0.2)) +
         labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         ylim(8,21) +
@@ -416,8 +416,8 @@ eaten_k2 <- ggplot(sum_herb_overall_k, aes(x = state, y = avg_eaten, fill = stat
               plot.subtitle = element_text(size=17),
               axis.text.x=element_text(size=17),
               axis.title.y=element_text(size=17))
-eaten_u2 <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten, fill = state)) +
-        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), color="black",linetype="solid",size=1,position=position_dodge(0.2)) +
+eaten_u2 <- ggplot(sum_herb_overall_u, aes(x = state, y = avg_eaten)) +
+        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), fill="#FFB451",pch=21,size=1,position=position_dodge(0.2)) +
         labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="D") +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         ylim(8,21) +
