@@ -50,6 +50,9 @@ sd_plot <- change_site(sd_plot)
 flwr_plot <- change_site(flwr_plot)
 gr_species <- change_site(gr_species)
 
+# adding 1 to each occurrence in the flwr_duration column so everything is scaled up the same & removes 0's
+flwr_plot$flwr_duration_scaled <- flwr_plot$flwr_duration+1
+
 # creating a vector with cleaned up insecticide labels for plotting
 insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 
@@ -75,10 +78,14 @@ sum_green_plot_v2 <- gr_plot_v2 %>%
         group_by(site, state, year) %>%
         summarize(avg_julian = mean(med_half_cover_date, na.rm = TRUE),
                   se = std.error(med_half_cover_date, na.rm = TRUE))
+sum_flwr_dur_plot <- flwr_plot %>%
+        group_by(site, state, year) %>%
+        summarize(avg_julian = mean(flwr_duration, na.rm = TRUE),
+                  se = std.error(flwr_duration, na.rm = TRUE))
 sum_flwr_plot <- flwr_plot %>%
         group_by(site, state, year) %>%
-        summarize(avg_julian = mean(julian_median, na.rm = TRUE),
-                  se = std.error(julian_median, na.rm = TRUE))
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE))
 sum_sd_plot <- sd_plot %>%
         group_by(site, state, year) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
@@ -95,12 +102,20 @@ sum_green_plot_i_v2 <- gr_plot_v2 %>%
                   se = std.error(med_half_cover_date, na.rm = TRUE))
 sum_flwr_plot_i <- flwr_plot %>%
         group_by(site, state, insecticide, year) %>%
-        summarize(avg_julian = mean(julian_median, na.rm = TRUE),
-                  se = std.error(julian_median, na.rm = TRUE))
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE))
 sum_flwr_plot_i2 <- flwr_plot %>%
         group_by(site, state, insecticide) %>%
-        summarize(avg_julian = mean(julian_median, na.rm = TRUE),
-                  se = std.error(julian_median, na.rm = TRUE))
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE))
+sum_flwr_plot_dur_i <- flwr_plot %>%
+        group_by(site, state, insecticide, year) %>%
+        summarize(avg_julian = mean(flwr_duration, na.rm = TRUE),
+                  se = std.error(flwr_duration, na.rm = TRUE))
+sum_flwr_plot_dur_i2 <- flwr_plot %>%
+        group_by(site, state, insecticide) %>%
+        summarize(avg_julian = mean(flwr_duration, na.rm = TRUE),
+                  se = std.error(flwr_duration, na.rm = TRUE))
 sum_sd_plot_i <- sd_plot %>%
         group_by(site, state, insecticide, year) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
@@ -346,20 +361,20 @@ gr_dot_i <- function(loc) {
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                       labs(x = NULL, y = "Green-up", title = loc) +
+                       labs(x = NULL, y = "Green-up \n (julian date)", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        coord_cartesian(ylim=c(110,145)) +
                        theme_bw(14))
 }
 gr_dot_i_kbs <- gr_dot_i("KBS")
-gr_dot_i_kbs <- gr_dot_i_kbs + theme(axis.text.x = element_blank(),
-                                     plot.title = element_text(size=20),
-                                     axis.text.y = element_text(size=17),
-                                     axis.title.y = element_text(size=17),
-                                     legend.text = element_text(size=17),
-                                     legend.title = element_text(size=17))
+gr_dot_i_kbs <- gr_dot_i_kbs + annotate("text", x = 0.5, y=143, label = "A", size=5) + theme(axis.text.x = element_blank(),
+                                                              plot.title = element_text(size=20),
+                                                              axis.text.y = element_text(size=17),
+                                                              axis.title.y = element_text(size=17),
+                                                              legend.text = element_text(size=17),
+                                                              legend.title = element_text(size=17))
 gr_dot_i_umbs <- gr_dot_i("UMBS")
-gr_dot_i_umbs <- gr_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
+gr_dot_i_umbs <- gr_dot_i_umbs + labs(y=NULL) + annotate("text", x = 0.5, y=143, label = "B", size=5) + theme(axis.title.y=element_blank(),
                                                       plot.title = element_text(size=20),
                                                       axis.text.y = element_blank(),
                                                       axis.text.x = element_blank(),
@@ -378,23 +393,56 @@ flwr_dot_i <- function(loc) {
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                       labs(x = NULL, y = "Flowering", title = loc) +
+                       labs(x = NULL, y = "Flowering \n (julian date)", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-                       coord_cartesian(ylim=c(175,195)) +
+                       coord_cartesian(ylim=c(160,195)) +
                        theme_bw(14))
 }
 flwr_dot_i_kbs <- flwr_dot_i("KBS")
-flwr_dot_i_kbs <- flwr_dot_i_kbs + labs(title=NULL) + theme(axis.text.x = element_blank(),
-                                                            axis.text.y = element_text(size=17),
-                                                            axis.title.y = element_text(size=17),
-                                                            legend.text = element_text(size=17),
-                                                            legend.title = element_text(size=17))
+flwr_dot_i_kbs <- flwr_dot_i_kbs + labs(title=NULL) + annotate("text", x = 0.5, y=193, label = "C", size=5) + theme(axis.text.x = element_blank(),
+                                                                          axis.text.y = element_text(size=17),
+                                                                          axis.title.y = element_text(size=17),
+                                                                          legend.text = element_text(size=17),
+                                                                          legend.title = element_text(size=17))
 flwr_dot_i_umbs <- flwr_dot_i("UMBS")
-flwr_dot_i_umbs <- flwr_dot_i_umbs + labs(y=NULL, title=NULL) + theme(axis.title.y=element_blank(),
-                                                                      axis.text.y = element_blank(),
-                                                                      axis.text.x = element_blank(),
-                                                                      legend.text = element_text(size=17),
-                                                                      legend.title = element_text(size=17))
+flwr_dot_i_umbs <- flwr_dot_i_umbs + labs(y=NULL, title=NULL) + annotate("text", x = 0.5, y=193, label = "D", size=5) + theme(axis.title.y=element_blank(),
+                                                                                    axis.text.y = element_blank(),
+                                                                                    axis.text.x = element_blank(),
+                                                                                    legend.text = element_text(size=17),
+                                                                                    legend.title = element_text(size=17))
+
+#flower duration
+sum_flwr_plot_dur_i2$full_treat <- paste(sum_flwr_plot_dur_i2$state, sum_flwr_plot_dur_i2$insecticide, sep="_")
+flwr_dur_dot_i <- function(loc) { 
+        flwr_plot <- subset(sum_flwr_plot_dur_i2, site == loc)
+        return(ggplot(flwr_plot, aes(x = state, y = avg_julian, fill = insecticide)) +
+                       #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=1,position=position_dodge(0.3)) +
+                       #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+                       labs(x = NULL, y = "Flowering duration \n (# days)", title = loc) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+                       scale_y_continuous(breaks = c(15, 20, 25, 30), 
+                                          labels = c("  15", "  20", "  25", "  30")) +
+                       coord_cartesian(ylim=c(15,30)) +
+                       theme_bw(14))
+}
+flwr_dur_dot_i_kbs <- flwr_dur_dot_i("KBS")
+flwr_dur_dot_i_kbs <- flwr_dur_dot_i_kbs + labs(title=NULL) + annotate("text", x = 0.5, y=29, label = "E", size=5) + theme(axis.text.x = element_blank(),
+                                                                                  axis.text.y = element_text(size=17),
+                                                                                  axis.title.y = element_text(size=17),
+                                                                                  legend.text = element_text(size=17),
+                                                                                  legend.title = element_text(size=17))
+flwr_dur_dot_i_umbs <- flwr_dur_dot_i("UMBS")
+flwr_dur_dot_i_umbs <- flwr_dur_dot_i_umbs + labs(y=NULL, title=NULL) + annotate("text", x = 0.5, y=29, label = "F", size=5) + theme(axis.title.y=element_blank(),
+                                                                                            axis.text.y = element_blank(),
+                                                                                            axis.text.x = element_blank(),
+                                                                                            legend.text = element_text(size=17),
+                                                                                            legend.title = element_text(size=17))
 
 #seed
 sum_sd_plot_i2$full_treat <- paste(sum_sd_plot_i2$state, sum_sd_plot_i2$insecticide, sep="_")
@@ -409,32 +457,32 @@ sd_dot_i <- function(loc) {
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                       labs(x = NULL, y = "Seed set", title = loc) +
+                       labs(x = NULL, y = "Seed set \n (julian date)", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        coord_cartesian(ylim=c(180,215)) +
                        theme_bw(14))
 }
 sd_dot_i_kbs <- sd_dot_i("KBS")
-sd_dot_i_kbs <- sd_dot_i_kbs + labs(title=NULL) + theme(axis.text.y = element_text(size=17),
-                                                        axis.text.x = element_text(size=17),
-                                                        axis.title.y = element_text(size=17),
-                                                        legend.text = element_text(size=17),
-                                                        legend.title = element_text(size=17))
+sd_dot_i_kbs <- sd_dot_i_kbs + labs(title=NULL) + annotate("text", x = 0.5, y=212, label = "G", size=5) + theme(axis.text.y = element_text(size=17),
+                                                                      axis.text.x = element_text(size=17),
+                                                                      axis.title.y = element_text(size=17),
+                                                                      legend.text = element_text(size=17),
+                                                                      legend.title = element_text(size=17))
 sd_dot_i_umbs <- sd_dot_i("UMBS")
-sd_dot_i_umbs <- sd_dot_i_umbs + labs(y=NULL, title=NULL) + theme(axis.title.y=element_blank(),
-                                                                  axis.text.y = element_blank(),
-                                                                  axis.text.x = element_text(size=17),
-                                                                  legend.text = element_text(size=17),
-                                                                  legend.title = element_text(size=17))
+sd_dot_i_umbs <- sd_dot_i_umbs + labs(y=NULL, title=NULL) + annotate("text", x = 0.5, y=212, label = "H", size=5) + theme(axis.title.y=element_blank(),
+                                                                                axis.text.y = element_blank(),
+                                                                                axis.text.x = element_text(size=17),
+                                                                                legend.text = element_text(size=17),
+                                                                                legend.title = element_text(size=17))
 
-phen_dot_i <- ggpubr::ggarrange(gr_dot_i_kbs, gr_dot_i_umbs,
+png("phen_plots_L2_dot_insect.png", units="in", width=10, height=9, res=300)
+ggpubr::ggarrange(gr_dot_i_kbs, gr_dot_i_umbs,
                                 flwr_dot_i_kbs, flwr_dot_i_umbs,
+                                flwr_dur_dot_i_kbs, flwr_dur_dot_i_umbs,
                                 sd_dot_i_kbs, sd_dot_i_umbs,
-                                nrow = 3, ncol = 2, common.legend = T, legend="right",
-                                widths = c(1.1, 0.9,1.1,0.9,1.1,0.9))
-png("greenup_plots_L2_all_phenology_dot_insect.png", units="in", width=10, height=8, res=300)
-annotate_figure(phen_dot_i,
-                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=17))
+                                nrow = 4, ncol = 2, common.legend = T, legend="right",
+                                widths = c(1.1, 0.9),
+                                heights = c(1.35, 1.2, 1.2, 1.3))
 dev.off()
 
 
