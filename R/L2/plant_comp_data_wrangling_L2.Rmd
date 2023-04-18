@@ -46,9 +46,9 @@ comp$year_factor[comp$year == 2020] <- 6
 comp$year_factor[comp$year == 2021] <- 7
 
 comp$year_factor <- as.factor(comp$year_factor)
-
 str(comp)
-
+comp$cover <- as.numeric(comp$cover)
+str(comp)
 ```
 
 Peak biomass Selection

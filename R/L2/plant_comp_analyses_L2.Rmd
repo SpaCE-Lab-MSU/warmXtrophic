@@ -52,8 +52,11 @@ L2_dir <- Sys.getenv("L2DIR")
 
 # Read in data
 comp_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv")) # plot level data
+comp_plot$year_factor <- as.factor(comp_plot$year_factor)
 origin_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_origin_plot_L2.csv")) # origin plot level data
+origin_plot$year_factor <- as.factor(origin_plot$year_factor)
 growth_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_plot_L2.csv")) # growth habit plot level data
+growth_plot$year_factor <- as.factor(growth_plot$year_factor)
 ```
 
 ```{r}
@@ -118,7 +121,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 # log normal best fit 
 ```
 
-Leverage plots and detecting Outliers
+Leverage plots and detecting outliers
 ```{r}
 # Plot level data
 # KBS State-only model
@@ -139,8 +142,8 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(log(avg_relative_abundance) ~ state * year_factor, data = kbs_comp_plot)
-interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+fit3 <- lm(log(avg_relative_abundance) ~ state * year, data = kbs_comp_plot)
+interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
 Mixed Effects Model
@@ -176,7 +179,7 @@ outlierTest(modfull) # no outliers
 
 ```{r}
 # testing if year as continuous or year as a factor makes more sense (test models)
-year.mod.test1 <- lmer(log(avg_relative_abundance) ~ state + year_factor + (1|plot), kbs_comp_plot, REML=FALSE)
+year.mod.test1 <- lmer(log(avg_relative_abundance) ~ state + year + (1|plot), kbs_comp_plot, REML=FALSE)
 year.mod.test2 <- lmer(log(avg_relative_abundance) ~ state + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
 anova(year.mod.test1, year.mod.test2) #year.mod.test2
 
@@ -215,10 +218,10 @@ contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
 
 # calculating effect size - accounting for log transformation
-#exp((-2.02006) +  (-0.18808)*0) # 0.1326475 warmed
-#exp((-2.02006) +  (-0.18808)*1) # 0.1099049 ambient
-## effect:
-#0.1099049 - 0.1326475 # ambient plots had 0.0227426 less relative abundance than warmed plots
+exp((-2.19754) +  (0.20642)*0) # 0.1110761 
+exp((-2.19754) +  (0.20642)*1) # 0.1365424
+# effect:
+0.1365424 - 0.1110761 # effect of warming - warmed plots had 0.0254663 or 2.5% more relative abundance than ambient plots
 ```
 
 #KBS Origin Plot Level
@@ -253,14 +256,14 @@ dev.off()
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# log normal best fit, but going to go with normal
+# log normal 
 ```
 
 Leverage plots and detecting Outliers
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(avg_relative_abundance ~ state, data = kbs_origin_plot)
+fit_plot_state_kbs <- lm(sqrt(avg_relative_abundance) ~ state, data = kbs_origin_plot)
 outlierTest(fit_plot_state_kbs) # no outliers
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
@@ -268,7 +271,7 @@ leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(avg_relative_abundance ~ state + year_factor, data = kbs_origin_plot)
+fit_plot_stateyear_kbs <- lm(sqrt(avg_relative_abundance) ~ state + year_factor, data = kbs_origin_plot)
 outlierTest(fit_plot_stateyear_kbs) # no outliers 
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
@@ -277,15 +280,15 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(avg_relative_abundance ~ state * year_factor, data = kbs_origin_plot)
-interact_plot(fit3, pred = year_factor, modx = state) 
+fit3 <- lm(avg_relative_abundance ~ state * year, data = kbs_origin_plot)
+interact_plot(fit3, pred = year, modx = state) 
 ```
 
 Mixed Effects Model
 ```{r}
 # KBS origin plot level
-modfull_o <- lmer(avg_relative_abundance ~ state*origin + insecticide*origin + factor(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
-ggplot(kbs_origin_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
+modfull_o <- lmer(sqrt(avg_relative_abundance) ~ state*origin + insecticide*origin + factor(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
+ggplot(kbs_origin_plot, aes(x=plot,y=avg_relative_abundance)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -306,7 +309,7 @@ leveneTest(residuals(modfull_o) ~ kbs_origin_plot$plot)
 # Assumption not met
 kbs_origin_plot$origin <- as.factor(kbs_origin_plot$origin)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$origin)
-# Assumption not met
+# Assumption
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -320,14 +323,14 @@ outlierTest(modfull_o) # no outliers
 # modfull_cont <- lmer(relabun ~ state*origin + insecticide*origin + as.numeric(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
 # year should be continuous not a factor
 # need to plot final model selected - interpreting the model - reduced herbivory = more relative abundance
-modfull_o <- lmer(avg_relative_abundance ~ state*origin + insecticide*origin + as.factor(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
-mod1p_o <- lmer(avg_relative_abundance ~ state*origin + insecticide*origin + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
-mod2p_o <- lmer(avg_relative_abundance ~ state + insecticide*origin + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
-mod3p_o <- lmer(avg_relative_abundance ~ state + insecticide + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
-mod4p_o <- lmer(avg_relative_abundance ~ state + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
-mod5p_o <- lmer(avg_relative_abundance ~ state + origin + (1|plot), kbs_origin_plot, REML=F)
-mod6p_o <- lmer(avg_relative_abundance ~ state * origin + (1|plot), kbs_origin_plot, REML=F)
-mod7p_o <- lmer(avg_relative_abundance ~ state*origin + insecticide*origin + (1|plot), kbs_origin_plot, REML=F) # hypothesis?
+modfull_o <- lmer(sqrt(avg_relative_abundance) ~ state*origin + insecticide*origin + as.factor(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
+mod1p_o <- lmer(sqrt(avg_relative_abundance) ~ state*origin + insecticide*origin + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
+mod2p_o <- lmer(sqrt(avg_relative_abundance) ~ state + insecticide*origin + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
+mod3p_o <- lmer(sqrt(avg_relative_abundance) ~ state + insecticide + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
+mod4p_o <- lmer(sqrt(avg_relative_abundance) ~ state + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
+mod5p_o <- lmer(sqrt(avg_relative_abundance) ~ state + origin + (1|plot), kbs_origin_plot, REML=F)
+mod6p_o <- lmer(sqrt(avg_relative_abundance) ~ state * origin + (1|plot), kbs_origin_plot, REML=F)
+mod7p_o <- lmer(sqrt(avg_relative_abundance) ~ state*origin + insecticide*origin + (1|plot), kbs_origin_plot, REML=F) # hypothesis?
 
 AICtab(modfull_o, mod1p_o, mod2p_o, mod3p_o, mod4p_o, mod5p_o, mod6p_o, mod7p_o, weights=T)
 anova(mod2p_o, mod1p_o)
@@ -338,10 +341,6 @@ summary(mod2p_o)
 # with herb reduction as interactive term
 anova()
 
-# code to get table information for manuscript
-table <- anova(mod2p_o, mod9p_o)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod2p_o, mod9p_o, weights=T)
 ```
 
 
@@ -377,7 +376,7 @@ dev.off()
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# log normal best fit, but going to go with normal
+# log normal best fit
 ```
 
 Leverage plots and detecting Outliers
@@ -401,8 +400,8 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(avg_relative_abundance ~ state * growth_habit, data = kbs_growth_plot)
-interact_plot(fit3, pred = growth_habit, modx = state) # this looks very strange to me
+fit3 <- lm(avg_relative_abundance ~ state * year, data = kbs_growth_plot)
+interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
 Mixed Effects Model
@@ -474,10 +473,6 @@ plot_model(mod7p_g)
 # testing model that matched our hypothesis
 anova(mod8p_g)
 
-# code to get table information for manuscript
-table <- anova(mod7p_g, mod8p_g)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod7p_g, mod8p_g, weights=T)
 ```
 
 
