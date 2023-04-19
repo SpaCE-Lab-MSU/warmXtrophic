@@ -1,7 +1,7 @@
 ---
-title: "Untitled"
+title: "warmXtrophic Project: Date of First Seed Set Analyses"
 author: "Moriah Young"
-date: "2023-04-19"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 editor_options: 
   chunk_output_type: console
@@ -201,7 +201,7 @@ exp((4.984e+00) +  (-2.009e-02)*0) # 146.0574
 exp((4.984e+00) +  (-2.009e-02)*1) # 143.1524
 # effect:
 143.1524 - 146.0574 # = -2.905  
-# warming plots delayed seed set by ~7.5 days
+# warming plots delayed seed set by ~2.91 days
 ```
 
 UMBS PLOT LEVEL

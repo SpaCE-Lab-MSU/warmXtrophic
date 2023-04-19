@@ -137,7 +137,7 @@ interact_plot(fit3, pred = year, modx = state)
 Mixed Effects Model
 ```{r}
 # KBS PLOT LEVEL - Looking at FIRST date of flowering
-mod1 <- lmer(julian_min ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_plot, REML = FALSE)
+mod1 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_plot, REML = FALSE)
 ggplot(kbs_plot,aes(x=plot,y=julian_min)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
@@ -213,10 +213,11 @@ exp((5.277390) +  (0.0279)*1) # 201.3994
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
-modtest1u <- lmer(julian_min ~ mean_temp + (1|plot), kbs_plot, REML=FALSE)
-modtest2u <- lmer(julian_min ~ GDD_cumulative + (1|plot), kbs_plot, REML=FALSE)
+modtest1u <- lmer(log(julian_min) ~ mean_temp + (1|plot), kbs_plot, REML=FALSE)
+modtest2u <- lmer(log(julian_min) ~ GDD_cumulative + (1|plot), kbs_plot, REML=FALSE)
 
-AICtab(modtest1u,modtest2u)
+AICtab(modtest1u, modtest2u, weights=T)
+# growing degree days model is better but we are going to use the mean temp for all models
 
 anova(modtest1u)
 summary(modtest1u)
@@ -296,7 +297,7 @@ emmip(mod9pu, insecticide~state)
 modtest1u <- lmer(julian_min ~ mean_temp + (1|plot), umbs_plot, REML=FALSE)
 modtest2u <- lmer(julian_min ~ GDD_cumulative + (1|plot), umbs_plot, REML=FALSE)
 
-AICtab(modtest1u,modtest2u)
+AICtab(modtest1u,modtest2u, weights = T)
 
 anova(modtest1u)
 summary(modtest1u)
