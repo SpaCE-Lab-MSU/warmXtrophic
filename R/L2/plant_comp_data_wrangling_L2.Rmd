@@ -79,11 +79,15 @@ unique(july_comp1$date)
 august_comp <- dplyr::filter(comp, month %in% c(8))
 august_comp$date <- as.Date(august_comp$date)
 unique(august_comp$date)
+unique(august_comp$julian)
 # need to change "2020-08-10" and "2020-08-14" to "2020-08-15" - this is because these dates together make one data collection point (they were collected over three days instead of one)
 august_comp$date[august_comp$date == "2020-08-10"] <- "2020-08-15"
 august_comp$date[august_comp$date == "2020-08-14"] <- "2020-08-15"
-unique(august_comp$date)
-august_comp1 <- august_comp %>% group_by(site, year, month) %>% slice_max(julian)
+# now do the same so that the dates match the same julian data
+august_comp$julian[august_comp$julian == 223] <- 228
+august_comp$julian[august_comp$julian == 227] <- 228
+unique(august_comp$date) # check to see if above code did what you wanted it to do
+august_comp1 <- august_comp %>% group_by(site, year, month) %>% slice_max(date)
 unique(august_comp1$date)
 
 # merge the june, july, and august data frames together

@@ -46,21 +46,10 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L1_dir)
 
 # read in plant comp data
-comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
-
-# Remove non-plant data
-#comp <- comp[!(comp$species=="Bare_Ground" | 
-#                       comp$species=="Unknown" | 
-#                       comp$species=="Brown" | 
-#                       comp$species=="Litter" | 
-#                       comp$species=="Vert_Litter" | 
-#                       comp$species=="Animal_Disturbance"), ]
-
-# select peak biomass dates - for this I'm choosing August % cover date
-peak_comp <- dplyr::filter(comp, month %in% c(8))
+comp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
 
 # read in meta data
-meta <- read.csv(file.path(L0_dir, "plot.csv")) # dataframe above already has meta data in it
+meta <- read.csv(file.path(L0_dir, "plot.csv")) # will need later in script
 ```
 
 Function to get data into wide format in order to work in the Vegan package
@@ -102,8 +91,8 @@ Calculating Shannon and Simpsons Diversity and Species Richness
 ```{r}
 #diversity_by_year <- function(comp, site, div_index = "shannon"){
 # subset comp data by site
-comp_kbs <- subset(peak_comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
-comp_umbs <- subset(peak_comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
+comp_kbs <- subset(comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
+comp_umbs <- subset(comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
 
 
 # convert the abundance (cover) data to wide format for each species in columns for the vegan package
@@ -242,25 +231,6 @@ hist(kbs_diversity$simpson)
 qqnorm(kbs_diversity$simpson)
 shapiro.test(kbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Visualizing plot average totals for kbs at the PLOT LEVEL
-ggplot(kbs_diversity, aes(simpson, fill = plot)) + 
-        geom_histogram(binwidth = 0.5) + 
-        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
-
-ggplot(kbs_diversity, aes(simpson, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
-        facet_grid(state~year_factor, margins = TRUE, scales = "free")
-
-ggplot(kbs_diversity, aes(simpson, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1)
-
-ggplot(kbs_diversity, aes(simpson, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor)
-
-ggplot(kbs_diversity, aes(simpson, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor + plot)
-
 # Exploring distributions for these data:
 descdist(kbs_diversity$simpson, discrete = FALSE)
 
@@ -285,6 +255,7 @@ plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
 denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
 cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
 qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+
 ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
 
 # Goodness of fit comparisons across fits
@@ -297,25 +268,6 @@ UMBS
 hist(umbs_diversity$simpson)
 qqnorm(umbs_diversity$simpson)
 shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
-
-# Visualizing plot average totals for umbs at the PLOT LEVEL
-ggplot(umbs_diversity, aes(simpson, fill = plot)) + 
-        geom_histogram(binwidth = 0.5) + 
-        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
-
-ggplot(umbs_diversity, aes(simpson, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
-       facet_grid(state~year_factor, margins = TRUE, scales = "free")
-
-ggplot(umbs_diversity, aes(simpson, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1)
-
-ggplot(umbs_diversity, aes(simpson, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor)
-
-ggplot(umbs_diversity, aes(simpson, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor + plot)
 
 # Exploring distributions for these data:
 descdist(umbs_diversity$simpson, discrete = FALSE)
@@ -356,25 +308,6 @@ hist(kbs_diversity$shannon)
 qqnorm(kbs_diversity$shannon)
 shapiro.test(kbs_diversity$shannon) # pvalue is > 0.05 - normally distributed
 
-# Visualizing plot average totals for kbs at the PLOT LEVEL
-ggplot(kbs_diversity, aes(shannon, fill = plot)) + 
-        geom_histogram(binwidth = 0.5) + 
-        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
-
-ggplot(kbs_diversity, aes(shannon, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
-        facet_grid(state~year_factor, margins = TRUE, scales = "free")
-
-ggplot(kbs_diversity, aes(shannon, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1)
-
-ggplot(kbs_diversity, aes(shannon, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor)
-
-ggplot(kbs_diversity, aes(shannon, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor + plot)
-
 # Exploring distributions for these data:
 descdist(kbs_diversity$shannon, discrete = FALSE)
 
@@ -412,25 +345,6 @@ UMBS
 hist(umbs_diversity$shannon) 
 qqnorm(umbs_diversity$shannon)
 shapiro.test(umbs_diversity$shannon) # pvalue is close to > 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
-
-# Visualizing plot average totals for umbs at the PLOT LEVEL
-ggplot(umbs_diversity, aes(shannon, fill = plot)) + 
-        geom_histogram(binwidth = 0.5) + 
-        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
-
-ggplot(umbs_diversity, aes(shannon, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
-       facet_grid(state~year_factor, margins = TRUE, scales = "free")
-
-ggplot(umbs_diversity, aes(shannon, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1)
-
-ggplot(umbs_diversity, aes(shannon, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor)
-
-ggplot(umbs_diversity, aes(shannon, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor + plot)
 
 # Exploring distributions for these data:
 descdist(umbs_diversity$shannon, discrete = FALSE)
@@ -471,25 +385,6 @@ hist(kbs_diversity$richness) # looks pretty good
 qqnorm(kbs_diversity$richness)
 shapiro.test(kbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
-# Visualizing plot average totals for kbs at the PLOT LEVEL
-ggplot(kbs_diversity, aes(richness, fill = plot)) + 
-        geom_histogram(binwidth = 0.5) + 
-        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
-
-ggplot(kbs_diversity, aes(richness, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
-        facet_grid(state~year_factor, margins = TRUE, scales = "free")
-
-ggplot(kbs_diversity, aes(richness, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1)
-
-ggplot(kbs_diversity, aes(richness, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor)
-
-ggplot(kbs_diversity, aes(richness, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor + plot)
-
 # Exploring distributions for these data:
 descdist(kbs_diversity$richness, discrete = FALSE) # close to normal
 
@@ -527,25 +422,6 @@ UMBS
 hist(umbs_diversity$richness) 
 qqnorm(umbs_diversity$richness)
 shapiro.test(umbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
-
-# Visualizing plot average totals for umbs at the PLOT LEVEL
-ggplot(umbs_diversity, aes(richness, fill = plot)) + 
-        geom_histogram(binwidth = 0.5) + 
-        facet_grid(year_factor ~ site, margins = TRUE, scales = "free")
-
-ggplot(umbs_diversity, aes(richness, fill = as.factor(plot))) + geom_histogram(binwidth = 0.5) + 
-       facet_grid(state~year_factor, margins = TRUE, scales = "free")
-
-ggplot(umbs_diversity, aes(richness, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1)
-
-ggplot(umbs_diversity, aes(richness, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor)
-
-ggplot(umbs_diversity, aes(richness, fill = plot, color=plot)) +
-        geom_density(alpha = 0.1) +
-        facet_wrap(~year_factor + plot)
 
 # Exploring distributions for these data:
 descdist(umbs_diversity$richness, discrete = FALSE)
