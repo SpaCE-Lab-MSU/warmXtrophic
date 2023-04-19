@@ -53,19 +53,14 @@ herb$year[herb$year == 2019] <- 5
 herb$year[herb$year == 2020] <- 6
 herb$year1 <- as.factor(herb$year1)
 
-# Remove NAs
-herb <- herb[complete.cases(herb),]
-
 # plot-level herb totals
 herb_plot <- herb %>%
         group_by(plot, state, site, year1) %>%
         summarize(plot_total = sum(p_eaten))
 
-# create dataframes for kbs and umbs only for plots with no insecticide
-herb_kbs <- subset(herb, site == "kbs" & insecticide == "insects")
-herb_umbs <- subset(herb, site == "umbs" & insecticide == "insects")
-herb_kbs_in <- subset(herb, site == "kbs")
-herb_umbs_in <- subset(herb, site == "umbs")
+# create dataframes for kbs and umbs only
+herb_kbs <- subset(herb, site == "kbs")
+herb_umbs <- subset(herb, site == "umbs")
 herb_kbs_plot <- subset(herb_plot, site == "kbs")
 herb_umbs_plot <- subset(herb_plot, site == "umbs")
 # made separate dataframes for insects & no insects because the amount of herbivory measurements between
@@ -78,24 +73,14 @@ herb_kbs <- herb_kbs %>%
 herb_umbs <- herb_umbs %>%
         group_by(species) %>% 
         filter(all(c('warmed', 'ambient') %in% state))
-herb_kbs_in <- herb_kbs_in %>%
-        group_by(species) %>% 
-        filter(all(c('warmed', 'ambient') %in% state))
-herb_umbs_in <- herb_umbs_in %>%
-        group_by(species) %>% 
-        filter(all(c('warmed', 'ambient') %in% state))
 
 # checking to see if any species/state combos are all zeros
 with(herb_kbs,table(species,state,p_eaten==0)) 
 with(herb_umbs,table(species,state,p_eaten==0))
-with(herb_kbs_in,table(species,state,p_eaten==0)) 
-with(herb_umbs_in,table(species,state,p_eaten==0))
 
 # number of observation per species/state combo (to find rare species)
 herb_kbs %>% count(state, species)
 herb_umbs %>% count(state, species)
-herb_kbs_in %>% count(state, species)
-herb_umbs_in %>% count(state, species)
 
 # removing rare species
 # not doing this for now
@@ -104,30 +89,40 @@ herb_umbs_in %>% count(state, species)
 # making date column a date
 herb_kbs$date <- as.Date(herb_kbs$date)
 herb_umbs$date <- as.Date(herb_umbs$date)
-herb_kbs_in$date <- as.Date(herb_kbs_in$date)
-herb_umbs_in$date <- as.Date(herb_umbs_in$date)
 
 # determine one date per year to avoid replication (also bc some years only measured once while others didn't)
 # can have multiple dates per year if measurements were taken over 2 days & have diff plots/species
 unique(herb_kbs$date)
-kbs_date <- unique(herb_kbs[c("species","date", "plot")])
+kbs_date <- unique(herb_kbs[c("species","date", "plot","year1")])
 herb_kbs <- herb_kbs %>%
-        filter(!(date == "2015-09-04")) # keeping two 2019's because they're diff species
-
+        filter(!(date == "2015-09-04"))
+# keeping two 2017s and 2019s because diff species/plots
 unique(herb_umbs$date)
-umbs_date <- unique(herb_umbs[c("species","date", "plot")])
+umbs_date <- unique(herb_umbs[c("species","date", "plot", "year1")])
 herb_umbs <- herb_umbs %>%
-        filter(!(date == "2015-08-12" | date == "2020-08-24" & plot == "B4")) # keeping two 2020's bc diff plots
+        filter(!(date == "2015-08-12" | date == "2020-08-24" & plot == "B4")) # keeping two 2020's because diff plots (except this one)
 
-unique(herb_kbs_in$date)
-kbs_in_date <- unique(herb_kbs_in[c("species","date", "plot")])
+# separate dataframes for insecticide treatments
+herb_kbs_in <- subset(herb_kbs, insecticide == "insects")
+herb_umbs_in <- subset(herb_umbs, insecticide == "insects")
+herb_kbs_noin <- subset(herb_kbs, insecticide == "no_insects")
+herb_umbs_noin <- subset(herb_umbs, insecticide == "no_insects")
+
+# only keep species that were recorded in both warmed and ambient plots
 herb_kbs_in <- herb_kbs_in %>%
-        filter(!(date == "2015-09-04")) # keeping two 2017s and 2019s because diff species/plots
-
-unique(herb_umbs_in$date) 
-umbs_in_date <- unique(herb_umbs_in[c("species","date", "plot")])
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
 herb_umbs_in <- herb_umbs_in %>%
-        filter(!(date == "2015-08-12")) # keeping two 2020's because diff plots
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+herb_kbs_noin <- herb_kbs_noin %>%
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+herb_umbs_noin <- herb_umbs_noin %>%
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+
+
 
 
 ###################### KBS herbivory distribution check ########################
@@ -182,7 +177,6 @@ shapiro.test(herb_kbs$p_sqrt)
 # quick look at insecticide plots
 hist(herb_kbs_in$p_eaten)
 
-
 # transformations are a no-go
 # mean and var of non-zero counts
 herb_kbs %>%
@@ -192,76 +186,251 @@ herb_kbs_in %>%
         dplyr::filter(p_eaten != "0") %>%
         dplyr::summarize(mean_eaten = mean(p_eaten, na.rm=T), var_eaten = var(p_eaten, na.rm=T))
 # variance is also > mean, so can't be poisson
-# I'll try zero-inflated negative binomial + hurdle models due to an excess of zeros
-# Note: I think a hurdle model would be more appropriate here, since one process is producing zeros
+# I'll try hurdle models due to an excess of zeros
+# Note: hurdle models determined due to one process producing zeros
 # (i.e., eaten or not eaten)
 
 
 
+
 ############### KBS herbivory hurdle model  ################
-# making a column for decimal version of herbivory
-# I thought this would work for my test of a diff binomial hurdle model below, but it doesn't
-herb_kbs$p_eaten_dec <- paste0("0.", herb_kbs$p_eaten)
-herb_kbs$p_eaten_dec <- as.numeric(herb_kbs$p_eaten_dec)
-
-# binomial response (1 eaten / 0 not eaten)
-herb_kbs_in$species <- as.factor(herb_kbs_in$species)
-binom.k <- glmmadmb(p_eaten ~ state * insecticide + year + (1 | species), 
-                    data = herb_kbs_in, family = "binomial")
-summary(binom.k)
-# truncated negative binomial (amount if > 0)
-trunc.k <- glmmadmb(p_eaten ~ state * insecticide + year + (1 | species), 
-                    data = herb_kbs_in, family = "truncnbinom")
-summary(trunc.k)
-
 # hypothesized model
-k.hyp <- hurdle(p_eaten ~ state * insecticide + year + species, data = herb_kbs_in, dist = "negbin", 
+# however, hurdle function can't have random effects
+k.hyp <- hurdle(p_eaten ~ state * insecticide + year,
+                data = herb_kbs,
+                dist = "negbin", 
                 zero.dist = "binomial")
 summary(k.hyp)
 
-# hurdle models
-k.m1.h <- hurdle(p_eaten ~ state + species + year, data = herb_kbs, dist = "negbin", 
+# using glmmTMB to account for random effect
+# first, make sure the output matched the hurdle function output
+trunc.k <- glmmTMB(p_eaten ~ state * insecticide + year,
+                   data=herb_kbs,
+                   zi=~.,
+                   family=truncated_nbinom2)
+summary(trunc.k) #matches the k.hyp output
+
+# adding in random effects of plant number nested within species nested within plot
+full.model.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/plant_number),
+                   data=herb_kbs,
+                   zi=~.,
+                   family=truncated_nbinom2)
+summary(full.model.k)
+tab_model(full.model.k)
+
+# species specific model (for the supplement ?)
+full.model.sp.k <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|plot/species/plant_number),
+                        data=herb_kbs,
+                        zi=~.,
+                        family=truncated_nbinom2)
+summary(full.model.sp.k) 
+
+# temperature model
+temp.model.k <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
+                           data=herb_kbs,
+                           zi=~.,
+                           family=truncated_nbinom2)
+summary(temp.model.k)
+
+
+
+
+###################### UMBS herbivory distribution check ###########################
+# first, checking for normality
+descdist(herb_umbs$p_eaten, discrete = FALSE)
+# normal distribution?
+hist(herb_umbs$p_eaten)
+qqnorm(herb_umbs$p_eaten)
+shapiro.test(herb_umbs$p_eaten)
+fit <- lm(p_eaten~state, data = herb_umbs)
+qqPlot(fit)
+
+# looking at each treatment separately
+hist(herb_umbs$p_eaten[herb_umbs$state == "ambient"])
+hist(herb_umbs$p_eaten[herb_umbs$state == "warmed"])
+
+# gamma distribution? - error message "the function mle failed to estimate the parameters"
+#fit.gamma <- fitdist(herb_umbs$p_eaten, "gamma")
+#plot(fit.gamma)
+
+# lognormal distribution? - error message "values must be positive to fit a lognormal"
+#fit.ln <- fitdist(herb_umbs$p_eaten, "lnorm")
+#plot(fit.ln)
+
+# log transform
+herb_umbs$p_log <- log(herb_umbs$p_eaten+1)
+hist(herb_umbs$p_log)
+qqnorm(herb_umbs$p_log)
+shapiro.test(herb_umbs$p_log) # NAs - data contains 0s
+
+# mean centering p_eaten
+herb_umbs$p_scaled <- herb_umbs$p_log - mean(herb_umbs$p_log)
+hist(herb_umbs$p_scaled)
+hist(herb_umbs$p_scaled[herb_umbs$state == "ambient"])
+hist(herb_umbs$p_scaled[herb_umbs$state == "warmed"])
+qqnorm(herb_umbs$p_scaled)
+shapiro.test(herb_umbs$p_scaled)
+
+# square root?
+herb_umbs$p_sqrt <- sqrt(herb_umbs$p_eaten)
+hist(herb_umbs$p_sqrt)
+qqnorm(herb_umbs$p_sqrt)
+shapiro.test(herb_umbs$p_sqrt)
+
+# transformations are a no-go
+# mean and var of non-zero counts
+herb_umbs %>%
+        dplyr::filter(p_eaten != "0") %>%
+        dplyr::summarize(mean_eaten = mean(p_eaten, na.rm=T), var_eaten = var(p_eaten, na.rm=T))
+# variance is also > mean, so can't be poisson
+# I'll try zero-inflated negative binomial due to an excess of zeros
+
+
+
+
+############### UMBS herbivory hurdle model  ################
+# hypothesized model
+# however, hurdle function can't have random effects
+u.hyp <- hurdle(p_eaten ~ state * insecticide + year, data = herb_umbs, dist = "negbin", 
+                zero.dist = "binomial")
+summary(u.hyp)
+
+# using glmmTMB to account for random effect
+# first, make sure the output matched the hurdle function output
+trunc.u <- glmmTMB(p_eaten ~ state * insecticide + year,
+                   data=herb_umbs,
+                   zi=~.,
+                   family=truncated_nbinom2)
+summary(trunc.u) #matches the u.hyp output
+
+# adding in random effects of plant number nested within species nested within plot
+full.model.u <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/plant_number),
+                      data=herb_umbs,
+                      zi=~.,
+                      family=truncated_nbinom2)
+summary(full.model.u)
+tab_model(full.model.u)
+
+# species specific model (for the supplement ?)
+full.model.sp.u <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|plot/species/plant_number),
+                           data=herb_umbs,
+                           zi=~.,
+                           family=truncated_nbinom2)
+summary(full.model.sp.u) 
+
+# temperature model
+temp.model.u <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
+                        data=herb_umbs,
+                        zi=~.,
+                        family=truncated_nbinom2)
+summary(temp.model.u)
+
+
+
+
+
+################# KBS plot-level analyses #####################
+# first, checking for normality
+descdist(herb_kbs_plot$plot_total, discrete = FALSE)
+hist(herb_kbs_plot$plot_total)
+qqnorm(herb_kbs_plot$plot_total)
+shapiro.test(herb_kbs_plot$plot_total)
+fit <- lm(plot_total~state, data = herb_kbs_plot)
+qqPlot(fit)
+hist(resid(fit))
+shapiro.test(resid(fit))
+
+# log
+descdist(log(herb_kbs_plot$plot_total), discrete = FALSE)
+hist(log(herb_kbs_plot$plot_total))
+qqnorm(log(herb_kbs_plot$plot_total))
+shapiro.test(log(herb_kbs_plot$plot_total))
+fit <- lm(log(plot_total)~state, data = herb_kbs_plot)
+qqPlot(fit)
+hist(resid(fit))
+shapiro.test(resid(fit))
+
+# sqrt
+descdist(sqrt(herb_kbs_plot$plot_total), discrete = FALSE)
+hist(sqrt(herb_kbs_plot$plot_total))
+qqnorm(sqrt(herb_kbs_plot$plot_total))
+shapiro.test(sqrt(herb_kbs_plot$plot_total))
+fit <- lm(sqrt(plot_total)~state, data = herb_kbs_plot)
+qqPlot(fit)
+hist(resid(fit))
+shapiro.test(resid(fit))
+
+# going with log, trying some models
+mod_plot1 <- lmer(log(plot_total) ~ state + (1|plot), data = herb_kbs_plot)
+mod_plot2 <- lmer(log(plot_total) ~ state + year1 + (1|plot), data = herb_kbs_plot)
+mod_plot3 <- lmer(log(plot_total) ~ state * year1 + (1|plot), data = herb_kbs_plot)
+anova(mod_plot1, mod_plot2)
+anova(mod_plot2, mod_plot3)
+summary(mod_plot2)
+
+
+
+
+
+############### old code testing different models ##################
+# KBS #
+# hurdle models for only herbivory plots
+k.m1.h <- hurdle(p_eaten ~ state + species + year, data = herb_kbs_in, dist = "negbin", 
                  zero.dist = "binomial")
-k.m2.h <- hurdle(p_eaten ~ state * species + year, data = herb_kbs, dist = "negbin", 
+k.m2.h <- hurdle(p_eaten ~ state * species + year, data = herb_kbs_in, dist = "negbin", 
                  zero.dist = "binomial")
-k.m3.h <- hurdle(p_eaten ~ state + year, data = herb_kbs, dist = "negbin", 
+k.m3.h <- hurdle(p_eaten ~ state + year, data = herb_kbs_in, dist = "negbin", 
                  zero.dist = "binomial")
 lrtest(k.m1.h,k.m2.h, k.m3.h)
 AICtab(k.m1.h,k.m2.h,k.m3.h) #m1
 summary(k.m1.h) #*used this output in the paper*#
 
+# hurdle models for only reduced herbivory plots
+k.m1.h2 <- hurdle(p_eaten ~ state + species + year, data = herb_kbs_noin, dist = "negbin", 
+                 zero.dist = "binomial")
+k.m2.h2 <- hurdle(p_eaten ~ state * species + year, data = herb_kbs_noin, dist = "negbin", 
+                 zero.dist = "binomial")
+k.m3.h2 <- hurdle(p_eaten ~ state + year, data = herb_kbs_noin, dist = "negbin", 
+                 zero.dist = "binomial")
+lrtest(k.m1.h2,k.m2.h2, k.m3.h2)
+AICtab(k.m1.h2,k.m2.h2,k.m3.h2) #m1
+summary(k.m1.h2) #*used this output in the paper*#
+
 # effect of insecticide?
-k.m.i <- hurdle(p_eaten ~ insecticide, data = herb_kbs_in, dist = "negbin", 
+k.m.i <- hurdle(p_eaten ~ insecticide, data = herb_kbs, dist = "negbin", 
                 zero.dist = "binomial")
-k.m.i <- hurdle(p_eaten ~ state + insecticide, data = herb_kbs_in, dist = "negbin", 
+k.m.i <- hurdle(p_eaten ~ state + insecticide, data = herb_kbs, dist = "negbin", 
                 zero.dist = "binomial")
-k.m.i <- hurdle(p_eaten ~ state + insecticide, data = herb_kbs_in, dist = "negbin", 
+k.m.i <- hurdle(p_eaten ~ state + insecticide, data = herb_kbs, dist = "negbin", 
                 zero.dist = "binomial")
 summary(k.m.i)
 t.test(p_eaten~insecticide, data=herb_kbs_in)
 
-# different package w/ random effects
+# different packages w/ random effects
 # trying this structure to see if I can include random effects, but I can't
 # figure out how to specify a negative binomial dist to the count data and a binomial dist to the second model
 # could run two models, one with negative binomial and one with binomial?
-# note: these don't work
-fit_hurdle_random1 <- glmmTMB(p_eaten_dec ~ state + species + year + (1|plant_number),
-                              data=herb_kbs,
-                              zi=~state+species+year,
-                              family=nbinom1)
-fit_hurdle_random2 <- glmmTMB(p_eaten ~ state + species + year + (1|plant_number),
-                              data=herb_kbs,
-                              zi=~state+species+year,
-                              family=truncated_nbinom1)
 
-binom.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|species),
-                   data=herb_kbs_in,
-                   zi=~state * insecticide,
+# binomial response (1 eaten / 0 not eaten)
+herb_kbs$species <- as.factor(herb_kbs$species)
+binom.k <- glmmadmb(p_eaten ~ state * insecticide + year + (1 | species), 
+                    data = herb_kbs, family = "binomial")
+summary(binom.k)
+# truncated negative binomial (amount if > 0)
+# note: this one doesn't work
+trunc.k <- glmmadmb(p_eaten ~ state * insecticide + year + (1 | species), 
+                    data = herb_kbs, family = "truncnbinom")
+summary(trunc.k)
+
+# diff package
+binom.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|species/plant_number),
+                   data=herb_kbs,
+                   zi=~.,
                    family=nbinom1)
-trunc.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|species),
-                   data=herb_kbs_in,
-                   zi=~state * insecticide,
-                   family=truncated_nbinom1)
+trunc.k <- glmmTMB(p_eaten ~ state * insecticide + year,
+                   data=herb_kbs,
+                   zi=~.,
+                   family=truncated_nbinom2)
 summary(binom.k)
 summary(trunc.k)
 summary(fit_hurdle_random2)
@@ -359,65 +528,9 @@ coeftest(k.m16)
 
 
 
-###################### UMBS herbivory distribution check ###########################
-# first, checking for normality
-descdist(herb_umbs$p_eaten, discrete = FALSE)
-# normal distribution?
-hist(herb_umbs$p_eaten)
-qqnorm(herb_umbs$p_eaten)
-shapiro.test(herb_umbs$p_eaten)
-fit <- lm(p_eaten~state, data = herb_umbs)
-qqPlot(fit)
-
-# looking at each treatment separately
-hist(herb_umbs$p_eaten[herb_umbs$state == "ambient"])
-hist(herb_umbs$p_eaten[herb_umbs$state == "warmed"])
-
-# gamma distribution? - error message "the function mle failed to estimate the parameters"
-#fit.gamma <- fitdist(herb_umbs$p_eaten, "gamma")
-#plot(fit.gamma)
-
-# lognormal distribution? - error message "values must be positive to fit a lognormal"
-#fit.ln <- fitdist(herb_umbs$p_eaten, "lnorm")
-#plot(fit.ln)
-
-# log transform
-herb_umbs$p_log <- log(herb_umbs$p_eaten+1)
-hist(herb_umbs$p_log)
-qqnorm(herb_umbs$p_log)
-shapiro.test(herb_umbs$p_log) # NAs - data contains 0s
-
-# mean centering p_eaten
-herb_umbs$p_scaled <- herb_umbs$p_log - mean(herb_umbs$p_log)
-hist(herb_umbs$p_scaled)
-hist(herb_umbs$p_scaled[herb_umbs$state == "ambient"])
-hist(herb_umbs$p_scaled[herb_umbs$state == "warmed"])
-qqnorm(herb_umbs$p_scaled)
-shapiro.test(herb_umbs$p_scaled)
-
-# square root?
-herb_umbs$p_sqrt <- sqrt(herb_umbs$p_eaten)
-hist(herb_umbs$p_sqrt)
-qqnorm(herb_umbs$p_sqrt)
-shapiro.test(herb_umbs$p_sqrt)
-
-# transformations are a no-go
-# mean and var of non-zero counts
-herb_umbs %>%
-        dplyr::filter(p_eaten != "0") %>%
-        dplyr::summarize(mean_eaten = mean(p_eaten, na.rm=T), var_eaten = var(p_eaten, na.rm=T))
-# variance is also > mean, so can't be poisson
-# I'll try zero-inflated negative binomial due to an excess of zeros
 
 
-
-############### UMBS herbivory hurdle model - no insecticide ################
-
-# hypothesized model
-u.hyp <- hurdle(p_eaten ~ state * insecticide + species + year, data = herb_umbs_in, dist = "negbin", 
-                zero.dist = "binomial")
-summary(u.hyp)
-
+# UMBS #
 # hurdle mdeols
 u.m1.h <- hurdle(p_eaten ~ state + species + year, data = herb_umbs, dist = "negbin", 
                  zero.dist = "binomial")
@@ -501,90 +614,4 @@ pairs(means, adjust = "none")
 plot_model(u.m2.hg, type = "pred", terms = c("growth_habit","state"))
 
 
-
-##### temp hurdle models - both sites ####
-# merging kbs and umbs data
-herb_comb <- rbind(herb_kbs,herb_umbs)
-
-# testing the effect of temp
-comb.m1.h <- hurdle(p_eaten ~ GDD_cumulative, data = herb_comb, dist = "negbin", 
-                    zero.dist = "binomial")
-comb.m2.h <- hurdle(p_eaten ~ mean_temp, data = herb_comb, dist = "negbin", 
-                    zero.dist = "binomial")
-comb.m3.h <- hurdle(p_eaten ~ GDD_cumulative + site, data = herb_comb, dist = "negbin", 
-                    zero.dist = "binomial")
-comb.m4.h <- hurdle(p_eaten ~ mean_temp + site, data = herb_comb, dist = "negbin", 
-                    zero.dist = "binomial")
-comb.m5.h <- hurdle(p_eaten ~ GDD_cumulative * site, data = herb_comb, dist = "negbin", 
-                    zero.dist = "binomial")
-comb.m6.h <- hurdle(p_eaten ~ mean_temp * site, data = herb_comb, dist = "negbin", 
-                    zero.dist = "binomial")
-
-AICtab(comb.m1.h,comb.m2.h,comb.m3.h,comb.m4.h,comb.m5.h,comb.m6.h)
-
-# mod 4
-summary(comb.m6.h)
-
-
-### temp models - kbs ###
-# testing the effect of temp w/ both models
-kbstemp.m1.h <- hurdle(p_eaten ~ GDD_cumulative, data = herb_kbs, dist = "negbin", 
-                       zero.dist = "binomial")
-kbstemp.m2.h <- hurdle(p_eaten ~ mean_temp, data = herb_kbs, dist = "negbin", 
-                       zero.dist = "binomial")
-
-AICtab(kbstemp.m1.h,kbstemp.m2.h)
-summary(kbstemp.m2.h)
-
-
-### temp models - umbs ###
-# testing the effect of temp w/ both models
-umbstemp.m1.h <- hurdle(p_eaten ~ GDD_cumulative, data = herb_umbs, dist = "negbin", 
-                        zero.dist = "binomial")
-umbstemp.m2.h <- hurdle(p_eaten ~ mean_temp, data = herb_umbs, dist = "negbin", 
-                        zero.dist = "binomial")
-
-AICtab(umbstemp.m1.h,umbstemp.m2.h)
-summary(umbstemp.m2.h)
-
-
-
-################# KBS plot-level analyses #####################
-# first, checking for normality
-descdist(herb_kbs_plot$plot_total, discrete = FALSE)
-hist(herb_kbs_plot$plot_total)
-qqnorm(herb_kbs_plot$plot_total)
-shapiro.test(herb_kbs_plot$plot_total)
-fit <- lm(plot_total~state, data = herb_kbs_plot)
-qqPlot(fit)
-hist(resid(fit))
-shapiro.test(resid(fit))
-
-# log
-descdist(log(herb_kbs_plot$plot_total), discrete = FALSE)
-hist(log(herb_kbs_plot$plot_total))
-qqnorm(log(herb_kbs_plot$plot_total))
-shapiro.test(log(herb_kbs_plot$plot_total))
-fit <- lm(log(plot_total)~state, data = herb_kbs_plot)
-qqPlot(fit)
-hist(resid(fit))
-shapiro.test(resid(fit))
-
-# sqrt
-descdist(sqrt(herb_kbs_plot$plot_total), discrete = FALSE)
-hist(sqrt(herb_kbs_plot$plot_total))
-qqnorm(sqrt(herb_kbs_plot$plot_total))
-shapiro.test(sqrt(herb_kbs_plot$plot_total))
-fit <- lm(sqrt(plot_total)~state, data = herb_kbs_plot)
-qqPlot(fit)
-hist(resid(fit))
-shapiro.test(resid(fit))
-
-# going with log, trying some models
-mod_plot1 <- lmer(log(plot_total) ~ state + (1|plot), data = herb_kbs_plot)
-mod_plot2 <- lmer(log(plot_total) ~ state + year1 + (1|plot), data = herb_kbs_plot)
-mod_plot3 <- lmer(log(plot_total) ~ state * year1 + (1|plot), data = herb_kbs_plot)
-anova(mod_plot1, mod_plot2)
-anova(mod_plot2, mod_plot3)
-summary(mod_plot2)
 
