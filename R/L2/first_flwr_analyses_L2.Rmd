@@ -210,7 +210,16 @@ exp((5.277390) +  (0.0279)*1) # 201.3994
 # effect:
 201.3994 - 195.858 # effect of warming - warmed plots increased the date of first flower by 5.5414 days
 
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
+modtest1u <- lmer(julian_min ~ mean_temp + (1|plot), kbs_plot, REML=FALSE)
+modtest2u <- lmer(julian_min ~ GDD_cumulative + (1|plot), kbs_plot, REML=FALSE)
 
+AICtab(modtest1u,modtest2u)
+
+anova(modtest1u)
+summary(modtest1u)
 ```
 
 UMBS plot level
@@ -242,8 +251,8 @@ ols_test_normality(fit_plot_stateyear_umbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(julian_min ~ state * year_factor, data = umbs_plot)
-interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+fit3 <- lm(julian_min ~ state * year, data = umbs_plot)
+interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
 ```{r}
@@ -280,5 +289,16 @@ emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
 contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9pu, insecticide~state)
+
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
+modtest1u <- lmer(julian_min ~ mean_temp + (1|plot), umbs_plot, REML=FALSE)
+modtest2u <- lmer(julian_min ~ GDD_cumulative + (1|plot), umbs_plot, REML=FALSE)
+
+AICtab(modtest1u,modtest2u)
+
+anova(modtest1u)
+summary(modtest1u)
 
 ```
