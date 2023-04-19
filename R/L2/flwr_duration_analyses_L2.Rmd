@@ -50,13 +50,6 @@ L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
 
-# Set ggplot2 plotting
-# This code for ggplot2 sets the theme to mostly black and white 
-# (Arial font, and large font, base size=24)
-theme_set(theme_bw(14))
-theme_update(axis.text.x = element_text(size = 12, angle = 90),
-             axis.text.y = element_text(size = 12))
-
 # Read in data
 flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) # species level data
 flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data

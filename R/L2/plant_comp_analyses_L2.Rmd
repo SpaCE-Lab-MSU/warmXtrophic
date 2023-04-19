@@ -218,10 +218,10 @@ contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
 
 # calculating effect size - accounting for log transformation
-exp((-2.19754) +  (0.20642)*0) # 0.1110761 
-exp((-2.19754) +  (0.20642)*1) # 0.1365424
+exp((-1.98820) +  (-0.228)*0) # 0.1369417 
+exp((-1.98820) +  (-0.228)*1) # 0.1090226
 # effect:
-0.1365424 - 0.1110761 # effect of warming - warmed plots had 0.0254663 or 2.5% more relative abundance than ambient plots
+0.1090226 - 0.1369417 # effect of warming - warmed plots had 0.0279191 or 2.79191% more relative abundance than ambient plots
 ```
 
 #KBS Origin Plot Level
@@ -516,7 +516,7 @@ Leverage plots and detecting Outliers
 # Plot level data
 # UMBS State-only model
 fit_plot_state_umbs <- lm(log(avg_relative_abundance) ~ state, data = umbs_comp_plot)
-outlierTest(fit_plot_state_umbs) 
+outlierTest(fit_plot_state_umbs) # no outliers
 qqPlot(fit_plot_state_umbs, main="QQ Plot") 
 hist(fit_plot_state_umbs$residuals)
 leveragePlots(fit_plot_state_umbs)
@@ -532,15 +532,14 @@ ols_test_normality(fit_plot_stateyear_umbs)
 
 # Interaction plot - see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(log(avg_relative_abundance) ~ state * year_factor, data = umbs_comp_plot)
-interact_plot(fit3, pred = year_factor, modx = state) 
+fit3 <- lm(log(avg_relative_abundance) ~ state * year, data = umbs_comp_plot)
+interact_plot(fit3, pred = year, modx = state) 
 ```
 
 Mixed Effects Model
 ```{r}
 # UMBS PLOT LEVEL
 modfullu <- lmer(log(avg_relative_abundance) ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_comp_plot, REML = FALSE)
-ggplot(umbs_comp_plot,aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -565,7 +564,7 @@ leveneTest(residuals(modfullu) ~ umbs_comp_plot$plot)
 qqPlot(resid(modfullu))
 hist(residuals(modfullu))
 shapiro.test(resid(modfullu)) # not normally distributed resids bc p<0.05
-outlierTest(modfullu) # no outliers
+outlierTest(modfullu)
 ```
 
 ```{r}
@@ -662,15 +661,14 @@ ols_test_normality(fit_plot_stateyear_umbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(avg_relative_abundance ~ state * year_factor, data = umbs_origin_plot)
-interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+fit3 <- lm(avg_relative_abundance ~ state * year, data = umbs_origin_plot)
+interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
 Mixed Effects Model
 ```{r}
 # UMBS origin plot level
 modfull_o_u <- lmer(avg_relative_abundance ~ state*origin + insecticide*origin + year_factor*origin + (1|plot), umbs_origin_plot, REML = FALSE)
-ggplot(umbs_origin_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -688,7 +686,7 @@ leveneTest(residuals(modfull_o_u) ~ umbs_origin_plot$insecticide)
 # Assumption not met
 umbs_origin_plot$plot <- as.factor(umbs_origin_plot$plot)
 leveneTest(residuals(modfull_o_u) ~ umbs_origin_plot$plot)
-# Assumption not met
+# Assumption met
 umbs_origin_plot$origin <- as.factor(umbs_origin_plot$origin)
 leveneTest(residuals(modfull_o_u) ~ umbs_origin_plot$origin)
 
@@ -701,34 +699,18 @@ outlierTest(modfull_o_u) # no outliers
 ```
 
 ```{r}
-modfull_o_u <- lmer(avg_relative_abundance ~ state*origin + insecticide*origin + as.factor(year_factor)*origin + (1|plot), umbs_origin_plot, REML = FALSE)
-anova(modfull_o_u) # significant interaction term btw year and origin
+#Our hypothesized model
+mod_1uo <- lmer(avg_relative_abundance ~ state*insecticide + origin + as.factor(year_factor) + (1|plot), umbs_origin_plot, REML = FALSE)
 
-mod1p_o_u <- lmer(avg_relative_abundance ~ state*origin + insecticide + origin + as.factor(year_factor)*origin + (1|plot), umbs_origin_plot, REML = FALSE)
-anova(mod1p_o_u)
-anova(modfull_o_u, mod1p_o_u)
+summary(mod_1uo)
+anova(mod_1uo)
 
-mod2p_o_u <- lmer(avg_relative_abundance ~ state + insecticide + origin + as.factor(year_factor)r*origin + (1|plot), umbs_origin_plot, REML = FALSE)
-anova(mod2p_o_u)
+# comparisons
+emmeans(mod_1uo, list(pairwise ~ state*insecticide + origin), adjust = "tukey")
+mod_1uo.emm <- emmeans(mod_1uo, ~ state*insecticide + origin)
+contrast(mod_1uo.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod_1uo, insecticide~state)
 
-mod3p_o_u <- lmer(avg_relative_abundance ~ state + origin + insecticide + as.factor(year_factor) + (1|plot), umbs_origin_plot, REML = FALSE)
-anova(mod3p_o_u)
-mod4p_o_u <- lmer(avg_relative_abundance ~ state + origin + as.factor(year_factor)*origin + (1|plot), umbs_origin_plot, REML = FALSE)
-anova(mod4p_o_u)
-mod5p_o_u <- lmer(avg_relative_abundance ~ state + origin + as.factor(year_factor) + (1|plot), umbs_origin_plot, REML = FALSE)
-anova(mod5p_o_u)
-anova(mod4p_o_u, mod5p_o_u) # mod3
-mod6p_o_u <- lmer(avg_relative_abundance ~ state + origin + (1|plot), umbs_origin_plot, REML = FALSE)
-anova(mod6p_o_u)
-mod7p_o_u <- lmer(avg_relative_abundance ~ state*origin + (1|plot), umbs_origin_plot, REML = FALSE)
-anova(mod7p_o_u)
-
-AICtab(modfull_o_u, mod1p_o_u, mod2p_o_u, mod3p_o_u, mod4p_o_u, mod5p_o_u, mod6p_o_u, mod7p_o_u, weights=T)
-anova(mod4p_o_u, mod2p_o_u)
-AICctab(mod4p_o_u, mod2p_o_u, weights=T) #mod4p
-anova(mod4p_o_u)
-summary(mod4p_o_u)
-emmeans(mod4p_o_u, list(pairwise ~ state + year_factor), adjust = "tukey")
 ```
 
 #UMBS Growth Plot Level
@@ -787,8 +769,8 @@ ols_test_normality(fit_plot_stateyear_umbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(avg_relative_abundance ~ state * year_factor, data = umbs_growth_plot)
-interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+fit3 <- lm(avg_relative_abundance ~ state * year, data = umbs_growth_plot)
+interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
 Mixed Effects Model
@@ -826,39 +808,19 @@ outlierTest(modfull_g_u) # no outliers
 ```
 
 ```{r}
-# plot-level models using the re-summarized data frame
-modfull_g_u <- lmer(avg_relative_abundance ~ state*growth_habit + insecticide*growth_habit + as.factor(year_factor)*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
-anova(modfull_g_u) # significant interaction term with growth habit and year
-mod1p_g_u <- lmer(avg_relative_abundance ~ state*growth_habit + insecticide + growth_habit + as.factor(year_factor)*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
-anova(mod1p_g_u) # significant interaction term with growth habit and year
+#Our hypothesized model
+mod_1ug <- lmer(avg_relative_abundance ~ state*insecticide + growth_habit + as.factor(year_factor) + (1|plot), umbs_growth_plot, REML = FALSE)
+summary(mod_1ug)
+anova(mod_1ug)
 
-mod2p_g_u <- lmer(avg_relative_abundance ~ state + insecticide + growth_habit + as.factor(year_factor)*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
-anova(mod2p_g_u)
+# comparisons
+emmeans(mod_1ug, list(pairwise ~ state*insecticide + growth_habit), adjust = "tukey")
+mod_1ug.emm <- emmeans(mod_1ug, ~ state*insecticide + growth_habit)
+contrast(mod_1ug.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod_1ug, insecticide~state)
 
-mod3p_g_u <- lmer(avg_relative_abundance ~ state + growth_habit + as.factor(year_factor)*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
-anova(mod3p_g_u)
-
-mod3p_g_u <- lmer(avg_relative_abundance ~ state + growth_habit + as.factor(year_factor)*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
-anova(mod3p_g_u)
-mod3p_g_u <- lmer(avg_relative_abundance ~ state + insecticide + as.factor(year_factor) + growth_habit + (1|plot), umbs_growth_plot, REML=F)
-mod4p_g_u <- lmer(avg_relative_abundance ~ state + growth_habit + (1|plot), umbs_growth_plot, REML=F)
-mod5p_g_u <- lmer(avg_relative_abundance ~ state * growth_habit + (1|plot), umbs_growth_plot, REML=F)
-mod6p_g_u <- lmer(avg_relative_abundance ~ state*growth_habit + insecticide*growth_habit + (1|plot), umbs_growth_plot, REML=F) # hypothesis?
-
-
-AICtab(modfull_g_u, mod1p_g_u, mod2p_g_u, mod3p_g_u, mod4p_g_u, mod5p_g_u, mod6p_g_u, weights=T)
-anova(mod2p_g_u, mod1p_g_u)
-AICtab(mod2p_g_u, mod1p_g_u, weights=T)
-anova(mod2p_g_u)
-summary(mod2p_g_u)
-plot_model(mod2p_g_u)
-
-# with herb reduction as interactive term
-anova(mod6p_g_u)
-
-# code to get table information for manuscript
-table <- anova(mod2p_g_u, mod6p_g_u)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod2p_g_u, mod6p_g_u, weights=T)
+mod_2ug <- lmer(avg_relative_abundance ~ state*insecticide + growth_habit*state + as.factor(year_factor) + (1|plot), umbs_growth_plot, REML = FALSE)
+summary(mod_2ug)
+anova(mod_2ug)
 ```
 

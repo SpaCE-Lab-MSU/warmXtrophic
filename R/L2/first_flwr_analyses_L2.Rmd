@@ -51,6 +51,7 @@ L2_dir <- Sys.getenv("L2DIR")
 
 # Read in data
 flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
+flwr_plot$year_factor <- as.factor(flwr_plot$year_factor)
 
 ```
 
@@ -65,9 +66,9 @@ levels(flwr_plot$state)
 
 str(flwr_plot)
 
-# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# delete 2021 data from dataframe - doesn't make sense to have bc we can't get min flower/sd, median flower, or 
 # flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
-flwr_plot <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
+#flwr_plot <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
 
 umbs_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
 kbs_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
@@ -112,7 +113,7 @@ Leverage plots and detecting Outliers
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(julian_min ~ state, data = kbs_plot)
+fit_plot_state_kbs <- lm(log(julian_min) ~ state, data = kbs_plot)
 outlierTest(fit_plot_state_kbs) # no outliers
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
@@ -120,7 +121,7 @@ leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(julian_min ~ state + year_factor, data = kbs_plot)
+fit_plot_stateyear_kbs <- lm(log(julian_min) ~ state + year_factor, data = kbs_plot)
 outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
@@ -129,8 +130,8 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(julian_min ~ state * year_factor, data = kbs_plot)
-interact_plot(fit3, pred = year_factor, modx = state) # this looks very strange to me
+fit3 <- lm(julian_min ~ state * year, data = kbs_plot)
+interact_plot(fit3, pred = year, modx = state) 
 ```
 
 Mixed Effects Model
@@ -164,17 +165,17 @@ outlierTest(mod1) # no outliers
 ```
 
 ```{r}
-mod1p <- lmer(julian_min ~ state + (1|plot), kbs_plot, REML=FALSE)
-mod2p <- lmer(julian_min ~ insecticide + (1|plot), kbs_plot, REML=FALSE)
-mod3p <- lmer(julian_min ~ insecticide + state + (1|plot), kbs_plot, REML=FALSE)
-mod4p <- lmer(julian_min ~ insecticide * state + (1|plot), kbs_plot, REML=FALSE)
-mod5p <- lmer(julian_min ~ state + year_factor + (1|plot), kbs_plot, REML=FALSE)
-mod6p <- lmer(julian_min ~ state + year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
-mod7p <- lmer(julian_min ~ state * year_factor + (1|plot), kbs_plot, REML=FALSE)
-mod8p <- lmer(julian_min ~ state * year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
-mod9p <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
-mod10p <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), kbs_plot, REML=FALSE)
-mod11p <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod1p <- lmer(log(julian_min) ~ state + (1|plot), kbs_plot, REML=FALSE)
+mod2p <- lmer(log(julian_min) ~ insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod3p <- lmer(log(julian_min) ~ insecticide + state + (1|plot), kbs_plot, REML=FALSE)
+mod4p <- lmer(log(julian_min) ~ insecticide * state + (1|plot), kbs_plot, REML=FALSE)
+mod5p <- lmer(log(julian_min) ~ state + year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod6p <- lmer(log(julian_min) ~ state + year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod7p <- lmer(log(julian_min) ~ state * year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod8p <- lmer(log(julian_min) ~ state * year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod10p <- lmer(log(julian_min) ~ state + insecticide * year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod11p <- lmer(log(julian_min) ~ state * year_factor * insecticide + (1|plot), kbs_plot, REML=FALSE)
 AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 7p and 8p are the top models
 anova(mod7p, mod8p) # go with 7p although they are nearly identical
 AICctab(mod7p, mod8p, weights=T) # 7p
@@ -193,10 +194,23 @@ anova(mod8p)
 #including herb reduction as interactive term
 anova(mod9p)
 
-# code to get table information for manuscript
-table <- anova(mod7p, mod9p)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod7p, mod9p, weights=T)
+#Our hypothesized model is  mod9p
+summary(mod9p)
+anova(mod9p)
+
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
+# calculating effect size - accounting for log transformation
+exp((5.277390) +  (0.0279)*0) # 195.858 
+exp((5.277390) +  (0.0279)*1) # 201.3994
+# effect:
+201.3994 - 195.858 # effect of warming - warmed plots increased the date of first flower by 5.5414 days
+
+
 ```
 
 UMBS plot level
@@ -205,7 +219,6 @@ UMBS plot level
 hist(umbs_plot$julian_min)
 qqnorm(umbs_plot$julian_min)
 shapiro.test(umbs_plot$julian_min) # pvalue is > 0.05 so we fail to reject the null hypothesis that the data is normal (aka normally distributed!!)
-
 ```
 
 Leverage plots and detecting Outliers
@@ -258,8 +271,14 @@ emmeans(mod10pu, list(pairwise ~ year_factor), adjust = "tukey")
 # with herb reduction as interactive term
 anova(mod9pu)
 
-# code to get table information for manuscript
-table <- anova(mod10pu, mod9pu)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod10pu, mod9pu, weights=T)
+#Our hypothesized model is  mod9p
+summary(mod9pu)
+anova(mod9pu)
+
+# comparisons
+emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
+contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9pu, insecticide~state)
+
 ```
