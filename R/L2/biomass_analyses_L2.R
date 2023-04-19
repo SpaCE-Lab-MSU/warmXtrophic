@@ -216,7 +216,7 @@ contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
 
 
-# plot-level analyses #
+#### plot-level analyses ####
 mod1_kp <- lm(plot_sum_g ~ state+insecticide, data=kbs_plot_biomass)
 mod2_kp <- lm(plot_sum_g ~ state*insecticide, data=kbs_plot_biomass)
 anova(mod1_kp, mod2_kp)
@@ -375,19 +375,15 @@ emmip(mod11_u, species~state)
 
 # plot-level analyses #
 mod1_up <- lm(plot_sum_g ~ state + insecticide, data=umbs_plot_biomass)
-outlierTest(mod1_up) # no outliers
-hist(mod1_up$residuals)
-qqPlot(mod1_up, main="QQ Plot") 
-leveragePlots(mod1_up)
-leveneTest(residuals(mod1_up) ~ umbs_plot_biomass$state)
-leveneTest(residuals(mod1_up) ~ umbs_plot_biomass$insecticide)
-shapiro.test(resid(mod1_up))
-# looks good
-anova(mod1_up)
-summary(mod1_up)
-
-# interaction between state and insecticide?
 mod2_up <- lm(plot_sum_g ~ state * insecticide, data=umbs_plot_biomass)
+
+anova (mod1_up,mod2_up)
+AICctab(mod1_up,mod2_up) # mod 1 better, but using mod 2 to look at comparisons
+
+table2 <- anova(mod1_up,mod2_up)
+kable(table2) %>% kableExtra::kable_styling()
+AICctab(mod1_up, mod2_up)
+
 outlierTest(mod2_up) # no outliers
 hist(mod2_up$residuals)
 qqPlot(mod2_up, main="QQ Plot") 
@@ -399,9 +395,10 @@ shapiro.test(resid(mod2_up))
 anova(mod2_up)
 summary(mod2_up)
 
-table2 <- anova(mod1_up,mod2_up)
-kable(table2) %>% kableExtra::kable_styling()
-AICctab(mod1_up, mod2_up)
+# comparisons
+emmeans(mod2_up, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod2up.emm <- emmeans(mod2_up, ~ state*insecticide)
+contrast(mod2up.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 
 
 # regression #
