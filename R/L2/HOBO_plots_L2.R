@@ -211,16 +211,23 @@ Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist,
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_soil_moist_line_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist, group=treatment, color=treatment)) +
-        geom_errorbar(aes(ymin=average_moist-se, ymax=average_moist+se), width=.1,color="black",linetype="solid") +
-        geom_line(size = 1) +
-        geom_point(size = 2) +
+Fig1_soil_moist_line_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist, group=treatment, fill=treatment,color=treatment)) +
+        geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), pch=21,size=0.6, color="black") +
+        geom_line(size = 0.75) +
+        #geom_point(size = 2) +
         scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#fb6a4a"),
+                           labels=c("Ambient","Warmed")) +
+        scale_fill_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
                            labels=c("Ambient","Warmed")) +
         labs(title="KBS",y=NULL, x=NULL) +
         ylim(7,21) +
-        theme_bw(14)
+        theme_bw(14) + 
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=15))
 
 Fig1_soil_kbs_dualy <- ggplot(KBS_soil_merged, aes(x=year, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(y=average_temp, ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
@@ -678,16 +685,23 @@ Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average_mois
         theme(legend.position="bottom") +
         theme_classic()
 
-Fig1_soil_moist_line_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average_moist, group=treatment, color=treatment)) +
-        geom_errorbar(aes(ymin=average_moist-se, ymax=average_moist+se), width=.1,color="black",linetype="solid") +
-        geom_line(size = 1) +
-        geom_point(size = 2) +
+Fig1_soil_moist_line_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average_moist, group=treatment, fill=treatment,color=treatment)) +
+        geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), pch=21,size=0.6, color="black") +
+        geom_line(size = 0.75) +
+        #geom_point(size = 2) +
         scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#fb6a4a"),
+                           labels=c("Ambient","Warmed")) +
+        scale_fill_manual(name="Treatment",
                            values = c("#a6bddb", "#fb6a4a"),
                            labels=c("Ambient","Warmed")) +
         labs(title="UMBS",y=NULL, x=NULL) +
         ylim(7,21) +
-        theme_bw(14)
+        theme_bw(14) +
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=15))
 
 Fig1_soil_umbs_dualy <- ggplot(UMBS_soil_merged, aes(x=year, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(y=average_temp, ymin = average_temp - se, ymax = average_temp + se), size=1, color="black") +
@@ -905,8 +919,8 @@ dev.off()
 Fig1.7 <- ggarrange(Fig1_soil_moist_line_kbs, Fig1_soil_moist_line_umbs, ncol = 2, common.legend = T, legend = "right")
 png("HOBO_plots_L2_soil_moist_line.png", units="in", width=10, height=5, res=300)
 annotate_figure(Fig1.7,
-                left = text_grob("Average Soil Moisture (%)", color = "black", rot = 90),
-                bottom = text_grob("Year", color = "black"))
+                left = text_grob("Average Soil Moisture (%)", color = "black", rot = 90,size=17),
+                bottom = text_grob("Year", color = "black", size=17))
 dev.off()
 
 Fig1.8 <- ggarrange(Fig1.5,Fig1.6,
