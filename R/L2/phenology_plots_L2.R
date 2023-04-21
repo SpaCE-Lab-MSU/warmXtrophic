@@ -190,11 +190,15 @@ sum_green_plot_i2_v2$year <- as.factor(sum_green_plot_i2_v2$year)
 sum_green_plot_i2_v2$full_treat <- paste(sum_green_plot_i2_v2$state, sum_green_plot_i2_v2$insecticide, sep="_")
 gr_line_i <- function(loc) { 
         gr_plot <- subset(sum_green_plot_i2_v2, site == loc)
-        return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
+        return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
+                       #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_point(size = 2) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",color="black",pch=21,size=0.6) +
+                       #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
@@ -215,13 +219,17 @@ sum_flwr_plot_i$year <- as.factor(sum_flwr_plot_i$year)
 sum_flwr_plot_i$full_treat <- paste(sum_flwr_plot_i$state, sum_flwr_plot_i$insecticide, sep="_")
 flwr_line_i <- function(loc) { 
         flwr_plot <- subset(sum_flwr_plot_i, site == loc)
-        return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid",position=position_dodge(0.1), width=.3) +
+        return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
+                       #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_point(size = 2) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",color="black",pch=21,size=0.6) +
+                       #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                         labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
                                              values = c("solid", "dotdash", "solid", "dotdash"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
@@ -240,13 +248,17 @@ sum_sd_plot_i$year <- as.factor(sum_sd_plot_i$year)
 sum_sd_plot_i$full_treat <- paste(sum_sd_plot_i$state, sum_sd_plot_i$insecticide, sep="_")
 sd_line_i <- function(loc) { 
         sd_plot <- subset(sum_sd_plot_i, site == loc)
-        return(ggplot(sd_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid",position=position_dodge(0.1), width=.3) +
+        return(ggplot(sd_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat, fill=full_treat)) +
+                       #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_point(size = 2) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",color="black",pch=21,size=0.6) +
+                       #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                         labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
                                              values = c("solid", "dotdash", "solid", "dotdash"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
@@ -608,4 +620,44 @@ png("greenup_gdd_temp.png", units="in", width=7, height=8, res=300)
 annotate_figure(gdd_temp_merge,
                 left = text_grob("Green-up half cover julian date", color = "black", rot = 90, size=15),
                 top = text_grob("KBS                                                      UMBS", color = "black", size=15))
+
+
+
+
+
+####### green-up species level ########
+sum_green_spp_i$full_treat <- paste(sum_green_spp_i$state, sum_green_spp_i$insecticide, sep="_")
+greenup_plot_overall <- function(loc) { 
+        greenup_spp <- subset(sum_green_spp_i, site == loc)
+        return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
+                       facet_wrap(~species, ncol=4) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+                       #geom_bar(position = "identity", stat = "identity", color = "black") +
+                       #geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                       #              position = "identity") +
+                       labs(x = NULL, y = NULL, title=loc) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient  ", "warmed" = "  Warmed")) +
+                       #scale_fill_manual(name="Treatment",
+                       #                  labels=c("Ambient, herbivory","Ambient, reduced herbivory",
+                       #                           "Warmed, herbivory","Warmed, reduced herbivory"),
+                       #                  values = c("#a6bddb", "#687689", "#fb6a4a", "#9D422E")) +
+                       theme_bw() +
+                       theme(axis.text.x = element_text(size=14),
+                             axis.text.y = element_text(size=14),
+                             legend.text = element_text(size=15),
+                             legend.title = element_text(size=15),
+                             title = element_text(size=17),
+                             strip.text = element_text(size=15)))
+}
+kbs_green_spp <- greenup_plot_overall("KBS")
+umbs_green_spp <- greenup_plot_overall("UMBS")
+green_overall_merge <- ggpubr::ggarrange(kbs_green_spp, umbs_green_spp,
+                                         ncol = 2, common.legend = T,legend="right")
+png("greenup_species.png", units="in", width=16, height=8, res=300)
+annotate_figure(green_overall_merge,
+                left = text_grob("Julian date of green-up", color = "black", rot = 90, size=17))
+dev.off()
 dev.off()
