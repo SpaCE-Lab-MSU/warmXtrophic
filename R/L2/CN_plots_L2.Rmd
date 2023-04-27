@@ -80,40 +80,55 @@ ggplot(cn1, aes(x = species, y = carbon, fill = treatment)) +
 ```{r}
 cn_treat_kbs <- cn_treatment %>%
         filter(site == "kbs")
-c_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = carbon_mean, fill = treatment)) +
-        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
-        geom_bar(position = "identity", stat = "identity", color = 'black') +
-        geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
-                position = "identity") +
+c_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = carbon_mean, fill = insecticide)) +
+        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_pointrange(aes(ymin=carbon_mean-c_se, ymax=carbon_mean+c_se), pch=21,size=1,position=position_dodge(0.3)) +
+        #geom_bar(position = "identity", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = "identity") +
         labs(x = NULL, y = NULL, fill = "Treatment", title="KBS") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+        #                  labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(42,48)) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(42,48)) +
         theme_classic() +
-        theme(legend.position = "none")
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 cn_treat_umbs <- cn_treatment %>%
         filter(site == "umbs")
-c_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = carbon_mean, fill = treatment)) +
-        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
-        geom_bar(position = "identity", stat = "identity", color = 'black') +
-        geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
-                position = "identity") +
+c_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = carbon_mean, fill = insecticide)) +
+        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_pointrange(aes(ymin=carbon_mean-c_se, ymax=carbon_mean+c_se), pch=21,size=1,position=position_dodge(0.3)) +
+        #geom_bar(position = "identity", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = "identity") +
         labs(x = NULL, y = NULL, fill = "Treatment", title="UMBS") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+        #                  labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(42,48)) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(42,48)) +
         theme_classic() +
-        theme(legend.position = "none")
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 c_comb <- ggpubr::ggarrange(c_kbs, c_umbs,
-                                     ncol = 2, common.legend = T, legend="none")
-png("carbon_treatmentlevel_L2.png", units="in", width=7, height=4, res=300)
+                                     ncol = 2, common.legend = T, legend="right")
+png("carbon_treatmentlevel_L2.png", units="in", width=9, height=4, res=300)
 annotate_figure(c_comb,
-                left = text_grob("Carbon content (%)", color = "black", rot = 90),
-                bottom = text_grob("Treatment", color = "black"))
+                left = text_grob("Carbon content (%)", color = "black", rot = 90, size=17))
 dev.off()
 ```
 
@@ -151,40 +166,55 @@ ggplot(cn1, aes(x = species, y = nitrogen, fill = treatment)) +
 ```{r}
 cn_treat_kbs <- cn_treatment %>%
         filter(site == "kbs")
-n_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = nitrogen_mean, fill = treatment)) +
-        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
-        geom_bar(position = "identity", stat = "identity", color = 'black') +
-        geom_errorbar(aes(ymin = nitrogen_mean - n_se, ymax = nitrogen_mean + n_se), width = 0.2,
-                position = "identity") +
+n_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = nitrogen_mean, fill = insecticide)) +
+        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_pointrange(aes(ymin=nitrogen_mean-n_se, ymax=nitrogen_mean+n_se), pch=21,size=1,position=position_dodge(0.3)) +
+        #geom_bar(position = "identity", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = "identity") +
         labs(x = NULL, y = NULL, fill = "Treatment", title="KBS") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+        #                  labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(1.5,2.25)) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(42,48)) +
         theme_classic() +
-        theme(legend.position = "none")
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 cn_treat_umbs <- cn_treatment %>%
         filter(site == "umbs")
-n_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = nitrogen_mean, fill = treatment)) +
-        facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
-        geom_bar(position = "identity", stat = "identity", color = 'black') +
-        geom_errorbar(aes(ymin = nitrogen_mean - n_se, ymax = nitrogen_mean + n_se), width = 0.2,
-                position = "identity") +
+n_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = nitrogen_mean, fill = insecticide)) +
+        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_pointrange(aes(ymin=nitrogen_mean-n_se, ymax=nitrogen_mean+n_se), pch=21,size=1,position=position_dodge(0.3)) +
+        #geom_bar(position = "identity", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = nitrogen_mean - n_se, ymax = nitrogen_mean + n_se), width = 0.2,
+        #        position = "identity") +
         labs(x = NULL, y = NULL, fill = "Treatment", title="UMBS") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+        #                  labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(1.5,2.25)) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(42,48)) +
         theme_classic() +
-        theme(legend.position = "none")
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 n_comb <- ggpubr::ggarrange(n_kbs, n_umbs,
-                                     ncol = 2, common.legend = T, legend="none")
-png("nitrogen_treatmentlevel_L2.png", units="in", width=7, height=4, res=300)
+                                     ncol = 2, common.legend = T, legend="right")
+png("nitrogen_treatmentlevel_L2.png", units="in", width=9, height=4, res=300)
 annotate_figure(n_comb,
-                left = text_grob("Nitrogen content (%)", color = "black", rot = 90),
-                bottom = text_grob("Treatment", color = "black"))
+                left = text_grob("Nitrogen content (%)", color = "black", rot = 90, size=17))
 dev.off()
 ```
 

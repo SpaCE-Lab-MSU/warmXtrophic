@@ -186,7 +186,7 @@ Based on the above investigation, we don't need to account for variation among r
 cn$plant_id <- paste(cn$plot, cn$plant_number, sep = "_")
 
 cn1 <- cn %>%
-    group_by(plot,site,year,species,treatment, insecticide, plant_id) %>%
+    group_by(plot,site,year,species,treatment, insecticide, plant_number, plant_id) %>%
     summarize(nitrogen = mean(nitrogen), carbon = mean(carbon), weight_mg = mean(weight_mg)) 
 
 # Take a look at these data
@@ -237,6 +237,13 @@ n1_kbs <- n1 %>%
         filter(site == "kbs")
 n1_umbs <- n1 %>%
         filter(site == "umbs")
+
+# hypothesized model
+c.hyp.k <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = c1_kbs)
+anova(c.hyp.k)
+mod.emm <- emmeans(c.hyp.k, ~ treatment * insecticide)
+contrast(mod.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+
 
 # carbon - KBS
 c.m1 <- lmer(carbon ~ treatment + species + (1|plot) + (1|plant_id), data = c1_kbs)
