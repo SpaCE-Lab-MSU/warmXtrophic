@@ -850,6 +850,8 @@ herb_binom_sumk2 <- herb_binom_k %>%
         count(p_eaten) %>%
         group_by(species, state) %>%
         mutate(n = n/sum(n) * 100)
+herb_binom_sumk3 <- herb_binom_sumk2 %>%
+        filter(p_eaten == "Eaten")
 # selecting UMBS & herbivory plots =, making binary response for if eaten or not overall
 herb_binom_u <- herb %>%
         filter(site == "UMBS",
@@ -862,6 +864,8 @@ herb_binom_sumu2 <- herb_binom_u %>%
         count(p_eaten) %>%
         group_by(species, state) %>%
         mutate(n = n/sum(n) * 100)
+herb_binom_sumu3 <- herb_binom_sumu2 %>%
+        filter(p_eaten == "Eaten")
 # plotting binary response
 binom_plot_k2 <- ggplot(herb_binom_sumk2, aes(x=state, y=n, fill=p_eaten, label = paste0(round(n, 2), "%"))) +
         geom_col(col="black") +
@@ -1741,7 +1745,7 @@ umbs_herb_binom_temp <- umbs_herb_binom_temp %>%
 temp_prob_eaten_k <- ggplot(kbs_herb_binom_temp, aes(x = mean_temp, y = n, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Mean temperature (°C)",y=NULL) +
+        labs(x = NULL,y="Chance of being eaten (%)", title="KBS",subtitle="A") +
         scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
@@ -1749,12 +1753,17 @@ temp_prob_eaten_k <- ggplot(kbs_herb_binom_temp, aes(x = mean_temp, y = n, color
                           labels = c("Ambient","Warmed"),
                           name = "Treatment") +
         theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
+        theme(legend.title=element_text(size=13), 
+              legend.text=element_text(size=13),
+              title=element_text(size=14),
+              plot.subtitle=element_text(size=13),
+              axis.text.y = element_text(size=13),
+              axis.text.x=element_blank(),
+              axis.title.y=element_text(size=14))
 temp_prob_eaten_u <- ggplot(umbs_herb_binom_temp, aes(x = mean_temp, y = n, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Mean temperature (°C)",y=NULL) +
+        labs(x = NULL,y=NULL, title="UMBS",subtitle="B") +
         scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
@@ -1762,8 +1771,79 @@ temp_prob_eaten_u <- ggplot(umbs_herb_binom_temp, aes(x = mean_temp, y = n, colo
                           labels = c("Ambient","Warmed"),
                           name = "Treatment") +
         theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
+        theme(legend.title=element_text(size=13), 
+              legend.text=element_text(size=13),
+              title=element_text(size=14),
+              plot.subtitle=element_text(size=13),
+              axis.text.y = element_blank(),
+              axis.text.x=element_blank(),
+              axis.title.y=element_blank())
+
+# amount eaten plot
+sum_herb_overall_k_i2 <- herb %>%
+        filter(site == "KBS")
+sum_herb_overall_k_i3 <- sum_herb_overall_k_i2[sum_herb_overall_k_i2$p_eaten != 0, ]
+sum_herb_overall_k_i3 <- sum_herb_overall_k_i3 %>%
+        group_by(plot,year,state) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+kbs_herb_am_temp <- merge(x = sum_herb_overall_k_i3, y = sum_herb_overall_k_i2[ , c("state", "year","mean_temp")], by = c("year","state"), all.x=TRUE)
+kbs_herb_am_temp <- kbs_herb_am_temp[!duplicated(kbs_herb_am_temp), ]
+
+sum_herb_overall_u_i2 <- herb %>%
+        filter(site == "UMBS")
+sum_herb_overall_u_i3 <- sum_herb_overall_u_i2[sum_herb_overall_u_i2$p_eaten != 0, ]
+sum_herb_overall_u_i3 <- sum_herb_overall_u_i3 %>%
+        group_by(plot,year,state) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+umbs_herb_am_temp <- merge(x = sum_herb_overall_u_i3, y = sum_herb_overall_u_i2[ , c("state", "year","mean_temp")], by = c("year","state"), all.x=TRUE)
+umbs_herb_am_temp <- umbs_herb_am_temp[!duplicated(umbs_herb_am_temp), ]
+
+temp_amount_eaten_k <- ggplot(kbs_herb_am_temp, aes(x = mean_temp, y = avg_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y="Amount eaten (%)",subtitle="C") +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=13), 
+              legend.text=element_text(size=13),
+              plot.subtitle=element_text(size=13),
+              axis.text.y = element_text(size=13),
+              axis.text.x=element_text(size=13),
+              axis.title.y=element_text(size=14),
+              axis.title.x=element_blank())
+temp_amount_eaten_u <- ggplot(umbs_herb_am_temp, aes(x = mean_temp, y = avg_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL,subtitle="D") +
+        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=13), 
+              legend.text=element_text(size=13),
+              plot.subtitle=element_text(size=13),
+              axis.text.y = element_blank(),
+              axis.text.x=element_text(size=13),
+              axis.title.y=element_blank(),
+              axis.title.x=element_blank())
+# merge fig
+gdd_mean_temp_merge <- ggpubr::ggarrange(temp_prob_eaten_k,temp_prob_eaten_u,
+                                    temp_amount_eaten_k,temp_amount_eaten_u,
+                                    ncol = 2, nrow=2,common.legend=T,legend="right",widths=c(1,0.9))
+png("herb_gdd_mean_temp.png", units="in", width=7, height=6, res=300)
+annotate_figure(gdd_mean_temp_merge,
+                bottom = text_grob("Mean temperature (°C)              ", color = "black", size=14))
+dev.off()
 
 
 
