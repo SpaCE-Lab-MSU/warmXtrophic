@@ -156,3 +156,45 @@ trpr_biomass_plot
 dev.off()
 ```
 
+Red clover only without greenhouse control
+```{r}
+red_clover_total1 <- red_clover_total[-which(red_clover_total$treatment == "control"),]
+red_clover_above1 <- red_clover_above[-which(red_clover_above$treatment == "control"),]
+red_clover_below1 <- red_clover_below[-which(red_clover_below$treatment == "control"),]
+
+trpr_total <- ggplot(red_clover_total1, aes(x=factor(treatment, level=c('ambient', 'warmed')), y = average_biomass, fill = treatment)) +
+        geom_bar(position = "identity", stat = "identity") +
+        geom_errorbar(aes(ymin = average_biomass - se, ymax = average_biomass + se), width = 0.2, position = "identity") +
+        labs(x = "Treatment", y = "Average Biomass (g)", title = "Total") +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed"))  +
+        scale_fill_manual(values = c("ambient" = "deepskyblue", "warmed" = "firebrick"))
+trpr_total
+
+trpr_above <- ggplot(red_clover_above1, aes(x=factor(treatment, level=c('control', 'ambient', 'warmed')), y = average_biomass, fill = treatment)) +
+        geom_bar(position = "identity", stat = "identity") +
+        geom_errorbar(aes(ymin = average_biomass - se, ymax = average_biomass + se), width = 0.2, position = "identity") +
+        labs(x = "Treatment", y = "Average Biomass (g)", title = "Aboveground") +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed", "control" = "Control"))  +
+        scale_fill_manual(values = c("ambient" = "deepskyblue", "warmed" = "firebrick", "control" = "goldenrod"))
+trpr_above
+
+trpr_below <- ggplot(red_clover_below1, aes(x=factor(treatment, level=c('control', 'ambient', 'warmed')), y = average_biomass, fill = treatment)) +
+        geom_bar(position = "identity", stat = "identity") +
+        geom_errorbar(aes(ymin = average_biomass - se, ymax = average_biomass + se), width = 0.2, position = "identity") +
+        labs(x = "Treatment", y = "Average Biomass (g)", title = "Belowground") +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed", "control" = "Control")) +
+        scale_fill_manual(values = c("ambient" = "deepskyblue", "warmed" = "firebrick", "control" = "goldenrod"))
+trpr_below
+
+trpr_total2 <- trpr_total + labs(x = NULL)
+trpr_below2 <- trpr_below + labs(y = NULL, x = NULL)
+trpr_above2 <- trpr_above + labs(y = NULL, x = NULL)
+
+trpr_biomass_plot <- ggpubr::ggarrange(trpr_total2, trpr_above2, trpr_below2,
+                          nrow = 1, ncol = 3, legend = "none")
+
+png("psf_trpr_biomass_bar_plots_L2.png", units="in", width=8, height=6, res=300)
+trpr_biomass_plot
+dev.off()
+```
+
