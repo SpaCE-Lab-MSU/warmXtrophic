@@ -44,7 +44,7 @@ L2_dir<-Sys.getenv("L2DIR")
 # V2 below is plot level, but is the median half cover date for all species per plot
 # calculated in phenology_dates_L2
 greenup <- read.csv(file.path(L2_dir,"greenup/final_greenup_plot_V2_L2.csv")) # V2 plot level greenup dates
-greenup <- greenup %>% dplyr::select(-X) # get rid of "X" column that shows up
+greenup <- greenup %>% dplyr::select(-X) # get rid of "X" column
 
 # check variable types
 str(greenup)
@@ -252,3 +252,5 @@ AICtab(modtest1u,modtest2u)
 
 anova(modtest1u)
 summary(modtest1u)
+
+
