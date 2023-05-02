@@ -30,6 +30,11 @@ list.files(L1_dir)
 # read in plant comp data
 comp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_species_removed_L1.csv"))
 
+# read in temp data
+GDD <- read.csv(file.path(L1_dir, "HOBO_data/GDD_L1.csv"))
+temps <- read.csv(file.path(L1_dir, "HOBO_data/plant_comp_temps_L1.csv"))
+
+
 # delete 2021 UMBS data from dataframe 
 comp <- comp[-which(comp$year == "2021" & comp$site == "umbs"),]
 
@@ -222,7 +227,17 @@ absolute_plot <- peak_comp %>%
   summarize(avg_absolute_abundance = mean(absolute, na.rm=T))
 
 peak_comp_plot <- full_join(relative_plot, absolute_plot, by = c("site", "year_factor", "month", "year", "plot", "state", "insecticide", "treatment_key"))
-write.csv(peak_comp_plot, file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"), row.names = F)
+
+# KD edits - merging in temp data
+peak_comp_plot_temps <- left_join(peak_comp_plot, temps, by=c('site','year','state'))
+# merge GDD - first, select the right julian date for GDD (based on HOBO_GDD_L1.R script)
+GDD_plant_comp <- GDD %>%
+        filter(site == "kbs" & julian == 237 |
+                       site == "umbs" & julian == 209) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+peak_comp_plot_temps2 <- left_join(peak_comp_plot_temps, GDD_plant_comp, by=c('site','year','state'))
+
+write.csv(peak_comp_plot_temps2, file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"), row.names = F)
 
 ################ Origin ####################
 origin_peak_comp_umbs <- origin_cover_total1[which(origin_cover_total1$month == "7" & origin_cover_total1$site == "umbs"),]
