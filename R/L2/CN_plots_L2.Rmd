@@ -134,19 +134,20 @@ dev.off()
 
 # Carbon data: year + species
 ```{r}
-png("carbon_species_L2.png", units="in", width=5, height=4, res=300)
+png("carbon_species_L2.png", units="in", width=6, height=4, res=300)
 ggplot(cn_spp, aes(x = year, y = carbon_mean, fill = treatment)) +
         facet_wrap(.~species) +
-        geom_bar(position = "dodge", stat = "identity", color = 'black') +
-        geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
-                position = position_dodge(0.9)) +
+        geom_pointrange(aes(ymin=carbon_mean-c_se, ymax=carbon_mean+c_se), pch=21,size=0.5,position=position_dodge(0.4)) +
+        #geom_bar(position = "dodge", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = position_dodge(0.9)) +
         labs(fill = "Treatment", x = "Year", y = "Carbon content (%)") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         coord_cartesian(ylim=c(40,50)) +
-        theme_classic() +
-        theme(legend.position = "none")
+        theme_bw(14) +
+        theme(legend.position = "right")
 dev.off()
 ```
 
@@ -218,21 +219,22 @@ annotate_figure(n_comb,
 dev.off()
 ```
 
-# Carbon data: year + species
+# N data: year + species
 ```{r}
-png("nitrogen_species_L2.png", units="in", width=5, height=4, res=300)
+png("nitrogen_species_L2.png", units="in", width=6, height=4, res=300)
 ggplot(cn_spp, aes(x = year, y = nitrogen_mean, fill = treatment)) +
         facet_wrap(.~species) +
-        geom_bar(position = "dodge", stat = "identity", color = 'black') +
-        geom_errorbar(aes(ymin = nitrogen_mean - n_se, ymax = nitrogen_mean + n_se), width = 0.2,
-                position = position_dodge(0.9)) +
+        geom_pointrange(aes(ymin=nitrogen_mean-n_se, ymax=nitrogen_mean+n_se), pch=21,size=0.5,position=position_dodge(0.4)) +
+        #geom_bar(position = "dodge", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = position_dodge(0.9)) +
         labs(fill = "Treatment", x = "Year", y = "Nitrogen content (%)") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         #coord_cartesian(ylim=c(40,50)) +
-        theme_classic() +
-        theme(legend.position = "none")
+        theme_bw(14) +
+        theme(legend.position = "right")
 dev.off()
 ```
 
