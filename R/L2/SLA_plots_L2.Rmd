@@ -68,22 +68,25 @@ sla_treatment2 <- sla1 %>%
 # SLA data
 ```{r}
 # barplot for each species at kbs and umbs (no years)
-png("sla_spp_L2.png", units="in", width=7, height=4, res=300)
+png("sla_spp_L2.png", units="in", width=8, height=4, res=300)
 ggplot(sla_treatment2, aes(x = species, y = sla_mean, fill = state)) +
         facet_wrap(.~site, labeller = as_labeller(site_label)) +
-        geom_bar(position = "dodge", stat = "identity", color = 'black') +
-        geom_errorbar(aes(ymin = sla_mean - se, ymax = sla_mean + se), width = 0.2,
-                position = position_dodge(width = 0.9)) +
+        #geom_point(aes(fill=state),pch=21, size=3) +
+        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=0.6,position=position_dodge(0.4)) +
+        #geom_bar(position = "dodge", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = sla_mean - se, ymax = sla_mean + se), width = 0.2) +
         labs(x = "Species", y = "Specific leaf area (cm^2/g)", fill = "Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        theme_classic() +
+        theme_bw(14) +
         theme(panel.background = element_rect(fill = NA, color = "black")) +
-        theme(axis.text=element_text(size=8),
+        theme(axis.text=element_text(size=10),
               axis.title=element_text(size=14),
-              strip.text = element_text(size = 14))
+              strip.text = element_text(size = 14),
+              legend.title = element_text(size=14),
+              legend.text = element_text(size=12))
 dev.off()
 
 # barplot for each year at kbs and umbs
