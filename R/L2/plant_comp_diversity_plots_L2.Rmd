@@ -34,7 +34,6 @@ L2_dir<-Sys.getenv("L2DIR")
 
 # Read in data
 diversity <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"))
-diversity <- diversity %>% select(-X) # get rid of "X" column that shows up
 
 # making site names capital for cleaner plots - from Kara
 change_site <- function(df){
@@ -377,3 +376,127 @@ annotate_figure(diversity_line_i,
                 bottom = text_grob("Year", color = "black", size=15))
 dev.off()
 ```
+
+Averages + std error for plot level data + insecticide treatment across all years (what will be used in the paper)
+```{r}
+# averages + std error for plot level data - state only
+sum_shannon_all <- diversity %>%
+  group_by(site, state, insecticide) %>%
+  summarize(avg_shannon = mean(shannon, na.rm = TRUE),
+            se = std.error(shannon, na.rm = TRUE))
+
+sum_simpson_all <- diversity %>%
+  group_by(site, state, insecticide) %>%
+  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
+            se = std.error(simpson, na.rm = TRUE))
+
+sum_richness_all <- diversity %>%
+  group_by(site, state, insecticide) %>%
+  summarize(avg_richness = mean(richness, na.rm = TRUE),
+            se = std.error(richness, na.rm = TRUE))
+```
+
+Dot plot with insecticide
+```{r}
+# Shannon diversity
+sum_shannon_all$full_treat <- paste(sum_shannon_all$state, sum_shannon_all$insecticide, sep="_")
+shannon_dot_i <- function(loc) { 
+       shannon_plot <- subset(sum_shannon_all, site == loc)
+        return(ggplot(shannon_plot, aes(x = state, y = avg_shannon, fill=insecticide)) +
+                       #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
+                       geom_pointrange(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), pch=21,size=1,position=position_dodge(0.3)) +
+                       #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+                               labs(x = NULL, y = "Shannon Diversity Index", title = loc) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+                       coord_cartesian(ylim=c(1.00,1.355)) +
+                       theme_bw(14))
+}
+shannon_dot_i_kbs <- shannon_dot_i("KBS")
+shannon_dot_i_kbs <- shannon_dot_i_kbs + theme(plot.title = element_text(size=20),
+                                               axis.text.y = element_text(size=14),
+                                               axis.text.x = element_blank(),
+                                               legend.text = element_text(size=14),
+                                               legend.title = element_text(size=14))
+shannon_dot_i_umbs <- shannon_dot_i("UMBS")
+shannon_dot_i_umbs <- shannon_dot_i_umbs + labs(y=NULL) + theme(axis.title.y = element_blank(),
+                                                                axis.text.x = element_blank(),
+                                                                plot.title = element_text(size=20),
+                                                                axis.text.y = element_blank(),
+                                                                legend.text = element_text(size=14),
+                                                                legend.title = element_text(size=14))
+
+# Simpson diversity
+sum_simpson_all$full_treat <- paste(sum_simpson_all$state, sum_simpson_all$insecticide, sep="_")
+simpson_dot_i <- function(loc) { 
+       simpson_plot <- subset(sum_simpson_all, site == loc)
+        return(ggplot(simpson_plot, aes(x = state, y = avg_simpson, fill=insecticide)) +
+                       #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
+                       geom_pointrange(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), pch=21,size=1,position=position_dodge(0.3)) +
+                       #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+                               labs(x = NULL, y = "Simpson Diversity Index", title = NULL) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+                       coord_cartesian(ylim=c(0.50,0.65)) +
+                       theme_bw(14))
+}
+simpson_dot_i_kbs <- simpson_dot_i("KBS")
+simpson_dot_i_kbs <- simpson_dot_i_kbs + theme(axis.text.x = element_blank(),
+                                     axis.text.y = element_text(size=14),
+                                     axis.title.y = element_text(size=14),
+                                     legend.text = element_text(size=14),
+                                     legend.title = element_text(size=14))
+
+simpson_dot_i_umbs <- simpson_dot_i("UMBS")
+simpson_dot_i_umbs <- simpson_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
+                                                                axis.text.x = element_blank(),
+                                                      axis.text.y = element_blank(),
+                                                      legend.text = element_text(size=14),
+                                                      legend.title = element_text(size=14))
+# Richness
+sum_richness_all$full_treat <- paste(sum_richness_all$state, sum_richness_all$insecticide, sep="_")
+richness_dot_i <- function(loc) { 
+       richness_plot <- subset(sum_richness_all, site == loc)
+        return(ggplot(richness_plot, aes(x = state, y = avg_richness, fill=insecticide)) +
+                       #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
+                       geom_pointrange(aes(ymin=avg_richness-se, ymax=avg_richness+se), pch=21,size=1,position=position_dodge(0.3)) +
+                       #scale_shape_manual(name="Treatment",
+                       #                   values = c(1, 19),
+                       #                   labels=c("Herbivory","Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+                               labs(x = NULL, y = "Richness", title = NULL) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+                       coord_cartesian(ylim=c(4.0,8.5)) +
+                       theme_bw(14))
+}
+richness_dot_i_kbs <- richness_dot_i("KBS")
+richness_dot_i_kbs <- richness_dot_i_kbs + theme(axis.text.y = element_text(size=14),
+                                     axis.title.y = element_text(size=14),
+                                     legend.text = element_text(size=14),
+                                     legend.title = element_text(size=14))
+
+richness_dot_i_umbs <- richness_dot_i("UMBS")
+richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
+                                                      axis.text.y = element_blank(),
+                                                      legend.text = element_text(size=14),
+                                                      legend.title = element_text(size=14))
+
+png("diversity_indices_L2_all_dot_insect.png", units="in", width=10, height=9, res=300)
+ggpubr::ggarrange(shannon_dot_i_kbs, shannon_dot_i_umbs,
+                                simpson_dot_i_kbs, simpson_dot_i_umbs,
+                                richness_dot_i_kbs, richness_dot_i_umbs,
+                                nrow = 3, ncol = 2, common.legend = T, legend="right",
+                                align = "v")
+dev.off()
+```
+

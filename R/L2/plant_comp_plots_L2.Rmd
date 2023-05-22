@@ -206,92 +206,83 @@ dev.off()
 ```
 
 
-
-
-
-
-Old code below
+For the supplemental document - line graph by site and year (need to work on)
 ```{r}
 # filter the data to contain the mean and std error for relabun of each site
 relabun_avg <- comp %>%
-  group_by(site, state, month, year) %>%
-  summarize(avg_relabun = mean(relative, na.rm = TRUE),
-            se = std.error(relative, na.rm = TRUE))
+  group_by(site, state, year) %>%
+  summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
+            se = std.error(avg_relative_abundance, na.rm = TRUE))
 
 # filter the data to contain the mean and std error for relabun of each site for origin
 origin_relabun_avg <- origin %>%
   group_by(site, state, origin, year) %>%
-  summarize(avg_relabun = mean(relative, na.rm = TRUE),
-            se = std.error(relative, na.rm = TRUE))
+  summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
+            se = std.error(avg_relative_abundance, na.rm = TRUE))
 
 # filter the data to contain the mean and std error for relabun of each site for growth habit
 growth_relabun_avg <- growth %>%
   group_by(site, state, growth_habit, year) %>%
-  summarize(avg_relabun = mean(relative, na.rm = TRUE),
-            se = std.error(relative, na.rm = TRUE))
+  summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
+            se = std.error(avg_relative_abundance, na.rm = TRUE))
 
-# trying to add empty values for 2021 to umbs so the x-axis matches the other plots
-#plot_avg2 <- plot_avg
-#de<-data.frame("umbs", NA, "2021", NA, NA)
-#names(de)<-c("site","state", "year", "avg_plot_total", "se")
-#de$year <- as.integer(de$year)
-#plot_avg <- rbind(plot_avg2, de)
-#
-#origin_plot_avg2 <- origin_plot_avg
-#de<-data.frame("umbs", NA, "Native", "2021", NA, NA)
-#de2<-data.frame("umbs", NA, "Exotic", "2021", NA, NA)
-#names(de)<-c("site","state", "origin", "year", "avg_relabun", "se")
-#names(de2)<-c("site","state", "origin", "year", "avg_relabun", "se")
-#de$year <- as.integer(de$year)
-#de2$year <- as.integer(de2$year)
-#origin_plot_avg <- rbind(origin_plot_avg2, de, de2)
-#
-#growth_plot_avg2 <- growth_plot_avg
-#de<-data.frame("umbs", NA, "Graminoid", "2021", NA, NA)
-#de2<-data.frame("umbs", NA, "Forb", "2021", NA, NA)
-#names(de)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
-#names(de2)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
-#de$year <- as.integer(de$year)
-#de2$year <- as.integer(de2$year)
-#growth_plot_avg <- rbind(growth_plot_avg2, de, de2)
+# adding empty values for 2021 to umbs so the x-axis matches the other plots
+relabun_avg2 <- relabun_avg
+de<-data.frame("UMBS", NA, "2021", NA, NA)
+names(de)<-c("site","state", "year", "avg_relabun", "se")
+de$year <- as.integer(de$year)
+relabun_avg <- rbind(relabun_avg2, de)
+
+origin_relabun_avg2 <- origin_relabun_avg
+de<-data.frame("umbs", NA, "Native", "2021", NA, NA)
+de2<-data.frame("umbs", NA, "Exotic", "2021", NA, NA)
+names(de)<-c("site","state", "origin", "year", "avg_relabun", "se")
+names(de2)<-c("site","state", "origin", "year", "avg_relabun", "se")
+de$year <- as.integer(de$year)
+de2$year <- as.integer(de2$year)
+origin_relabun_avg <- rbind(origin_relabun_avg2, de, de2)
+
+growth_relabun_avg2 <- growth_relabun_avg
+de<-data.frame("umbs", NA, "Graminoid", "2021", NA, NA)
+de2<-data.frame("umbs", NA, "Forb", "2021", NA, NA)
+names(de)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
+names(de2)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
+de$year <- as.integer(de$year)
+de2$year <- as.integer(de2$year)
+growth_relabun_avg <- rbind(growth_relabun_avg2, de, de2)
 ```
-
-
-
-###### Code below is from calculating total cover across the entire year - we don't want this ########
 
 General Plot Level
 ```{r}
 plot_line <- function(loc) { 
-  all_plot <- subset(plot_avg, site == loc)
-  return(ggplot(all_plot, aes(x = year, y = avg_plot_total, group = state)) +
-                 geom_errorbar(aes(ymin=avg_plot_total-se, ymax=avg_plot_total+se), position=position_dodge(0.1), width=.25) +
+  all_plot <- subset(relabun_avg, site == loc)
+  return(ggplot(all_plot, aes(x = year, y = avg_relabun, group = state)) +
+                 geom_errorbar(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), position=position_dodge(0.1), width=.25) +
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Averegae Relative Abundance", title=loc, color="Treatment") +
-                 ylim(200, 1250))
+           labs(x = NULL, y = "Average Relative Abundance", title=loc, color="Treatment") +
+           ylim(0.09, 0.35))
 }
 
-plot_line_kbs <- plot_line("kbs")
+plot_line_kbs <- plot_line("KBS")
 plot_line_kbs <- plot_line_kbs + labs(title="KBS", y=NULL) + theme(axis.text.x=element_blank())
-plot_line_umbs <- plot_line("umbs")
+plot_line_umbs <- plot_line("UMBS")
 plot_line_umbs <- plot_line_umbs + labs(title="UMBS", y=NULL)
 
 plot_line <- ggpubr::ggarrange(plot_line_kbs, plot_line_umbs,
                           nrow = 2, ncol = 1, common.legend = T, legend="bottom")
-png("total_percent_cover_plots_L2.png", units="in", width=9, height=8, res=300)
+png("avg_relative_abundance_plots_by_year_L2.png", units="in", width=9, height=8, res=300)
 annotate_figure(plot_line,
-                left = text_grob("Average Total Percent Cover", color = "black", rot = 90, size=15),
+                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
                 bottom = text_grob("Year", color = "black", size=15))
 dev.off()
 ```
 
-
-Origin - Native vs. Exotic
+Origin - Native vs. Exotic (not finished)
 ```{r}
-native <- origin_plot_avg[which(origin_plot_avg$origin == "Native"),]
-exotic <- origin_plot_avg[which(origin_plot_avg$origin == "Exotic"),]
+native <- origin_relabun_avg[which(origin_relabun_avg$origin == "Native"),]
+exotic <- origin_relabun_avg[which(origin_relabun_avg$origin == "Exotic"),]
 
 native_line <- function(loc) { 
   native_plot <- subset(native, site == loc)
@@ -300,8 +291,7 @@ native_line <- function(loc) {
            geom_line(aes(color=state), size = 1) +
            geom_point(aes(color=state), size = 2) +
            scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Averegae Relative Abundance", title=loc, color="Treatment") +
-                 ylim(0,0.75))
+           labs(x = NULL, y = "Averegae Relative Abundance", title=loc, color="Treatment"))
 }
 
 native_line_kbs <- native_line("kbs")
@@ -309,13 +299,13 @@ native_line_kbs <- native_line_kbs + labs(title="KBS", subtitle= "Native", y=NUL
 native_line_umbs <- native_line("umbs")
 native_line_umbs <- native_line_umbs + labs(title="UMBS", subtitle= "Native", y=NULL)
 
-#native_line <- ggpubr::ggarrange(native_line_kbs, native_line_umbs,
-#                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
-#png("native_plots_L2.png", units="in", width=9, height=8, res=300)
-#annotate_figure(native_line,
-#                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
-#                bottom = text_grob("Year", color = "black", size=15))
-#dev.off()
+native_line <- ggpubr::ggarrange(native_line_kbs, native_line_umbs,
+                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
+png("native_plots_L2.png", units="in", width=9, height=8, res=300)
+annotate_figure(native_line,
+                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
+                bottom = text_grob("Year", color = "black", size=15))
+dev.off()
 
 exotic_line <- function(loc) { 
   exotic_plot <- subset(exotic, site == loc)
@@ -342,7 +332,8 @@ annotate_figure(origin_line,
                 bottom = text_grob("Year", color = "black", size=15))
 dev.off()
 ```
-Growth Habit - Forbs vs. Graminoids
+
+Growth Habit - Forbs vs. Graminoids (not finished)
 ```{r}
 forb <- growth_plot_avg[which(growth_plot_avg$growth_habit == "Forb"),]
 graminoid <- growth_plot_avg[which(growth_plot_avg$growth_habit == "Graminoid"),]

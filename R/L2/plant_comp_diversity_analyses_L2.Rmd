@@ -173,8 +173,7 @@ simpson_by_plot_year_umbs <- reshape2::melt(simpson_umbs, id =  "Plot", variable
 simpson_by_plot_year_umbs$site <- "umbs" # adding site column
 
 #calculate species richness
-richness_by_plot_year_kbs <- reshape2::melt(richness_kbs, id =  "Plot", variable.name = c("Year"), value.name = "richness") 
-richness_by_plot_year_kbs$site <- "kbs" # adding site column
+richness_by_plot_year_kbs <- reshape2::melt(richness_kbs, id =  "Plot", variable.name = c("Year"), value.name = "richness") richness_by_plot_year_kbs$site <- "kbs" # adding site column
 richness_by_plot_year_umbs <- reshape2::melt(richness_umbs, id =  "Plot", variable.name = c("Year"), value.name = "richness")
 richness_by_plot_year_umbs$site <- "umbs" # adding site column
 
@@ -189,7 +188,6 @@ richness <- full_join(richness_by_plot_year_kbs, richness_by_plot_year_umbs, by 
 
 # combine simpson and shannon diversity data frames into 1
 comp_diversity <- full_join(simpson_diversity, shannon_diversity, by = c("Plot", "Year", "site"))
-# Looks like diversity and simpson diveristy measures are the same?? Need to look into this
 comp_diversity <- full_join(comp_diversity, richness, by = c("Plot", "Year", "site"))
 
 names(comp_diversity) <- tolower(names(comp_diversity)) # column names to lower case so I can combine this data frame with the meta data
@@ -210,7 +208,8 @@ comp_diversity$year_factor[comp_diversity$year == 2019] <- 5
 comp_diversity$year_factor[comp_diversity$year == 2020] <- 6
 comp_diversity$year_factor[comp_diversity$year == 2021] <- 7
 
-comp_diversity <- comp_diversity[,c("site", "plot", "year", "year_factor", "treatment_key", "state", "insecticide", "simpson", "shannon", "richness")] #reorder columns
+#reorder columns
+comp_diversity <- comp_diversity[,c("site", "plot", "year", "year_factor", "treatment_key", "state", "insecticide", "simpson", "shannon", "richness")]
 
 comp_diversity <- comp_diversity[-c(135, 140, 142, 167),] # remove this row with zero values for shannon diversity and species richness - this zero is from there not being any data in plot D5 in 2021 due to a large ground hog hole
 
@@ -218,7 +217,7 @@ comp_diversity$year_factor <- as.factor(comp_diversity$year_factor)
 comp_diversity$year <- as.numeric(as.character(comp_diversity$year))
 
 # write a new csv with diversity indices and upload to the shared google drive L2 data folder
-write.csv(comp_diversity, file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"))
+write.csv(comp_diversity, file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"), row.names = F)
 
 # create separate data frames for kbs and umbs sites
 kbs_diversity <- subset(comp_diversity, site == "kbs")
