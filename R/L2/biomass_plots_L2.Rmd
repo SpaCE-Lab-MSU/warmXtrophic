@@ -157,7 +157,7 @@ biomass_comb_dot <- ggpubr::ggarrange(kbs_bio_dot, umbs_bio_dot,
                                      ncol = 2, common.legend = T, legend="right")
 png("biomass_plots_dots_L2_barplot.png", units="in", width=8, height=4.5, res=300)
 annotate_figure(biomass_comb_dot,
-                left = text_grob("Plant Biomass (g/0.2m^2)", color = "black", rot = 90, size=18))
+                left = text_grob(bquote("Plant Biomass " ('g/0.20m'^2)), color = "black", rot = 90, size=18))
 dev.off()
 
 
