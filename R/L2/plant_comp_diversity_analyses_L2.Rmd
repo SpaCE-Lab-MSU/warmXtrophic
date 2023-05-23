@@ -1,6 +1,6 @@
 ---
 title: "warmXtrophic Project: Plant Composition Diversity Data Analyses"
-author: "Moriah Young, Pat Bills"
+author: "Moriah Young"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: pdf_document
 editor_options: 
@@ -48,180 +48,20 @@ L2_dir <- Sys.getenv("L2DIR")
 list.files(L1_dir)
 
 # read in plant comp data
-comp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
+diver <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"))
+diver$year_factor <- as.factor(diver$year_factor)
 
-# read in meta data
-meta <- read.csv(file.path(L0_dir, "plot.csv")) # will need later in script
-```
-
-Function to get data into wide format in order to work in the Vegan package
-```{r}
-# Function to get data in wide format to work in Vegan package - taken from link below
-# https://stackoverflow.com/questions/50691393/transform-community-data-into-wide-format-for-vegan-package
-
-matrify2 <-  function(data) {
-    #Data must have columns: plot, SPEC, abundance measure,Year
-    if (ncol(data) != 4)
-        stop("data frame must have four column format")
-    plt <- factor(data[, 1])
-    spc <- factor(data[, 2])
-    abu <- data[, 3]
-    yrs <- factor(data[, 4])
-    plt.codes <- sort(levels(factor(plt)))##object with sorted plot numbers
-    spc.codes <- levels(factor(spc))##object with sorted SPEC names
-    yrs.codes <- sort(levels(factor(yrs)))##object with sorted sampling Years
-    taxa <- matrix(0, nrow = length(plt.codes)*length(yrs.codes), ncol = length(spc.codes))##Create empty matrix with proper dimensions (unique(plotxYear) by # of SPEC)
-    plt.list <- rep(plt.codes,length(yrs.codes))##Create a list of all the plot numbers (in order of input data) to add as an ID column at end of function
-    yrs.list <- rep(yrs.codes,each=length(plt.codes))##Create a list of all the Year numbers (in order of input data) to add as an ID column at end of function
-    col <- match(spc, spc.codes)##object that determines the alphabetical order ranking of each SPEC in the spc.code list
-    row.plt <- match(plt, plt.codes)##object that determines the rank order ranking of each plot of the input data in the plt.code list
-    row.yrs <- match(yrs,yrs.codes)##object that determines the rank order ranking of each Year of the input data in he #yrs.code list
-    for (i in 1:length(abu)) {
-        row <- (row.plt[i])+length(plt.codes)*(row.yrs[i]-1)##Determine row number by assuming each row represents a specific plot & year in an object of rep(plot,each=Year)
-        if(!is.na(abu[i])) {##ONly use value if !is.na .. [ignore all is.NA values]
-            taxa[row, col[i]] <- sum(taxa[row, col[i]], abu[i])##Add abundance measure of row i to the proper SPEC column and plot/Year row. Sum across all identical individuals.
-        }
-    }
-    taxa <- data.frame(taxa)##Convert to data.frame for easier manipulation
-    taxa <- cbind(yrs.list,plt.list,taxa)##Add ID columns for plot and Year to each row already representing the abundance of Each SPEC of that given plot/Year.
-    names(taxa) <- c('Year','Plot',spc.codes)
-    taxa
-}
-```
-
-Calculating Shannon and Simpsons Diversity and Species Richness
-```{r}
-#diversity_by_year <- function(comp, site, div_index = "shannon"){
-# subset comp data by site
-comp_kbs <- subset(comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
-comp_umbs <- subset(comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
-
-
-# convert the abundance (cover) data to wide format for each species in columns for the vegan package
-#kbs
-comp_kbs$cover <- as.numeric(comp_kbs$cover) # change cover data to numeric
-comp_wide_kbs <- matrify2(comp_kbs) # use matrify2 function
-#umbs
-comp_umbs$cover <- as.numeric(comp_umbs$cover) # change cover data to numeric
-comp_wide_umbs <- matrify2(comp_umbs) # use matrify2 function
-
-# comp_wide_data assumes to have columns Year, Plot, and columns for each species found, e.g. for Vegan
-
-# first, split up the wide data into a list of years.  Each list item is a year of data
-comp_wide_by_year_kbs <- dplyr::group_by(comp_wide_kbs, Year) %>% dplyr::group_split()
-comp_wide_by_year_umbs <- dplyr::group_by(comp_wide_umbs, Year) %>% dplyr::group_split()
-
-# we need to add plot names.  Get those Plot names by taking a column from any one of the years
-# since we are assuming the Plot column is the exact same across years and IN THE SAME ORDER
-# Moriah - this might be a problem bc I know at kbs some data wasn't taken for one of plots in later years due to a groundhog hole in the plot
-plot_names <- comp_wide_by_year_kbs[[1]]$Plot
-plot_names <- comp_wide_by_year_umbs[[1]]$Plot
-
-# remove the plot and year columns from each item in the list so that Vegan will work.
-# This assumes row order is the exact same for all years (each row a plot)
-comp_wide_by_year_kbs <- lapply(comp_wide_by_year_kbs, dplyr::select, c(-Year, -Plot))
-comp_wide_by_year_umbs <- lapply(comp_wide_by_year_umbs, dplyr::select, c(-Year, -Plot))
-
-#  apply the diversity function to each year  - in this case the main index is plot, each year considered separately
-shannon_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "shannon")
-shannon_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "shannon")
-
-simpson_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::diversity, index = "simpson")
-simpson_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::diversity, index = "simpson")
-
-richness_by_year_list_kbs <- lapply(comp_wide_by_year_kbs,vegan::specnumber) # species richness
-richness_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::specnumber) # species richness
-
-# each item in the list is a year of diversity, so name those with the years we know we have
-names(shannon_by_year_list_kbs) <- as.character(2015:2021)
-names(shannon_by_year_list_umbs) <- as.character(2016:2021)
-names(simpson_by_year_list_kbs) <- as.character(2015:2021)
-names(simpson_by_year_list_umbs) <- as.character(2016:2021)
-names(richness_by_year_list_kbs) <- as.character(2015:2021)
-names(richness_by_year_list_umbs) <- as.character(2016:2021)
-
-# "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
-shannon_kbs <- do.call(cbind,shannon_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
-shannon_umbs <- do.call(cbind,shannon_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
-simpson_kbs <- do.call(cbind,simpson_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
-simpson_umbs <- do.call(cbind,simpson_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
-richness_kbs <- do.call(cbind,richness_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
-richness_umbs <- do.call(cbind,richness_by_year_list_umbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
-#  an alternative tidyverse way x<- diversity_by_year(diversity_by_year_list)
-
-## optional step!
-shannon_kbs
-shannon_umbs
-simpson_kbs
-simpson_umbs
-richness_kbs
-richness_umbs
-
-# this output has a column for each year 2015, 2016, and Plot, but if you need it narrow use 'melt' from reshape2: 
-library(reshape2)
-
-#calculate shannon diversity
-shannon_by_plot_year_kbs <- reshape2::melt(shannon_kbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon")
-shannon_by_plot_year_kbs$site <- "kbs" # adding site column
-shannon_by_plot_year_umbs <- reshape2::melt(shannon_umbs, id =  "Plot", variable.name = c("Year"), value.name = "shannon") 
-shannon_by_plot_year_umbs$site <- "umbs" # adding site column
-
-#calculate simpson diversity
-simpson_by_plot_year_kbs <- reshape2::melt(simpson_kbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
-simpson_by_plot_year_kbs$site <- "kbs" # adding site column
-simpson_by_plot_year_umbs <- reshape2::melt(simpson_umbs, id =  "Plot", variable.name = c("Year"), value.name = "simpson") 
-simpson_by_plot_year_umbs$site <- "umbs" # adding site column
-
-#calculate species richness
-richness_by_plot_year_kbs <- reshape2::melt(richness_kbs, id =  "Plot", variable.name = c("Year"), value.name = "richness") richness_by_plot_year_kbs$site <- "kbs" # adding site column
-richness_by_plot_year_umbs <- reshape2::melt(richness_umbs, id =  "Plot", variable.name = c("Year"), value.name = "richness")
-richness_by_plot_year_umbs$site <- "umbs" # adding site column
-
-#combine umbs and kbs shannon diversity measures into 1 dataframe
-shannon_diversity <- full_join(shannon_by_plot_year_kbs, shannon_by_plot_year_umbs, by = c("Plot", "Year", "shannon", "site"))
-
-#combine umbs and kbs simpson diversity measures into 1 dataframe
-simpson_diversity <- full_join(simpson_by_plot_year_kbs, simpson_by_plot_year_umbs, by = c("Plot", "Year", "simpson", "site"))
-
-#combine umbs and kbs richness measures into 1 dataframe
-richness <- full_join(richness_by_plot_year_kbs, richness_by_plot_year_umbs, by = c("Plot", "Year", "richness", "site"))
-
-# combine simpson and shannon diversity data frames into 1
-comp_diversity <- full_join(simpson_diversity, shannon_diversity, by = c("Plot", "Year", "site"))
-comp_diversity <- full_join(comp_diversity, richness, by = c("Plot", "Year", "site"))
-
-names(comp_diversity) <- tolower(names(comp_diversity)) # column names to lower case so I can combine this data frame with the meta data
-
-# merge meta data with comp_diversity
-comp_diversity <- full_join(comp_diversity, meta, by = "plot")
-
-comp_diversity$simpson <- as.numeric(comp_diversity$simpson)
-comp_diversity$shannon <- as.numeric(comp_diversity$shannon)
-comp_diversity$richness <- as.numeric(comp_diversity$richness)
-
-# adding sequential year variable starting at 1: this is because the years (e.g. 2015, 2016, etc) are large numbers compared with other values in the dataset. We can always label axes with these real years.
-comp_diversity$year_factor[comp_diversity$year == 2015] <- 1
-comp_diversity$year_factor[comp_diversity$year == 2016] <- 2
-comp_diversity$year_factor[comp_diversity$year == 2017] <- 3
-comp_diversity$year_factor[comp_diversity$year == 2018] <- 4
-comp_diversity$year_factor[comp_diversity$year == 2019] <- 5
-comp_diversity$year_factor[comp_diversity$year == 2020] <- 6
-comp_diversity$year_factor[comp_diversity$year == 2021] <- 7
-
-#reorder columns
-comp_diversity <- comp_diversity[,c("site", "plot", "year", "year_factor", "treatment_key", "state", "insecticide", "simpson", "shannon", "richness")]
-
-comp_diversity <- comp_diversity[-c(135, 140, 142, 167),] # remove this row with zero values for shannon diversity and species richness - this zero is from there not being any data in plot D5 in 2021 due to a large ground hog hole
-
-comp_diversity$year_factor <- as.factor(comp_diversity$year_factor)
-comp_diversity$year <- as.numeric(as.character(comp_diversity$year))
-
-# write a new csv with diversity indices and upload to the shared google drive L2 data folder
-write.csv(comp_diversity, file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"), row.names = F)
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+diver$state <- as.factor(diver$state)
+levels(diver$state)
+# [1] "ambient" "warmed" 
+diver$state <- factor(diver$state, levels(diver$state)[c(2,1)])
+levels(diver$state)
+# [1] "warmed"  "ambient"
 
 # create separate data frames for kbs and umbs sites
-kbs_diversity <- subset(comp_diversity, site == "kbs")
-umbs_diversity <- subset(comp_diversity, site == "umbs")
+kbs_diversity <- subset(diver, site == "kbs")
+umbs_diversity <- subset(diver, site == "umbs")
 ```
 
 Simpson's Index
@@ -267,7 +107,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "We
 UMBS
 ```{r, warning=F}
 ### UMBS ###
-hist(umbs_diversity$simpson)
+hist(umbs_diversity$simpson) #skewed to the left
 qqnorm(umbs_diversity$simpson)
 shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
 
@@ -315,7 +155,7 @@ shapiro.test(kbs_diversity$shannon) # pvalue is > 0.05 - normally distributed
 UMBS
 ```{r, warning=F}
 ### UMBS ###
-hist(umbs_diversity$shannon) 
+hist(umbs_diversity$shannon)
 qqnorm(umbs_diversity$shannon)
 shapiro.test(umbs_diversity$shannon) # pvalue is close to > 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
 
@@ -409,14 +249,14 @@ SIMPSON
 ```{r}
 # KBS State-only model
 fit_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity)
-outlierTest(fit_state_kbs) # yes row 60 (2017), 148 (2021)
+outlierTest(fit_state_kbs) # yes row 60 (2017), 145 (2021)
 qqPlot(fit_state_kbs, main="QQ Plot") 
 hist(fit_state_kbs$residuals)
 leveragePlots(fit_state_kbs)
 ols_test_normality(fit_state_kbs)
 
 # KBS State and year model
-fit_stateyear_kbs <- lm(log(simpson) ~ state + year, data = kbs_diversity)
+fit_stateyear_kbs <- lm(log(simpson) ~ state + year_factor, data = kbs_diversity)
 outlierTest(fit_stateyear_kbs) # yes
 qqPlot(fit_stateyear_kbs, main="QQ Plot") 
 hist(fit_stateyear_kbs$residuals)
@@ -432,15 +272,15 @@ interact_plot(fit3, pred = year, modx = state)
 ```{r}
 # UMBS State-only model
 fit_state_umbs <- lm(log(simpson) ~ state, data = umbs_diversity)
-outlierTest(fit_state_umbs) # yes, row 190 and 202
+outlierTest(fit_state_umbs) # yes, row 186 and 198
 qqPlot(fit_state_umbs, main="QQ Plot") 
 hist(fit_state_umbs$residuals)
 leveragePlots(fit_state_umbs)
 ols_test_normality(fit_state_umbs)
 
 # UMBS State and year model
-fit_stateyear_umbs <- lm(log(simpson) ~ state + year, data = umbs_diversity)
-outlierTest(fit_stateyear_kbs) # row 48
+fit_stateyear_umbs <- lm(log(simpson) ~ state + year_factor, data = umbs_diversity)
+outlierTest(fit_stateyear_kbs) # rows 60, 145
 qqPlot(fit_stateyear_umbs, main="QQ Plot") 
 hist(fit_stateyear_umbs$residuals)
 leveragePlots(fit_stateyear_umbs)
@@ -464,8 +304,8 @@ leveragePlots(fit_state_kbs_shannon)
 ols_test_normality(fit_state_kbs_shannon)
 
 # KBS State and year model
-fit_stateyear_kbs_shannon <- lm(shannon ~ state + year, data = kbs_diversity)
-outlierTest(fit_stateyear_kbs_shannon) # no outliers
+fit_stateyear_kbs_shannon <- lm(shannon ~ state + year_factor, data = kbs_diversity)
+outlierTest(fit_stateyear_kbs_shannon) # 140
 qqPlot(fit_stateyear_kbs_shannon, main="QQ Plot") 
 hist(fit_stateyear_kbs_shannon$residuals)
 leveragePlots(fit_stateyear_kbs_shannon)
@@ -488,7 +328,7 @@ leveragePlots(fit_state_umbs_shannon)
 ols_test_normality(fit_state_umbs_shannon)
 
 # UMBS State and year model
-fit_stateyear_umbs_shannon <- lm(shannon ~ state + year, data = umbs_diversity)
+fit_stateyear_umbs_shannon <- lm(shannon ~ state + year_factor, data = umbs_diversity)
 outlierTest(fit_stateyear_umbs_shannon) # no outliers
 qqPlot(fit_stateyear_umbs_shannon, main="QQ Plot") 
 hist(fit_stateyear_umbs_shannon$residuals)
@@ -513,7 +353,7 @@ leveragePlots(fit_state_kbs_richness)
 ols_test_normality(fit_state_kbs_richness)
 
 # KBS State and year model
-fit_stateyear_kbs_richness <- lm(log(richness) ~ state + year, data = kbs_diversity)
+fit_stateyear_kbs_richness <- lm(log(richness) ~ state + year_factor, data = kbs_diversity)
 outlierTest(fit_stateyear_kbs_richness) # no outliers
 qqPlot(fit_stateyear_kbs_richness, main="QQ Plot") 
 hist(fit_stateyear_kbs_richness$residuals)
@@ -536,7 +376,7 @@ leveragePlots(fit_state_umbs_richness)
 ols_test_normality(fit_state_umbs_richness)
 
 # UMBS State and year model
-fit_stateyear_umbs_richness <- lm(log(richness) ~ state + year, data = umbs_diversity)
+fit_stateyear_umbs_richness <- lm(log(richness) ~ state + year_factor, data = umbs_diversity)
 outlierTest(fit_stateyear_umbs_richness) # no outliers
 qqPlot(fit_stateyear_umbs_richness, main="QQ Plot") 
 hist(fit_stateyear_umbs_richness$residuals)
@@ -554,34 +394,34 @@ MIXED EFFECT MODELS
 SIMPSON
 KBS 
 ```{r}
-mod1 <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
+modfull <- lmer(log(simpson) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
 par(mfrow=c(1,2))
-plot(mod1)
+plot(modfull)
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-leveneTest(residuals(mod1) ~ kbs_diversity$state)
+leveneTest(residuals(modfull) ~ kbs_diversity$state)
 # Assumption not met
-leveneTest(residuals(mod1) ~ kbs_diversity$insecticide) 
+leveneTest(residuals(modfull) ~ kbs_diversity$insecticide) 
 # Assumption not met 
-leveneTest(residuals(mod1) ~ kbs_diversity$plot)
+leveneTest(residuals(modfull) ~ kbs_diversity$plot)
 # Assumption not met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
-qqPlot(resid(mod1))
-hist(residuals(mod1))
-shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
-outlierTest(mod1) # row 60 and 152
+qqPlot(resid(modfull))
+hist(residuals(modfull))
+shapiro.test(resid(modfull)) # not normally distributed resids bc p<0.05
+outlierTest(modfull) # row 60 and 152
 
 # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
 require(lme4)
-r_int<- ranef(mod1)$plot$`(Intercept)`
+r_int<- ranef(modfull)$plot$`(Intercept)`
 qqnorm(r_int)
 qqline(r_int)
 shapiro.test(r_int) 
@@ -589,6 +429,11 @@ shapiro.test(r_int)
 ```
 
 ```{r}
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.test1 <- lmer(log(simpson) ~ state + year + (1|plot), kbs_diversity, REML=FALSE)
+year.mod.test2 <- lmer(log(simpson) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+anova(year.mod.test1, year.mod.test2) #year.mod.test2
+
 mod1 <- lmer(log(simpson) ~ state + (1|plot), kbs_diversity, REML=FALSE)
 mod2 <- lmer(log(simpson) ~ insecticide + (1|plot), kbs_diversity, REML=FALSE)
 mod3 <- lmer(log(simpson) ~ insecticide + state + (1|plot), kbs_diversity, REML=FALSE)
@@ -613,39 +458,48 @@ emmeans(mod10, list(pairwise ~ year_factor), adjust = "tukey")
 # with herb reduction as interactive term
 anova(mod9)
 
+#Our hypothesized model is  mod9p
+summary(mod9)
+anova(mod9)
+
+# comparisons
+emmeans(mod9, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9.emm <- emmeans(mod9, ~ state*insecticide)
+contrast(mod9.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9, insecticide~state)
 
 ```
 
 UMBS
 ```{r}
-mod1u <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
+modfull_u <- lmer(log(simpson) ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
 par(mfrow=c(1,2))
-plot(mod1u)
+plot(modfull_u )
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-leveneTest(residuals(mod1u) ~ umbs_diversity$state)
+leveneTest(residuals(modfull_u) ~ umbs_diversity$state)
 # Assumption not met
-leveneTest(residuals(mod1u) ~ umbs_diversity$insecticide) 
+leveneTest(residuals(modfull_u) ~ umbs_diversity$insecticide) 
 # Assumption not met 
-leveneTest(residuals(mod1u) ~ umbs_diversity$plot)
+leveneTest(residuals(modfull_u) ~ umbs_diversity$plot)
 # Assumption not met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
-qqPlot(resid(mod1u))
-hist(residuals(mod1u))
-shapiro.test(resid(mod1u)) # not normally distributed resids bc p<0.05
-outlierTest(mod1u) # yes outliers
+qqPlot(resid(modfull_u))
+hist(residuals(modfull_u))
+shapiro.test(resid(modfull_u)) # not normally distributed resids bc p<0.05
+outlierTest(modfull_u) # yes outliers
 
 # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
 require(lme4)
-r_int_u <- ranef(mod1u)$plot$`(Intercept)`
+r_int_u <- ranef(modfull_u )$plot$`(Intercept)`
 qqnorm(r_int_u)
 qqline(r_int_u)
 shapiro.test(r_int_u) 
@@ -654,261 +508,250 @@ shapiro.test(r_int_u)
 
 UMBS
 ```{r}
-# Do we need to include plot as a random effect with the UMBS models?   
-mod1u <- lmer(log(simpson) ~ state*year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
-mod2u <- lmer(log(simpson) ~ state*year + insecticide + year + (1|plot), umbs_diversity, REML=FALSE)
-# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
-anova(mod1u)
-anova(mod2u)
-anova(mod1u, mod2u) # Go with model 2u since pvalue >0.05, aka more complex model does not have something in it that matters
+# hypothesized model
+mod1u <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), umbs_diversity, REML=FALSE)
+
 summary(mod1u)
-summary(mod2u)
-AICctab(mod1u, mod2u, weights=T) # model 2u
+anova(mod1u)
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod1)
-plot_model(mod2u, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod2u, type = "pred", terms = c("year", "state", "insecticide"))
-# these are the random effects estimates
-plot_model(mod2u, type = "re", terms = c("species"))
-
-# Does year need to be interactive with state?
-mod3u <- lmer(log(simpson) ~ state + insecticide + year + (1|plot), umbs_diversity, REML = FALSE)
-anova(mod2u, mod3u)
-AICctab(mod2u, mod3u, weights=T) # going with mod2u
-
-# Do we need to include insecticide? (dropping insecticide from the model)
-mod5u <- lmer(log(simpson) ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
-anova(mod2u, mod5u)
-# Yes, p<0.05 so stick with mod2u
-
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod5u)
-plot_model(mod2u, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod2u, type = "pred", terms = c("year", "state"))
-# these are the random effects estimates
-plot_model(mod2u, type = "re", terms = c("species"))
-
-# If we wanted to include plots nested within year it would look like this:
-# mod6 <- lmer(log(simpson) ~ state + year + insecticide*year + (1 + year|plot), kbs_diversity, REML=FALSE)
-# anova(mod5, mod6)
-# anova(mod5)
-# cant get mod6 to work
-
-# the best model fit appears to be = 
-# mod2u <- lmer(log(simpson) ~ state*year + insecticide + year + (1|plot), umbs_diversity, REML=FALSE)
-summ(mod2u)
-summary(mod2u)
-emmeans(mod2u, list(pairwise ~ state*year), adjust = "tukey")
+# comparisons
+emmeans(mod1u, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod1u.emm <- emmeans(mod1u, ~ state*insecticide)
+contrast(mod1u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod1u, insecticide~state)
 ```
 
 SHANNON
 KBS 
 ```{r}
-# Do we need to include plot as a random effect with the KBS models?   
-mod1ks <- lmer(log(shannon) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
-mod2ks <- lmer(log(shannon) ~ state*year + insecticide + year + (1|plot), kbs_diversity, REML=FALSE)
-# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anova on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
-anova(mod1ks)
-anova(mod2ks)
-anova(mod1ks, mod2ks) # Go with model 1 since pvalue <0.05, aka more complex model does have something in it that matters
-summary(mod1ks)
-summary(mod2ks)
-AICctab(mod1ks, mod2ks, weights=T) # model 1
+modfull_k_sh <- lmer(shannon ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod1)
-plot_model(mod1ks, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod1ks, type = "pred", terms = c("year", "state", "insecticide"))
-# these are the random effects estimates
-plot_model(mod1ks, type = "re", terms = c("species"))
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(modfull_k_sh)
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-# Does year need to be interactive with state?
-mod3ks <- lmer(log(shannon) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
-anova(mod1ks, mod3ks)
-AICctab(mod1ks, mod3ks, weights=T) # going with mod3
+leveneTest(residuals(modfull_k_sh) ~ kbs_diversity$state)
+# Assumption met
+leveneTest(residuals(modfull_k_sh) ~ kbs_diversity$insecticide) 
+# Assumption not met 
+leveneTest(residuals(modfull_k_sh) ~ kbs_diversity$plot)
+# Assumption not met
 
-# Do we need to include insecticide? (dropping insecticide from the model)
-mod5ks <- lmer(log(shannon) ~ state + year + (1|plot), kbs_diversity, REML = FALSE)
-anova(mod3ks, mod5ks)
-# Yes, p<0.05 so insecticide*year does strongly improve model fit so we will stick with the more complex mod3
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(modfull_k_sh))
+hist(residuals(modfull_k_sh))
+shapiro.test(resid(modfull_k_sh)) # not normally distributed resids bc p<0.05
+outlierTest(modfull_k_sh) # no outliers
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod5)
-plot_model(mod3ks, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod3ks, type = "pred", terms = c("year", "state"))
-# these are the random effects estimates
-plot_model(mod3ks, type = "re", terms = c("species"))
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int_k_sh <- ranef(modfull_k_sh)$plot$`(Intercept)`
+qqnorm(r_int_k_sh)
+qqline(r_int_k_sh)
+shapiro.test(r_int_k_sh) 
+# Normally distributed random effect pvalue > 0.05
 
-# If we wanted to include plots nested within year it would look like this:
-# mod6ks <- lmer(log(shannon) ~ state + year + insecticide*year + (1 + year|plot), kbs_diversity, REML=FALSE)
-# anova(mod5ks, mod6ks)
-# anova(mod5ks)
-# cant get mod6 to work
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.testk_sh1 <- lmer(shannon ~ state + year + (1|plot), kbs_diversity, REML=FALSE)
+year.mod.testk_sh2 <- lmer(shannon ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+anova(year.mod.testk_sh1, year.mod.testk_sh2) #year.mod.test2
 
-# the best model fit appears to be = 
-# mod3ks <- lmer(log(shannon) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
-summ(mod3ks)
-summary(mod3ks)
-emmeans(mod3ks, list(pairwise ~ state + year + insecticide*year), adjust = "tukey")
+# hypothesized model
+mod_k_sh <- lmer(shannon ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+
+summary(mod_k_sh)
+anova(mod_k_sh)
+
+# comparisons
+emmeans(mod_k_sh, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod_k_sh.emm <- emmeans(mod_k_sh, ~ state*insecticide)
+contrast(mod_k_sh.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod_k_sh, insecticide~state)
 ```
 
 UMBS
 ```{r}
-# Do we need to include plot as a random effect with the UMBS models?   
-mod1us <- lmer(shannon ~ state*year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
-mod2us <- lmer(shannon ~ state*year + insecticide + year + (1|plot), umbs_diversity, REML=FALSE)
-# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
-anova(mod1us)
-anova(mod2us)
-anova(mod1us, mod2us) # Go with model 2 since pvalue >0.05, aka more complex model does not have something in it that matters
-summary(mod1us)
-summary(mod2us)
-AICctab(mod1us, mod2us, weights=T) # model 2
+modfull_u_sh <- lmer(shannon ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod1)
-plot_model(mod2us, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod2us, type = "pred", terms = c("year", "state", "insecticide"))
-# these are the random effects estimates
-plot_model(mod2us, type = "re", terms = c("species"))
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(modfull_u_sh)
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-# Does year need to be interactive with state?
-mod3us <- lmer(shannon ~ state + year + insecticide + (1|plot), umbs_diversity, REML = FALSE)
-anova(mod2us, mod3us)
-AICctab(mod1us, mod3us, weights=T) # going with mod3
+leveneTest(residuals(modfull_u_sh) ~ umbs_diversity$state)
+# Assumption not met
+leveneTest(residuals(modfull_u_sh) ~ umbs_diversity$insecticide) 
+# Assumption not met 
+leveneTest(residuals(modfull_u_sh) ~ umbs_diversity$plot)
+# Assumption not met
 
-# Do we need to include insecticide? (dropping insecticide from the model)
-mod5us <- lmer(shannon ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
-anova(mod3us, mod5us)
-# No p>0.05 so insecticide does not strongly improve model fit so we will go with model 5
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(modfull_u_sh))
+hist(residuals(modfull_u_sh))
+shapiro.test(resid(modfull_u_sh)) # not normally distributed resids bc p<0.05
+outlierTest(modfull_u_sh) # no
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod5)
-plot_model(mod5us, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod5us, type = "pred", terms = c("year", "state"))
-# these are the random effects estimates
-plot_model(mod5us, type = "re", terms = c("species"))
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int_u_sh <- ranef(modfull_u_sh)$plot$`(Intercept)`
+qqnorm(r_int_u_sh)
+qqline(r_int_u_sh)
+shapiro.test(r_int_u_sh) 
+# Normally distributed random effect pvalue > 0.05
 
-# If we wanted to include plots nested within year it would look like this:
-# mod6us <- lmer(log(shannon) ~ state + year + insecticide*year + (1 + year|plot), umbs_diversity, REML=FALSE)
-# anova(mod5us, mod6us)
-# anova(mod5us)
-# cant get mod6 to work
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.testu_sh1 <- lmer(shannon ~ state + year + (1|plot), umbs_diversity, REML=FALSE)
+year.mod.testu_sh2 <- lmer(shannon ~ state + year_factor + (1|plot), umbs_diversity, REML=FALSE)
+anova(year.mod.testu_sh1, year.mod.testu_sh2) #year.mod.test2
 
-# the best model fit appears to be = 
-# mod5us <- lmer(shannon ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
-summ(mod5us)
-emmeans(mod5us, list(pairwise ~ state + year), adjust = "tukey")
+# hypothesized model
+mod_u_sh <- lmer(shannon ~ state * insecticide + year_factor + (1|plot), umbs_diversity, REML=FALSE)
+
+summary(mod_u_sh)
+anova(mod_u_sh)
+
+# comparisons
+emmeans(mod_u_sh, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod_u_sh.emm <- emmeans(mod_u_sh, ~ state*insecticide)
+contrast(mod_u_sh.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod_u_sh, insecticide~state)
 ```
 
 RICHNESS
 KBS 
 ```{r}
-# Do we need to include plot as a random effect with the UMBS models?   
-mod1kr <- lmer(log(richness) ~ state*year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
-mod2kr <- lmer(log(richness) ~ state*year + insecticide + year + (1|plot), kbs_diversity, REML=FALSE)
-# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
-anova(mod1kr)
-anova(mod2kr)
-anova(mod1kr, mod2kr) # Go with model 1 since pvalue <0.05, aka more complex model does have something in it that matters
-summary(mod1kr)
-summary(mod2kr)
-AICctab(mod1kr, mod2kr, weights=T) # model 1
+modfull_kr <- lmer(log(richness) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod1)
-plot_model(mod1kr, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod1kr, type = "pred", terms = c("year", "state", "insecticide"))
-# these are the random effects estimates
-plot_model(mod1kr, type = "re", terms = c("species"))
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(modfull_kr)
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-# Does year need to be interactive with state?
-mod3kr <- lmer(log(richness) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
-anova(mod1kr, mod3kr) # go with less complex model
-AICctab(mod1kr, mod3kr, weights=T) # going with mod3
+leveneTest(residuals(modfull_kr) ~ kbs_diversity$state)
+# Assumption not met
+leveneTest(residuals(modfull_kr) ~ kbs_diversity$insecticide) 
+# Assumption not met 
+leveneTest(residuals(modfull_kr) ~ kbs_diversity$plot)
+# Assumption not met
 
-# Do we need to include insecticide? (dropping insecticide from the model)
-mod5kr <- lmer(log(richness) ~ state + year + (1|plot), kbs_diversity, REML = FALSE)
-anova(mod3kr, mod5kr)
-# Yes, p<0.05 so insecticide*year does strongly improve model fit so we will stick with the more complex mod3
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(modfull_kr))
+hist(residuals(modfull_kr))
+shapiro.test(resid(modfull_kr)) # normally distributed resids bc p>0.05
+outlierTest(modfull_kr) # no
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod5)
-plot_model(mod3kr, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod3kr, type = "pred", terms = c("year", "state"))
-# these are the random effects estimates
-plot_model(mod3kr, type = "re", terms = c("species"))
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int_kr <- ranef(modfull_kr)$plot$`(Intercept)`
+qqnorm(r_int_kr)
+qqline(r_int_kr)
+shapiro.test(r_int_kr) 
+# Normally distributed random effect pvalue > 0.05
 
-# If we wanted to include plots nested within year it would look like this:
-# mod6ks <- lmer(log(richness) ~ state + year + insecticide*year + (1 + year|plot), kbs_diversity, REML=FALSE)
-# anova(mod5kr, mod6kr)
-# anova(mod5kr)
-# cant get mod6 to work
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.testkr1 <- lmer(log(richness) ~ state + year + (1|plot), kbs_diversity, REML=FALSE)
+year.mod.testkr2 <- lmer(log(richness) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+anova(year.mod.testkr1, year.mod.testkr2) #year.mod.test2
 
-# the best model fit appears to be = 
-# mod3kr <- lmer(log(richness) ~ state + year + insecticide*year + (1|plot), kbs_diversity, REML = FALSE)
-summ(mod3kr)
-summary(mod3kr)
-emmeans(mod3kr, list(pairwise ~ state + year + insecticide*year), adjust = "tukey")
+# hypothesized model
+mod_kr <- lmer(log(richness) ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+
+summary(mod_kr)
+anova(mod_kr)
+
+# comparisons
+emmeans(mod_kr, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod_kr.emm <- emmeans(mod_kr, ~ state*insecticide)
+contrast(mod_kr.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod_kr, insecticide~state)
+
+# calculating effect size - accounting for log transformation
+# overall
+exp((1.96971) +  (0.23710)*0) # 7.168597 
+exp((1.96971) +  (0.23710)*1) # 9.086684
+# effect:
+9.086684 - 7.168597 # effect of warming - warmed plots had 1.918087 less species than ambient plots
+
+# herbivores present
+exp((1.96971) +  (0.237)*0) # 7.168597 
+exp((1.96971) +  (0.237)*1) # 9.085775
+# effect:
+9.085775 - 7.168597 # effect of warming - warmed plots had 1.917178 less species than ambient plots
+
+# reduced herbivory
+exp((1.96971) +  (0.207)*0) # 7.168597
+exp((1.96971) +  (0.207)*1) # 8.81725
+# effect:
+8.81725 - 7.168597 # effect of warming - warmed plots had 1.648653 less species than ambient plots
 ```
 
 UMBS 
 ```{r}
-# Do we need to include plot as a random effect with the UMBS models?   
-mod1ur <- lmer(log(richness) ~ state*year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
-mod2ur <- lmer(log(richness) ~ state*year + insecticide + year + (1|plot), umbs_diversity, REML=FALSE)
-# Run analysis of variance on each model (see this for more explanation on how anova on a linear mixed effects model is similar to an anove on a regular linear model: https://m-clark.github.io/docs/mixedModels/anovamixed.html)
-anova(mod1ur)
-anova(mod2ur)
-anova(mod1ur, mod2ur) # Go with model 2 since pvalue >0.05, aka more complex model does not have something in it that matters
-summary(mod1ur)
-summary(mod2ur)
-AICctab(mod1ur, mod2ur, weights=T) # model 2
+modfull_ur <- lmer(log(richness) ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod1)
-plot_model(mod2ur, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod2ur, type = "pred", terms = c("year", "state", "insecticide"))
-# these are the random effects estimates
-plot_model(mod2ur, type = "re", terms = c("species"))
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(modfull_ur)
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-# Does year need to be interactive with state?
-mod3ur <- lmer(log(richness) ~ state + year + insecticide*year + (1|plot), umbs_diversity, REML = FALSE)
-anova(mod2ur, mod3ur)
-AICctab(mod1ur, mod3ur, weights=T) # going with mod3
+leveneTest(residuals(modfull_ur) ~ umbs_diversity$state)
+# Assumption not met
+leveneTest(residuals(modfull_ur) ~ umbs_diversity$insecticide) 
+# Assumption not met 
+leveneTest(residuals(modfull_ur) ~ umbs_diversity$plot)
+# Assumption not met
 
-# Do we need to include insecticide? (dropping insecticide from the model)
-mod5ur <- lmer(log(richness) ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
-anova(mod3ur, mod5ur)
-# p>0.05 so insecticide*year does not strongly improve model fit so we will go with mod5
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(modfull_ur))
+hist(residuals(modfull_ur))
+shapiro.test(resid(modfull_ur)) # not normally distributed resids bc p<0.05
+outlierTest(modfull_ur) # no
 
-# Plot the fixed effects estimates for different models
-# these are the fixed effects estimates from summary(mod5)
-plot_model(mod5ur, sort.est = TRUE)
-# these are the fixed predicted values:
-plot_model(mod5ur, type = "pred", terms = c("year", "state"))
-# these are the random effects estimates
-plot_model(mod5ur, type = "re", terms = c("species"))
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int_ur <- ranef(modfull_ur)$plot$`(Intercept)`
+qqnorm(r_int_ur)
+qqline(r_int_ur)
+shapiro.test(r_int_ur) 
+# Normally distributed random effect pvalue > 0.05
 
-# If we wanted to include plots nested within year it would look like this:
-# mod6us <- lmer(log(richness) ~ state + year + insecticide*year + (1 + year|plot), umbs_diversity, REML=FALSE)
-# anova(mod5ur, mod6ur)
-# anova(mod5ur)
-# cant get mod6 to work
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.testur1 <- lmer(log(richness) ~ state + year + (1|plot), umbs_diversity, REML=FALSE)
+year.mod.testur2 <- lmer(log(richness) ~ state + year_factor + (1|plot), umbs_diversity, REML=FALSE)
+anova(year.mod.testur1, year.mod.testur2) #year.mod.test2
 
-# the best model fit appears to be = 
-# mod5ur <- lmer(log(richness) ~ state + year + (1|plot), umbs_diversity, REML = FALSE)
-summ(mod5ur)
-emmeans(mod5ur, list(pairwise ~ state + year), adjust = "tukey")
+# hypothesized model
+mod_ur <- lmer(log(richness) ~ state * insecticide + year_factor + (1|plot), umbs_diversity, REML=FALSE)
+
+summary(mod_ur)
+anova(mod_ur)
+
+# comparisons
+emmeans(mod_ur, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod_ur.emm <- emmeans(mod_ur, ~ state*insecticide)
+contrast(mod_ur.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod_ur, insecticide~state)
+
 ```
 

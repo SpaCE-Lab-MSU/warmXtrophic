@@ -119,7 +119,7 @@ annotate_figure(comp_all_dot_i,
 dev.off()
 ```
 
-Origin
+Origin & Growth Habit
 ```{r}
 # origin
 sum_origin_plot_i$full_treat <- paste(sum_origin_plot_i$state, sum_origin_plot_i$insecticide, sep="_")
@@ -143,28 +143,18 @@ origin_dot_i_kbs <- origin_dot_i("KBS")
 origin_dot_i_kbs
 origin_dot_i_kbs <- origin_dot_i_kbs + theme(plot.title = element_text(size=20),
                                      axis.text.y = element_text(size=14),
+                                     axis.text.x = element_blank(),
                                      axis.title.y = element_text(size=14),
-                                     legend.text = element_text(size=14),
-                                     legend.title = element_text(size=14))
+                                     legend.position = "none")
 origin_dot_i_umbs <- origin_dot_i("UMBS")
 origin_dot_i_umbs <- origin_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
                                                       plot.title = element_text(size=20),
+                                                      axis.text.x = element_blank(),
                                                       axis.text.y = element_blank(),
                                                       legend.text = element_text(size=14),
                                                       legend.title = element_text(size=14))
 
-comp_origin_dot_i <- ggpubr::ggarrange(origin_dot_i_kbs, origin_dot_i_umbs,
-                                nrow = 1, ncol = 2, common.legend = T, legend="right",
-                                widths = c(1.1, 0.9))
-png("relative_abundance_plots_L2_origin_dot_insect.png", units="in", width=9, height=6, res=300)
-annotate_figure(comp_origin_dot_i,
-                left = text_grob("Relative Abundance", color = "black", rot = 90, size=17))
-dev.off()
-```
-
-Growth Habit
-```{r}
-# growth
+# growth habit
 sum_growth_plot_i$full_treat <- paste(sum_growth_plot_i$state, sum_growth_plot_i$insecticide, sep="_")
 growth_dot_i <- function(loc) { 
        origin_plot <- subset(sum_growth_plot_i, site == loc)
@@ -177,7 +167,7 @@ growth_dot_i <- function(loc) {
                        scale_color_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                               labs(x = NULL, y = "Growth Habit", title = loc) +
+                               labs(x = NULL, y = "Growth Habit", title = NULL) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        coord_cartesian(ylim=c(0.2,0.7)) +
                        theme_bw(14))
@@ -187,8 +177,7 @@ growth_dot_i_kbs
 growth_dot_i_kbs <- growth_dot_i_kbs + theme(plot.title = element_text(size=20),
                                      axis.text.y = element_text(size=14),
                                      axis.title.y = element_text(size=14),
-                                     legend.text = element_text(size=14),
-                                     legend.title = element_text(size=14))
+                                     legend.position = "none")
 growth_dot_i_umbs <- growth_dot_i("UMBS")
 growth_dot_i_umbs <- growth_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
                                                       plot.title = element_text(size=20),
@@ -196,15 +185,20 @@ growth_dot_i_umbs <- growth_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=eleme
                                                       legend.text = element_text(size=14),
                                                       legend.title = element_text(size=14))
 
-comp_growth_dot_i <- ggpubr::ggarrange(growth_dot_i_kbs, growth_dot_i_umbs,
-                                nrow = 1, ncol = 2, common.legend = T, legend="right",
-                                widths = c(1.1, 0.9))
-png("relative_abundance_plots_L2_growth_dot_insect.png", units="in", width=8, height=6, res=300)
-annotate_figure(comp_growth_dot_i,
+legend_1 <- get_legend(origin_dot_i_umbs)
+legend_2 <- get_legend(growth_dot_i_umbs)
+legends <- ggarrange(legend_1, legend_2, nrow = 2)
+
+origin_growth_dot_i <- ggpubr::ggarrange(origin_dot_i_kbs, origin_dot_i_umbs,
+                  growth_dot_i_kbs, growth_dot_i_umbs,
+                  nrow = 2, ncol = 2,
+                  widths = c(1, 1.52))
+
+png("relative_abundance_plots_L2_growth_origin_dot_insect.png", units="in", width=10, height=8, res=300)
+annotate_figure(origin_growth_dot_i,
                 left = text_grob("Relative Abundance", color = "black", rot = 90, size=17))
 dev.off()
 ```
-
 
 For the supplemental document - line graph by site and year (need to work on)
 ```{r}
