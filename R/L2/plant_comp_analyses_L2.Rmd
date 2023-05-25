@@ -229,7 +229,7 @@ exp((-1.98820) +  (-0.228)*1) # 0.1090226
 ### KBS ###
 hist(kbs_origin_plot$avg_relative_abundance)
 qqnorm(kbs_origin_plot$avg_relative_abundance)
-shapiro.test(kbs_origin_plot$avg_relative_abundance) # pvalue is > 0.05 so we can reject the null hypothesis that the data is normal (aka normally distributed) 
+shapiro.test(kbs_origin_plot$avg_relative_abundance) # pvalue is < 0.05 so we cannot reject the null hypothesis that the data is normal (aka normally distributed) 
 
 # Exploring distributions:
 descdist(kbs_origin_plot$avg_relative_abundance, discrete = FALSE)
@@ -288,7 +288,6 @@ Mixed Effects Model
 ```{r}
 # KBS origin plot level
 modfull_o <- lmer(sqrt(avg_relative_abundance) ~ state*origin + insecticide*origin + factor(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
-ggplot(kbs_origin_plot, aes(x=plot,y=avg_relative_abundance)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -309,7 +308,7 @@ leveneTest(residuals(modfull_o) ~ kbs_origin_plot$plot)
 # Assumption not met
 kbs_origin_plot$origin <- as.factor(kbs_origin_plot$origin)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$origin)
-# Assumption
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -320,9 +319,6 @@ outlierTest(modfull_o) # no outliers
 ```
 
 ```{r}
-# modfull_cont <- lmer(relabun ~ state*origin + insecticide*origin + as.numeric(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
-# year should be continuous not a factor
-# need to plot final model selected - interpreting the model - reduced herbivory = more relative abundance
 modfull_o <- lmer(sqrt(avg_relative_abundance) ~ state*origin + insecticide*origin + as.factor(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
 mod1p_o <- lmer(sqrt(avg_relative_abundance) ~ state*origin + insecticide*origin + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
 mod2p_o <- lmer(sqrt(avg_relative_abundance) ~ state + insecticide*origin + as.factor(year_factor) + origin + (1|plot), kbs_origin_plot, REML=F)
@@ -338,8 +334,23 @@ AICtab(mod2p_o, mod1p_o, weights=T)
 anova(mod2p_o)
 summary(mod2p_o)
 
-# with herb reduction as interactive term
-anova()
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.testk_o1 <- lmer(sqrt(avg_relative_abundance) ~ state + year + (1|plot), kbs_origin_plot, REML=FALSE)
+year.mod.testk_o2 <- lmer(sqrt(avg_relative_abundance) ~ state + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+anova(year.mod.tesk_o1, year.mod.testk_o2) #year.mod.test2
+
+#### Note to self - need to work on the model structure below
+# hypothesized model
+mod_k_o <- lmer(sqrt(avg_relative_abundance) ~ state * insecticide * origin + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+
+summary(mod_k_o)
+anova(mod_k_o)
+
+# comparisons
+emmeans(mod_k_o, list(pairwise ~ state*insecticide*origin), adjust = "tukey")
+mod_k_o.emm <- emmeans(mod_k_o, ~ state*insecticide*origin)
+contrast(mod_k_o.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod_k_o, insecticide~state)
 
 ```
 
