@@ -224,6 +224,8 @@ full.model.sp.k <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|p
                         zi=~.,
                         family=truncated_nbinom2)
 summary(full.model.sp.k) 
+car::Anova(full.model.sp.k)
+tab_model(full.model.sp.k)
 
 # temperature model
 temp.model.k <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
