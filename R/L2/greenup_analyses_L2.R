@@ -41,10 +41,13 @@ theme_set(theme_bw(base_size = 14))
 L1_dir<-Sys.getenv("L1DIR")
 L2_dir<-Sys.getenv("L2DIR")
 
-# V2 below is plot level, but is the median half cover date for all species per plot
+# V2 below is plot level - its the median half cover date for all species per plot
 # calculated in phenology_dates_L2
 greenup <- read.csv(file.path(L2_dir,"greenup/final_greenup_plot_V2_L2.csv")) # V2 plot level greenup dates
 greenup <- greenup %>% dplyr::select(-X) # get rid of "X" column
+# species level green-up
+# note: the species data frame is only used to demonstrate that green-up differs between species (for the supplement)
+greenup_spp <- read.csv(file.path(L2_dir, "greenup/final_greenup_species_L2.csv")) 
 
 # check variable types
 str(greenup)
@@ -63,9 +66,20 @@ greenup$year_factor[greenup$year == 2019] <- 4
 greenup$year_factor[greenup$year == 2020] <- 5
 greenup$year_factor[greenup$year == 2021] <- 6
 
+greenup_spp$year_factor[greenup_spp$year == 2016] <- 1
+greenup_spp$year_factor[greenup_spp$year == 2017] <- 2
+greenup_spp$year_factor[greenup_spp$year == 2018] <- 3
+greenup_spp$year_factor[greenup_spp$year == 2019] <- 4
+greenup_spp$year_factor[greenup_spp$year == 2020] <- 5
+greenup_spp$year_factor[greenup_spp$year == 2021] <- 6
+
 # create dataframes for kbs and umbs - remember that these contain species within plots
 green_kbs <- subset(greenup, site == "kbs")
 green_umbs <- subset(greenup, site == "umbs")
+
+# species specific dataframes for kbs and umbs
+green_kbs_spp <- subset(greenup_spp, site == "kbs")
+green_umbs_spp <- subset(greenup_spp, site == "umbs")
 
 # checking raw data
 hist(green_kbs$med_half_cover_date)
@@ -75,6 +89,14 @@ shapiro.test(green_kbs$med_half_cover_date)
 hist(green_umbs$med_half_cover_date)
 qqnorm(green_umbs$med_half_cover_date)
 shapiro.test(green_umbs$med_half_cover_date)
+
+hist(green_kbs_spp$spp_half_cover_date)
+qqnorm(green_kbs_spp$spp_half_cover_date)
+shapiro.test(green_kbs_spp$spp_half_cover_date)
+
+hist(green_umbs_spp$spp_half_cover_date)
+qqnorm(green_umbs_spp$spp_half_cover_date)
+shapiro.test(green_umbs_spp$spp_half_cover_date)
 
 
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
@@ -130,6 +152,8 @@ leveragePlots(fitpu2_y)
 leveneTest(residuals(fitpu2_y) ~ green_umbs$state)
 ols_test_normality(fitpu2_y)
 shapiro.test(resid(fitpu2_y))
+
+
 
 
 
@@ -193,6 +217,12 @@ AICtab(modtest1,modtest2)
 anova(modtest1)
 summary(modtest1)
 
+# species model for supp
+mod_spp_k <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year_factor) + (1|plot), green_kbs_spp, REML=FALSE)
+anova(mod_spp_k)
+
+
+
 
 ## UMBS ##
 # testing if year as continuous or year as a factor makes more sense (test models)
@@ -252,5 +282,9 @@ AICtab(modtest1u,modtest2u)
 
 anova(modtest1u)
 summary(modtest1u)
+
+# species model for supp
+mod_spp_u <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year_factor) + (1|plot), green_umbs_spp, REML=FALSE)
+anova(mod_spp_u)
 
 
