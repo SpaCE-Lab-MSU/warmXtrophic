@@ -211,6 +211,7 @@ trunc.k <- glmmTMB(p_eaten ~ state * insecticide + year,
 summary(trunc.k) #matches the k.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
+# * used in paper * #
 full.model.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/plant_number),
                    data=herb_kbs,
                    zi=~.,
@@ -306,6 +307,7 @@ trunc.u <- glmmTMB(p_eaten ~ state * insecticide + year,
 summary(trunc.u) #matches the u.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
+# * model used in paper * #
 full.model.u <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/plant_number),
                       data=herb_umbs,
                       zi=~.,

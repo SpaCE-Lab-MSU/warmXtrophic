@@ -220,7 +220,8 @@ summary(modtest1)
 # species model for supp
 mod_spp_k <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year_factor) + (1|plot), green_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
-
+mod_spp_k2 <- lmer(spp_half_cover_date ~ state * insecticide + as.factor(year_factor) + (1|plot/species), green_kbs_spp, REML=FALSE)
+anova(mod_spp_k2)
 
 
 
@@ -258,7 +259,7 @@ anova(mod6p_u, mod10p_u) #mod6p_u
 anova(mod6p_u, mod11p_u) #mod11p_u
 
 table <- anova(mod9p_u, mod6p_u)
-summary(mod6p_u)
+summary(mod9p_u)
 anova(mod9p_u)
 
 # comparisons
@@ -286,5 +287,7 @@ summary(modtest1u)
 # species model for supp
 mod_spp_u <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year_factor) + (1|plot), green_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
+mod_spp_u2 <- lmer(spp_half_cover_date ~ state * insecticide + as.factor(year_factor) + (1|plot/species), green_umbs_spp, REML=FALSE)
+anova(mod_spp_u2)
 
 
