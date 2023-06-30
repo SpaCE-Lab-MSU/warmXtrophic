@@ -222,6 +222,24 @@ exp((-1.98820) +  (-0.228)*0) # 0.1369417
 exp((-1.98820) +  (-0.228)*1) # 0.1090226
 # effect:
 0.1090226 - 0.1369417 # effect of warming - warmed plots had 0.0279191 or 2.79191% more relative abundance than ambient plots
+
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for avg relative abundance as a function of just temp to see how real temp data affects avg relative abundance
+modtest1u <- lmer(log(avg_relative_abundance) ~ mean_temp + (1|plot), kbs_comp_plot, REML=FALSE)
+modtest2u <- lmer(log(avg_relative_abundance) ~ GDD_cumulative + (1|plot), kbs_comp_plot, REML=FALSE)
+
+AICtab(modtest1u, modtest2u, weights=T)
+# growing degree days model is better but we are going to use the mean temp for all models
+
+anova(modtest1u)
+summary(modtest1u)
+
+# calculating effect size - accounting for log transformation
+exp((-4.16491) + (0.14625)*0) # 0.01553111 
+exp((-4.16491) + (0.14625)*1) # 0.01797704
+# effect:
+0.01797704 - 0.01553111 # effect of warming - warmed plots had 0.0279191 or 2.79191% more relative abundance than ambient plots
 ```
 
 #KBS Origin Plot Level
@@ -257,6 +275,7 @@ dev.off()
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
 # log normal 
+
 ```
 
 Leverage plots and detecting Outliers
@@ -280,7 +299,7 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(avg_relative_abundance ~ state * year, data = kbs_origin_plot)
+fit3 <- lm(sqrt(avg_relative_abundance) ~ state * year, data = kbs_origin_plot)
 interact_plot(fit3, pred = year, modx = state) 
 ```
 
@@ -337,18 +356,18 @@ summary(mod2p_o)
 # testing if year as continuous or year as a factor makes more sense (test models)
 year.mod.testk_o1 <- lmer(sqrt(avg_relative_abundance) ~ state + year + (1|plot), kbs_origin_plot, REML=FALSE)
 year.mod.testk_o2 <- lmer(sqrt(avg_relative_abundance) ~ state + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
-anova(year.mod.tesk_o1, year.mod.testk_o2) #year.mod.test2
+anova(year.mod.testk_o1, year.mod.testk_o2) #year.mod.test2
 
 #### Note to self - need to work on the model structure below
 # hypothesized model
-mod_k_o <- lmer(sqrt(avg_relative_abundance) ~ state * insecticide * origin + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+mod_k_o <- lmer(sqrt(avg_relative_abundance) ~ state * insecticide + origin + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
 
 summary(mod_k_o)
 anova(mod_k_o)
 
 # comparisons
-emmeans(mod_k_o, list(pairwise ~ state*insecticide*origin), adjust = "tukey")
-mod_k_o.emm <- emmeans(mod_k_o, ~ state*insecticide*origin)
+emmeans(mod_k_o, list(pairwise ~ state*insecticide + origin), adjust = "tukey")
+mod_k_o.emm <- emmeans(mod_k_o, ~ state*insecticide + origin)
 contrast(mod_k_o.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_o, insecticide~state)
 
@@ -482,10 +501,18 @@ summary(mod7p_g)
 plot_model(mod7p_g)
 
 # testing model that matched our hypothesis
-anova(mod8p_g)
+mod_k_g <- lmer(avg_relative_abundance ~ state * insecticide + growth_habit + year_factor + (1|plot), kbs_growth_plot, REML=F)
+
+summary(mod_k_g)
+anova(mod_k_g)
+
+# comparisons
+emmeans(mod_k_g, list(pairwise ~ state*insecticide + growth_habit), adjust = "tukey")
+mod_k_g.emm <- emmeans(mod_k_g, ~ state*insecticide + growth_habit)
+contrast(mod_k_g.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod_k_g, insecticide~state)
 
 ```
-
 
 #UMBS Plot Level
 ```{r}
@@ -614,6 +641,23 @@ emmip(mod9pu, insecticide~state)
 table <- anova(mod5pu, mod9pu)
 kable(table) %>% kableExtra::kable_styling()
 AICctab(mod5pu, mod9pu, weights=T)
+
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for avg relative abundance as a function of just temp to see how real temp data affects avg relative abundance
+modtest1u <- lmer(log(avg_relative_abundance) ~ mean_temp + (1|plot), umbs_comp_plot, REML=FALSE)
+modtest2u <- lmer(log(avg_relative_abundance) ~ GDD_cumulative + (1|plot), umbs_comp_plot, REML=FALSE)
+
+AICtab(modtest1u, modtest2u, weights=T)
+
+anova(modtest1u)
+summary(modtest1u)
+
+# calculating effect size - accounting for log transformation
+exp((-3.17230) + (0.09559)*0) # 0.0419071 
+exp((-3.17230) + (0.09559)*1) # 0.04611071
+# effect:
+0.04611071 - 0.0419071
 ```
 
 #UMBS Origin Plot Level
@@ -756,7 +800,6 @@ dev.off()
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# log normal best fit, but going to go with normal
 ```
 
 Leverage plots and detecting Outliers
@@ -788,7 +831,6 @@ Mixed Effects Model
 ```{r}
 # UMBS growth habit plot level
 modfull_g_u <- lmer(avg_relative_abundance ~ state*growth_habit + insecticide*growth_habit + year_factor*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
-ggplot(umbs_growth_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -829,9 +871,5 @@ emmeans(mod_1ug, list(pairwise ~ state*insecticide + growth_habit), adjust = "tu
 mod_1ug.emm <- emmeans(mod_1ug, ~ state*insecticide + growth_habit)
 contrast(mod_1ug.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_1ug, insecticide~state)
-
-mod_2ug <- lmer(avg_relative_abundance ~ state*insecticide + growth_habit*state + as.factor(year_factor) + (1|plot), umbs_growth_plot, REML = FALSE)
-summary(mod_2ug)
-anova(mod_2ug)
 ```
 
