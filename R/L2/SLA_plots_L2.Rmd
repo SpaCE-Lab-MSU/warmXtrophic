@@ -50,16 +50,16 @@ sla1 <- sla %>%
               se = std.error(sla)) 
 # take the species yearly treatment-level mean
 sla_treatment <- sla1 %>%
-    group_by(site, plot, year, state) %>%
+    group_by(site, plot, state,year) %>%
     summarize(sla = mean(sla)) %>%    
     group_by(site,year,state) %>%
     summarize(sla_mean = mean(sla),
               se = std.error(sla)) 
 # take the overall treatment-level mean
 sla_treatment2 <- sla1 %>%
-    group_by(site, plot, species, state) %>%
+    group_by(site, plot, state, insecticide) %>%
     summarize(sla = mean(sla)) %>%    
-    group_by(site,species,state) %>%
+    group_by(site,state, insecticide) %>%
     summarize(sla_mean = mean(sla),
               se = std.error(sla)) 
 
@@ -67,6 +67,116 @@ sla_treatment2 <- sla1 %>%
 
 # SLA data
 ```{r}
+# dot plot for warmed and insecticide
+sla_treatment_kbs <- sla_treatment2 %>%
+        filter(site == "kbs")
+sla_treatment_umbs <- sla_treatment2 %>%
+        filter(site == "umbs")
+sla_kbs <- ggplot(sla_treatment_kbs, aes(x = state, y = sla_mean, fill = insecticide)) +
+        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=1,position=position_dodge(0.3)) +
+        #geom_bar(position = "identity", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = "identity") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="KBS") +
+        scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+        #                  labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(42,48)) +
+        theme_classic() +
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+sla_umbs <- ggplot(sla_treatment_umbs, aes(x = state, y = sla_mean, fill = insecticide)) +
+        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=1,position=position_dodge(0.3)) +
+        #geom_bar(position = "identity", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = "identity") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="UMBS") +
+        scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+        #scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+        #                  labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(42,48)) +
+        theme_classic() +
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+sla_comb <- ggpubr::ggarrange(sla_kbs, sla_umbs,
+                                     ncol = 2, common.legend = T, legend="right")
+png("sla_treatmentlevel_L2.png", units="in", width=9, height=4, res=300)
+annotate_figure(sla_comb,
+                left = text_grob("Specific leaf area (cm^2/g)", color = "black", rot = 90, size=17))
+dev.off()
+
+
+# dot plot by year
+sla_treatment_kbs <- sla_treatment %>%
+        filter(site == "kbs")
+sla_treatment_umbs <- sla_treatment %>%
+        filter(site == "umbs")
+sla_kbs <- ggplot(sla_treatment_kbs, aes(x = as.factor(year), y = sla_mean, fill = state)) +
+        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=1,position=position_dodge(0.3)) +
+        #geom_bar(position = "identity", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = "identity") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="KBS") +
+        #scale_fill_manual(name="Treatment",
+        #                                 values = c("#FFB451", "#0b0055"),
+        #                                 labels=c("Herbivory","Reduced Herbivory")) +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(42,48)) +
+        theme_classic() +
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+sla_umbs <- ggplot(sla_treatment_umbs, aes(x = as.factor(year), y = sla_mean, fill = state)) +
+        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
+        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=1,position=position_dodge(0.3)) +
+        #geom_bar(position = "identity", stat = "identity", color = 'black') +
+        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
+        #        position = "identity") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="UMBS") +
+        #scale_fill_manual(name="Treatment",
+        #                                 values = c("#FFB451", "#0b0055"),
+        #                                 labels=c("Herbivory","Reduced Herbivory")) +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        #coord_cartesian(ylim=c(42,48)) +
+        theme_classic() +
+        theme(axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+sla_comb <- ggpubr::ggarrange(sla_kbs, sla_umbs,
+                                     ncol = 2, common.legend = T, legend="right")
+png("sla_treatmentlevel_year_L2.png", units="in", width=9, height=4, res=300)
+annotate_figure(sla_comb,
+                left = text_grob("Specific leaf area (cm^2/g)", color = "black", rot = 90, size=17))
+dev.off()
+
+
 # barplot for each species at kbs and umbs (no years)
 png("sla_spp_L2.png", units="in", width=8, height=4, res=300)
 ggplot(sla_treatment2, aes(x = species, y = sla_mean, fill = state)) +
