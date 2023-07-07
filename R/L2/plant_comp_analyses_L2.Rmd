@@ -43,6 +43,7 @@ library(glmmTMB)
 library(GGally) # ggpairs() function
 library(bbmle) # AICtab() function
 library(knitr)
+library(GLMMadaptive)
 
 # Set working directory
 Sys.getenv("L1DIR")
@@ -318,16 +319,16 @@ plot(modfull_o) # the ones in the data are making this look weird - idk this doe
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$state)
-# Assumption not met
+# Assumption met
 kbs_origin_plot$insecticide <- as.factor(kbs_origin_plot$insecticide)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$insecticide) 
 # Assumption met
 kbs_origin_plot$plot <- as.factor(kbs_origin_plot$plot)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$plot)
-# Assumption not met
+# Assumption met
 kbs_origin_plot$origin <- as.factor(kbs_origin_plot$origin)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$origin)
-# Assumption met
+# Assumption not met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -357,20 +358,23 @@ summary(mod2p_o)
 year.mod.testk_o1 <- lmer(sqrt(avg_relative_abundance) ~ state + year + (1|plot), kbs_origin_plot, REML=FALSE)
 year.mod.testk_o2 <- lmer(sqrt(avg_relative_abundance) ~ state + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
 anova(year.mod.testk_o1, year.mod.testk_o2) #year.mod.test2
+```
 
-#### Note to self - need to work on the model structure below
+Hypothesized model
+```{r}
 # hypothesized model
-mod_k_o <- lmer(sqrt(avg_relative_abundance) ~ state * insecticide + origin + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+mod_k_o <- lmer(sqrt(avg_relative_abundance) ~ state * insecticide * origin + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+
+mod_k_o <- glmmTMB(avg_relative_abundance ~ state * insecticide * origin + year_factor + (1|plot), data = kbs_origin_plot, family = beta_family(), REML=FALSE)
 
 summary(mod_k_o)
 anova(mod_k_o)
 
 # comparisons
-emmeans(mod_k_o, list(pairwise ~ state*insecticide + origin), adjust = "tukey")
-mod_k_o.emm <- emmeans(mod_k_o, ~ state*insecticide + origin)
+emmeans(mod_k_o, list(pairwise ~ state*insecticide*origin), adjust = "tukey")
+mod_k_o.emm <- emmeans(mod_k_o, ~ state*insecticide*origin)
 contrast(mod_k_o.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_o, insecticide~state)
-
 ```
 
 
@@ -501,14 +505,14 @@ summary(mod7p_g)
 plot_model(mod7p_g)
 
 # testing model that matched our hypothesis
-mod_k_g <- lmer(avg_relative_abundance ~ state * insecticide + growth_habit + year_factor + (1|plot), kbs_growth_plot, REML=F)
+mod_k_g <- lmer(avg_relative_abundance ~ state * insecticide * growth_habit + year_factor + (1|plot), kbs_growth_plot, REML=F)
 
 summary(mod_k_g)
 anova(mod_k_g)
 
 # comparisons
-emmeans(mod_k_g, list(pairwise ~ state*insecticide + growth_habit), adjust = "tukey")
-mod_k_g.emm <- emmeans(mod_k_g, ~ state*insecticide + growth_habit)
+emmeans(mod_k_g, list(pairwise ~ state*insecticide*growth_habit), adjust = "tukey")
+mod_k_g.emm <- emmeans(mod_k_g, ~ state*insecticide*growth_habit)
 contrast(mod_k_g.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_g, insecticide~state)
 
@@ -755,14 +759,16 @@ outlierTest(modfull_o_u) # no outliers
 
 ```{r}
 #Our hypothesized model
-mod_1uo <- lmer(avg_relative_abundance ~ state*insecticide + origin + as.factor(year_factor) + (1|plot), umbs_origin_plot, REML = FALSE)
+mod_1uo <- lmer(avg_relative_abundance ~ state*insecticide*origin + as.factor(year_factor) + (1|plot), umbs_origin_plot, REML = FALSE)
+
+mod_1uo <- glmmTMB(avg_relative_abundance ~ state * insecticide * origin + year_factor + (1|plot), data = umbs_origin_plot, family = beta_family(), REML=FALSE)
 
 summary(mod_1uo)
 anova(mod_1uo)
 
 # comparisons
-emmeans(mod_1uo, list(pairwise ~ state*insecticide + origin), adjust = "tukey")
-mod_1uo.emm <- emmeans(mod_1uo, ~ state*insecticide + origin)
+emmeans(mod_1uo, list(pairwise ~ state*insecticide*origin), adjust = "tukey")
+mod_1uo.emm <- emmeans(mod_1uo, ~ state*insecticide*origin)
 contrast(mod_1uo.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_1uo, insecticide~state)
 
@@ -830,7 +836,7 @@ interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 Mixed Effects Model
 ```{r}
 # UMBS growth habit plot level
-modfull_g_u <- lmer(avg_relative_abundance ~ state*growth_habit + insecticide*growth_habit + year_factor*growth_habit + (1|plot), umbs_growth_plot, REML = FALSE)
+modfull_g_u <- lmer(avg_relative_abundance ~ state*insecticide*growth_habit + year_factor + (1|plot), umbs_growth_plot, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -862,13 +868,16 @@ outlierTest(modfull_g_u) # no outliers
 
 ```{r}
 #Our hypothesized model
-mod_1ug <- lmer(avg_relative_abundance ~ state*insecticide + growth_habit + as.factor(year_factor) + (1|plot), umbs_growth_plot, REML = FALSE)
+mod_1ug <- lmer(avg_relative_abundance ~ state*insecticide*growth_habit + as.factor(year_factor) + (1|plot), umbs_growth_plot, REML = FALSE)
+
+mod_1ug <- glmmTMB(avg_relative_abundance ~ state*insecticide*growth_habit + as.factor(year_factor) + (1|plot), data = umbs_growth_plot, family = beta_family(), REML = FALSE)
+
 summary(mod_1ug)
 anova(mod_1ug)
 
 # comparisons
-emmeans(mod_1ug, list(pairwise ~ state*insecticide + growth_habit), adjust = "tukey")
-mod_1ug.emm <- emmeans(mod_1ug, ~ state*insecticide + growth_habit)
+emmeans(mod_1ug, list(pairwise ~ state*insecticide*growth_habit), adjust = "tukey")
+mod_1ug.emm <- emmeans(mod_1ug, ~ state*insecticide*growth_habit)
 contrast(mod_1ug.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_1ug, insecticide~state)
 ```
