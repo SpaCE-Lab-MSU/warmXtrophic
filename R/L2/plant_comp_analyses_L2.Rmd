@@ -150,7 +150,7 @@ interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 Mixed Effects Model
 ```{r}
 # KBS PLOT LEVEL
-modfull <- lmer(log(avg_relative_abundance) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_comp_plot, REML = FALSE)
+modfull <- lmer(log(avg_relative_abundance) ~ state*insecticide + year_factor + (1|plot), kbs_comp_plot, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -208,7 +208,12 @@ anova(mod5p)
 emmeans(mod5p, list(pairwise ~ state + year_factor), adjust = "tukey")
 emmeans(mod5p, list(pairwise ~ state), adjust = "tukey")
 
+```
+
+Hypothesized model
+```{r}
 #Our hypothesized model is  mod9p
+mod9p <- lmer(log(avg_relative_abundance) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
 summary(mod9p)
 anova(mod9p)
 
@@ -240,7 +245,7 @@ summary(modtest1u)
 exp((-4.16491) + (0.14625)*0) # 0.01553111 
 exp((-4.16491) + (0.14625)*1) # 0.01797704
 # effect:
-0.01797704 - 0.01553111 # effect of warming - warmed plots had 0.0279191 or 2.79191% more relative abundance than ambient plots
+0.01797704 - 0.01553111 # effect of warming - warmed plots had 0.00244593 or 0.24% more relative abundance than ambient plots
 ```
 
 #KBS Origin Plot Level
@@ -283,7 +288,7 @@ Leverage plots and detecting Outliers
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(sqrt(avg_relative_abundance) ~ state, data = kbs_origin_plot)
+fit_plot_state_kbs <- lm(avg_relative_abundance ~ state, data = kbs_origin_plot)
 outlierTest(fit_plot_state_kbs) # no outliers
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
@@ -291,7 +296,7 @@ leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(sqrt(avg_relative_abundance) ~ state + year_factor, data = kbs_origin_plot)
+fit_plot_stateyear_kbs <- lm(avg_relative_abundance ~ state + year_factor, data = kbs_origin_plot)
 outlierTest(fit_plot_stateyear_kbs) # no outliers 
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
@@ -300,14 +305,14 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(sqrt(avg_relative_abundance) ~ state * year, data = kbs_origin_plot)
+fit3 <- lm(avg_relative_abundance ~ state * year, data = kbs_origin_plot)
 interact_plot(fit3, pred = year, modx = state) 
 ```
 
 Mixed Effects Model
 ```{r}
 # KBS origin plot level
-modfull_o <- lmer(sqrt(avg_relative_abundance) ~ state*origin + insecticide*origin + factor(year_factor)*origin + (1|plot), kbs_origin_plot, REML=F)
+modfull_o <- lmer(avg_relative_abundance ~ state*insecticide*origin + factor(year_factor) + (1|plot), kbs_origin_plot, REML=F)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -322,13 +327,13 @@ leveneTest(residuals(modfull_o) ~ kbs_origin_plot$state)
 # Assumption met
 kbs_origin_plot$insecticide <- as.factor(kbs_origin_plot$insecticide)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$insecticide) 
-# Assumption met
+# Assumption not met
 kbs_origin_plot$plot <- as.factor(kbs_origin_plot$plot)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$plot)
 # Assumption met
 kbs_origin_plot$origin <- as.factor(kbs_origin_plot$origin)
 leveneTest(residuals(modfull_o) ~ kbs_origin_plot$origin)
-# Assumption not met
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -363,9 +368,9 @@ anova(year.mod.testk_o1, year.mod.testk_o2) #year.mod.test2
 Hypothesized model
 ```{r}
 # hypothesized model
-mod_k_o <- lmer(sqrt(avg_relative_abundance) ~ state * insecticide * origin + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
+mod_k_o <- lmer(avg_relative_abundance ~ state * insecticide * origin + year_factor + (1|plot), kbs_origin_plot, REML=FALSE)
 
-mod_k_o <- glmmTMB(avg_relative_abundance ~ state * insecticide * origin + year_factor + (1|plot), data = kbs_origin_plot, family = beta_family(), REML=FALSE)
+#mod_k_o <- glmmTMB(avg_relative_abundance ~ state * insecticide * origin + year_factor + (1|plot), data = #kbs_origin_plot, family = beta_family(), REML=FALSE)
 
 summary(mod_k_o)
 anova(mod_k_o)
@@ -376,7 +381,6 @@ mod_k_o.emm <- emmeans(mod_k_o, ~ state*insecticide*origin)
 contrast(mod_k_o.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_o, insecticide~state)
 ```
-
 
 #KBS Growth Plot Level
 ```{r}
@@ -441,8 +445,7 @@ interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 Mixed Effects Model
 ```{r}
 # KBS growth habit plot level
-modfull_g <- lmer(avg_relative_abundance ~ state*growth_habit + insecticide*growth_habit + year_factor*growth_habit + (1|plot), kbs_growth_plot, REML = FALSE)
-ggplot(kbs_growth_plot, aes(x=plot,y=plot_total_cover_year)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
+modfull_g <- lmer(avg_relative_abundance ~ state*insecticide*growth_habit + year_factor + (1|plot), kbs_growth_plot, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -454,16 +457,16 @@ plot(modfull_g) # the ones in the data are making this look weird - idk this doe
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
 leveneTest(residuals(modfull_g) ~ kbs_growth_plot$state)
-# Assumption not met
+# Assumption met
 kbs_growth_plot$insecticide <- as.factor(kbs_growth_plot$insecticide)
 leveneTest(residuals(modfull_g) ~ kbs_growth_plot$insecticide) 
 # Assumption not met
 kbs_growth_plot$plot <- as.factor(kbs_growth_plot$plot)
 leveneTest(residuals(modfull_g) ~ kbs_growth_plot$plot)
-# Assumption not met
+# Assumption met
 kbs_growth_plot$growth_habit <- as.factor(kbs_growth_plot$growth_habit)
 leveneTest(residuals(modfull_g) ~ kbs_growth_plot$growth_habit)
-# Assumption not met
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -581,7 +584,7 @@ interact_plot(fit3, pred = year, modx = state)
 Mixed Effects Model
 ```{r}
 # UMBS PLOT LEVEL
-modfullu <- lmer(log(avg_relative_abundance) ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_comp_plot, REML = FALSE)
+modfullu <- lmer(log(avg_relative_abundance) ~ state*insecticide + year_factor + (1|plot), umbs_comp_plot, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -661,7 +664,7 @@ summary(modtest1u)
 exp((-3.17230) + (0.09559)*0) # 0.0419071 
 exp((-3.17230) + (0.09559)*1) # 0.04611071
 # effect:
-0.04611071 - 0.0419071
+0.04611071 - 0.0419071 # 0.00420361
 ```
 
 #UMBS Origin Plot Level
@@ -870,6 +873,8 @@ outlierTest(modfull_g_u) # no outliers
 #Our hypothesized model
 mod_1ug <- lmer(avg_relative_abundance ~ state*insecticide*growth_habit + as.factor(year_factor) + (1|plot), umbs_growth_plot, REML = FALSE)
 
+# Trying to fit a model with beta distribution but it won't run bc values need to be 0 < y < 1 and we have some 
+# values that are 1 exactly (I think that's why it won't work but not positive)
 mod_1ug <- glmmTMB(avg_relative_abundance ~ state*insecticide*growth_habit + as.factor(year_factor) + (1|plot), data = umbs_growth_plot, family = beta_family(), REML = FALSE)
 
 summary(mod_1ug)
