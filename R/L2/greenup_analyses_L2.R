@@ -192,19 +192,14 @@ anova(mod8p, mod9p) #mod8p (note: 9p is hypothesized model - going with 9 becaus
 anova(mod9p, mod10p) #mod9p
 anova(mod9p, mod11p) #mod11p slightly better - going with 9p for overall results, but can use 11p to talk about how these results vary by year
 
-table <- anova(mod8p, mod9p)
 summary(mod9p)
 anova(mod9p)
 
 # comparisons
-emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+contrast(emmeans(mod9p, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
-
-# making a table with best-fit model and hypothesized model
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod8p,mod9p)
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -220,8 +215,8 @@ summary(modtest1)
 # species model for supp
 mod_spp_k <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year_factor) + (1|plot), green_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
-mod_spp_k2 <- lmer(spp_half_cover_date ~ state * insecticide + as.factor(year_factor) + (1|plot/species), green_kbs_spp, REML=FALSE)
-anova(mod_spp_k2)
+# making a table
+kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
 
 
 
@@ -258,19 +253,14 @@ anova(mod6p_u, mod9p_u) #mod6p_u
 anova(mod6p_u, mod10p_u) #mod6p_u
 anova(mod6p_u, mod11p_u) #mod11p_u
 
-table <- anova(mod9p_u, mod6p_u)
 summary(mod9p_u)
 anova(mod9p_u)
 
 # comparisons
-emmeans(mod9p_u, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p_u, ~ state*insecticide)
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+contrast(emmeans(mod9p_u, ~state*insecticide), "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
-
-# making a table with best-fit model and hypothesized model
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod6p_u,mod9p_u)
+# making a table
+kable(anova(mod9p_u)) %>% kableExtra::kable_styling()
 
 
 # adding in our temp data into some models
@@ -287,7 +277,8 @@ summary(modtest1u)
 # species model for supp
 mod_spp_u <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year_factor) + (1|plot), green_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
-mod_spp_u2 <- lmer(spp_half_cover_date ~ state * insecticide + as.factor(year_factor) + (1|plot/species), green_umbs_spp, REML=FALSE)
-anova(mod_spp_u2)
+# making a table
+kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+
 
 
