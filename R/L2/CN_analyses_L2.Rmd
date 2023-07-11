@@ -244,11 +244,15 @@ c.hyp.k <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot/spec
 anova(c.hyp.k)
 mod.emm <- emmeans(c.hyp.k, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+# making a table
+kable(anova(c.hyp.k)) %>% kableExtra::kable_styling()
 # hypothesized model - species as random effect
 c.hyp.k2 <- lmer(carbon ~ treatment * insecticide + year + (1|plot/species/plant_number), data = c1_kbs)
 anova(c.hyp.k2)
 mod.emm <- emmeans(c.hyp.k2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+# making a table
+kable(anova(c.hyp.k2)) %>% kableExtra::kable_styling()
 
 # old models comparisons
 # carbon - KBS
@@ -303,11 +307,15 @@ c.hyp.u <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot/spec
 anova(c.hyp.u)
 mod.emm <- emmeans(c.hyp.u, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+# table
+kable(anova(c.hyp.u)) %>% kableExtra::kable_styling()
 # hypothesized model - species as random effect
 c.hyp.u2 <- lmer(carbon ~ treatment * insecticide + year + (1|plot/species/plant_number), data = c1_umbs)
 anova(c.hyp.u2)
 mod.emm <- emmeans(c.hyp.u2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+# table
+kable(anova(c.hyp.u2)) %>% kableExtra::kable_styling()
 
 # old model comparisons
 c.m1u <- lmer(carbon ~ treatment + species + (1|plot) + (1|plant_id), data = c1_umbs)
@@ -359,11 +367,16 @@ anova(n.hyp.k)
 summary(n.hyp.k)
 mod.emm <- emmeans(n.hyp.k, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+# table
+kable(anova(n.hyp.k)) %>% kableExtra::kable_styling()
 # hypothesized model - species as random effect
 n.hyp.k2 <- lmer(nitrogen ~ treatment * insecticide + year + (1|plot/species/plant_number), data = n1_kbs)
 anova(n.hyp.k2)
+summary(n.hyp.k2)
 mod.emm <- emmeans(n.hyp.k2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+# table
+kable(anova(n.hyp.k2)) %>% kableExtra::kable_styling()
 
 # old model comparisons
 n.m1 <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = n1_kbs)
@@ -415,11 +428,15 @@ anova(n.hyp.u)
 summary(n.hyp.u)
 mod.emm <- emmeans(n.hyp.u, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+# table
+kable(anova(n.hyp.u)) %>% kableExtra::kable_styling()
 # hypothesized model - species as random effect
 n.hyp.u2 <- lmer(nitrogen ~ treatment * insecticide + year + (1|plot/species/plant_number), data = n1_umbs)
 anova(n.hyp.u2)
 mod.emm <- emmeans(n.hyp.u2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+# table
+kable(anova(n.hyp.u2)) %>% kableExtra::kable_styling()
 
 # old model comparisons
 n.m1u <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = n1_umbs)
