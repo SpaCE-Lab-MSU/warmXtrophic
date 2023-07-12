@@ -48,7 +48,7 @@ sla1 <- sla %>%
     group_by(plot,site,year,species,state, insecticide, plant_number) %>%
     summarize(sla = mean(sla),
               se = std.error(sla)) 
-# take the species yearly treatment-level mean
+# take the yearly treatment-level mean
 sla_treatment <- sla1 %>%
     group_by(site, plot, state,year) %>%
     summarize(sla = mean(sla)) %>%    
@@ -60,6 +60,13 @@ sla_treatment2 <- sla1 %>%
     group_by(site, plot, state, insecticide) %>%
     summarize(sla = mean(sla)) %>%    
     group_by(site,state, insecticide) %>%
+    summarize(sla_mean = mean(sla),
+              se = std.error(sla)) 
+# take the species treatment-level mean
+sla_treatment3 <- sla1 %>%
+    group_by(site, plot, species, state) %>%
+    summarize(sla = mean(sla)) %>%    
+    group_by(site,species, state) %>%
     summarize(sla_mean = mean(sla),
               se = std.error(sla)) 
 
@@ -118,7 +125,8 @@ sla_comb <- ggpubr::ggarrange(sla_kbs, sla_umbs,
                                      ncol = 2, common.legend = T, legend="right")
 png("sla_treatmentlevel_L2.png", units="in", width=9, height=4, res=300)
 annotate_figure(sla_comb,
-                left = text_grob("Specific leaf area (cm^2/g)", color = "black", rot = 90, size=17))
+                left = text_grob(bquote("Specific leaf area " (cm^2/g)), color = "black",
+                                 rot = 90, size=17))
 dev.off()
 
 
@@ -173,19 +181,20 @@ sla_comb <- ggpubr::ggarrange(sla_kbs, sla_umbs,
                                      ncol = 2, common.legend = T, legend="right")
 png("sla_treatmentlevel_year_L2.png", units="in", width=9, height=4, res=300)
 annotate_figure(sla_comb,
-                left = text_grob("Specific leaf area (cm^2/g)", color = "black", rot = 90, size=17))
+                left = text_grob(bquote("Specific leaf area " (cm^2/g)), color = "black", rot = 90, size=17))
 dev.off()
 
 
-# barplot for each species at kbs and umbs (no years)
+# dot plot for each species at kbs and umbs (no years)
 png("sla_spp_L2.png", units="in", width=8, height=4, res=300)
-ggplot(sla_treatment2, aes(x = species, y = sla_mean, fill = state)) +
+ggplot(sla_treatment3, aes(x = species, y = sla_mean, fill = state)) +
         facet_wrap(.~site, labeller = as_labeller(site_label)) +
         #geom_point(aes(fill=state),pch=21, size=3) +
-        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=0.6,position=position_dodge(0.4)) +
+        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se),
+                        pch=21,size=0.6,position=position_dodge(0.8)) +
         #geom_bar(position = "dodge", stat = "identity", color = 'black') +
         #geom_errorbar(aes(ymin = sla_mean - se, ymax = sla_mean + se), width = 0.2) +
-        labs(x = "Species", y = "Specific leaf area (cm^2/g)", fill = "Treatment") +
+        labs(x = "Species", y = bquote("Specific leaf area " (cm^2/g)), fill = "Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
@@ -196,7 +205,8 @@ ggplot(sla_treatment2, aes(x = species, y = sla_mean, fill = state)) +
               axis.title=element_text(size=14),
               strip.text = element_text(size = 14),
               legend.title = element_text(size=14),
-              legend.text = element_text(size=12))
+              legend.text = element_text(size=12),
+              axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 dev.off()
 
 # barplot for each year at kbs and umbs
