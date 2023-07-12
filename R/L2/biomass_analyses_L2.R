@@ -214,6 +214,11 @@ emmip(mod4_k, state ~ species) +
 mod4k.emm <- emmeans(mod4_k, ~ state * species)
 contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
+# for supp
+modk_supp <- lm(log(weight_g) ~ state * insecticide + species, kbs_biomass_live)
+anova(modk_supp)
+kable(anova(modk_supp)) %>% kableExtra::kable_styling()
+
 
 
 #### plot-level analyses ####
@@ -236,6 +241,7 @@ shapiro.test(resid(mod2_kp))
 # looks good
 anova(mod2_kp)
 summary(mod2_kp) ###* used this in paper *###
+kable(anova(mod2_kp)) %>% kableExtra::kable_styling()
 
 # comparisons
 emmeans(mod2_kp, list(pairwise ~ state*insecticide), adjust = "tukey")
@@ -359,6 +365,12 @@ emmip(mod4_u, state ~ species) +
 mod4u.emm <- emmeans(mod4_u, ~ state * species)
 contrast(mod4u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
+# for supp
+modu_supp <- lm(log(weight_g) ~ state * insecticide + species, umbs_biomass_live)
+anova(modu_supp)
+kable(anova(modu_supp)) %>% kableExtra::kable_styling()
+
+
 
 # non mixed-effect models #
 mod9_u <- lm(log(weight_g) ~ state, umbs_biomass_live2)
@@ -394,6 +406,7 @@ shapiro.test(resid(mod2_up))
 # looks good
 anova(mod2_up)
 summary(mod2_up)
+kable(anova(mod2_up)) %>% kableExtra::kable_styling()
 
 # comparisons
 emmeans(mod2_up, list(pairwise ~ state*insecticide), adjust = "tukey")

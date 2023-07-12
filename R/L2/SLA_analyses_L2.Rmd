@@ -288,9 +288,18 @@ sla_umbs <- spla2 %>%
 # hypothesized model - species random
 m.hyp.k <- lmer(sla^(1/3) ~ state * insecticide + year + (1|plot/species/plant_number), data = sla_kbs, REML=FALSE)
 anova(m.hyp.k)
+# table
+kable(anova(m.hyp.k)) %>% kableExtra::kable_styling()
+summary(m.hyp.k)
+(-1940)^3 # -7301384000
+(-1940 + 0.1491)^3 # -7299700671
+-7299700671 + 7301384000 # 1683329
+contrast(emmeans(m.hyp.k, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # hypothesized model - with species
 m.hyp.k2 <- lmer(sla^(1/3) ~ state * insecticide + species + year + (1|plot/species/plant_number), data = sla_kbs, REML=FALSE)
 anova(m.hyp.k2)
+# table
+kable(anova(m.hyp.k2)) %>% kableExtra::kable_styling()
 mod.emm2 <- emmeans(m.hyp.k2, ~ state * insecticide)
 contrast(mod.emm2, "pairwise", simple = "each", combine = F, adjust = "mvt")
 
@@ -350,9 +359,14 @@ emmip(m1.7k, species~state)
 # hypothesized model - species random
 m.hyp.u <- lmer(sla^(1/3) ~ state * insecticide + year + (1|plot/species/plant_number), data = sla_umbs, REML=FALSE)
 anova(m.hyp.u)
+contrast(emmeans(m.hyp.u, ~state+insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
+# table
+kable(anova(m.hyp.u)) %>% kableExtra::kable_styling()
 # hypothesized model - with species
 m.hyp.u2 <- lmer(sla^(1/3) ~ state * insecticide + species + year + (1|plot/species/plant_number), data = sla_umbs, REML=FALSE)
 anova(m.hyp.u2)
+# table
+kable(anova(m.hyp.u2)) %>% kableExtra::kable_styling()
 mod.emm2 <- emmeans(m.hyp.u2, ~ state * insecticide)
 contrast(mod.emm2, "pairwise", simple = "each", combine = F, adjust = "mvt")
 
