@@ -385,6 +385,8 @@ dev.off()
 ### combining C, N, and SLA figs ###
 png("leaf_traits_L2.png", units="in", width=10, height=10, res=300)
 ggpubr::ggarrange(c_kbs,c_umbs,n_kbs,n_umbs,sla_kbs,sla_umbs,
-                  ncol = 2, nrow = 3, common.legend = T, legend="right")
+                  ncol = 2, nrow = 3, common.legend = T, legend="right",
+                  widths = c(1, 1),
+                  heights = c(1, 0.9, 0.95))
 dev.off()
 
