@@ -257,7 +257,7 @@ summary(mod9p_u)
 anova(mod9p_u)
 
 # comparisons
-contrast(emmeans(mod9p_u, ~state*insecticide), "consec", simple = "each", combine = F, adjust = "mvt")
+contrast(emmeans(mod9p_u, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
 # making a table
 kable(anova(mod9p_u)) %>% kableExtra::kable_styling()

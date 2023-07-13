@@ -291,9 +291,6 @@ anova(m.hyp.k)
 # table
 kable(anova(m.hyp.k)) %>% kableExtra::kable_styling()
 summary(m.hyp.k)
-(-1940)^3 # -7301384000
-(-1940 + 0.1491)^3 # -7299700671
--7299700671 + 7301384000 # 1683329
 contrast(emmeans(m.hyp.k, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # hypothesized model - with species
 m.hyp.k2 <- lmer(sla^(1/3) ~ state * insecticide + species + year + (1|plot/species/plant_number), data = sla_kbs, REML=FALSE)

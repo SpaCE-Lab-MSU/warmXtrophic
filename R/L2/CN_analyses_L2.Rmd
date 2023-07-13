@@ -29,9 +29,9 @@ library(pwr)
 L1_dir<-Sys.getenv("L1DIR")
 
 # Above .Renviron not working for PLZ; hard-coding in here
-L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L0"
-L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1"
-L2_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L2"
+#L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L0"
+#L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1"
+#L2_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L2"
 
 # Read in data
 cn <- read.csv(file.path(L1_dir, "CN/CN_L1.csv"))
