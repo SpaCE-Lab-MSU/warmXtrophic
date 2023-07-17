@@ -53,6 +53,11 @@ L2_dir <- Sys.getenv("L2DIR")
 flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
 flwr_plot$year_factor <- as.factor(flwr_plot$year_factor)
 
+# species level first flower
+# note: the species data frame is only used to demonstrate that first flwr differs between species (for the supplement)
+flwr_spp <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) 
+flwr_spp$julian_min <- as.numeric(as.integer(flwr_spp$julian_min))
+
 ```
 
 ```{r}
@@ -72,6 +77,11 @@ str(flwr_plot)
 
 umbs_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
 kbs_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
+
+# species specific dataframes for kbs and umbs
+flwr_kbs_spp <- subset(flwr_spp, site == "kbs")
+flwr_umbs_spp <- subset(flwr_spp, site == "umbs")
+
 ```
 
 KBS Plot Level
@@ -200,15 +210,26 @@ anova(mod9p)
 
 # comparisons
 emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
 mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
 contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
+
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
 exp((5.277390) +  (0.0279)*0) # 195.858 
 exp((5.277390) +  (0.0279)*1) # 201.3994
 # effect:
 201.3994 - 195.858 # effect of warming - warmed plots increased the date of first flower by 5.5414 days
+
+# effect size from emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
+# calculating effect size - accounting for log transformation
+exp((5.277390) +  (-0.0251)*0) # 195.858 
+exp((5.277390) +  (-0.0251)*1) # 191.0032
+# effect:
+191.0032 - 195.858 # effect of warming - warmed plots increased the date of first flower by 4.8548 days
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -278,9 +299,6 @@ emmeans(mod10pu, list(pairwise ~ state + year_factor), adjust = "tukey")
 emmeans(mod10pu, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
 emmeans(mod10pu, list(pairwise ~ year_factor), adjust = "tukey")
 
-# with herb reduction as interactive term
-anova(mod9pu)
-
 #Our hypothesized model is  mod9p
 summary(mod9pu)
 anova(mod9pu)
@@ -290,6 +308,9 @@ emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
 contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9pu, insecticide~state)
+
+# making a table
+kable(anova(mod9pu)) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -303,3 +324,21 @@ anova(modtest1u)
 summary(modtest1u)
 
 ```
+
+
+```{r}
+# KBS
+# species model for supp
+mod_spp_k <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_kbs_spp, REML=FALSE)
+anova(mod_spp_k)
+# making a table
+kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
+
+# UMBS
+# species model for supp
+mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_umbs_spp, REML=FALSE)
+anova(mod_spp_u)
+# making a table
+kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+```
+

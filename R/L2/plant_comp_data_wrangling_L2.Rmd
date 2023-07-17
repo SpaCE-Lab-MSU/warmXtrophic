@@ -37,7 +37,6 @@ temps <- read.csv(file.path(L1_dir, "HOBO_data/plant_comp_temps_L1.csv"))
 
 # delete 2021 UMBS data from dataframe 
 comp <- comp[-which(comp$year == "2021" & comp$site == "umbs"),]
-
 ```
 
 ```{r}
@@ -103,8 +102,8 @@ peak_comp <- full_join(peak_comp, june_comp1, by = c("site", "plot", "species", 
 
 Calculate absolute and relative abundance at peak biomass dates
 ```{r}
-peak_comp1 <- peak_comp %>% 
-        select(species, site, year_factor, month, date, year, julian, plot, cover, state, insecticide, treatment_key)
+peak_comp1 <- peak_comp %>%  
+        select(c("species", "site", "year_factor", "month", "date", "year", "julian", "plot", "cover", "state", "insecticide", "treatment_key"))
 peak_comp1$cover <- as.numeric(as.character(peak_comp1$cover))
 
 # first get summed cover for all plants per plot

@@ -53,8 +53,12 @@ sd_plot <- read.csv(file.path(L2_dir, "phenology/final_sd_plot_L2.csv")) # plot 
 sd_plot_origin <- read.csv(file.path(L2_dir, "phenology/final_sd_plot_origin_L2.csv")) # plot level data for origin
 sd_plot_growthhabit <- read.csv(file.path(L2_dir, "phenology/final_sd_plot_growthhabit_L2.csv")) # plot level data for growth habit
 
+# species level seed set
+# note: the species data frame is only used to demonstrate that seed set differs between species (for the supplement)
+sd_spp <- read.csv(file.path(L2_dir, "phenology/final_sd_species_L2.csv")) 
 
 sd_plot$julian_min <- as.numeric(as.integer(sd_plot$julian_min))
+sd_spp$julian_min <- as.numeric(as.integer(sd_spp$julian_min))
 
 # delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
 # flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
@@ -70,6 +74,7 @@ levels(sd_plot$state)
 
 # make the year_factor a factor
 sd_plot$year_factor <- as.factor(sd_plot$year_factor)
+sd_spp$year_factor <- as.factor(sd_spp$year_factor)
 
 umbs_sd_plot <- subset(sd_plot, site == "umbs") # pull out umbs only data at plot level
 kbs_sd_plot <- subset(sd_plot, site == "kbs") # pull out kbs only data at plot level
@@ -77,6 +82,10 @@ kbs_sd_plot_origin <- subset(sd_plot_origin, site == "kbs")
 kbs_sd_plot_growthhabit <- subset(sd_plot_growthhabit, site == "kbs")
 umbs_sd_plot_origin <- subset(sd_plot_origin, site == "umbs")
 umbs_sd_plot_growthhabit <- subset(sd_plot_growthhabit, site == "umbs")
+
+# species specific dataframes for kbs and umbs
+sd_kbs_spp <- subset(sd_spp, site == "kbs")
+sd_umbs_spp <- subset(sd_spp, site == "umbs")
 ```
 
 # KBS PLOT LEVEL - Looking at MINIMUM JULIAN DAY (aka date of observed first seed set)
@@ -173,8 +182,12 @@ anova(mod9p)
 summary(mod9p)
 anova(mod9p)
 
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
+
 # comparisons
 emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
 mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
 contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
@@ -185,6 +198,14 @@ exp((5.40746) +  (-0.0342)*1) # 215.5645
 # effect:
 215.5645 - 223.0643 # = -7.4998  
 # warming plots delayed seed set by ~7.5 days 
+
+# using effect size from emmeans - emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
+# calculating effect size - accounting for log transformation
+exp((5.40746) +  (-0.025)*0) # 223.0643 
+exp((5.40746) +  (-0.025)*1) # 217.5568
+# effect:
+217.5568 - 223.0643 # = -5.5075  
+# warming plots delayed seed set by ~5.5 days 
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -292,6 +313,9 @@ anova(mod9pu)
 summary(mod9pu)
 anova(mod9pu)
 
+# making a table
+kable(anova(mod9pu)) %>% kableExtra::kable_styling()
+
 # comparisons
 emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
@@ -309,5 +333,21 @@ AICtab(modtest1, modtest2, weights=T)
 anova(modtest1)
 summary(modtest1)
 
+```
+
+```{r}
+# KBS
+# species model for supp
+mod_spp_k <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), sd_kbs_spp, REML=FALSE)
+anova(mod_spp_k)
+# making a table
+kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
+
+# UMBS
+# species model for supp
+mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), sd_umbs_spp, REML=FALSE)
+anova(mod_spp_u)
+# making a table
+kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
 ```
 

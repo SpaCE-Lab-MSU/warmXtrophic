@@ -51,6 +51,11 @@ L2_dir <- Sys.getenv("L2DIR")
 # Read in data
 flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
 
+# species level flower duration
+# note: the species data frame is only used to demonstrate that flwr duration differs between species (for the supplement)
+flwr_spp <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) 
+flwr_spp$julian_min <- as.numeric(as.integer(flwr_spp$julian_min))
+
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 flwr_plot$state <- as.factor(flwr_plot$state)
 levels(flwr_plot$state)
@@ -60,6 +65,7 @@ levels(flwr_plot$state)
 # [1] "warmed"  "ambient"
 
 flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
+flwr_spp$flwr_duration <- as.numeric(as.character(flwr_spp$flwr_duration))
 
 # delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
 # flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
@@ -68,9 +74,14 @@ flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
 # Kara's edits:
 # adding 1 to each occurrence in the flwr_duration column so everything is scaled up the same & removes 0's
 flwr_plot$flwr_duration_scaled <- flwr_plot$flwr_duration+1
+flwr_spp$flwr_duration_scaled <- flwr_spp$flwr_duration+1
 
 umbs_flwr_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
 kbs_flwr_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
+
+# species specific dataframes for kbs and umbs
+flwr_kbs_spp <- subset(flwr_spp, site == "kbs")
+flwr_umbs_spp <- subset(flwr_spp, site == "umbs")
 ```
 
 # KBS PLOT LEVEL - Looking at DURATION of flowering
@@ -223,6 +234,9 @@ mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
 contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
 
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
+
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
@@ -265,6 +279,9 @@ anova(mod9up)
 summary(mod9up)
 anova(mod9up)
 
+# making a table
+kable(anova(mod9up)) %>% kableExtra::kable_styling()
+
 # comparisons
 emmeans(mod9up, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod9up.emm <- emmeans(mod9up, ~ state*insecticide)
@@ -284,3 +301,18 @@ anova(modtest1u)
 summary(modtest1u)
 ```
 
+```{r}
+# KBS
+# species model for supp
+mod_spp_k <- lmer(flwr_duration_scaled ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_kbs_spp, REML=FALSE)
+anova(mod_spp_k)
+# making a table
+kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
+
+# UMBS
+# species model for supp
+mod_spp_u <- lmer(flwr_duration_scaled ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_umbs_spp, REML=FALSE)
+anova(mod_spp_u)
+# making a table
+kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+```

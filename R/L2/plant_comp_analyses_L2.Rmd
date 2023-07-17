@@ -58,6 +58,17 @@ origin_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_or
 origin_plot$year_factor <- as.factor(origin_plot$year_factor)
 growth_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_plot_L2.csv")) # growth habit plot level data
 growth_plot$year_factor <- as.factor(growth_plot$year_factor)
+
+# species level plant comp
+# note: the species data frame is only used to demonstrate that plant differs between species (for the supplement)
+comp_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv")) 
+comp_spp$relative <- as.numeric(as.integer(comp_spp$relative))
+
+comp_origin_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_origin_species_L2.csv")) 
+comp_origin_spp$relative <- as.numeric(as.integer(comp_origin_spp$relative))
+
+comp_growth_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_species_L2.csv")) 
+comp_growth_spp$relative <- as.numeric(as.integer(comp_growth_spp$relative))
 ```
 
 ```{r}
@@ -223,6 +234,9 @@ mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
 contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9p, insecticide~state)
 
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
+
 # calculating effect size - accounting for log transformation
 exp((-1.98820) +  (-0.228)*0) # 0.1369417 
 exp((-1.98820) +  (-0.228)*1) # 0.1090226
@@ -377,9 +391,13 @@ anova(mod_k_o)
 
 # comparisons
 emmeans(mod_k_o, list(pairwise ~ state*insecticide*origin), adjust = "tukey")
+emmeans(mod_k_o, list(pairwise ~ state*origin), adjust = "tukey")
 mod_k_o.emm <- emmeans(mod_k_o, ~ state*insecticide*origin)
 contrast(mod_k_o.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_o, insecticide~state)
+
+# making a table
+kable(anova(mod_k_o)) %>% kableExtra::kable_styling()
 ```
 
 #KBS Growth Plot Level
@@ -515,9 +533,13 @@ anova(mod_k_g)
 
 # comparisons
 emmeans(mod_k_g, list(pairwise ~ state*insecticide*growth_habit), adjust = "tukey")
+emmeans(mod_k_g, list(pairwise ~ state*growth_habit), adjust = "tukey")
 mod_k_g.emm <- emmeans(mod_k_g, ~ state*insecticide*growth_habit)
 contrast(mod_k_g.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_g, insecticide~state)
+
+# making a table
+kable(anova(mod_k_g)) %>% kableExtra::kable_styling()
 
 ```
 
@@ -649,6 +671,9 @@ table <- anova(mod5pu, mod9pu)
 kable(table) %>% kableExtra::kable_styling()
 AICctab(mod5pu, mod9pu, weights=T)
 
+# making a table
+kable(anova(mod9pu)) %>% kableExtra::kable_styling()
+
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for avg relative abundance as a function of just temp to see how real temp data affects avg relative abundance
@@ -775,6 +800,9 @@ mod_1uo.emm <- emmeans(mod_1uo, ~ state*insecticide*origin)
 contrast(mod_1uo.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_1uo, insecticide~state)
 
+# making a table
+kable(anova(mod_1uo)) %>% kableExtra::kable_styling()
+
 ```
 
 #UMBS Growth Plot Level
@@ -875,15 +903,35 @@ mod_1ug <- lmer(avg_relative_abundance ~ state*insecticide*growth_habit + as.fac
 
 # Trying to fit a model with beta distribution but it won't run bc values need to be 0 < y < 1 and we have some 
 # values that are 1 exactly (I think that's why it won't work but not positive)
-mod_1ug <- glmmTMB(avg_relative_abundance ~ state*insecticide*growth_habit + as.factor(year_factor) + (1|plot), data = umbs_growth_plot, family = beta_family(), REML = FALSE)
+#mod_1ug <- glmmTMB(avg_relative_abundance ~ state*insecticide*growth_habit + as.factor(year_factor) + (1|plot), data = #umbs_growth_plot, family = beta_family(), REML = FALSE)
 
 summary(mod_1ug)
 anova(mod_1ug)
 
 # comparisons
 emmeans(mod_1ug, list(pairwise ~ state*insecticide*growth_habit), adjust = "tukey")
+emmeans(mod_1ug, list(pairwise ~ state*growth_habit), adjust = "tukey")
 mod_1ug.emm <- emmeans(mod_1ug, ~ state*insecticide*growth_habit)
 contrast(mod_1ug.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_1ug, insecticide~state)
+
+# making a table
+kable(anova(mod_1ug)) %>% kableExtra::kable_styling()
 ```
 
+Species Level
+```{r}
+# KBS
+# species model for supp
+mod_spp_k <- lmer(relative ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
+anova(mod_spp_k)
+# making a table
+kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
+
+# UMBS
+# species model for supp
+mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_umbs_spp, REML=FALSE)
+anova(mod_spp_u)
+# making a table
+kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+```

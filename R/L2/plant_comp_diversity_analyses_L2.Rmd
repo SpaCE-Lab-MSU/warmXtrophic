@@ -468,6 +468,9 @@ mod9.emm <- emmeans(mod9, ~ state*insecticide)
 contrast(mod9.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9, insecticide~state)
 
+# making a table
+kable(anova(mod9)) %>% kableExtra::kable_styling()
+
 ```
 
 UMBS
@@ -519,6 +522,9 @@ emmeans(mod1u, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod1u.emm <- emmeans(mod1u, ~ state*insecticide)
 contrast(mod1u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod1u, insecticide~state)
+
+# making a table
+kable(anova(mod1u)) %>% kableExtra::kable_styling()
 ```
 
 SHANNON
@@ -573,6 +579,9 @@ emmeans(mod_k_sh, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod_k_sh.emm <- emmeans(mod_k_sh, ~ state*insecticide)
 contrast(mod_k_sh.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_sh, insecticide~state)
+
+# making a table
+kable(anova(mod_k_sh)) %>% kableExtra::kable_styling()
 ```
 
 UMBS
@@ -626,6 +635,9 @@ emmeans(mod_u_sh, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod_u_sh.emm <- emmeans(mod_u_sh, ~ state*insecticide)
 contrast(mod_u_sh.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_u_sh, insecticide~state)
+
+# making a table
+kable(anova(mod_u_sh)) %>% kableExtra::kable_styling()
 ```
 
 RICHNESS
@@ -680,6 +692,9 @@ emmeans(mod_kr, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod_kr.emm <- emmeans(mod_kr, ~ state*insecticide)
 contrast(mod_kr.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_kr, insecticide~state)
+
+# making a table
+kable(anova(mod_kr)) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
 # overall
@@ -752,6 +767,9 @@ emmeans(mod_ur, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod_ur.emm <- emmeans(mod_ur, ~ state*insecticide)
 contrast(mod_ur.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_ur, insecticide~state)
+
+# making a table
+kable(anova(mod_ur)) %>% kableExtra::kable_styling()
 
 ```
 
