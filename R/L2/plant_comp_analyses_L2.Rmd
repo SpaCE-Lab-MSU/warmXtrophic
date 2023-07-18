@@ -60,42 +60,30 @@ growth_plot <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_gr
 growth_plot$year_factor <- as.factor(growth_plot$year_factor)
 
 # species level plant comp
-# note: the species data frame is only used to demonstrate that plant differs between species (for the supplement)
-comp_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv")) 
-comp_spp$relative <- as.numeric(as.integer(comp_spp$relative))
+# note: the species data frame is only used to demonstrate that plant relative abundance differs between species (for the supplement)
+comp_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
 
 comp_origin_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_origin_species_L2.csv")) 
-comp_origin_spp$relative <- as.numeric(as.integer(comp_origin_spp$relative))
 
 comp_growth_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_species_L2.csv")) 
-comp_growth_spp$relative <- as.numeric(as.integer(comp_growth_spp$relative))
 ```
 
 ```{r}
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
-comp_plot$state <- as.factor(comp_plot$state)
-levels(comp_plot$state)
-# [1] "ambient" "warmed" 
-comp_plot$state <- factor(comp_plot$state, levels(comp_plot$state)[c(2,1)])
-levels(comp_plot$state)
-# [1] "warmed"  "ambient"
-
-origin_plot$state <- as.factor(origin_plot$state)
-levels(origin_plot$state)
-origin_plot$state <- factor(origin_plot$state, levels(origin_plot$state)[c(2,1)])
-levels(origin_plot$state)
-
-growth_plot$state <- as.factor(growth_plot$state)
-levels(growth_plot$state)
-growth_plot$state <- factor(growth_plot$state, levels(growth_plot$state)[c(2,1)])
-levels(growth_plot$state)
-
+# plot specific dataframes for kbs and umbs
 umbs_comp_plot <- subset(comp_plot, site == "umbs") # pull out umbs only data 
 kbs_comp_plot <- subset(comp_plot, site == "kbs") # pull out kbs only data 
 umbs_origin_plot <- subset(origin_plot, site == "umbs") # pull out umbs only data 
 kbs_origin_plot <- subset(origin_plot, site == "kbs") # pull out kbs only data 
 umbs_growth_plot <- subset(growth_plot, site == "umbs") # pull out umbs only data 
 kbs_growth_plot <- subset(growth_plot, site == "kbs") # pull out kbs only data 
+
+# species specific dataframes for kbs and umbs
+comp_kbs_spp <- subset(comp_spp, site == "kbs")
+comp_umbs_spp <- subset(comp_spp, site == "umbs")
+comp_kbs_origin_spp <- subset(comp_origin_spp, site == "kbs")
+comp_umbs_origin_spp <- subset(comp_origin_spp, site == "umbs")
+comp_kbs_growth_spp <- subset(comp_growth_spp, site == "kbs")
+comp_umbs_growth_spp <- subset(comp_growth_spp, site == "umbs")
 ```
 
 #KBS Plot Level
@@ -930,8 +918,35 @@ kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
 
 # UMBS
 # species model for supp
-mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_umbs_spp, REML=FALSE)
+mod_spp_u <- lmer(relative ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
 kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+
+# Origin
+# KBS
+mod_spp_or_k <- lmer(relative ~ state * insecticide * origin + species + as.factor(year_factor) + (1|plot), comp_origin_kbs_spp, REML=FALSE)
+anova(mod_spp_or_k)
+# making a table
+kable(anova(mod_spp_or_k)) %>% kableExtra::kable_styling()
+
+# UMBS
+mod_spp_or_u <- lmer(relative ~ state * insecticide * origin + species + as.factor(year_factor) + (1|plot), comp_umbs_origin_spp, REML=FALSE)
+anova(mod_spp_or_u)
+# making a table
+kable(anova(mod_spp_or_u)) %>% kableExtra::kable_styling()
+
+# Growth Habit
+# KBS
+mod_spp_gr_k <- lmer(relative ~ state * insecticide * growth_habit + species + as.factor(year_factor) + (1|plot), comp_kbs_growth_spp, REML=FALSE)
+anova(mod_spp_gr_k)
+# making a table
+kable(anova(mod_spp_gr_k)) %>% kableExtra::kable_styling()
+
+# UMBS
+mod_spp_or_u <- lmer(relative ~ state * insecticide * growth_habit + species + as.factor(year_factor) + (1|plot), comp_umbs_growth_spp, REML=FALSE)
+anova(mod_spp_gr_u)
+# making a table
+kable(anova(mod_spp_gr_u)) %>% kableExtra::kable_styling()
 ```
+
