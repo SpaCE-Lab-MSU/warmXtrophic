@@ -64,14 +64,6 @@ sd_spp$julian_min <- as.numeric(as.integer(sd_spp$julian_min))
 # flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
 #sd_plot <- sd_plot[-which(sd_plot$year == "2021" & sd_plot$site == "umbs"),]
 
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
-sd_plot$state <- as.factor(sd_plot$state)
-levels(sd_plot$state)
-# [1] "ambient" "warmed" 
-sd_plot$state <- factor(sd_plot$state, levels(sd_plot$state)[c(2,1)])
-levels(sd_plot$state)
-# [1] "warmed"  "ambient"
-
 # make the year_factor a factor
 sd_plot$year_factor <- as.factor(sd_plot$year_factor)
 sd_spp$year_factor <- as.factor(sd_spp$year_factor)
