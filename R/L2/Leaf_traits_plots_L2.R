@@ -108,6 +108,7 @@ c_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = carbon_mean, fill = insecti
                            labels = c(" 45.0", " 45.5", " 46.0", " 46.5")) +
         #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         #coord_cartesian(ylim=c(42,48)) +
+        annotate("text", x = 0.5, y=46.9, label = "A", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_text(size=15),
@@ -131,6 +132,7 @@ c_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = carbon_mean, fill = insec
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         #coord_cartesian(ylim=c(42,48)) +
+        annotate("text", x = 0.5, y=45.75, label = "B", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_text(size=15),
@@ -183,6 +185,7 @@ n_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = nitrogen_mean, fill = insec
                            labels = c(" 1.90", " 1.95", " 2.00", " 2.05"," 2.10"," 2.15")) +
         #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         #coord_cartesian(ylim=c(42,48)) +
+        annotate("text", x = 0.5, y=2.145, label = "C", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_text(size=15),
@@ -208,6 +211,7 @@ n_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = nitrogen_mean, fill = ins
                            labels = c("    1.5", "    1.6", "    1.7", "    1.8","    1.9")) +
         #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         #coord_cartesian(ylim=c(42,48)) +
+        annotate("text", x = 0.5, y=2, label = "D", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_blank(),
               axis.text.y = element_text(size=15),
@@ -263,6 +267,7 @@ sla_kbs <- ggplot(sla_treatment_kbs, aes(x = state, y = sla_mean, fill = insecti
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         #coord_cartesian(ylim=c(42,48)) +
+        annotate("text", x = 0.5, y=222, label = "E", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_text(size=15),
               axis.text.y = element_text(size=15),
@@ -286,6 +291,7 @@ sla_umbs <- ggplot(sla_treatment_umbs, aes(x = state, y = sla_mean, fill = insec
                            labels = c("   110", "   120", "   130", "   140")) +
         #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
         #coord_cartesian(ylim=c(42,48)) +
+        annotate("text", x = 0.5, y=140, label = "F", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_text(size=15),
               axis.text.y = element_text(size=15),
