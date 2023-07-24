@@ -88,39 +88,39 @@ herb_binom_eaten_u <- herb_binom_sumu_i %>%
 # plotting
 binom_dot_k <- ggplot(herb_binom_eaten_k, aes(x = state, y = mean_n, fill=insecticide)) +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), ,pch=21,size=1,position=position_dodge(0.2)) +
-        labs(x = NULL, y = "Chance of being eaten (%)", title="KBS", subtitle="A") +
+        labs(x = NULL, y = "Chance of being eaten (%)", title="KBS") +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
         ylim(18,50) +
+        annotate("text", x = 0.5, y=50, label = "A", size=5) +
         theme_bw() +
         theme(legend.position="none") +
         theme(plot.title = element_text(size = 17),
-              plot.subtitle = element_text(size=16),
-              axis.text.y = element_text(size=13),
+              axis.text.y = element_text(size=15),
               axis.text.x=element_blank(),
               axis.title.y=element_text(size=15),
-              legend.title=element_text(size=14), 
-              legend.text=element_text(size=12)) +
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=15)) +
         guides(color = "none")
 binom_dot_u <- ggplot(herb_binom_eaten_u, aes(x = state, y = mean_n, fill=insecticide)) +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), ,pch=21,size=1,position=position_dodge(0.2)) +
-        labs(x = NULL, y = "Chance of being eaten (%)", title="UMBS", subtitle="B") +
+        labs(x = NULL, y = "Chance of being eaten (%)", title="UMBS") +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
         ylim(18,50) +
+        annotate("text", x = 0.5, y=50, label = "B", size=5) +
         theme_bw() +
         theme(legend.position="none") +
         theme(plot.title = element_text(size = 17),
-              plot.subtitle = element_text(size=16),
               axis.text.x=element_blank(),
               axis.text.y = element_blank(),
               axis.title.y = element_blank(),
-              legend.title=element_text(size=14), 
-              legend.text=element_text(size=12)) +
+              legend.title=element_text(size=15), 
+              legend.text=element_text(size=15)) +
         guides(color = "none")
 
 # amount eaten plot
@@ -143,31 +143,31 @@ sum_herb_overall_u_i <- sum_herb_overall_u_i %>%
 # plotting
 eaten_k_i <- ggplot(sum_herb_overall_k_i, aes(x = state, y = avg_eaten, fill=insecticide)) +
         geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),pch=21,size=1,position=position_dodge(0.2)) +
-        labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="C") +
+        labs(x = NULL, y = "Amount eaten (%)", title=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
         ylim(5,21) +
+        annotate("text", x = 0.5, y=21, label = "C", size=5) +
         theme_bw() +
         theme(legend.position="none") +
-        theme(axis.text.y = element_text(size=13),
-              plot.subtitle = element_text(size=16),
-              axis.text.x=element_text(size=13),
+        theme(axis.text.y = element_text(size=15),
+              axis.text.x=element_text(size=15),
               axis.title.y=element_text(size=15))
 eaten_u_i <- ggplot(sum_herb_overall_u_i, aes(x = state, y = avg_eaten,fill=insecticide)) +
         geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),pch=21,size=1,position=position_dodge(0.2)) +
-        labs(x = NULL, y = "Amount eaten (%)", title=NULL, subtitle="D") +
+        labs(x = NULL, y = "Amount eaten (%)", title=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
         ylim(5,21) +
+        annotate("text", x = 0.5, y=21, label = "D", size=5) +
         theme_bw() +
         theme(legend.position="none") +
         theme(axis.text.y = element_blank(),
-              plot.subtitle = element_text(size=16),
-              axis.text.x=element_text(size=13),
+              axis.text.x=element_text(size=15),
               axis.title.y=element_blank())
 
 # plotting binary response & amount eaten on same figure
