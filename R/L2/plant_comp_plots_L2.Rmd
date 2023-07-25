@@ -31,10 +31,13 @@ L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 L2_dir <- Sys.getenv("L2DIR")
 
-# Read in plant comp data and meta-data
+# Read in plant comp data and meta-data - plot level
 comp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_plot_L2.csv"))
 growth <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_plot_L2.csv"))
 origin <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_origin_plot_L2.csv"))
+
+# species level
+comp_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
 ```
 
 Set ggplot2 plotting
@@ -54,9 +57,23 @@ change_site <- function(df){
 comp <- change_site(comp)
 growth <- change_site(growth)
 origin <- change_site(origin)
+comp_spp <- change_site(comp_spp)
 
 # creating a vector with cleaned up insecticide labels for plotting
 insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
+```
+
+Averages + std error for species level data + insecticide treatment across all years
+```{r}
+# filter data to contain the averages and std error for each site & species
+sum_comp_spp <- comp_spp %>%
+        group_by(site, state, species) %>%
+        summarize(avg_relative = mean(relative, na.rm = TRUE),
+                  se = std.error(relative, na.rm = TRUE))
+sum_comp_spp_i <- comp_spp %>%
+        group_by(site, state, insecticide, species) %>%
+        summarize(avg_relative = mean(relative, na.rm = TRUE),
+                  se = std.error(relative, na.rm = TRUE))
 ```
 
 Averages + std error for plot level data + insecticide treatment across all years
@@ -141,18 +158,23 @@ origin_dot_i <- function(loc) {
 }
 origin_dot_i_kbs <- origin_dot_i("KBS")
 origin_dot_i_kbs
-origin_dot_i_kbs <- origin_dot_i_kbs + theme(plot.title = element_text(size=20),
-                                     axis.text.y = element_text(size=14),
-                                     axis.text.x = element_blank(),
-                                     axis.title.y = element_text(size=14),
-                                     legend.position = "none")
+origin_dot_i_kbs <- origin_dot_i_kbs + 
+        annotate("text", x = 0.5, y=0.7, label = "A", size=5) +
+        theme(plot.title = element_text(size=20),
+              axis.text.y = element_text(size=17),
+              axis.text.x = element_blank(),
+              axis.title.y = element_text(size=17),
+              legend.position = "none")
 origin_dot_i_umbs <- origin_dot_i("UMBS")
-origin_dot_i_umbs <- origin_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
-                                                      plot.title = element_text(size=20),
-                                                      axis.text.x = element_blank(),
-                                                      axis.text.y = element_blank(),
-                                                      legend.text = element_text(size=14),
-                                                      legend.title = element_text(size=14))
+origin_dot_i_umbs <- origin_dot_i_umbs + 
+        labs(y=NULL) + 
+        annotate("text", x = 0.5, y=0.7, label = "B", size=5) +
+        theme(axis.title.y=element_blank(),
+              plot.title = element_text(size=20),
+              axis.text.x = element_blank(),
+              axis.text.y = element_blank(),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 
 # growth habit
 sum_growth_plot_i$full_treat <- paste(sum_growth_plot_i$state, sum_growth_plot_i$insecticide, sep="_")
@@ -174,16 +196,21 @@ growth_dot_i <- function(loc) {
 }
 growth_dot_i_kbs <- growth_dot_i("KBS")
 growth_dot_i_kbs
-growth_dot_i_kbs <- growth_dot_i_kbs + theme(plot.title = element_text(size=20),
-                                     axis.text.y = element_text(size=14),
-                                     axis.title.y = element_text(size=14),
-                                     legend.position = "none")
+growth_dot_i_kbs <- growth_dot_i_kbs + 
+        annotate("text", x = 0.5, y=0.7, label = "C", size=5) +
+        theme(plot.title = element_text(size=20),
+              axis.text.y = element_text(size=17),
+              axis.title.y = element_text(size=17),
+              legend.position = "none")
 growth_dot_i_umbs <- growth_dot_i("UMBS")
-growth_dot_i_umbs <- growth_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
-                                                      plot.title = element_text(size=20),
-                                                      axis.text.y = element_blank(),
-                                                      legend.text = element_text(size=14),
-                                                      legend.title = element_text(size=14))
+growth_dot_i_umbs <- growth_dot_i_umbs + 
+        labs(y=NULL) + 
+        annotate("text", x = 0.5, y=0.7, label = "D", size=5) +
+        theme(axis.title.y=element_blank(),
+              plot.title = element_text(size=20),
+              axis.text.y = element_blank(),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 
 legend_1 <- get_legend(origin_dot_i_umbs)
 legend_2 <- get_legend(growth_dot_i_umbs)
@@ -407,3 +434,46 @@ annotate_figure(origin_line,
                 bottom = text_grob("Year", color = "black", size=15))
 
 ```
+
+Species level plots for supplemental doc
+```{r}
+####### relative abundance species level ########
+# only keep species that were recorded in both warmed and ambient plots
+sum_comp_spp_i2 <- sum_comp_spp_i %>%
+        group_by(site, species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+comp_plot_overall <- function(loc) { 
+        comp_spp <- subset(sum_comp_spp_i2, site == loc)
+        return(ggplot(comp_spp, aes(x = state, y = avg_relative, fill = insecticide)) +
+                       facet_wrap(~species, ncol=4,scales="free") +
+                       geom_pointrange(aes(ymin=avg_relative-se, ymax=avg_relative+se), pch=21,size=0.6,position=position_dodge(0.3)) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+                       #geom_bar(position = "identity", stat = "identity", color = "black") +
+                       #geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                       #              position = "identity") +
+                       labs(x = NULL, y = NULL, title=loc) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient  ", "warmed" = "  Warmed")) +
+                       #scale_fill_manual(name="Treatment",
+                       #                  labels=c("Ambient, herbivory","Ambient, reduced herbivory",
+                       #                           "Warmed, herbivory","Warmed, reduced herbivory"),
+                       #                  values = c("#a6bddb", "#687689", "#fb6a4a", "#9D422E")) +
+                       theme_bw() +
+                       theme(axis.text.x = element_text(size=14),
+                             axis.text.y = element_text(size=14),
+                             legend.text = element_text(size=15),
+                             legend.title = element_text(size=15),
+                             title = element_text(size=17),
+                             strip.text = element_text(size=15)))
+}
+kbs_comp_spp <- comp_plot_overall("KBS")
+umbs_comp_spp <- comp_plot_overall("UMBS")
+comp_overall_merge <- ggpubr::ggarrange(kbs_comp_spp, umbs_comp_spp,
+                                         ncol = 2, common.legend = T,legend="right")
+png("comp_species.png", units="in", width=21, height=15, res=300)
+annotate_figure(comp_overall_merge,
+                left = text_grob("Relative Abundance", color = "black", rot = 90, size=17))
+dev.off()
+```
+

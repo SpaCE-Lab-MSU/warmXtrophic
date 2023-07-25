@@ -417,18 +417,23 @@ shannon_dot_i <- function(loc) {
                        theme_bw(14))
 }
 shannon_dot_i_kbs <- shannon_dot_i("KBS")
-shannon_dot_i_kbs <- shannon_dot_i_kbs + theme(plot.title = element_text(size=20),
-                                               axis.text.y = element_text(size=14),
-                                               axis.text.x = element_blank(),
-                                               legend.text = element_text(size=14),
-                                               legend.title = element_text(size=14))
+shannon_dot_i_kbs <- shannon_dot_i_kbs + 
+        annotate("text", x = 0.5, y=1.35, label = "A", size=5) +
+        theme(plot.title = element_text(size=17),
+              axis.text.y = element_text(size=15),
+              axis.text.x = element_blank(),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 shannon_dot_i_umbs <- shannon_dot_i("UMBS")
-shannon_dot_i_umbs <- shannon_dot_i_umbs + labs(y=NULL) + theme(axis.title.y = element_blank(),
-                                                                axis.text.x = element_blank(),
-                                                                plot.title = element_text(size=20),
-                                                                axis.text.y = element_blank(),
-                                                                legend.text = element_text(size=14),
-                                                                legend.title = element_text(size=14))
+shannon_dot_i_umbs <- shannon_dot_i_umbs + 
+        labs(y=NULL) + 
+        annotate("text", x = 0.5, y=1.35, label = "B", size=5) +
+        theme(axis.title.y = element_blank(),
+              axis.text.x = element_blank(),
+              plot.title = element_text(size=17),
+              axis.text.y = element_blank(),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 
 # Simpson diversity
 sum_simpson_all$full_treat <- paste(sum_simpson_all$state, sum_simpson_all$insecticide, sep="_")
@@ -449,18 +454,24 @@ simpson_dot_i <- function(loc) {
                        theme_bw(14))
 }
 simpson_dot_i_kbs <- simpson_dot_i("KBS")
-simpson_dot_i_kbs <- simpson_dot_i_kbs + theme(axis.text.x = element_blank(),
-                                     axis.text.y = element_text(size=14),
-                                     axis.title.y = element_text(size=14),
-                                     legend.text = element_text(size=14),
-                                     legend.title = element_text(size=14))
+simpson_dot_i_kbs <- simpson_dot_i_kbs + 
+        annotate("text", x = 0.5, y=0.65, label = "C", size=5) +
+        theme(axis.text.x = element_blank(),
+              axis.text.y = element_text(size=15),
+              axis.title.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 
 simpson_dot_i_umbs <- simpson_dot_i("UMBS")
-simpson_dot_i_umbs <- simpson_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
-                                                                axis.text.x = element_blank(),
-                                                      axis.text.y = element_blank(),
-                                                      legend.text = element_text(size=14),
-                                                      legend.title = element_text(size=14))
+simpson_dot_i_umbs <- simpson_dot_i_umbs + 
+        labs(y=NULL) + 
+        annotate("text", x = 0.5, y=0.65, label = "D", size=5) +
+        theme(axis.title.y=element_blank(),
+              axis.text.x = element_blank(),
+              axis.text.y = element_blank(),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+
 # Richness
 sum_richness_all$full_treat <- paste(sum_richness_all$state, sum_richness_all$insecticide, sep="_")
 richness_dot_i <- function(loc) { 
@@ -480,16 +491,20 @@ richness_dot_i <- function(loc) {
                        theme_bw(14))
 }
 richness_dot_i_kbs <- richness_dot_i("KBS")
-richness_dot_i_kbs <- richness_dot_i_kbs + theme(axis.text.y = element_text(size=14),
-                                     axis.title.y = element_text(size=14),
-                                     legend.text = element_text(size=14),
-                                     legend.title = element_text(size=14))
+richness_dot_i_kbs <- richness_dot_i_kbs + 
+        annotate("text", x = 0.5, y = 8.5, label = "E", size=5) +
+        theme(axis.text.y = element_text(size=15),
+              axis.title.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 
 richness_dot_i_umbs <- richness_dot_i("UMBS")
-richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
-                                                      axis.text.y = element_blank(),
-                                                      legend.text = element_text(size=14),
-                                                      legend.title = element_text(size=14))
+richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + 
+        annotate("text", x = 0.5, y=8.5, label = "F", size=5) +
+        theme(axis.title.y=element_blank(),
+              axis.text.y = element_blank(),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
 
 png("diversity_indices_L2_all_dot_insect.png", units="in", width=10, height=9, res=300)
 ggpubr::ggarrange(shannon_dot_i_kbs, shannon_dot_i_umbs,
