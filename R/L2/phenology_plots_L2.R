@@ -62,26 +62,75 @@ insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 
 
 # filter data to contain the averages and std error for each site & species
-sum_green_spp <- gr_species %>%
-        group_by(site, state, species) %>%
-        summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
-                  se = std.error(spp_half_cover_date, na.rm = TRUE))
+#sum_green_spp_i <- gr_species %>%
+#        group_by(site, state, insecticide,species) %>%
+#        summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
+#                  se = std.error(spp_half_cover_date, na.rm = TRUE),
+#                  count=n())
+#sum_green_spp_i2 <- sum_green_spp_i %>%
+#        group_by(site, species) %>% 
+#        filter(all(c('warmed', 'ambient') %in% state))
 sum_green_spp_i <- gr_species %>%
+        group_by(site, year, species) %>%
+        filter(length(plot) >= 15) %>% # only keeping species present in at least 15 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
-                  se = std.error(spp_half_cover_date, na.rm = TRUE))
+                  se = std.error(spp_half_cover_date, na.rm = TRUE),
+                  count=n())
+
+#sum_flwr_spp_i <- flwr_spp %>%
+#        group_by(site, state, insecticide,species) %>%
+#        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+#                  se = std.error(julian_min, na.rm = TRUE),
+#                  count=n())
+#sum_flwr_spp_i2 <- sum_flwr_spp_i %>%
+#        group_by(site, species) %>% 
+#        filter(all(c('warmed', 'ambient') %in% state))
 sum_flwr_spp_i <- flwr_spp %>%
+        group_by(site, year, species) %>%
+        filter(length(plot) >= 15) %>% # only keeping species present in at least 20 of 24 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
-                  se = std.error(julian_min, na.rm = TRUE))
+                  se = std.error(julian_min, na.rm = TRUE),
+                  count=n())
+
+#sum_flwr_dur_spp_i <- flwr_spp %>%
+#        group_by(site, state, insecticide,species) %>%
+#        summarize(avg_julian = mean(flwr_duration, na.rm = TRUE),
+#                  se = std.error(flwr_duration, na.rm = TRUE),
+#                  count=n())
+## only keep species that were recorded in both warmed and ambient plots
+#sum_flwr_dur_spp_i2 <- sum_flwr_dur_spp_i %>%
+#        group_by(site, species) %>% 
+#        filter(all(c('warmed', 'ambient') %in% state))
 sum_flwr_dur_spp_i <- flwr_spp %>%
+        group_by(site, year, species) %>%
+        filter(length(plot) >= 15) %>% # only keeping species present in at least 20 of 24 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(flwr_duration, na.rm = TRUE),
-                  se = std.error(flwr_duration, na.rm = TRUE))
+                  se = std.error(flwr_duration, na.rm = TRUE),
+                  count=n())
+
+#sum_sd_spp_i <- sd_spp %>%
+#        group_by(site, state, insecticide,species) %>%
+#        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+#                  se = std.error(julian_min, na.rm = TRUE),
+#                  count=n())
+## only keep species that were recorded in both warmed and ambient plots
+#sum_sd_spp_i2 <- sum_sd_spp_i %>%
+#        group_by(site, species) %>% 
+#        filter(all(c('warmed', 'ambient') %in% state))
 sum_sd_spp_i <- sd_spp %>%
+        group_by(site, year, species) %>%
+        filter(length(plot) >= 15) %>% # only keeping species present in at least 20 of 24 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
-                  se = std.error(julian_min, na.rm = TRUE))
+                  se = std.error(julian_min, na.rm = TRUE),
+                  count=n())
 
 # averages + std error for plot level data
 sum_green_plot <- gr_plot %>%
@@ -914,11 +963,8 @@ annotate_figure(gdd_flwr_dur_merge,
 dev.off()
 
 ####### green-up species level ########
-sum_green_spp_i2 <- sum_green_spp_i %>%
-        group_by(site, species) %>% 
-        filter(all(c('warmed', 'ambient') %in% state))
 greenup_plot_overall <- function(loc) { 
-        greenup_spp <- subset(sum_green_spp_i2, site == loc)
+        greenup_spp <- subset(sum_green_spp_i, site == loc)
         return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
                        facet_wrap(~species, ncol=4, scales="free") +
                        geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
@@ -953,12 +999,8 @@ dev.off()
 
 
 ####### first flower species level ########
-# only keep species that were recorded in both warmed and ambient plots
-sum_flwr_spp_i2 <- sum_flwr_spp_i %>%
-        group_by(site, species) %>% 
-        filter(all(c('warmed', 'ambient') %in% state))
 flwr_plot_overall <- function(loc) { 
-        flwr_spp <- subset(sum_flwr_spp_i2, site == loc)
+        flwr_spp <- subset(sum_flwr_spp_i, site == loc)
         return(ggplot(flwr_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
                        facet_wrap(~species, ncol=4,scales="free") +
                        geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
@@ -993,12 +1035,8 @@ dev.off()
 
 
 ####### flower duration species level ########
-# only keep species that were recorded in both warmed and ambient plots
-sum_flwr_dur_spp_i2 <- sum_flwr_dur_spp_i %>%
-        group_by(site, species) %>% 
-        filter(all(c('warmed', 'ambient') %in% state))
 flwr_dur_plot_overall <- function(loc) { 
-        flwr_spp <- subset(sum_flwr_dur_spp_i2, site == loc)
+        flwr_spp <- subset(sum_flwr_dur_spp_i, site == loc)
         return(ggplot(flwr_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
                        facet_wrap(~species, ncol=4,scales="free") +
                        geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
@@ -1033,12 +1071,8 @@ dev.off()
 
 
 ####### seed set species level ########
-# only keep species that were recorded in both warmed and ambient plots
-sum_sd_spp_i2 <- sum_sd_spp_i %>%
-        group_by(site, species) %>% 
-        filter(all(c('warmed', 'ambient') %in% state))
 sd_plot_overall <- function(loc) { 
-        sd_spp <- subset(sum_sd_spp_i2, site == loc)
+        sd_spp <- subset(sum_sd_spp_i, site == loc)
         return(ggplot(sd_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
                        facet_wrap(~species, ncol=4,scales="free") +
                        geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
