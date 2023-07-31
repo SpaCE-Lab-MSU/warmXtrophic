@@ -72,7 +72,7 @@ insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_green_spp_i <- gr_species %>%
         group_by(site, year, species) %>%
-        filter(length(plot) >= 15) %>% # only keeping species present in at least 15 plots each year
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
         filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
@@ -89,7 +89,7 @@ sum_green_spp_i <- gr_species %>%
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_flwr_spp_i <- flwr_spp %>%
         group_by(site, year, species) %>%
-        filter(length(plot) >= 15) %>% # only keeping species present in at least 20 of 24 plots each year
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
         filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
@@ -107,7 +107,7 @@ sum_flwr_spp_i <- flwr_spp %>%
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_flwr_dur_spp_i <- flwr_spp %>%
         group_by(site, year, species) %>%
-        filter(length(plot) >= 15) %>% # only keeping species present in at least 20 of 24 plots each year
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
         filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(flwr_duration, na.rm = TRUE),
@@ -125,7 +125,7 @@ sum_flwr_dur_spp_i <- flwr_spp %>%
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_sd_spp_i <- sd_spp %>%
         group_by(site, year, species) %>%
-        filter(length(plot) >= 15) %>% # only keeping species present in at least 20 of 24 plots each year
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
         filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
@@ -601,12 +601,18 @@ dev.off()
 
 
 #### GDD and temp comparisons ####
-green_kbsp <- subset(gr_plot_v2, site == "KBS")
-green_umbsp <- subset(gr_plot_v2, site == 'UMBS')
-flwr_kbsp <- subset(flwr_plot, site == "KBS")
-flwr_umbsp <- subset(flwr_plot, site == 'UMBS')
-sd_kbsp <- subset(sd_plot, site == "KBS")
-sd_umbsp <- subset(sd_plot, site == 'UMBS')
+green_kbsp <- gr_plot_v2 %>%
+        filter(site == "KBS" & state == "ambient")
+green_umbsp <- gr_plot_v2 %>%
+        filter(site == "UMBS" & state == "ambient")
+flwr_kbsp <- flwr_plot %>%
+        filter(site == "KBS" & state == "ambient")
+flwr_umbsp <- flwr_plot %>%
+        filter(site == "UMBS" & state == "ambient")
+sd_kbsp <- sd_plot %>%
+        filter(site == "KBS" & state == "ambient")
+sd_umbsp <- sd_plot %>%
+        filter(site == "UMBS" & state == "ambient")
 
 # looking to see which temp variable best correlates with greenup dates
 # note: when testing this for min dates, there are less data points because all plots had the same 
@@ -615,7 +621,7 @@ kbs_gdd <- ggplot(green_kbsp, aes(x = GDD_cumulative, y = med_half_cover_date, c
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -628,7 +634,7 @@ umbs_gdd <- ggplot(green_umbsp, aes(x = GDD_cumulative, y = med_half_cover_date,
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -641,7 +647,7 @@ kbs_mean <- ggplot(green_kbsp, aes(x = mean_temp, y = med_half_cover_date, color
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -654,7 +660,7 @@ umbs_mean <- ggplot(green_umbsp, aes(x = mean_temp, y = med_half_cover_date, col
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -667,7 +673,7 @@ kbs_med <- ggplot(green_kbsp, aes(x = median_temp, y = med_half_cover_date, colo
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -680,7 +686,7 @@ umbs_med <- ggplot(green_umbsp, aes(x = median_temp, y = med_half_cover_date, co
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -693,7 +699,7 @@ kbs_max <- ggplot(green_kbsp, aes(x = max_temp, y = med_half_cover_date, color =
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -706,7 +712,7 @@ umbs_max <- ggplot(green_umbsp, aes(x = max_temp, y = med_half_cover_date, color
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -720,19 +726,19 @@ gdd_temp_merge <- ggpubr::ggarrange(kbs_gdd,umbs_gdd,
                                     kbs_mean,umbs_mean,
                                     kbs_med,umbs_med,
                                     kbs_max,umbs_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="bottom")
+                                    ncol = 2, nrow=4,common.legend=T,legend="none")
 png("greenup_gdd_temp.png", units="in", width=7, height=8, res=300)
 annotate_figure(gdd_temp_merge,
                 left = text_grob("Green-up half cover julian date", color = "black", rot = 90, size=15),
                 top = text_grob("KBS                                                      UMBS", color = "black", size=15))
-
+dev.off()
 
 # looking to see which temp variable best correlates with flowring
 kbs_flwr_gdd <- ggplot(flwr_kbsp, aes(x = GDD_cumulative, y = julian_min, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -745,7 +751,7 @@ umbs_flwr_gdd <- ggplot(flwr_umbsp, aes(x = GDD_cumulative, y = julian_min, colo
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -758,7 +764,7 @@ kbs_flwr_mean <- ggplot(flwr_kbsp, aes(x = mean_temp, y = julian_min, color = st
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -771,7 +777,7 @@ umbs_flwr_mean <- ggplot(flwr_umbsp, aes(x = mean_temp, y = julian_min, color = 
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -784,7 +790,7 @@ kbs_flwr_med <- ggplot(flwr_kbsp, aes(x = median_temp, y = julian_min, color = s
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -797,7 +803,7 @@ umbs_flwr_med <- ggplot(flwr_umbsp, aes(x = median_temp, y = julian_min, color =
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -810,7 +816,7 @@ kbs_flwr_max <- ggplot(flwr_kbsp, aes(x = max_temp, y = julian_min, color = stat
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -823,7 +829,7 @@ umbs_flwr_max <- ggplot(flwr_umbsp, aes(x = max_temp, y = julian_min, color = st
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -837,7 +843,7 @@ gdd_flwr_merge <- ggpubr::ggarrange(kbs_flwr_gdd,umbs_flwr_gdd,
                                     kbs_flwr_mean,umbs_flwr_mean,
                                     kbs_flwr_med,umbs_flwr_med,
                                     kbs_flwr_max,umbs_flwr_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="bottom")
+                                    ncol = 2, nrow=4,common.legend=T,legend="none")
 png("flwrup_gdd_temp.png", units="in", width=7, height=8, res=300)
 annotate_figure(gdd_flwr_merge,
                 left = text_grob("Minimum julian date of flowering", color = "black", rot = 90, size=15),
@@ -845,12 +851,12 @@ annotate_figure(gdd_flwr_merge,
 dev.off()
 
 
-# looking to see which temp variable best correlates with flowring duration
+# looking to see which temp variable best correlates with flowering duration
 kbs_flwr_dur_gdd <- ggplot(flwr_kbsp, aes(x = GDD_cumulative, y = flwr_duration, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -863,7 +869,7 @@ umbs_flwr_dur_gdd <- ggplot(flwr_umbsp, aes(x = GDD_cumulative, y = flwr_duratio
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -876,7 +882,7 @@ kbs_flwr_dur_mean <- ggplot(flwr_kbsp, aes(x = mean_temp, y = flwr_duration, col
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -889,7 +895,7 @@ umbs_flwr_dur_mean <- ggplot(flwr_umbsp, aes(x = mean_temp, y = flwr_duration, c
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -902,7 +908,7 @@ kbs_flwr_dur_med <- ggplot(flwr_kbsp, aes(x = median_temp, y = flwr_duration, co
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -915,7 +921,7 @@ umbs_flwr_dur_med <- ggplot(flwr_umbsp, aes(x = median_temp, y = flwr_duration, 
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -928,7 +934,7 @@ kbs_flwr_dur_max <- ggplot(flwr_kbsp, aes(x = max_temp, y = flwr_duration, color
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -941,7 +947,7 @@ umbs_flwr_dur_max <- ggplot(flwr_umbsp, aes(x = max_temp, y = flwr_duration, col
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -955,12 +961,133 @@ gdd_flwr_dur_merge <- ggpubr::ggarrange(kbs_flwr_dur_gdd,umbs_flwr_dur_gdd,
                                     kbs_flwr_dur_mean,umbs_flwr_dur_mean,
                                     kbs_flwr_dur_med,umbs_flwr_dur_med,
                                     kbs_flwr_dur_max,umbs_flwr_dur_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="bottom")
+                                    ncol = 2, nrow=4,common.legend=T,legend="none")
 png("flwr_dur_gdd_temp.png", units="in", width=7, height=8, res=300)
 annotate_figure(gdd_flwr_dur_merge,
                 left = text_grob("Duration of flowering (# of days)", color = "black", rot = 90, size=15),
                 top = text_grob("KBS                                                 UMBS", color = "black", size=15))
 dev.off()
+
+
+# looking to see which temp variable best correlates with seed set
+kbs_sd_gdd <- ggplot(sd_kbsp, aes(x = GDD_cumulative, y = julian_min, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_sd_gdd <- ggplot(sd_umbsp, aes(x = GDD_cumulative, y = julian_min, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_sd_mean <- ggplot(sd_kbsp, aes(x = mean_temp, y = julian_min, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_sd_mean <- ggplot(sd_umbsp, aes(x = mean_temp, y = julian_min, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_sd_med <- ggplot(sd_kbsp, aes(x = median_temp, y = julian_min, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Median temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_sd_med <- ggplot(sd_umbsp, aes(x = median_temp, y = julian_min, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Median temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_sd_max <- ggplot(sd_kbsp, aes(x = max_temp, y = julian_min, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Max temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_sd_max <- ggplot(sd_umbsp, aes(x = max_temp, y = julian_min, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Max temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+
+gdd_sd_merge <- ggpubr::ggarrange(kbs_sd_gdd,umbs_sd_gdd,
+                                    kbs_sd_mean,umbs_sd_mean,
+                                    kbs_sd_med,umbs_sd_med,
+                                    kbs_sd_max,umbs_sd_max,
+                                    ncol = 2, nrow=4,common.legend=T,legend="none")
+png("sd_gdd_temp.png", units="in", width=7, height=8, res=300)
+annotate_figure(gdd_sd_merge,
+                left = text_grob("Minimum julian date of seed set", color = "black", rot = 90, size=15),
+                top = text_grob("KBS                                                      UMBS", color = "black", size=15))
+dev.off()
+
+
+
 
 ####### green-up species level ########
 greenup_plot_overall <- function(loc) { 
@@ -992,7 +1119,7 @@ kbs_green_spp <- greenup_plot_overall("KBS")
 umbs_green_spp <- greenup_plot_overall("UMBS")
 green_overall_merge <- ggpubr::ggarrange(kbs_green_spp, umbs_green_spp,
                                          ncol = 2, common.legend = T,legend="right")
-png("greenup_species.png", units="in", width=18, height=8, res=300)
+png("greenup_species.png", units="in", width=18.5, height=8, res=300)
 annotate_figure(green_overall_merge,
                 left = text_grob("Julian date of green-up", color = "black", rot = 90, size=17))
 dev.off()
@@ -1028,7 +1155,7 @@ kbs_flwr_spp <- flwr_plot_overall("KBS")
 umbs_flwr_spp <- flwr_plot_overall("UMBS")
 flwr_overall_merge <- ggpubr::ggarrange(kbs_flwr_spp, umbs_flwr_spp,
                                          ncol = 2, common.legend = T,legend="right")
-png("flwr_species.png", units="in", width=21, height=15, res=300)
+png("flwr_species.png", units="in", width=18.5, height=8, res=300)
 annotate_figure(flwr_overall_merge,
                 left = text_grob("Julian date of first flower", color = "black", rot = 90, size=17))
 dev.off()
@@ -1064,7 +1191,7 @@ kbs_flwr_dur_spp <- flwr_dur_plot_overall("KBS")
 umbs_flwr_dur_spp <- flwr_dur_plot_overall("UMBS")
 flwr_dur_overall_merge <- ggpubr::ggarrange(kbs_flwr_dur_spp, umbs_flwr_dur_spp,
                                         ncol = 2, common.legend = T,legend="right")
-png("flwr_dur_species.png", units="in", width=21, height=15, res=300)
+png("flwr_dur_species.png", units="in", width=18.5, height=8, res=300)
 annotate_figure(flwr_dur_overall_merge,
                 left = text_grob("Duration of flowering (# of days)", color = "black", rot = 90, size=17))
 dev.off()
@@ -1100,7 +1227,7 @@ kbs_sd_spp <- sd_plot_overall("KBS")
 umbs_sd_spp <- sd_plot_overall("UMBS")
 sd_overall_merge <- ggpubr::ggarrange(kbs_sd_spp, umbs_sd_spp,
                                             ncol = 2, common.legend = T,legend="right")
-png("sd_species.png", units="in", width=21, height=14, res=300)
+png("sd_species.png", units="in", width=18.5, height=8, res=300)
 annotate_figure(sd_overall_merge,
                 left = text_grob("Julian date of first seed set", color = "black", rot = 90, size=17))
 dev.off()

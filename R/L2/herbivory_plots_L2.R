@@ -298,6 +298,9 @@ dev.off()
 ##### amount eaten for all species at each site #####
 sum_herb_spp2 <- herb[herb$p_eaten != 0, ]
 sum_herb_spp2 <- sum_herb_spp2 %>%
+        group_by(site, year, species) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide, species) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
@@ -305,7 +308,7 @@ sum_herb_spp2 <- subset(sum_herb_spp2)
 herb_spp_overall <- function(loc) { 
         herb_spp <- subset(sum_herb_spp2, site == loc)
         return(ggplot(herb_spp, aes(x = state, y = avg_eaten, fill = insecticide)) +
-                       facet_wrap(~species, ncol=4) +
+                       facet_wrap(~species, ncol=4, scales="free") +
                        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),pch=21,size=0.9,position=position_dodge(0.4)) +
                        labs(x = NULL, y = NULL, title=loc) +
                        scale_fill_manual(name="Treatment",
@@ -320,7 +323,7 @@ kbs_herb_spp <- herb_spp_overall("KBS")
 umbs_herb_spp <- herb_spp_overall("UMBS")
 herb_overall_merge <- ggpubr::ggarrange(kbs_herb_spp, umbs_herb_spp,
                                         ncol = 2, common.legend=T, legend="right")
-png("herb_species.png", units="in", width=14, height=8, res=300)
+png("herb_species.png", units="in", width=18, height=8, res=300)
 annotate_figure(herb_overall_merge,
                 left = text_grob("Amount eaten (%)", color = "black", rot = 90, size=15),
                 bottom = text_grob("Treatment", color = "black", size=15))
@@ -338,6 +341,9 @@ herb_binom_k <- herb %>%
 herb_binom_k$p_eaten[herb_binom_k$p_eaten == 1] <- "Eaten"
 herb_binom_k$p_eaten[herb_binom_k$p_eaten == 0] <- "Not Eaten"
 herb_binom_sumk2 <- herb_binom_k %>%
+        group_by(site, year, species) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>%
         group_by(plot,state, insecticide, species, p_eaten) %>%
         count(p_eaten) %>%
         group_by(plot,species, state, insecticide) %>%
@@ -346,7 +352,9 @@ herb_binom_sumk2 <- herb_binom_k %>%
         summarize(mean_n = mean(n),
                   se = std.error(n))
 herb_binom_sumk3 <- herb_binom_sumk2 %>%
-        filter(p_eaten == "Eaten")
+        filter(p_eaten == "Eaten") %>%
+        group_by(species) %>%
+        filter(all(c('warmed', 'ambient') %in% state))
 # selecting UMBS & herbivory plots =, making binary response for if eaten or not overall
 herb_binom_u <- herb %>%
         filter(site == "UMBS") %>%
@@ -354,6 +362,9 @@ herb_binom_u <- herb %>%
 herb_binom_u$p_eaten[herb_binom_u$p_eaten == 1] <- "Eaten"
 herb_binom_u$p_eaten[herb_binom_u$p_eaten == 0] <- "Not Eaten"
 herb_binom_sumu2 <- herb_binom_u %>%
+        group_by(site, year, species) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>%
         group_by(plot,state, insecticide, species, p_eaten) %>%
         count(p_eaten) %>%
         group_by(plot,species, state, insecticide) %>%
@@ -362,7 +373,9 @@ herb_binom_sumu2 <- herb_binom_u %>%
         summarize(mean_n = mean(n),
                   se = std.error(n))
 herb_binom_sumu3 <- herb_binom_sumu2 %>%
-        filter(p_eaten == "Eaten")
+        filter(p_eaten == "Eaten") %>%
+        group_by(species) %>%
+        filter(all(c('warmed', 'ambient') %in% state))
 # plotting binary response
 binom_plot_k2 <- ggplot(herb_binom_sumk3, aes(x=state, y=mean_n, fill=insecticide)) +
         facet_wrap(~species, ncol=4) +
@@ -411,16 +424,16 @@ dev.off()
 
 # temp data regressions
 herb_kbs <- herb %>%
-        filter(site == "KBS")
+        filter(site == "KBS" & state == "ambient")
 herb_umbs <- herb %>%
-        filter(site == "UMBS")
+        filter(site == "UMBS" & state == "ambient")
 
 # looking to see which temp variable best correlates with herbivory
 kbs_gdd <- ggplot(herb_kbs, aes(x = GDD_cumulative, y = p_eaten, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -433,7 +446,7 @@ umbs_gdd <- ggplot(herb_umbs, aes(x = GDD_cumulative, y = p_eaten, color = state
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -446,7 +459,7 @@ kbs_mean <- ggplot(herb_kbs, aes(x = mean_temp, y = p_eaten, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -459,7 +472,7 @@ umbs_mean <- ggplot(herb_umbs, aes(x = mean_temp, y = p_eaten, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -472,7 +485,7 @@ kbs_med <- ggplot(herb_kbs, aes(x = median_temp, y = p_eaten, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -485,7 +498,7 @@ umbs_med <- ggplot(herb_umbs, aes(x = median_temp, y = p_eaten, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -498,7 +511,7 @@ kbs_max <- ggplot(herb_kbs, aes(x = max_temp, y = p_eaten, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -511,7 +524,7 @@ umbs_max <- ggplot(herb_umbs, aes(x = max_temp, y = p_eaten, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -525,7 +538,7 @@ gdd_temp_merge <- ggpubr::ggarrange(kbs_gdd,umbs_gdd,
                                     kbs_mean,umbs_mean,
                                     kbs_med,umbs_med,
                                     kbs_max,umbs_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="bottom")
+                                    ncol = 2, nrow=4,common.legend=T,legend="none")
 png("herb_gdd_temp.png", units="in", width=7, height=8, res=300)
 annotate_figure(gdd_temp_merge,
                 left = text_grob("Percent eaten (%)", color = "black", rot = 90, size=15),
@@ -538,7 +551,7 @@ dev.off()
 ### mean temp w/ percent eaten and amount eaten ###
 # selecting KBS, making binary response for if eaten or not overall
 herb_binom_k_i2 <- herb %>%
-        filter(site == "KBS") %>%
+        filter(site == "KBS" & state == "ambient") %>%
         mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
 herb_binom_k_i2$p_eaten[herb_binom_k_i2$p_eaten == 1] <- "Eaten"
 herb_binom_k_i2$p_eaten[herb_binom_k_i2$p_eaten == 0] <- "Not Eaten"
@@ -553,7 +566,7 @@ kbs_herb_binom_temp <- kbs_herb_binom_temp %>%
         filter(p_eaten == "Eaten")
 # selecting UMBS & herbivory plots =, making binary response for if eaten or not overall
 herb_binom_u_i2 <- herb %>%
-        filter(site == "UMBS") %>%
+        filter(site == "UMBS" & state == "ambient") %>%
         mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
 herb_binom_u_i2$p_eaten[herb_binom_u_i2$p_eaten == 1] <- "Eaten"
 herb_binom_u_i2$p_eaten[herb_binom_u_i2$p_eaten == 0] <- "Not Eaten"
@@ -571,7 +584,7 @@ temp_prob_eaten_k <- ggplot(kbs_herb_binom_temp, aes(x = mean_temp, y = n, color
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = NULL,y="Chance of being eaten (%)", title="KBS",subtitle="A") +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -589,7 +602,7 @@ temp_prob_eaten_u <- ggplot(umbs_herb_binom_temp, aes(x = mean_temp, y = n, colo
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = NULL,y=NULL, title="UMBS",subtitle="B") +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -606,7 +619,7 @@ temp_prob_eaten_u <- ggplot(umbs_herb_binom_temp, aes(x = mean_temp, y = n, colo
 
 # amount eaten plot
 sum_herb_overall_k_i2 <- herb %>%
-        filter(site == "KBS")
+        filter(site == "KBS" & state == "ambient")
 sum_herb_overall_k_i3 <- sum_herb_overall_k_i2[sum_herb_overall_k_i2$p_eaten != 0, ]
 sum_herb_overall_k_i3 <- sum_herb_overall_k_i3 %>%
         group_by(plot,year,state) %>%
@@ -616,7 +629,7 @@ kbs_herb_am_temp <- merge(x = sum_herb_overall_k_i3, y = sum_herb_overall_k_i2[ 
 kbs_herb_am_temp <- kbs_herb_am_temp[!duplicated(kbs_herb_am_temp), ]
 
 sum_herb_overall_u_i2 <- herb %>%
-        filter(site == "UMBS")
+        filter(site == "UMBS" & state == "ambient")
 sum_herb_overall_u_i3 <- sum_herb_overall_u_i2[sum_herb_overall_u_i2$p_eaten != 0, ]
 sum_herb_overall_u_i3 <- sum_herb_overall_u_i3 %>%
         group_by(plot,year,state) %>%
@@ -629,7 +642,7 @@ temp_amount_eaten_k <- ggplot(kbs_herb_am_temp, aes(x = mean_temp, y = avg_eaten
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y="Amount eaten (%)",subtitle="C") +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -647,7 +660,7 @@ temp_amount_eaten_u <- ggplot(umbs_herb_am_temp, aes(x = mean_temp, y = avg_eate
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
         labs(x = "Mean temperature (°C)",y=NULL,subtitle="D") +
-        scale_color_manual(values = c("#a6bddb", "#fb6a4a"),
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
                            labels = c("Ambient","Warmed"),
                            name="Treatment") +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
@@ -664,7 +677,7 @@ temp_amount_eaten_u <- ggplot(umbs_herb_am_temp, aes(x = mean_temp, y = avg_eate
 # merge fig
 gdd_mean_temp_merge <- ggpubr::ggarrange(temp_prob_eaten_k,temp_prob_eaten_u,
                                          temp_amount_eaten_k,temp_amount_eaten_u,
-                                         ncol = 2, nrow=2,common.legend=T,legend="right",widths=c(1,0.9))
+                                         ncol = 2, nrow=2,common.legend=T,legend="none",widths=c(1,0.9))
 png("herb_gdd_mean_temp.png", units="in", width=7, height=6, res=300)
 annotate_figure(gdd_mean_temp_merge,
                 bottom = text_grob("Mean temperature (°C)              ", color = "black", size=14))
