@@ -16,6 +16,7 @@ library(tidyverse)
 
 # Source in needed functions
 source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/phenology_functions_L1.R")
+source("~/warmXtrophic/R/L1/phenology_functions_L1.R")
 
 # Set working directory 
 Sys.getenv("L0DIR")
@@ -37,14 +38,14 @@ kbs_2016 <- read.csv(file.path(L0_dir, "KBS/2016/kbs_flwr_sd_2016.csv"))
 kbs_2017 <- read.csv(file.path(L0_dir, "KBS/2017/kbs_flwr_sd_2017.csv"))
 kbs_2018 <- read.csv(file.path(L0_dir, "KBS/2018/kbs_flwr_sd_2018.csv"))
 kbs_2019 <- read.csv(file.path(L0_dir, "KBS/2019/kbs_flwr_sd_2019.csv"))
-kbs_2020 <- read.csv(file.path(L0_dir, "KBS/2020/kbs_flwr_sd_2020.csv"))
+kbs_2020 <- read.csv(file.path(L0_dir, "KBS/2020/kbs_flwr_sd_2020 2.csv"))
 kbs_2021 <- read.csv(file.path(L0_dir, "KBS/2021/kbs_flwr_sd_2021.csv"))
 umbs_2015 <- read.csv(file.path(L0_dir, "UMBS/2015/umbs_flwr_sd_2015.csv"))
 umbs_2016 <- read.csv(file.path(L0_dir, "UMBS/2016/umbs_flwr_sd_2016.csv"))
 umbs_2017 <- read.csv(file.path(L0_dir, "UMBS/2017/umbs_flwr_sd_2017.csv"))
 umbs_2018 <- read.csv(file.path(L0_dir, "UMBS/2018/umbs_flwr_sd_2018.csv"))
 umbs_2019 <- read.csv(file.path(L0_dir, "UMBS/2019/umbs_flwr_sd_2019.csv"))
-umbs_2020 <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_flwr_sd_2020.csv"))
+umbs_2020 <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_flwr_sd_2020 2.csv"))
 umbs_2021 <- read.csv(file.path(L0_dir, "UMBS/2021/umbs_flwr_sd_2021.csv"))
 
 # Add "Site" column for kbs and umbs 2016

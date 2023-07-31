@@ -103,6 +103,7 @@ change_spp <- function(df){
         df$Species[df$Species == "Acpa"] <- "Apca"
         df$Species[df$Species == "Asla"] <- "Syur"
         df$Species[df$Species == "Lampu"] <- "Lapu"
+        df$Species[df$Species == "Sogr"] <- "Eugr"
         return(df)
 }
 
