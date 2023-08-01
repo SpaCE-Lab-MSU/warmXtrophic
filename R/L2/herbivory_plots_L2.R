@@ -132,7 +132,7 @@ sum_herb_overall_k_i <- sum_herb_overall_k_i %>%
         group_by(state, insecticide) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
-# selecting KBS, average amount eaten if herbivory > 0
+# selecting UMBS, average amount eaten if herbivory > 0
 sum_herb_overall_u_i <- herb %>%
         filter(site == "UMBS")
 sum_herb_overall_u_i <- sum_herb_overall_u_i[sum_herb_overall_u_i$p_eaten != 0, ]
@@ -148,8 +148,8 @@ eaten_k_i <- ggplot(sum_herb_overall_k_i, aes(x = state, y = avg_eaten, fill=ins
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
-        ylim(5,21) +
-        annotate("text", x = 0.5, y=21, label = "C", size=5) +
+        ylim(5,22) +
+        annotate("text", x = 0.5, y=22, label = "C", size=5) +
         theme_bw() +
         theme(legend.position="none") +
         theme(axis.text.y = element_text(size=15),
@@ -162,8 +162,8 @@ eaten_u_i <- ggplot(sum_herb_overall_u_i, aes(x = state, y = avg_eaten,fill=inse
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
-        ylim(5,21) +
-        annotate("text", x = 0.5, y=21, label = "D", size=5) +
+        ylim(5,22) +
+        annotate("text", x = 0.5, y=22, label = "D", size=5) +
         theme_bw() +
         theme(legend.position="none") +
         theme(axis.text.y = element_blank(),
@@ -556,9 +556,9 @@ herb_binom_k_i2 <- herb %>%
 herb_binom_k_i2$p_eaten[herb_binom_k_i2$p_eaten == 1] <- "Eaten"
 herb_binom_k_i2$p_eaten[herb_binom_k_i2$p_eaten == 0] <- "Not Eaten"
 herb_binom_sumk_i2 <- herb_binom_k_i2 %>%
-        group_by(plot, state, year, p_eaten) %>%
+        group_by(plot, species, state, year, p_eaten) %>%
         count(state, year, p_eaten) %>%
-        group_by(plot, state, year) %>%
+        group_by(plot, species, state, year) %>%
         mutate(n = n/sum(n) * 100)
 kbs_herb_binom_temp <- merge(x = herb_binom_sumk_i2, y = herb_binom_k_i2[ , c("state", "year","mean_temp")], by = c("state","year"), all.x=TRUE)
 kbs_herb_binom_temp <- kbs_herb_binom_temp[!duplicated(kbs_herb_binom_temp), ]
@@ -571,9 +571,9 @@ herb_binom_u_i2 <- herb %>%
 herb_binom_u_i2$p_eaten[herb_binom_u_i2$p_eaten == 1] <- "Eaten"
 herb_binom_u_i2$p_eaten[herb_binom_u_i2$p_eaten == 0] <- "Not Eaten"
 herb_binom_sumu_i2 <- herb_binom_u_i2 %>%
-        group_by(plot, state, year,p_eaten) %>%
+        group_by(plot,species,state, year,p_eaten) %>%
         count(state, year,p_eaten) %>%
-        group_by(plot, state,year) %>%
+        group_by(plot,species,state,year) %>%
         mutate(n = n/sum(n) * 100)
 umbs_herb_binom_temp <- merge(x = herb_binom_sumu_i2, y = herb_binom_u_i2[ , c("state", "year","mean_temp")], by = c("state","year"), all.x=TRUE)
 umbs_herb_binom_temp <- umbs_herb_binom_temp[!duplicated(umbs_herb_binom_temp), ]
@@ -622,7 +622,7 @@ sum_herb_overall_k_i2 <- herb %>%
         filter(site == "KBS" & state == "ambient")
 sum_herb_overall_k_i3 <- sum_herb_overall_k_i2[sum_herb_overall_k_i2$p_eaten != 0, ]
 sum_herb_overall_k_i3 <- sum_herb_overall_k_i3 %>%
-        group_by(plot,year,state) %>%
+        group_by(plot,species,year,state) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 kbs_herb_am_temp <- merge(x = sum_herb_overall_k_i3, y = sum_herb_overall_k_i2[ , c("state", "year","mean_temp")], by = c("year","state"), all.x=TRUE)
@@ -632,7 +632,7 @@ sum_herb_overall_u_i2 <- herb %>%
         filter(site == "UMBS" & state == "ambient")
 sum_herb_overall_u_i3 <- sum_herb_overall_u_i2[sum_herb_overall_u_i2$p_eaten != 0, ]
 sum_herb_overall_u_i3 <- sum_herb_overall_u_i3 %>%
-        group_by(plot,year,state) %>%
+        group_by(plot,species,year,state) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 umbs_herb_am_temp <- merge(x = sum_herb_overall_u_i3, y = sum_herb_overall_u_i2[ , c("state", "year","mean_temp")], by = c("year","state"), all.x=TRUE)

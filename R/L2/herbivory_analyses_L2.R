@@ -229,13 +229,26 @@ car::Anova(full.model.sp.k)
 tab_model(full.model.sp.k)
 
 # temperature model
+herb_kbs_amb <- herb_kbs %>%
+        filter(state == "ambient")
 temp.model.k <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
-                           data=herb_kbs,
+                           data=herb_kbs_amb,
                            zi=~.,
                            family=truncated_nbinom2)
 summary(temp.model.k)
 
-
+sum_herb_overall_k_i3 <- herb_kbs_amb %>%
+        group_by(plot,mean_temp) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE)) %>%
+        filter(!(is.na(mean_temp)))
+herb_kbs_amb2 <- herb_kbs_amb[herb_kbs_amb$p_eaten != 0, ]
+plot(sum_herb_overall_k_i3$avg_eaten~sum_herb_overall_k_i3$mean_temp)
+abline(lm(sum_herb_overall_k_i3$avg_eaten~sum_herb_overall_k_i3$mean_temp))
+temp.model.k <- glmmTMB(avg_eaten ~ mean_temp + (1|plot),
+                        data=sum_herb_overall_k_i3,
+                        zi=~.,
+                        family=truncated_nbinom2)
 
 
 ###################### UMBS herbivory distribution check ###########################
@@ -323,6 +336,8 @@ full.model.sp.u <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|p
 summary(full.model.sp.u) 
 
 # temperature model
+herb_umbs_amb <- herb_umbs %>%
+        filter(state == "ambient")
 temp.model.u <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
                         data=herb_umbs,
                         zi=~.,
