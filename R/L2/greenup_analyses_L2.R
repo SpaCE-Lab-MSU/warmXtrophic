@@ -204,8 +204,10 @@ kable(anova(mod9p)) %>% kableExtra::kable_styling()
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for green-up as a function of just temp to see how real temp data affects green-up
-modtest1 <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_kbs, REML=FALSE)
-modtest2 <- lmer(med_half_cover_date ~ GDD_cumulative + (1|plot), green_kbs, REML=FALSE)
+green_kbs_amb <- green_kbs %>%
+        filter(state == "ambient")
+modtest1 <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_kbs_amb, REML=FALSE)
+modtest2 <- lmer(med_half_cover_date ~ GDD_cumulative + (1|plot), green_kbs_amb, REML=FALSE)
 
 AICtab(modtest1,modtest2)
 
@@ -266,8 +268,10 @@ kable(anova(mod9p_u)) %>% kableExtra::kable_styling()
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for green-up as a function of just temp to see how real temp data affects green-up
-modtest1u <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_umbs, REML=FALSE)
-modtest2u <- lmer(med_half_cover_date ~ GDD_cumulative + (1|plot), green_umbs, REML=FALSE)
+green_umbs_amb <- green_umbs %>%
+        filter(state == "ambient")
+modtest1u <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_umbs_amb, REML=FALSE)
+modtest2u <- lmer(med_half_cover_date ~ GDD_cumulative + (1|plot), green_umbs_amb, REML=FALSE)
 
 AICtab(modtest1u,modtest2u)
 
