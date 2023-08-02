@@ -68,7 +68,7 @@ Averages + std error for species level data + insecticide treatment across all y
 # filter data to contain the averages and std error for each site & species
 sum_comp_spp <- comp_spp %>%
         group_by(site, state, species) %>%
-        summarize(avg_relative = mean(relative, na.rm = TRUE),
+        summarize(avg_relative = mean(avg_pc, na.rm = TRUE),
                   se = std.error(relative, na.rm = TRUE))
 sum_comp_spp_i <- comp_spp %>%
         group_by(site, state, insecticide, species) %>%
@@ -80,8 +80,8 @@ Averages + std error for plot level data + insecticide treatment across all year
 ```{r}
 sum_comp_plot_i <- comp %>%
         group_by(site, state, insecticide) %>%
-        summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
-                  se = std.error(avg_relative_abundance, na.rm = TRUE))
+        summarize(avg_pc_plot = mean(avg_pc, na.rm = TRUE),
+                  se = std.error(avg_pc, na.rm = TRUE))
 
 sum_origin_plot_i <- origin %>%
         group_by(site, state, insecticide, origin) %>%
@@ -95,14 +95,15 @@ sum_growth_plot_i <- growth %>%
 ```
 
 Dot plot with insecticide
+This plot has been updated with percent cover rather than relative abundance after Jen's feedback 8/1/23
 ```{r}
 # plant composition
 sum_comp_plot_i$full_treat <- paste(sum_comp_plot_i$state, sum_comp_plot_i$insecticide, sep="_")
 comp_dot_i <- function(loc) { 
        comp_plot <- subset(sum_comp_plot_i, site == loc)
-        return(ggplot(comp_plot, aes(x = state, y = avg_relabun, fill=insecticide)) +
+        return(ggplot(comp_plot, aes(x = state, y = avg_pc_plot, fill=insecticide)) +
                        #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
-                       geom_pointrange(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), pch=21,size=1,position=position_dodge(0.3)) +
+                       geom_pointrange(aes(ymin=avg_pc_plot-se, ymax=avg_pc_plot+se), pch=21,size=1,position=position_dodge(0.3)) +
                        #scale_shape_manual(name="Treatment",
                        #                   values = c(1, 19),
                        #                   labels=c("Herbivory","Reduced Herbivory")) +
@@ -111,7 +112,7 @@ comp_dot_i <- function(loc) {
                                          labels=c("Herbivory","Reduced Herbivory")) +
                                labs(x = NULL, y = NULL, title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-                       coord_cartesian(ylim=c(0.10,0.25)) +
+                       coord_cartesian(ylim=c(14,24)) +
                        theme_bw(14))
 }
 comp_dot_i_kbs <- comp_dot_i("KBS")
@@ -130,12 +131,13 @@ comp_dot_i_umbs <- comp_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_b
 comp_all_dot_i <- ggpubr::ggarrange(comp_dot_i_kbs, comp_dot_i_umbs,
                                 nrow = 1, ncol = 2, common.legend = T, legend="right",
                                 widths = c(1.1, 0.9))
-png("relative_abundance_plots_L2_all_plant_comp_dot_insect.png", units="in", width=8, height=6, res=300)
+png("percent_cover_plots_L2_all_plant_comp_dot_insect.png", units="in", width=8, height=6, res=300)
 annotate_figure(comp_all_dot_i,
-                left = text_grob("Relative Abundance", color = "black", rot = 90, size=17))
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=17))
 dev.off()
 ```
 
+The plots below have not been updated like the one above
 Origin & Growth Habit
 ```{r}
 # origin

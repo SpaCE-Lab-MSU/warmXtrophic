@@ -62,10 +62,6 @@ growth_plot$year_factor <- as.factor(growth_plot$year_factor)
 # species level plant comp
 # note: the species data frame is only used to demonstrate that plant relative abundance differs between species (for the supplement)
 comp_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"))
-
-comp_origin_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_origin_species_L2.csv")) 
-
-comp_growth_spp <- read.csv(file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_species_L2.csv")) 
 ```
 
 ```{r}
@@ -89,12 +85,12 @@ comp_umbs_growth_spp <- subset(comp_growth_spp, site == "umbs")
 #KBS Plot Level
 ```{r}
 ### KBS ###
-hist(kbs_comp_plot$avg_relative_abundance) #skewed right
-qqnorm(kbs_comp_plot$avg_relative_abundance)
-shapiro.test(kbs_comp_plot$avg_relative_abundance) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+hist(kbs_comp_plot$avg_pc) # slightly right skewed
+qqnorm(kbs_comp_plot$avg_pc)
+shapiro.test(kbs_comp_plot$avg_pc) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
 
 # Exploring distributions:
-descdist(kbs_comp_plot$avg_relative_abundance, discrete = FALSE)
+descdist(kbs_comp_plot$avg_pc, discrete = FALSE)
 
 # Gamma distribution 
 fit.gamma <- fitdist(kbs_comp_plot$avg_relative_abundance, "gamma")
@@ -125,15 +121,15 @@ Leverage plots and detecting outliers
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(log(avg_relative_abundance) ~ state, data = kbs_comp_plot)
-outlierTest(fit_plot_state_kbs) # no outliers
+fit_plot_state_kbs <- lm(log(avg_pc) ~ state, data = kbs_comp_plot)
+outlierTest(fit_plot_state_kbs) 
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
 leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(log(avg_relative_abundance) ~ state + year_factor, data = kbs_comp_plot)
+fit_plot_stateyear_kbs <- lm(log(avg_pc) ~ state + year_factor, data = kbs_comp_plot)
 outlierTest(fit_plot_stateyear_kbs) # no outliers 
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
@@ -142,7 +138,7 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(log(avg_relative_abundance) ~ state * year, data = kbs_comp_plot)
+fit3 <- lm(log(avg_pc) ~ state * year, data = kbs_comp_plot)
 interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
@@ -179,23 +175,23 @@ outlierTest(modfull) # no outliers
 
 ```{r}
 # testing if year as continuous or year as a factor makes more sense (test models)
-year.mod.test1 <- lmer(log(avg_relative_abundance) ~ state + year + (1|plot), kbs_comp_plot, REML=FALSE)
-year.mod.test2 <- lmer(log(avg_relative_abundance) ~ state + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
+year.mod.test1 <- lmer(log(avg_pc) ~ state + year + (1|plot), kbs_comp_plot, REML=FALSE)
+year.mod.test2 <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
 anova(year.mod.test1, year.mod.test2) #year.mod.test2
 
 # plot-level models 
-modfull <- lmer(log(avg_relative_abundance) ~ state*as.factor(year_factor) + insecticide*year_factor + (1|plot), kbs_comp_plot, REML=F)
-mod1p <- lmer(log(avg_relative_abundance) ~ state + (1|plot), kbs_comp_plot, REML=FALSE)
-mod2p <- lmer(log(avg_relative_abundance) ~ insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
-mod3p <- lmer(log(avg_relative_abundance) ~ insecticide + state + (1|plot), kbs_comp_plot, REML=FALSE)
-mod4p <- lmer(log(avg_relative_abundance) ~ insecticide * state + (1|plot), kbs_comp_plot, REML=FALSE)
-mod5p <- lmer(log(avg_relative_abundance) ~ state + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
-mod6p <- lmer(log(avg_relative_abundance) ~ state + as.factor(year_factor) + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
-mod7p <- lmer(log(avg_relative_abundance) ~ state * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
-mod8p <- lmer(log(avg_relative_abundance) ~ state * as.factor(year_factor) + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
-mod9p <- lmer(log(avg_relative_abundance) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
-mod10p <- lmer(log(avg_relative_abundance) ~ state + insecticide * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
-mod11p <- lmer(log(avg_relative_abundance) ~ state * as.factor(year_factor) * insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+modfull <- lmer(log(avg_pc) ~ state*as.factor(year_factor) + insecticide*year_factor + (1|plot), kbs_comp_plot, REML=F)
+mod1p <- lmer(log(avg_pc) ~ state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod2p <- lmer(log(avg_pc) ~ insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod3p <- lmer(log(avg_pc) ~ insecticide + state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod4p <- lmer(log(avg_pc) ~ insecticide * state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod5p <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
+mod6p <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod7p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
+mod8p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod9p <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
+mod10p <- lmer(log(avg_pc) ~ state + insecticide * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
+mod11p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) * insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
 
 AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
 anova(mod5p, mod6p)
@@ -212,7 +208,7 @@ emmeans(mod5p, list(pairwise ~ state), adjust = "tukey")
 Hypothesized model
 ```{r}
 #Our hypothesized model is  mod9p
-mod9p <- lmer(log(avg_relative_abundance) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
+mod9p <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
 summary(mod9p)
 anova(mod9p)
 
@@ -226,16 +222,16 @@ emmip(mod9p, insecticide~state)
 kable(anova(mod9p)) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
-exp((-1.98820) +  (-0.228)*0) # 0.1369417 
-exp((-1.98820) +  (-0.228)*1) # 0.1090226
+exp((2.717016) +  (0.182115)*0) # 15.13509 
+exp((2.717016) +  (0.182115)*1) # 18.15836
 # effect:
-0.1090226 - 0.1369417 # effect of warming - warmed plots had 0.0279191 or 2.79191% more relative abundance than ambient plots
+18.15836 - 15.13509 # effect of warming - warmed plots had 3.02327 or 3.02327% more percent cover than ambient plots
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for avg relative abundance as a function of just temp to see how real temp data affects avg relative abundance
-modtest1u <- lmer(log(avg_relative_abundance) ~ mean_temp + (1|plot), kbs_comp_plot, REML=FALSE)
-modtest2u <- lmer(log(avg_relative_abundance) ~ GDD_cumulative + (1|plot), kbs_comp_plot, REML=FALSE)
+modtest1u <- lmer(log(avg_pc) ~ mean_temp + (1|plot), kbs_comp_plot, REML=FALSE)
+modtest2u <- lmer(log(avg_pc) ~ GDD_cumulative + (1|plot), kbs_comp_plot, REML=FALSE)
 
 AICtab(modtest1u, modtest2u, weights=T)
 # growing degree days model is better but we are going to use the mean temp for all models
@@ -244,10 +240,10 @@ anova(modtest1u)
 summary(modtest1u)
 
 # calculating effect size - accounting for log transformation
-exp((-4.16491) + (0.14625)*0) # 0.01553111 
-exp((-4.16491) + (0.14625)*1) # 0.01797704
+exp(0.18934 + (0.17800)*0) # 1.208452 
+exp(0.18934 + (0.17800)*1) # 1.443889
 # effect:
-0.01797704 - 0.01553111 # effect of warming - warmed plots had 0.00244593 or 0.24% more relative abundance than ambient plots
+1.443889 - 1.208452 # effect of warming - warmed plots had 0.235437 more percent cover than ambient plots
 ```
 
 #KBS Origin Plot Level
@@ -534,23 +530,23 @@ kable(anova(mod_k_g)) %>% kableExtra::kable_styling()
 #UMBS Plot Level
 ```{r}
 ### UMBS ###
-hist(umbs_comp_plot$avg_relative_abundance)
-qqnorm(umbs_comp_plot$avg_relative_abundance)
-shapiro.test(umbs_comp_plot$avg_relative_abundance) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
+hist(umbs_comp_plot$avg_pc)
+qqnorm(umbs_comp_plot$avg_pc)
+shapiro.test(umbs_comp_plot$avg_pc) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) 
 
 # Exploring distributions:
-descdist(umbs_comp_plot$avg_relative_abundance, discrete = FALSE)
+descdist(umbs_comp_plot$avg_pc, discrete = FALSE)
 
 # Gamma distribution 
-fit.gamma <- fitdist(umbs_comp_plot$avg_relative_abundance, "gamma")
+fit.gamma <- fitdist(umbs_comp_plot$avg_pc, "gamma")
 plot(fit.gamma)
 
 # Weibull distribution
-fit.weibull  <- fitdist(umbs_comp_plot$avg_relative_abundance, "weibull")
+fit.weibull  <- fitdist(umbs_comp_plot$avg_pc, "weibull")
 plot(fit.weibull)
 
 # Lognormal distribution 
-fit.ln <- fitdist(umbs_comp_plot$avg_relative_abundance, "lnorm")
+fit.ln <- fitdist(umbs_comp_plot$avg_pc, "lnorm")
 plot(fit.ln)
 
 par(mfrow=c(2,2))
@@ -570,7 +566,7 @@ Leverage plots and detecting Outliers
 ```{r}
 # Plot level data
 # UMBS State-only model
-fit_plot_state_umbs <- lm(log(avg_relative_abundance) ~ state, data = umbs_comp_plot)
+fit_plot_state_umbs <- lm(log(avg_pc) ~ state, data = umbs_comp_plot)
 outlierTest(fit_plot_state_umbs) # no outliers
 qqPlot(fit_plot_state_umbs, main="QQ Plot") 
 hist(fit_plot_state_umbs$residuals)
@@ -578,7 +574,7 @@ leveragePlots(fit_plot_state_umbs)
 ols_test_normality(fit_plot_state_umbs) # looks ok 
 
 # UMBS State and year model
-fit_plot_stateyear_umbs <- lm(log(avg_relative_abundance) ~ state + year_factor, data = umbs_comp_plot)
+fit_plot_stateyear_umbs <- lm(log(avg_pc) ~ state + year_factor, data = umbs_comp_plot)
 outlierTest(fit_plot_stateyear_umbs) # no outliers 
 qqPlot(fit_plot_stateyear_umbs, main="QQ Plot") 
 hist(fit_plot_stateyear_umbs$residuals)
@@ -587,14 +583,14 @@ ols_test_normality(fit_plot_stateyear_umbs)
 
 # Interaction plot - see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(log(avg_relative_abundance) ~ state * year, data = umbs_comp_plot)
+fit3 <- lm(log(avg_pc) ~ state * year, data = umbs_comp_plot)
 interact_plot(fit3, pred = year, modx = state) 
 ```
 
 Mixed Effects Model
 ```{r}
 # UMBS PLOT LEVEL
-modfullu <- lmer(log(avg_relative_abundance) ~ state*insecticide + year_factor + (1|plot), umbs_comp_plot, REML = FALSE)
+modfullu <- lmer(log(avg_pc) ~ state*insecticide + year_factor + (1|plot), umbs_comp_plot, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -624,18 +620,18 @@ outlierTest(modfullu)
 
 ```{r}
 # plot-level models 
-modfullu <- lmer(log(avg_relative_abundance) ~ state*as.factor(year_factor) + insecticide*year_factor + (1|plot), umbs_comp_plot, REML=F)
-mod1pu <- lmer(log(avg_relative_abundance) ~ state + (1|plot), umbs_comp_plot, REML=FALSE)
-mod2pu <- lmer(log(avg_relative_abundance) ~ insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
-mod3pu <- lmer(log(avg_relative_abundance) ~ insecticide + state + (1|plot), umbs_comp_plot, REML=FALSE)
-mod4pu <- lmer(log(avg_relative_abundance) ~ insecticide * state + (1|plot), umbs_comp_plot, REML=FALSE)
-mod5pu <- lmer(log(avg_relative_abundance) ~ state + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
-mod6pu <- lmer(log(avg_relative_abundance) ~ state + as.factor(year_factor) + insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
-mod7pu <- lmer(log(avg_relative_abundance) ~ state * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
-mod8pu <- lmer(log(avg_relative_abundance) ~ state * as.factor(year_factor) + insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
-mod9pu <- lmer(log(avg_relative_abundance) ~ state * insecticide + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
-mod10pu <- lmer(log(avg_relative_abundance) ~ state + insecticide * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
-mod11pu <- lmer(log(avg_relative_abundance) ~ state * as.factor(year_factor) * insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
+modfullu <- lmer(log(avg_pc) ~ state*as.factor(year_factor) + insecticide*year_factor + (1|plot), umbs_comp_plot, REML=F)
+mod1pu <- lmer(log(avg_pc) ~ state + (1|plot), umbs_comp_plot, REML=FALSE)
+mod2pu <- lmer(log(avg_pc) ~ insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
+mod3pu <- lmer(log(avg_pc) ~ insecticide + state + (1|plot), umbs_comp_plot, REML=FALSE)
+mod4pu <- lmer(log(avg_pc) ~ insecticide * state + (1|plot), umbs_comp_plot, REML=FALSE)
+mod5pu <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
+mod6pu <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
+mod7pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
+mod8pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
+mod9pu <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
+mod10pu <- lmer(log(avg_pc) ~ state + insecticide * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
+mod11pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) * insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
 AICtab(modfullu, mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T)
 anova(mod5pu, mod6pu)
 AICctab(mod5pu, mod6pu, weights=T) # 5p
@@ -655,9 +651,9 @@ contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9pu, insecticide~state)
 
 # code to get table information for manuscript
-table <- anova(mod5pu, mod9pu)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod5pu, mod9pu, weights=T)
+#table <- anova(mod5pu, mod9pu)
+#kable(table) %>% kableExtra::kable_styling()
+#AICctab(mod5pu, mod9pu, weights=T)
 
 # making a table
 kable(anova(mod9pu)) %>% kableExtra::kable_styling()
@@ -665,8 +661,8 @@ kable(anova(mod9pu)) %>% kableExtra::kable_styling()
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for avg relative abundance as a function of just temp to see how real temp data affects avg relative abundance
-modtest1u <- lmer(log(avg_relative_abundance) ~ mean_temp + (1|plot), umbs_comp_plot, REML=FALSE)
-modtest2u <- lmer(log(avg_relative_abundance) ~ GDD_cumulative + (1|plot), umbs_comp_plot, REML=FALSE)
+modtest1u <- lmer(log(avg_pc) ~ mean_temp + (1|plot), umbs_comp_plot, REML=FALSE)
+modtest2u <- lmer(log(avg_pc) ~ GDD_cumulative + (1|plot), umbs_comp_plot, REML=FALSE)
 
 AICtab(modtest1u, modtest2u, weights=T)
 
@@ -674,10 +670,10 @@ anova(modtest1u)
 summary(modtest1u)
 
 # calculating effect size - accounting for log transformation
-exp((-3.17230) + (0.09559)*0) # 0.0419071 
-exp((-3.17230) + (0.09559)*1) # 0.04611071
+exp((0.35824) + (0.15702)*0) # 1.430809 
+exp((0.35824) + (0.15702)*1) # 1.674074
 # effect:
-0.04611071 - 0.0419071 # 0.00420361
+1.674074 - 1.430809 # 0.243265
 ```
 
 #UMBS Origin Plot Level
@@ -907,18 +903,18 @@ emmip(mod_1ug, insecticide~state)
 kable(anova(mod_1ug)) %>% kableExtra::kable_styling()
 ```
 
-Species Level
+#Species Level Analyses
 ```{r}
 # KBS
 # species model for supp
-mod_spp_k <- lmer(relative ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
+mod_spp_k <- lmer(cover ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
 # making a table
 kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
 
 # UMBS
 # species model for supp
-mod_spp_u <- lmer(relative ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_umbs_spp, REML=FALSE)
+mod_spp_u <- lmer(cover ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
 kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
