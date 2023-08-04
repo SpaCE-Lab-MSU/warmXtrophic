@@ -68,12 +68,25 @@ Averages + std error for species level data + insecticide treatment across all y
 # filter data to contain the averages and std error for each site & species
 sum_comp_spp <- comp_spp %>%
         group_by(site, state, species) %>%
-        summarize(avg_relative = mean(avg_pc, na.rm = TRUE),
-                  se = std.error(relative, na.rm = TRUE))
+        summarize(avg_pc = mean(cover, na.rm = TRUE),
+                  se = std.error(cover, na.rm = TRUE))
+#sum_comp_spp_i <- comp_spp %>%
+#        group_by(site, state, insecticide, species) %>%
+#        summarize(avg_pc = mean(cover, na.rm = TRUE),
+#                  se = std.error(cover, na.rm = TRUE))
+
+## only keep species that were recorded in both warmed and ambient plots
+#sum_flwr_dur_spp_i2 <- sum_flwr_dur_spp_i %>%
+#        group_by(site, species) %>% 
+#        filter(all(c('warmed', 'ambient') %in% state))
 sum_comp_spp_i <- comp_spp %>%
+        group_by(site, year, species) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>% # only keep species that were recorded in both warmed and ambient plots
         group_by(site, state, insecticide, species) %>%
-        summarize(avg_relative = mean(relative, na.rm = TRUE),
-                  se = std.error(relative, na.rm = TRUE))
+        summarize(avg_pc = mean(cover, na.rm = TRUE),
+                  se = std.error(cover, na.rm = TRUE),
+                  count=n()) # sample size
 ```
 
 Averages + std error for plot level data + insecticide treatment across all years
@@ -85,13 +98,13 @@ sum_comp_plot_i <- comp %>%
 
 sum_origin_plot_i <- origin %>%
         group_by(site, state, insecticide, origin) %>%
-        summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
-                  se = std.error(avg_relative_abundance, na.rm = TRUE))
+        summarize(avg_pc = mean(avg_origin_pc, na.rm = TRUE),
+                  se = std.error(avg_origin_pc, na.rm = TRUE))
 
 sum_growth_plot_i <- growth %>%
         group_by(site, state, insecticide, growth_habit) %>%
-        summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
-                  se = std.error(avg_relative_abundance, na.rm = TRUE))
+        summarize(avg_pc = mean(avg_growth_pc, na.rm = TRUE),
+                  se = std.error(avg_growth_pc, na.rm = TRUE))
 ```
 
 Dot plot with insecticide
@@ -137,16 +150,15 @@ annotate_figure(comp_all_dot_i,
 dev.off()
 ```
 
-The plots below have not been updated like the one above
 Origin & Growth Habit
 ```{r}
 # origin
 sum_origin_plot_i$full_treat <- paste(sum_origin_plot_i$state, sum_origin_plot_i$insecticide, sep="_")
 origin_dot_i <- function(loc) { 
        origin_plot <- subset(sum_origin_plot_i, site == loc)
-        return(ggplot(origin_plot, aes(x = state, y = avg_relabun, color=insecticide, shape=origin)) +
+        return(ggplot(origin_plot, aes(x = state, y = avg_pc, color=insecticide, shape=origin)) +
                        #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
-                       geom_pointrange(aes(ymin=avg_relabun-se, ymax=avg_relabun+se),size=1,position=position_dodge(0.3)) +
+                       geom_pointrange(aes(ymin=avg_pc-se, ymax=avg_pc+se),size=1,position=position_dodge(0.3)) +
                        scale_shape_manual(name="Origin",
                                           values = c(1, 19),
                                           labels=c("Exotic","Native")) +
@@ -155,13 +167,13 @@ origin_dot_i <- function(loc) {
                                          labels=c("Herbivory","Reduced Herbivory")) +
                                labs(x = NULL, y = "Origin", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-                       coord_cartesian(ylim=c(0.1,0.7)) +
+                       #coord_cartesian(ylim=c(0.1,0.7)) +
                        theme_bw(14))
 }
 origin_dot_i_kbs <- origin_dot_i("KBS")
 origin_dot_i_kbs
 origin_dot_i_kbs <- origin_dot_i_kbs + 
-        annotate("text", x = 0.5, y=0.7, label = "A", size=5) +
+        annotate("text", x = 0.5, y=51, label = "A", size=5) +
         theme(plot.title = element_text(size=20),
               axis.text.y = element_text(size=17),
               axis.text.x = element_blank(),
@@ -170,7 +182,7 @@ origin_dot_i_kbs <- origin_dot_i_kbs +
 origin_dot_i_umbs <- origin_dot_i("UMBS")
 origin_dot_i_umbs <- origin_dot_i_umbs + 
         labs(y=NULL) + 
-        annotate("text", x = 0.5, y=0.7, label = "B", size=5) +
+        annotate("text", x = 0.5, y=51, label = "B", size=5) +
         theme(axis.title.y=element_blank(),
               plot.title = element_text(size=20),
               axis.text.x = element_blank(),
@@ -181,10 +193,10 @@ origin_dot_i_umbs <- origin_dot_i_umbs +
 # growth habit
 sum_growth_plot_i$full_treat <- paste(sum_growth_plot_i$state, sum_growth_plot_i$insecticide, sep="_")
 growth_dot_i <- function(loc) { 
-       origin_plot <- subset(sum_growth_plot_i, site == loc)
-        return(ggplot(origin_plot, aes(x = state, y = avg_relabun, color=insecticide, shape=growth_habit)) +
+       growth_plot <- subset(sum_growth_plot_i, site == loc)
+        return(ggplot(growth_plot, aes(x = state, y = avg_pc, color=insecticide, shape=growth_habit)) +
                        #geom_point(stat = "identity",position=position_dodge(0.2),size=5) +
-                       geom_pointrange(aes(ymin=avg_relabun-se, ymax=avg_relabun+se),size=1,position=position_dodge(0.3)) +
+                       geom_pointrange(aes(ymin=avg_pc-se, ymax=avg_pc+se),size=1,position=position_dodge(0.3)) +
                        scale_shape_manual(name="Growth Habit",
                                           values = c(1, 19),
                                           labels=c("Forb","Graminoid")) +
@@ -193,13 +205,13 @@ growth_dot_i <- function(loc) {
                                          labels=c("Herbivory","Reduced Herbivory")) +
                                labs(x = NULL, y = "Growth Habit", title = NULL) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-                       coord_cartesian(ylim=c(0.2,0.7)) +
+                       #coord_cartesian(ylim=c(10,42)) +
                        theme_bw(14))
 }
 growth_dot_i_kbs <- growth_dot_i("KBS")
 growth_dot_i_kbs
 growth_dot_i_kbs <- growth_dot_i_kbs + 
-        annotate("text", x = 0.5, y=0.7, label = "C", size=5) +
+        annotate("text", x = 0.5, y=41, label = "C", size=5) +
         theme(plot.title = element_text(size=20),
               axis.text.y = element_text(size=17),
               axis.title.y = element_text(size=17),
@@ -207,7 +219,7 @@ growth_dot_i_kbs <- growth_dot_i_kbs +
 growth_dot_i_umbs <- growth_dot_i("UMBS")
 growth_dot_i_umbs <- growth_dot_i_umbs + 
         labs(y=NULL) + 
-        annotate("text", x = 0.5, y=0.7, label = "D", size=5) +
+        annotate("text", x = 0.5, y=41, label = "D", size=5) +
         theme(axis.title.y=element_blank(),
               plot.title = element_text(size=20),
               axis.text.y = element_blank(),
@@ -223,232 +235,24 @@ origin_growth_dot_i <- ggpubr::ggarrange(origin_dot_i_kbs, origin_dot_i_umbs,
                   nrow = 2, ncol = 2,
                   widths = c(1, 1.52))
 
-png("relative_abundance_plots_L2_growth_origin_dot_insect.png", units="in", width=10, height=8, res=300)
+png("percent_cover_plots_L2_growth_origin_dot_insect.png", units="in", width=10, height=8, res=300)
 annotate_figure(origin_growth_dot_i,
-                left = text_grob("Relative Abundance", color = "black", rot = 90, size=17))
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=17))
 dev.off()
-```
-
-For the supplemental document - line graph by site and year (need to work on)
-```{r}
-# filter the data to contain the mean and std error for relabun of each site
-relabun_avg <- comp %>%
-  group_by(site, state, year) %>%
-  summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
-            se = std.error(avg_relative_abundance, na.rm = TRUE))
-
-# filter the data to contain the mean and std error for relabun of each site for origin
-origin_relabun_avg <- origin %>%
-  group_by(site, state, origin, year) %>%
-  summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
-            se = std.error(avg_relative_abundance, na.rm = TRUE))
-
-# filter the data to contain the mean and std error for relabun of each site for growth habit
-growth_relabun_avg <- growth %>%
-  group_by(site, state, growth_habit, year) %>%
-  summarize(avg_relabun = mean(avg_relative_abundance, na.rm = TRUE),
-            se = std.error(avg_relative_abundance, na.rm = TRUE))
-
-# adding empty values for 2021 to umbs so the x-axis matches the other plots
-relabun_avg2 <- relabun_avg
-de<-data.frame("UMBS", NA, "2021", NA, NA)
-names(de)<-c("site","state", "year", "avg_relabun", "se")
-de$year <- as.integer(de$year)
-relabun_avg <- rbind(relabun_avg2, de)
-
-origin_relabun_avg2 <- origin_relabun_avg
-de<-data.frame("umbs", NA, "Native", "2021", NA, NA)
-de2<-data.frame("umbs", NA, "Exotic", "2021", NA, NA)
-names(de)<-c("site","state", "origin", "year", "avg_relabun", "se")
-names(de2)<-c("site","state", "origin", "year", "avg_relabun", "se")
-de$year <- as.integer(de$year)
-de2$year <- as.integer(de2$year)
-origin_relabun_avg <- rbind(origin_relabun_avg2, de, de2)
-
-growth_relabun_avg2 <- growth_relabun_avg
-de<-data.frame("umbs", NA, "Graminoid", "2021", NA, NA)
-de2<-data.frame("umbs", NA, "Forb", "2021", NA, NA)
-names(de)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
-names(de2)<-c("site","state", "growth_habit", "year", "avg_relabun", "se")
-de$year <- as.integer(de$year)
-de2$year <- as.integer(de2$year)
-growth_relabun_avg <- rbind(growth_relabun_avg2, de, de2)
-```
-
-General Plot Level
-```{r}
-plot_line <- function(loc) { 
-  all_plot <- subset(relabun_avg, site == loc)
-  return(ggplot(all_plot, aes(x = year, y = avg_relabun, group = state)) +
-                 geom_errorbar(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), position=position_dodge(0.1), width=.25) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Average Relative Abundance", title=loc, color="Treatment") +
-           ylim(0.09, 0.35))
-}
-
-plot_line_kbs <- plot_line("KBS")
-plot_line_kbs <- plot_line_kbs + labs(title="KBS", y=NULL) + theme(axis.text.x=element_blank())
-plot_line_umbs <- plot_line("UMBS")
-plot_line_umbs <- plot_line_umbs + labs(title="UMBS", y=NULL)
-
-plot_line <- ggpubr::ggarrange(plot_line_kbs, plot_line_umbs,
-                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
-png("avg_relative_abundance_plots_by_year_L2.png", units="in", width=9, height=8, res=300)
-annotate_figure(plot_line,
-                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
-dev.off()
-```
-
-Origin - Native vs. Exotic (not finished)
-```{r}
-native <- origin_relabun_avg[which(origin_relabun_avg$origin == "Native"),]
-exotic <- origin_relabun_avg[which(origin_relabun_avg$origin == "Exotic"),]
-
-native_line <- function(loc) { 
-  native_plot <- subset(native, site == loc)
-  return(ggplot(native_plot, aes(x = year, y = avg_relabun, group = state)) +
-                 geom_errorbar(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), position=position_dodge(0.1), width=.25) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Averegae Relative Abundance", title=loc, color="Treatment"))
-}
-
-native_line_kbs <- native_line("kbs")
-native_line_kbs <- native_line_kbs + labs(title="KBS", subtitle= "Native", y=NULL) + theme(axis.text.x=element_blank())
-native_line_umbs <- native_line("umbs")
-native_line_umbs <- native_line_umbs + labs(title="UMBS", subtitle= "Native", y=NULL)
-
-native_line <- ggpubr::ggarrange(native_line_kbs, native_line_umbs,
-                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
-png("native_plots_L2.png", units="in", width=9, height=8, res=300)
-annotate_figure(native_line,
-                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
-dev.off()
-
-exotic_line <- function(loc) { 
-  exotic_plot <- subset(exotic, site == loc)
-  return(ggplot(exotic_plot, aes(x = year, y = avg_relabun, group = state)) +
-                 geom_errorbar(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), position=position_dodge(0.1), width=.25) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Averegae Relative Abundance", title=loc, color="Treatment") +
-                 ylim(0,0.75))
-}
-
-exotic_line_kbs <- exotic_line("kbs")
-exotic_line_kbs <- exotic_line_kbs + labs(title="KBS", subtitle="Exotic", y=NULL) + theme(axis.text.x=element_blank())
-exotic_line_umbs <- exotic_line("umbs")
-exotic_line_umbs <- exotic_line_umbs + labs(title="UMBS", subtitle="Exotic", y=NULL)
-
-origin_line <- ggpubr::ggarrange(native_line_kbs, exotic_line_kbs,
-                                 native_line_umbs, exotic_line_umbs,
-                          nrow = 2, ncol = 2, common.legend = T, legend="bottom")
-png("origin_relative_abundance_plots_L2.png", units="in", width=9, height=8, res=300)
-annotate_figure(origin_line,
-                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
-dev.off()
-```
-
-Growth Habit - Forbs vs. Graminoids (not finished)
-```{r}
-forb <- growth_plot_avg[which(growth_plot_avg$growth_habit == "Forb"),]
-graminoid <- growth_plot_avg[which(growth_plot_avg$growth_habit == "Graminoid"),]
-
-forb_line <- function(loc) { 
-  forb_plot <- subset(forb, site == loc)
-  return(ggplot(forb_plot, aes(x = year, y = avg_relabun, group = state)) +
-                 geom_errorbar(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), position=position_dodge(0.1), width=.25) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Averegae Relative Abundance", title=loc, color="Treatment") +
-                 ylim(0.1,0.85))
-}
-
-forb_line_kbs <- forb_line("kbs")
-forb_line_kbs <- forb_line_kbs + labs(title="KBS", subtitle= "Forb", y=NULL) + theme(axis.text.x=element_blank())
-forb_line_umbs <- forb_line("umbs")
-forb_line_umbs <- forb_line_umbs + labs(title="UMBS", subtitle= "Forb", y=NULL)
-
-#forb_line <- ggpubr::ggarrange(forb_line_kbs, forb_line_umbs,
-#                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
-#png("forb_plots_L2.png", units="in", width=9, height=8, res=300)
-#annotate_figure(forb_line,
-#                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
-#                bottom = text_grob("Year", color = "black", size=15))
-#dev.off()
-
-graminoid_line <- function(loc) { 
-  graminoid_plot <- subset(graminoid, site == loc)
-  return(ggplot(graminoid_plot, aes(x = year, y = avg_relabun, group = state)) +
-                 geom_errorbar(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), position=position_dodge(0.1), width=.25) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Averegae Relative Abundance", title=loc, color="Treatment") +
-                 ylim(0.1,0.85))
-}
-
-graminoid_line_kbs <- graminoid_line("kbs")
-graminoid_line_kbs <- graminoid_line_kbs + labs(title="KBS", subtitle="Graminoid", y=NULL) + theme(axis.text.x=element_blank())
-graminoid_line_umbs <- graminoid_line("umbs")
-graminoid_line_umbs <- graminoid_line_umbs + labs(title="UMBS", subtitle="Graminoid", y=NULL)
-
-growthhabit_line <- ggpubr::ggarrange(forb_line_kbs, graminoid_line_kbs,
-                                    forb_line_umbs, graminoid_line_umbs,
-                          nrow = 2, ncol = 2, common.legend = T, legend="bottom")
-png("growthhabit_relative_abundance_plots_L2.png", units="in", width=9, height=8, res=300)
-annotate_figure(growthhabit_line,
-                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
-dev.off()
-```
-Origin - Native vs. Exotic (ignore this chumk)
-```{r}
-origin_line <- function(loc) { 
-  origin_plot <- subset(origin_plot_avg, site == loc)
-  return(ggplot(origin_plot, aes(x = year, y = avg_relabun, group=interaction(state, origin))) +
-                 geom_errorbar(aes(ymin=avg_relabun-se, ymax=avg_relabun+se), position=position_dodge(0.1), width=.25) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Averegae Relative Abundance", title=loc, color="Treatment"))
-           #ylim(150,205))
-}
-
-origin_line_kbs <- origin_line("kbs")
-origin_line_kbs <- origin_line_kbs + labs(title="KBS", y=NULL) + theme(axis.text.x=element_blank())
-origin_line_umbs <- origin_line("umbs")
-origin_line_umbs <- origin_line_umbs + labs(title="UMBS", y=NULL)
-
-origin_line <- ggpubr::ggarrange(origin_line_kbs, origin_line_umbs,
-                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
-
-annotate_figure(origin_line,
-                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
-
 ```
 
 Species level plots for supplemental doc
 ```{r}
-####### relative abundance species level ########
+####### percent cover species level ########
 # only keep species that were recorded in both warmed and ambient plots
-sum_comp_spp_i2 <- sum_comp_spp_i %>%
-        group_by(site, species) %>% 
-        filter(all(c('warmed', 'ambient') %in% state))
+#sum_comp_spp_i2 <- sum_comp_spp_i %>%
+#        group_by(site, species) %>% 
+#        filter(all(c('warmed', 'ambient') %in% state))
 comp_plot_overall <- function(loc) { 
-        comp_spp <- subset(sum_comp_spp_i2, site == loc)
-        return(ggplot(comp_spp, aes(x = state, y = avg_relative, fill = insecticide)) +
+        comp_spp <- subset(sum_comp_spp_i, site == loc)
+        return(ggplot(comp_spp, aes(x = state, y = avg_pc, fill = insecticide)) +
                        facet_wrap(~species, ncol=4,scales="free") +
-                       geom_pointrange(aes(ymin=avg_relative-se, ymax=avg_relative+se), pch=21,size=0.6,position=position_dodge(0.3)) +
+                       geom_pointrange(aes(ymin=avg_pc-se, ymax=avg_pc+se), pch=21,size=0.6,position=position_dodge(0.3)) +
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
@@ -473,9 +277,193 @@ kbs_comp_spp <- comp_plot_overall("KBS")
 umbs_comp_spp <- comp_plot_overall("UMBS")
 comp_overall_merge <- ggpubr::ggarrange(kbs_comp_spp, umbs_comp_spp,
                                          ncol = 2, common.legend = T,legend="right")
-png("comp_species.png", units="in", width=21, height=15, res=300)
+png("comp_species.png", units="in", width=21, height=10, res=300)
 annotate_figure(comp_overall_merge,
-                left = text_grob("Relative Abundance", color = "black", rot = 90, size=17))
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=17))
+dev.off()
+```
+
+For the supplemental document - line graph by site and year (need to work on)
+```{r}
+# filter the data to contain the mean and std error for relabun of each site
+pc_avg <- comp %>%
+  group_by(site, state, year) %>%
+  summarize(avg_pc = mean(avg_pc, na.rm = TRUE),
+            se = std.error(avg_pc, na.rm = TRUE))
+
+# filter the data to contain the mean and std error for relabun of each site for origin
+origin_pc_avg <- origin %>%
+  group_by(site, state, origin, year) %>%
+  summarize(avg_pc = mean(avg_origin_pc, na.rm = TRUE),
+            se = std.error(avg_origin_pc, na.rm = TRUE))
+
+# filter the data to contain the mean and std error for relabun of each site for growth habit
+growth_pc_avg <- growth %>%
+  group_by(site, state, growth_habit, year) %>%
+  summarize(avg_pc = mean(avg_growth_pc, na.rm = TRUE),
+            se = std.error(avg_growth_pc, na.rm = TRUE))
+
+# adding empty values for 2021 to umbs so the x-axis matches the other plots
+pc_avg2 <- pc_avg
+de<-data.frame("UMBS", NA, "2021", NA, NA)
+names(de)<-c("site","state", "year", "avg_pc", "se")
+de$year <- as.integer(de$year)
+pc_avg <- rbind(pc_avg2, de)
+
+origin_pc_avg2 <- origin_pc_avg
+de<-data.frame("UMBS", NA, "Native", "2021", NA, NA)
+de2<-data.frame("UMBS", NA, "Exotic", "2021", NA, NA)
+names(de)<-c("site","state", "origin", "year", "avg_pc", "se")
+names(de2)<-c("site","state", "origin", "year", "avg_pc", "se")
+de$year <- as.integer(de$year)
+de2$year <- as.integer(de2$year)
+origin_pc_avg <- rbind(origin_pc_avg2, de, de2)
+
+growth_pc_avg2 <- growth_pc_avg
+de<-data.frame("UMBS", NA, "Graminoid", "2021", NA, NA)
+de2<-data.frame("UMBS", NA, "Forb", "2021", NA, NA)
+names(de)<-c("site","state", "growth_habit", "year", "avg_pc", "se")
+names(de2)<-c("site","state", "growth_habit", "year", "avg_pc", "se")
+de$year <- as.integer(de$year)
+de2$year <- as.integer(de2$year)
+growth_pc_avg <- rbind(growth_pc_avg2, de, de2)
+```
+
+General Plot Level
+```{r}
+plot_line <- function(loc) { 
+  all_plot <- subset(pc_avg, site == loc)
+  return(ggplot(all_plot, aes(x = year, y = avg_pc, group = state)) +
+                 geom_errorbar(aes(ymin=avg_pc-se, ymax=avg_pc+se), position=position_dodge(0.1), width=.25) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 ylim(0, 30) +
+                 theme_bw())
+}
+
+plot_line_kbs <- plot_line("KBS")
+plot_line_kbs <- plot_line_kbs + labs(title="KBS", y=NULL) + theme(axis.text.x=element_blank())
+plot_line_umbs <- plot_line("UMBS")
+plot_line_umbs <- plot_line_umbs + labs(title="UMBS", y=NULL)
+
+plot_line <- ggpubr::ggarrange(plot_line_kbs, plot_line_umbs,
+                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
+png("avg_percent_cover_plots_by_year_L2.png", units="in", width=9, height=8, res=300)
+annotate_figure(plot_line,
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
+                bottom = text_grob("Year", color = "black", size=15))
+dev.off()
+```
+
+Origin - Native vs. Exotic
+```{r}
+native <- origin_pc_avg[which(origin_pc_avg$origin == "Native"),]
+exotic <- origin_pc_avg[which(origin_pc_avg$origin == "Exotic"),]
+
+native_line <- function(loc) { 
+  native_plot <- subset(native, site == loc)
+  return(ggplot(native_plot, aes(x = year, y = avg_pc, group = state)) +
+                 geom_errorbar(aes(ymin=avg_pc-se, ymax=avg_pc+se), position=position_dodge(0.1), width=.25) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 theme_bw())
+}
+
+native_line_kbs <- native_line("KBS")
+native_line_kbs <- native_line_kbs + labs(title="KBS", subtitle= "Native", y=NULL) + theme(axis.text.x=element_blank())
+native_line_umbs <- native_line("UMBS")
+native_line_umbs <- native_line_umbs + labs(title="UMBS", subtitle= "Native", y=NULL)
+
+native_line <- ggpubr::ggarrange(native_line_kbs, native_line_umbs,
+                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
+#png("native_plots_L2.png", units="in", width=9, height=8, res=300)
+#annotate_figure(native_line,
+#                left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
+#                bottom = text_grob("Year", color = "black", size=15))
+#dev.off()
+
+exotic_line <- function(loc) { 
+  exotic_plot <- subset(exotic, site == loc)
+  return(ggplot(exotic_plot, aes(x = year, y = avg_pc, group = state)) +
+                 geom_errorbar(aes(ymin=avg_pc-se, ymax=avg_pc+se), position=position_dodge(0.1), width=.25) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 theme_bw())
+}
+
+exotic_line_kbs <- exotic_line("KBS")
+exotic_line_kbs <- exotic_line_kbs + labs(title="KBS", subtitle="Exotic", y=NULL) + theme(axis.text.x=element_blank())
+exotic_line_umbs <- exotic_line("UMBS")
+exotic_line_umbs <- exotic_line_umbs + labs(title="UMBS", subtitle="Exotic", y=NULL)
+
+origin_line <- ggpubr::ggarrange(native_line_kbs, exotic_line_kbs,
+                                 native_line_umbs, exotic_line_umbs,
+                          nrow = 2, ncol = 2, common.legend = T, legend="bottom")
+png("origin_percent_cover_plots_L2.png", units="in", width=9, height=8, res=300)
+annotate_figure(origin_line,
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
+                bottom = text_grob("Year", color = "black", size=15))
+dev.off()
+```
+
+Growth Habit - Forbs vs. Graminoids
+```{r}
+forb <- growth_pc_avg[which(growth_pc_avg$growth_habit == "Forb"),]
+graminoid <- growth_pc_avg[which(growth_pc_avg$growth_habit == "Graminoid"),]
+
+forb_line <- function(loc) { 
+  forb_plot <- subset(forb, site == loc)
+  return(ggplot(forb_plot, aes(x = year, y = avg_pc, group = state)) +
+                 geom_errorbar(aes(ymin=avg_pc-se, ymax=avg_pc+se), position=position_dodge(0.1), width=.25) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 theme_bw())
+}
+
+forb_line_kbs <- forb_line("KBS")
+forb_line_kbs <- forb_line_kbs + labs(title="KBS", subtitle= "Forb", y=NULL) + theme(axis.text.x=element_blank())
+forb_line_umbs <- forb_line("UMBS")
+forb_line_umbs <- forb_line_umbs + labs(title="UMBS", subtitle= "Forb", y=NULL)
+
+#forb_line <- ggpubr::ggarrange(forb_line_kbs, forb_line_umbs,
+#                          nrow = 2, ncol = 1, common.legend = T, legend="bottom")
+#png("forb_plots_L2.png", units="in", width=9, height=8, res=300)
+#annotate_figure(forb_line,
+#                left = text_grob("Average Relative Abundance", color = "black", rot = 90, size=15),
+#                bottom = text_grob("Year", color = "black", size=15))
+#dev.off()
+
+graminoid_line <- function(loc) { 
+  graminoid_plot <- subset(graminoid, site == loc)
+  return(ggplot(graminoid_plot, aes(x = year, y = avg_pc, group = state)) +
+                 geom_errorbar(aes(ymin=avg_pc-se, ymax=avg_pc+se), position=position_dodge(0.1), width=.25) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 theme_bw())
+}
+
+graminoid_line_kbs <- graminoid_line("KBS")
+graminoid_line_kbs <- graminoid_line_kbs + labs(title="KBS", subtitle="Graminoid", y=NULL) + theme(axis.text.x=element_blank())
+graminoid_line_umbs <- graminoid_line("UMBS")
+graminoid_line_umbs <- graminoid_line_umbs + labs(title="UMBS", subtitle="Graminoid", y=NULL)
+
+growthhabit_line <- ggpubr::ggarrange(forb_line_kbs, graminoid_line_kbs,
+                                    forb_line_umbs, graminoid_line_umbs,
+                          nrow = 2, ncol = 2, common.legend = T, legend="bottom")
+png("growthhabit_percent_cover_plots_L2.png", units="in", width=9, height=8, res=300)
+annotate_figure(growthhabit_line,
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
+                bottom = text_grob("Year", color = "black", size=15))
 dev.off()
 ```
 

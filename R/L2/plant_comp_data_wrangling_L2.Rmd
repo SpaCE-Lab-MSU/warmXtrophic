@@ -106,11 +106,23 @@ peak_comp_kbs <- peak_comp[which(peak_comp$month == "8" & peak_comp$site == "kbs
 peak_comp <- full_join(peak_comp_umbs, peak_comp_kbs, by = c("species", "site", "year_factor", "month", "date", "year", "julian", "plot", "cover", "state", "insecticide", "treatment_key", "origin", "growth_habit", "LTER_code", "USDA_code", "common_name", "group", "scientific_name", "duration", "family"))
 write.csv(peak_comp, file.path(L2_dir, "plant_composition/final_plant_comp_species_L2.csv"), row.names = F)
 
-peak_comp1 <- peak_comp %>%  
-        select(c("species", "site", "year_factor", "month", "date", "year", "julian", "plot", "cover", "state", "insecticide", "treatment_key"))
-peak_comp1$cover <- as.numeric(as.character(peak_comp1$cover))
+# Origin subsetting
+# subset data to just include exotics
+exotic_cover <- subset(peak_comp, origin == "Exotic")
+write.csv(exotic_cover, file.path(L2_dir, "plant_composition/final_plant_comp_exotic_species_L2.csv"), row.names = F)
+# subset data to just include natives
+native_cover <- subset(peak_comp, origin == "Native")
+write.csv(native_cover, file.path(L2_dir, "plant_composition/final_plant_comp_native_species_L2.csv"), row.names = F)
 
-peak_comp_avg_plot_pc <- peak_comp1 %>% 
+# Growth habit subsetting
+# subset data to just include forbs
+forb_cover <- subset(peak_comp, growth_habit == "Forb")
+write.csv(forb_cover, file.path(L2_dir, "plant_composition/final_plant_comp_forb_species_L2.csv"), row.names = F)
+# subset data to just include graminoid
+graminoid_cover <- subset(peak_comp, growth_habit == "Graminoid")
+write.csv(forb_cover, file.path(L2_dir, "plant_composition/final_plant_comp_graminoid_species_L2.csv"), row.names = F)
+
+peak_comp_avg_plot_pc <- peak_comp %>% 
         group_by(site, year_factor, month, date, year, julian, plot, state, insecticide, treatment_key) %>% 
         summarize(avg_pc = mean(cover))
 
@@ -130,6 +142,14 @@ origin_comp_pc <- peak_comp %>%
         group_by(site, year_factor, month, date, year, julian, plot, state, insecticide, treatment_key, origin) %>% 
         summarize(avg_origin_pc = mean(cover))
 
+# Origin subsetting
+# subset data to just include exotics
+exotic_cover_plot <- subset(peak_comp, origin == "Exotic")
+write.csv(exotic_cover_plot, file.path(L2_dir, "plant_composition/final_plant_comp_exotic_plot_L2.csv"), row.names = F)
+# subset data to just include natives
+native_cover_plot <- subset(peak_comp, origin == "Native")
+write.csv(native_cover_plot, file.path(L2_dir, "plant_composition/final_plant_comp_native_plot_L2.csv"), row.names = F)
+
 # subset data to just include exotics and natives
 origin_comp_pc1 <- subset(origin_comp_pc, origin == "Exotic" | origin == "Native")
 write.csv(origin_comp_pc1, file.path(L2_dir, "plant_composition/final_plant_comp_origin_plot_L2.csv"), row.names = F)
@@ -139,9 +159,17 @@ growth_comp_pc <- peak_comp %>%
         group_by(site, year_factor, month, date, year, julian, plot, state, insecticide, treatment_key, growth_habit) %>%
         summarize(avg_growth_pc = mean(cover))
 
+# Growth habit subsetting
+# subset data to just include forbs
+forb_cover_plot <- subset(peak_comp, growth_habit == "Forb")
+write.csv(forb_cover_plot, file.path(L2_dir, "plant_composition/final_plant_comp_forb_plot_L2.csv"), row.names = F)
+# subset data to just include graminoid
+graminoid_cover <- subset(peak_comp, growth_habit == "Graminoid")
+write.csv(forb_cover_plot, file.path(L2_dir, "plant_composition/final_plant_comp_graminoid_plot_L2.csv"), row.names = F)
+
 # subset data to just include forbs and graminoids
 growth_comp_pc1 <- subset(growth_comp_pc, growth_habit == "Forb" | growth_habit == "Graminoid")
-write.csv(growth_comp_pc1, file.path(L2_dir, "plant_composition/final_plant_comp_growth_plot_L2.csv"), row.names = F)
+write.csv(growth_comp_pc1, file.path(L2_dir, "plant_composition/final_plant_comp_growth_habit_plot_L2.csv"), row.names = F)
 ```
 
 Not using calculations in chunk below anymore 7/29/23
