@@ -396,13 +396,19 @@ kable(anova(mod9pu)) %>% kableExtra::kable_styling()
 # so below, we test for green-up as a function of just temp to see how real temp data affects green-up
 umbs_comp_plot_amb <- umbs_comp_plot %>%
         filter(state == "ambient")
-modtest1u <- lmer(log(avg_pc) ~ mean_temp + (1|plot), kbs_comp_plot_amb, REML=FALSE)
-modtest2u <- lmer(log(avg_pc) ~ GDD_cumulative + (1|plot), kbs_comp_plot_amb, REML=FALSE)
+modtest1u <- lmer(log(avg_pc) ~ mean_temp + (1|plot), umbs_comp_plot_amb, REML=FALSE)
+modtest2u <- lmer(log(avg_pc) ~ GDD_cumulative + (1|plot), umbs_comp_plot_amb, REML=FALSE)
 
 AICtab(modtest1u,modtest2u)
 
 anova(modtest1u)
 summary(modtest1u)
+
+# calculating effect size - accounting for log transformation
+exp((-1.78002) +  (0.31009)*0) # 0.1686348 
+exp((-1.78002) +  (0.31009)*1) # 0.2299416
+# effect:
+0.2299416 - 0.1686348 # effect of warming - warmed plots had 0.0613068 more percent cover than ambient plots
 
 # species model for supp
 mod_spp_u <- lmer(cover ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_umbs_spp, REML=FALSE)
@@ -581,11 +587,11 @@ mod_exotic_k <- lmer(log(avg_origin_pc) ~ state * insecticide + as.factor(year_f
 summary(mod_exotic_k)
 anova(mod_exotic_k)
 
-# comparisons
-emmeans(mod_exotic_k, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_exotic_k.emm <- emmeans(mod_exotic_k, ~ state*insecticide)
-contrast(mod_exotic_k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_exotic_k, insecticide~state)
+# calculating effect size - accounting for log transformation
+exp((1.54502) +  (0.53486)*0) # 4.688065 
+exp((1.54502) +  (0.53486)*1) # 8.003508
+# effect:
+8.003508 - 4.688065 # effect of warming - warmed plots had 3.315443 or 3.315443% more percent cover than ambient plots
 
 # making a table
 kable(anova(mod_exotic_k)) %>% kableExtra::kable_styling()
