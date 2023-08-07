@@ -240,6 +240,8 @@ kable(anova(mod9p)) %>% kableExtra::kable_styling()
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
+kbs_flwr_plot_amb <- kbs_flwr_plot %>%
+        filter(state == "ambient")
 modtest1u <- lmer(flwr_duration_scaled ~ mean_temp + (1|plot), kbs_flwr_plot, REML=FALSE)
 modtest2u <- lmer(flwr_duration_scaled ~ GDD_cumulative + (1|plot), kbs_flwr_plot, REML=FALSE)
 
@@ -249,7 +251,6 @@ AICtab(modtest1u, modtest2u, weights=T)
 anova(modtest1u)
 summary(modtest1u)
 ```
-
 
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
@@ -291,6 +292,8 @@ emmip(mod9up, insecticide~state)
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
+umbs_flwr_plot_amb <- umbs_flwr_plot %>%
+        filter(state == "ambient")
 modtest1u <- lmer(flwr_duration_scaled ~ mean_temp + (1|plot), umbs_flwr_plot, REML=FALSE)
 modtest2u <- lmer(flwr_duration_scaled ~ GDD_cumulative + (1|plot), umbs_flwr_plot, REML=FALSE)
 
@@ -302,7 +305,7 @@ summary(modtest1u)
 ```
 
 ```{r}
-# KBS
+# UMBS
 # species model for supp
 mod_spp_k <- lmer(flwr_duration_scaled ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_kbs_spp, REML=FALSE)
 anova(mod_spp_k)

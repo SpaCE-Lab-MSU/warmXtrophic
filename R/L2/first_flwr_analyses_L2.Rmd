@@ -234,6 +234,8 @@ exp((5.277390) +  (-0.0251)*1) # 191.0032
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
+kbs_plot_amb <- kbs_plot %>%
+        filter(state == "ambient")
 modtest1u <- lmer(log(julian_min) ~ mean_temp + (1|plot), kbs_plot, REML=FALSE)
 modtest2u <- lmer(log(julian_min) ~ GDD_cumulative + (1|plot), kbs_plot, REML=FALSE)
 
@@ -315,6 +317,8 @@ kable(anova(mod9pu)) %>% kableExtra::kable_styling()
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
+umbs_plot_amb <- umbs_plot %>%
+        filter(state == "ambient")
 modtest1u <- lmer(julian_min ~ mean_temp + (1|plot), umbs_plot, REML=FALSE)
 modtest2u <- lmer(julian_min ~ GDD_cumulative + (1|plot), umbs_plot, REML=FALSE)
 
