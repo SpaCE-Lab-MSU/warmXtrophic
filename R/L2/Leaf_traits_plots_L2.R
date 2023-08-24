@@ -31,22 +31,29 @@ cn <- cn %>%
         rename(treatment = state)
 cn1 <- cn %>%
         group_by(plot,site,year,species,treatment, insecticide, plant_id) %>%
-        summarize(nitrogen = mean(nitrogen), carbon = mean(carbon), weight_mg = mean(weight_mg)) 
+        summarize(nitrogen = mean(nitrogen,na.rm=T), carbon = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T)) 
 # remove outliers (found in CN analyses script)
 cn1<-cn1 %>% filter(carbon < 55)
 cn1<-cn1 %>% filter(nitrogen < 4)
 # take the treatment-level mean
 cn_treatment <- cn1 %>%
         group_by(site, plot, species, treatment, insecticide) %>%
-        summarize(nitrogen = mean(nitrogen), carbon = mean(carbon), weight_mg = mean(weight_mg)) %>%    
+        summarize(nitrogen = mean(nitrogen,na.rm=T), carbon = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T)) %>%    
         group_by(site,treatment,insecticide) %>%
-        summarize(nitrogen_mean = mean(nitrogen), carbon_mean = mean(carbon), weight_mg = mean(weight_mg),
-                  n_se = std.error(nitrogen), c_se = std.error(carbon)) 
+        summarize(nitrogen_mean = mean(nitrogen,na.rm=T), carbon_mean = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T),
+                  n_se = std.error(nitrogen,na.rm=T), c_se = std.error(carbon,na.rm=T)) 
 # take the average by year + species
 cn_spp <- cn1 %>%
         group_by(site,year, species, treatment) %>%
         summarize(nitrogen_mean = mean(nitrogen), carbon_mean = mean(carbon), weight_mg = mean(weight_mg),
                   n_se = std.error(nitrogen), c_se = std.error(carbon)) 
+#cn_ma2 <- cn1 %>%
+#        group_by(site,species, treatment) %>%
+#        filter(year == max(year)) %>%
+#        group_by(site,species, treatment) %>%
+#        summarize(nitrogen_mean = mean(nitrogen,na.rm=T), carbon_mean = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T),
+#                  n_se = std.error(nitrogen,na.rm=T), c_se = std.error(carbon,na.rm=T),
+#                  count=n())
 # summary of data
 with(cn1,table(cn$site,cn$species)) 
 with(cn1,table(cn$year,cn$species)) 
@@ -57,29 +64,36 @@ with(cn1,table(cn$year,cn$site))
 # take the plant-level mean
 sla1 <- sla %>%
         group_by(plot,site,year,species,state, insecticide, plant_number) %>%
-        summarize(sla = mean(sla),
-                  se = std.error(sla)) 
+        summarize(sla = mean(sla,na.rm=T),
+                  se = std.error(sla,na.rm=T)) 
 # take the yearly treatment-level mean
 sla_treatment <- sla1 %>%
         group_by(site, plot, state,year) %>%
-        summarize(sla = mean(sla)) %>%    
+        summarize(sla = mean(sla,na.rm=T)) %>%    
         group_by(site,year,state) %>%
-        summarize(sla_mean = mean(sla),
-                  se = std.error(sla)) 
+        summarize(sla_mean = mean(sla,na.rm=T),
+                  se = std.error(sla,na.rm=T)) 
 # take the overall treatment-level mean
 sla_treatment2 <- sla1 %>%
         group_by(site, plot, state, insecticide) %>%
-        summarize(sla = mean(sla)) %>%    
+        summarize(sla = mean(sla,na.rm=T)) %>%    
         group_by(site,state, insecticide) %>%
-        summarize(sla_mean = mean(sla),
-                  se = std.error(sla)) 
+        summarize(sla_mean = mean(sla,na.rm=T),
+                  se = std.error(sla,na.rm=T)) 
 # take the species treatment-level mean
 sla_treatment3 <- sla1 %>%
         group_by(site, plot, species, state) %>%
-        summarize(sla = mean(sla)) %>%    
+        summarize(sla = mean(sla,na.rm=T)) %>%    
         group_by(site,species, state) %>%
-        summarize(sla_mean = mean(sla),
-                  se = std.error(sla)) 
+        summarize(sla_mean = mean(sla,na.rm=T),
+                  se = std.error(sla,na.rm=T)) 
+#sla_ma2 <- sla1 %>%
+#        group_by(site,species, state) %>%
+#        filter(year == max(year)) %>%
+#        group_by(site,species, state) %>%
+#        summarize(mean_sla = mean(sla,na.rm=T),
+#                  se = std.error(sla,na.rm=T),
+#                  count=n())
 
 
 # clean insecticide + site labels for plotting

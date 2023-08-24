@@ -63,10 +63,14 @@ insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 
 # filter data to contain the averages and std error for each site & species
 #sum_green_spp_i <- gr_species %>%
-#        group_by(site, state, insecticide,species) %>%
+#        group_by(site, species) %>%
+#        filter(year == max(year)) %>%
+#        group_by(site, year, state, insecticide,species) %>%
 #        summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
 #                  se = std.error(spp_half_cover_date, na.rm = TRUE),
 #                  count=n())
+#sum_green_spp_i <- sum_green_spp_i %>%
+#        filter(insecticide == "insects")
 #sum_green_spp_i2 <- sum_green_spp_i %>%
 #        group_by(site, species) %>% 
 #        filter(all(c('warmed', 'ambient') %in% state))
@@ -79,11 +83,11 @@ sum_green_spp_i <- gr_species %>%
                   se = std.error(spp_half_cover_date, na.rm = TRUE),
                   count=n())
 
-#sum_flwr_spp_i <- flwr_spp %>%
-#        group_by(site, state, insecticide,species) %>%
-#        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
-#                  se = std.error(julian_min, na.rm = TRUE),
-#                  count=n())
+sum_flwr_spp_i <- flwr_spp %>%
+        group_by(site,year, state, insecticide,species) %>%
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE),
+                  count=n())
 #sum_flwr_spp_i2 <- sum_flwr_spp_i %>%
 #        group_by(site, species) %>% 
 #        filter(all(c('warmed', 'ambient') %in% state))
