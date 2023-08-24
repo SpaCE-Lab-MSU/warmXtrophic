@@ -219,7 +219,7 @@ full.model.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/p
 summary(full.model.k)
 tab_model(full.model.k)
 
-# species specific model (for the supplement ?)
+# species specific model (for the supplement)
 full.model.sp.k <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|plot/species/plant_number),
                         data=herb_kbs,
                         zi=~.,
@@ -236,6 +236,7 @@ temp.model.k <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
                            zi=~.,
                            family=truncated_nbinom2)
 summary(temp.model.k)
+tab_model(temp.model.k)
 
 sum_herb_overall_k_i3 <- herb_kbs_amb %>%
         group_by(plot,mean_temp) %>%
@@ -245,10 +246,8 @@ sum_herb_overall_k_i3 <- herb_kbs_amb %>%
 herb_kbs_amb2 <- herb_kbs_amb[herb_kbs_amb$p_eaten != 0, ]
 plot(sum_herb_overall_k_i3$avg_eaten~sum_herb_overall_k_i3$mean_temp)
 abline(lm(sum_herb_overall_k_i3$avg_eaten~sum_herb_overall_k_i3$mean_temp))
-temp.model.k <- glmmTMB(avg_eaten ~ mean_temp + (1|plot),
-                        data=sum_herb_overall_k_i3,
-                        zi=~.,
-                        family=truncated_nbinom2)
+
+
 
 
 ###################### UMBS herbivory distribution check ###########################
@@ -328,7 +327,7 @@ full.model.u <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/p
 summary(full.model.u)
 tab_model(full.model.u)
 
-# species specific model (for the supplement ?)
+# species specific model (for the supplement)
 full.model.sp.u <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|plot/species/plant_number),
                            data=herb_umbs,
                            zi=~.,
@@ -339,10 +338,11 @@ summary(full.model.sp.u)
 herb_umbs_amb <- herb_umbs %>%
         filter(state == "ambient")
 temp.model.u <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
-                        data=herb_umbs,
+                        data=herb_umbs_amb,
                         zi=~.,
                         family=truncated_nbinom2)
 summary(temp.model.u)
+tab_model(temp.model.u)
 
 
 
