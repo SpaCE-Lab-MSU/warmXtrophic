@@ -30,7 +30,7 @@ cn$plant_id <- paste(cn$plot, cn$plant_number, sep = "_")
 cn <- cn %>%
         rename(treatment = state)
 cn1 <- cn %>%
-        group_by(plot,site,year,species,treatment, insecticide, plant_id) %>%
+        group_by(plot,site,year,species,treatment, insecticide, plant_id,mean_temp,median_temp,max_temp,GDD_cumulative) %>%
         summarize(nitrogen = mean(nitrogen,na.rm=T), carbon = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T)) 
 # remove outliers (found in CN analyses script)
 cn1<-cn1 %>% filter(carbon < 55)
@@ -255,6 +255,46 @@ ggplot(cn_spp, aes(x = year, y = nitrogen_mean, fill = treatment)) +
         #coord_cartesian(ylim=c(40,50)) +
         theme_bw(14) +
         theme(legend.position = "right")
+dev.off()
+
+# Temp & GDD figure
+# select ambient plots & take species/plot level mean
+cn_amb <- cn1 %>%
+        filter(treatment == "ambient") %>%
+        group_by(site,plot,year,species,treatment,mean_temp,median_temp,max_temp,GDD_cumulative) %>%
+        summarize(nitrogen = mean(nitrogen,na.rm=T), carbon = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T))
+        
+        
+png("carbon_temp_L2.png", units="in", width=6, height=4, res=300)
+ggplot(cn_amb, aes(x = mean_temp, y = carbon, color=treatment))+
+        facet_wrap(.~site, labeller=as_labeller(site_label), scales="free") +
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = treatment)) + 
+        labs(x = "Mean temperature (°C)",y="Carbon content (%)") +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.position = "none")
+dev.off()
+
+png("nitrogen_species_L2.png", units="in", width=6, height=4, res=300)
+ggplot(cn_amb, aes(x = mean_temp, y = nitrogen, color=treatment))+
+        facet_wrap(.~site, labeller=as_labeller(site_label), scales="free") +
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = treatment)) + 
+        labs(x = "Mean temperature (°C)",y="Nitrogen content (%)") +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.position = "none")
 dev.off()
 
 
