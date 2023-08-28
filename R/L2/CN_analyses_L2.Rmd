@@ -186,7 +186,8 @@ Based on the above investigation, we don't need to account for variation among r
 cn$plant_id <- paste(cn$plot, cn$plant_number, sep = "_")
 
 cn1 <- cn %>%
-    group_by(plot,site,year,species,treatment, insecticide, plant_number, plant_id) %>%
+    group_by(plot,site,year,species,treatment, insecticide, plant_number, plant_id,
+             mean_temp,median_temp,max_temp,GDD_cumulative) %>%
     summarize(nitrogen = mean(nitrogen), carbon = mean(carbon), weight_mg = mean(weight_mg)) 
 
 # Take a look at these data
@@ -253,6 +254,14 @@ mod.emm <- emmeans(c.hyp.k2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
 kable(anova(c.hyp.k2)) %>% kableExtra::kable_styling()
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for C as a function of just temp to see how real temp data affects C
+c1_kbs_amb <- c1_kbs %>%
+        filter(treatment == "ambient")
+temp.c.kbs <- lmer(carbon ~ mean_temp + (1|plot/species/plant_number), c1_kbs_amb, REML=FALSE)
+anova(temp.c.kbs)
+summary(temp.c.kbs)
 
 # old models comparisons
 # carbon - KBS
@@ -316,6 +325,14 @@ mod.emm <- emmeans(c.hyp.u2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(c.hyp.u2)) %>% kableExtra::kable_styling()
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for C as a function of just temp to see how real temp data affects C
+c1_umbs_amb <- c1_umbs %>%
+        filter(treatment == "ambient")
+temp.c.umbs <- lmer(carbon ~ mean_temp + (1|plot/species/plant_number), c1_umbs_amb, REML=FALSE)
+anova(temp.c.umbs)
+summary(temp.c.umbs)
 
 # old model comparisons
 c.m1u <- lmer(carbon ~ treatment + species + (1|plot) + (1|plant_id), data = c1_umbs)
@@ -377,6 +394,14 @@ mod.emm <- emmeans(n.hyp.k2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.k2)) %>% kableExtra::kable_styling()
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for N as a function of just temp to see how real temp data affects N
+n1_kbs_amb <- n1_kbs %>%
+        filter(treatment == "ambient")
+temp.n.kbs <- lmer(nitrogen ~ mean_temp + (1|plot/species/plant_number), n1_kbs_amb, REML=FALSE)
+anova(temp.n.kbs)
+summary(temp.n.kbs)
 
 # old model comparisons
 n.m1 <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = n1_kbs)
@@ -437,6 +462,14 @@ mod.emm <- emmeans(n.hyp.u2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.u2)) %>% kableExtra::kable_styling()
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for N as a function of just temp to see how real temp data affects N
+n1_umbs_amb <- n1_umbs %>%
+        filter(treatment == "ambient")
+temp.n.umbs <- lmer(nitrogen ~ mean_temp + (1|plot/species/plant_number), n1_umbs_amb, REML=FALSE)
+anova(temp.n.umbs)
+summary(temp.n.umbs)
 
 # old model comparisons
 n.m1u <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = n1_umbs)

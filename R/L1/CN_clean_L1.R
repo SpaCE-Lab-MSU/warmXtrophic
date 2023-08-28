@@ -30,8 +30,10 @@ L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1"
 
 # Read in csv files with CN content
 
-#### PLOT ID INFO ####
+#### PLOT ID & TEMP INFO ####
 meta <- read.csv(file.path(L0_dir, "plot.csv"))
+CN_temps <- read.csv(file.path(L1_dir, "HOBO_data/CN_temps_L1.csv"))
+GDD <- read.csv(file.path(L1_dir, "HOBO_data/GDD_L1.csv"))
 
 # create function to clean CN data files - this function can be used for data still in the "weighsheets" format
 CN_csvdata_initial_prep <- function(cn_data){
@@ -363,10 +365,21 @@ CN_all <- merge(CN, CN_2021, all = TRUE)
 # Create a variable for Plant ID
 CN_all$plant_id <- paste(CN_all$plot, CN_all$plant_number, sep = "_")
 
+# KD: Merging with the GDD/temp data
+CN_temps$year <- as.character(CN_temps$year)
+CN_all2 <- left_join(CN_all, CN_temps, by=c('site','year','state'))
+# select cumulative GDD on the end date of the flowering period
+GDD$year <- as.character(GDD$year)
+GDD_CN <- GDD %>%
+        filter(site == "kbs" & julian == 291 |
+                       site == "umbs" & julian == 255) %>%
+        select(-max_temp, -min_temp, -mean_GDD_temp, -GDD_base_10, -julian)
+CN_all3 <- left_join(CN_all2, GDD_CN, by=c('site','year','state'))
+                            
 # write a new csv with the cleaned and merged data that includes NAs and upload to the shared google drive L1 folder
-write.csv(CN_all, file.path(L1_dir, "./CN/CN_L1_NAs.csv"), row.names=F)
+write.csv(CN_all3, file.path(L1_dir, "./CN/CN_L1_NAs.csv"), row.names=F)
 
-CN_all_noNAs <- CN_all[!is.na(CN_all$carbon), ] # get rid of NAs which are data without C
+CN_all_noNAs <- CN_all3[!is.na(CN_all3$carbon), ] # get rid of NAs which are data without C
 
 # write a new csv with the cleaned and merged data (without NAs) and upload to the shared google drive L1 folder
 write.csv(CN_all_noNAs, file.path(L1_dir, "./CN/CN_L1.csv"), row.names=F)

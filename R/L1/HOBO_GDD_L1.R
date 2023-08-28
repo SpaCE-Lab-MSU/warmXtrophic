@@ -100,6 +100,11 @@ UMBS_GDD <- UMBS_GDD_calc %>%
 ## latest record for herbivory: KBS 291, UMBS 255 (determined in herbivory_analyses_L2.R)
 
 
+### C & N ###
+## using the same latest record as herbivory, since C & N date data is not well documented
+## C & N leaf harvest was also an end-season measurement, similar to herbivory
+
+
 ### plant comp ###
 ## latest record for max plant comp: 237 KBS, UMBS 209 (determined in plant_comp_data_wrangling_L2.R)
 
@@ -179,6 +184,25 @@ UMBS_avg_herb <- UMBS_dates %>%  # by year, 1m temp only
         na.omit()
 
 
+# C & N:
+KBS_avg_CN <- KBS_dates %>%  # by year, 1m temp only
+        gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
+        filter(julian > "059", julian < "291") %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm=T),
+                  median_temp = median(temp, na.rm=T),
+                  max_temp = max(temp, na.rm=T)) %>% # using a base temp of 10C, commonly used for plants
+        na.omit()
+UMBS_avg_CN <- UMBS_dates %>%  # by year, 1m temp only
+        gather(key = "treatment", value = "temp", -year, -month, -julian, -Date_Time, -sensor) %>%
+        filter(julian > "096", julian < "255") %>%
+        group_by(year, treatment) %>%
+        summarize(mean_temp = mean(temp, na.rm=T),
+                  median_temp = median(temp, na.rm=T),
+                  max_temp = max(temp, na.rm=T)) %>% # using a base temp of 10C, commonly used for plants
+        na.omit()
+
+
 # plant comp:
 KBS_avg_comp <- KBS_dates %>%  # by year, 1m temp only
         gather(key = "treatment", value = "temp", -year, -julian, -Date_Time, -sensor) %>%
@@ -204,6 +228,7 @@ names(KBS_avg_greenup)[names(KBS_avg_greenup) == 'treatment'] <- 'state'
 names(KBS_avg_flower)[names(KBS_avg_flower) == 'treatment'] <- 'state'
 names(KBS_avg_seed)[names(KBS_avg_seed) == 'treatment'] <- 'state'
 names(KBS_avg_herb)[names(KBS_avg_herb) == 'treatment'] <- 'state'
+names(KBS_avg_CN)[names(KBS_avg_CN) == 'treatment'] <- 'state'
 names(KBS_avg_comp)[names(KBS_avg_comp) == 'treatment'] <- 'state'
 
 names(UMBS_GDD)[names(UMBS_GDD) == 'treatment'] <- 'state'
@@ -211,6 +236,7 @@ names(UMBS_avg_greenup)[names(UMBS_avg_greenup) == 'treatment'] <- 'state'
 names(UMBS_avg_flower)[names(UMBS_avg_flower) == 'treatment'] <- 'state'
 names(UMBS_avg_seed)[names(UMBS_avg_seed) == 'treatment'] <- 'state'
 names(UMBS_avg_herb)[names(UMBS_avg_herb) == 'treatment'] <- 'state'
+names(UMBS_avg_CN)[names(UMBS_avg_CN) == 'treatment'] <- 'state'
 names(UMBS_avg_comp)[names(UMBS_avg_comp) == 'treatment'] <- 'state'
 
 # fixing state treatment names
@@ -224,6 +250,8 @@ KBS_avg_seed$state[KBS_avg_seed$state == "XH_ambient_air_1m"] <- "ambient"
 KBS_avg_seed$state[KBS_avg_seed$state == "XH_warmed_air_1m"] <- "warmed"
 KBS_avg_herb$state[KBS_avg_herb$state == "XH_ambient_air_1m"] <- "ambient"
 KBS_avg_herb$state[KBS_avg_herb$state == "XH_warmed_air_1m"] <- "warmed"
+KBS_avg_CN$state[KBS_avg_CN$state == "XH_ambient_air_1m"] <- "ambient"
+KBS_avg_CN$state[KBS_avg_CN$state == "XH_warmed_air_1m"] <- "warmed"
 KBS_avg_comp$state[KBS_avg_comp$state == "XH_ambient_air_1m"] <- "ambient"
 KBS_avg_comp$state[KBS_avg_comp$state == "XH_warmed_air_1m"] <- "warmed"
 
@@ -237,6 +265,8 @@ UMBS_avg_seed$state[UMBS_avg_seed$state == "XH_ambient_air_1m"] <- "ambient"
 UMBS_avg_seed$state[UMBS_avg_seed$state == "XH_warmed_air_1m"] <- "warmed"
 UMBS_avg_herb$state[UMBS_avg_herb$state == "XH_ambient_air_1m"] <- "ambient"
 UMBS_avg_herb$state[UMBS_avg_herb$state == "XH_warmed_air_1m"] <- "warmed"
+UMBS_avg_CN$state[UMBS_avg_CN$state == "XH_ambient_air_1m"] <- "ambient"
+UMBS_avg_CN$state[UMBS_avg_CN$state == "XH_warmed_air_1m"] <- "warmed"
 UMBS_avg_comp$state[UMBS_avg_comp$state == "XH_ambient_air_1m"] <- "ambient"
 UMBS_avg_comp$state[UMBS_avg_comp$state == "XH_warmed_air_1m"] <- "warmed"
 
@@ -256,6 +286,9 @@ seed_temps <- rbind(KBS_avg_seed, UMBS_avg_seed)
 KBS_avg_herb$site <- "kbs"
 UMBS_avg_herb$site <- 'umbs'
 herb_temps <- rbind(KBS_avg_herb, UMBS_avg_herb)
+KBS_avg_CN$site <- "kbs"
+UMBS_avg_CN$site <- 'umbs'
+CN_temps <- rbind(KBS_avg_CN, UMBS_avg_CN)
 KBS_avg_comp$site <- "kbs"
 UMBS_avg_comp$site <- 'umbs'
 comp_temps <- rbind(KBS_avg_comp, UMBS_avg_comp)
@@ -267,6 +300,7 @@ write.csv(KBS_avg_greenup, file.path(L1_dir,"HOBO_data/KBS_greenup_temps_L1.csv"
 write.csv(KBS_avg_flower, file.path(L1_dir,"HOBO_data/KBS_flower_temps_L1.csv"), row.names = F)
 write.csv(KBS_avg_seed, file.path(L1_dir,"HOBO_data/KBS_seed_temps_L1.csv"), row.names = F)
 write.csv(KBS_avg_herb, file.path(L1_dir,"HOBO_data/KBS_herb_temps_L1.csv"), row.names = F)
+write.csv(KBS_avg_CN, file.path(L1_dir,"HOBO_data/KBS_CN_temps_L1.csv"), row.names = F)
 write.csv(KBS_avg_comp, file.path(L1_dir,"HOBO_data/KBS_plant_comp_temps_L1.csv"), row.names = F)
 
 # UMBS specific
@@ -275,6 +309,7 @@ write.csv(UMBS_avg_greenup, file.path(L1_dir,"HOBO_data/UMBS_greenup_temps_L1.cs
 write.csv(UMBS_avg_flower, file.path(L1_dir,"HOBO_data/UMBS_flower_temps_L1.csv"), row.names = F)
 write.csv(UMBS_avg_seed, file.path(L1_dir,"HOBO_data/UMBS_seed_temps_L1.csv"), row.names = F)
 write.csv(UMBS_avg_herb, file.path(L1_dir,"HOBO_data/UMBS_herb_temps_L1.csv"), row.names = F)
+write.csv(UMBS_avg_CN, file.path(L1_dir,"HOBO_data/UMBS_CN_temps_L1.csv"), row.names = F)
 write.csv(UMBS_avg_comp, file.path(L1_dir,"HOBO_data/UMBS_plant_comp_temps_L1.csv"), row.names = F)
 
 # both sites
@@ -283,6 +318,7 @@ write.csv(greenup_temps, file.path(L1_dir,"HOBO_data/greenup_temps_L1.csv"), row
 write.csv(flower_temps, file.path(L1_dir,"HOBO_data/flower_temps_L1.csv"), row.names = F)
 write.csv(seed_temps, file.path(L1_dir,"HOBO_data/seed_temps_L1.csv"), row.names = F)
 write.csv(herb_temps, file.path(L1_dir,"HOBO_data/herb_temps_L1.csv"), row.names = F)
+write.csv(CN_temps, file.path(L1_dir,"HOBO_data/CN_temps_L1.csv"), row.names = F)
 write.csv(comp_temps, file.path(L1_dir,"HOBO_data/plant_comp_temps_L1.csv"), row.names = F)
 
 
