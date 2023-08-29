@@ -357,6 +357,132 @@ annotate_figure(plot_line,
 dev.off()
 ```
 
+#GDD and temp comparisons
+```{r}
+
+comp_kbsp <- comp %>%
+        filter(site == "KBS" & state == "ambient")
+comp_umbsp <- comp %>%
+        filter(site == "UMBS" & state == "ambient")
+
+# looking to see which temp variable best correlates with flowring
+kbs_comp_gdd <- ggplot(comp_kbsp, aes(x = GDD_cumulative, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_comp_gdd <- ggplot(comp_umbsp, aes(x = GDD_cumulative, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_comp_mean <- ggplot(comp_kbsp, aes(x = mean_temp, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_comp_mean <- ggplot(comp_umbsp, aes(x = mean_temp, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_comp_med <- ggplot(comp_kbsp, aes(x = median_temp, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Median temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_comp_med <- ggplot(comp_umbsp, aes(x = median_temp, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Median temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_comp_max <- ggplot(comp_kbsp, aes(x = max_temp, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Max temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_comp_max <- ggplot(comp_umbsp, aes(x = max_temp, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Max temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+
+gdd_comp_merge <- ggpubr::ggarrange(kbs_comp_gdd,umbs_comp_gdd,
+                                    kbs_comp_mean,umbs_comp_mean,
+                                    kbs_comp_med,umbs_comp_med,
+                                    kbs_comp_max,umbs_comp_max,
+                                    ncol = 2, nrow=4,common.legend=T,legend="none")
+png("comp_gdd_temp.png", units="in", width=7, height=8, res=300)
+annotate_figure(gdd_comp_merge,
+                left = text_grob("Average percent cover (%)", color = "black", rot = 90, size=15),
+                top = text_grob("KBS                                                      UMBS", color = "black", size=15))
+dev.off()
+```
+
 Origin - Native vs. Exotic
 ```{r}
 native <- origin_pc_avg[which(origin_pc_avg$origin == "Native"),]

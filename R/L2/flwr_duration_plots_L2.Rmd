@@ -214,7 +214,7 @@ flwr_avg_duration_kbs_plot2 <- ggplot(flwr_avg_duration_kbs) +
                    size = 2, 
                    position = position_dodge(width = 0.5)) +
         labs(title = "KBS", x = NULL, y = NULL) +
-        scale_color_manual(values=c('A0'='blue', 'AI'='deepskyblue', 'W0'='red', 'WI'='red4'),
+        scale_color_manual(values=c('A0'='#a6bddb', 'AI'='#0b0055', 'W0'='#fb6a4a', 'WI'='red4'),
                            name="Treatment",
                            labels = c("A0" = "Ambient",
                               "AI" = "Ambient + Reduced Herbivory",
@@ -231,7 +231,7 @@ flwr_avg_duration_umbs_plot2 <- ggplot(flwr_avg_duration_umbs) +
                    size = 2, 
                    position = position_dodge(width = 0.5)) +
         labs(title = "UMBS", x = "Year", y = NULL) +
-        scale_color_manual(values=c('A0'='blue', 'AI'='deepskyblue', 'W0'='red', 'WI'='red4'),
+        scale_color_manual(values=c('A0'='#a6bddb', 'AI'='#0b0055', 'W0'='#fb6a4a', 'WI'='red4'),
                            name="Treatment",
                            labels = c("A0" = "Ambient",
                               "AI" = "Ambient + Reduced Herbivory",
