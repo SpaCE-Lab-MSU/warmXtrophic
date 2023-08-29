@@ -270,7 +270,23 @@ sum_green_plot_i3_v2 <- sum_green_plot_i3_v2 %>% # plot level average (n=6 per t
         summarize(avg_julian = mean(avg1, na.rm = TRUE),
                   se = std.error(se1, na.rm = TRUE))
 
-
+###############
+# add empty values for 2015 to kbs flowering so the x-axis matches the other plots
+flwr_plot2 <- flwr_plot
+de3<-data.frame("KBS",NA,"2015",NA,"ambient","insects",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+names(de3)<-c("site","plot","year","treatment_key", "state","insecticide","action", "year_factor", 
+              "julian_min","julian_median","flwr_duration", "mean_temp","median_temp","max_temp",
+              "GDD_cumulative", "flwr_duration_scaled")
+flwr_plot2<-flwr_plot2[,c(4,1,2,7,3,6,5,8,9,10,11,12,13,14,15,16)]
+flwr_plot3 <- rbind(flwr_plot2, de3)
+sum_flwr_plot2 <- flwr_plot3 %>%
+        group_by(site, year, state) %>%
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE))
+sum_flwr_plot_i2 <- flwr_plot3 %>%
+        group_by(site, state, insecticide, year) %>%
+        summarize(avg_julian = mean(julian_min, na.rm = TRUE),
+                  se = std.error(julian_min, na.rm = TRUE))
 
 ### line plot with insecticide ###
 # greenup
@@ -303,10 +319,10 @@ gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + theme(axis.text.x=element_blan
                                                         axis.title.y=element_blank())
 
 #flower
-sum_flwr_plot_i$year <- as.factor(sum_flwr_plot_i$year)
-sum_flwr_plot_i$full_treat <- paste(sum_flwr_plot_i$state, sum_flwr_plot_i$insecticide, sep="_")
+sum_flwr_plot_i2$year <- as.factor(sum_flwr_plot_i2$year)
+sum_flwr_plot_i2$full_treat <- paste(sum_flwr_plot_i2$state, sum_flwr_plot_i2$insecticide, sep="_")
 flwr_line_i <- function(loc) { 
-        flwr_plot <- subset(sum_flwr_plot_i, site == loc)
+        flwr_plot <- subset(sum_flwr_plot_i2, site == loc)
         return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
@@ -363,7 +379,7 @@ phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                                  flwr_line_i_kbs, flwr_line_i_umbs,
                                  sd_line_i_kbs, sd_line_i_umbs,
                                  nrow = 3, ncol = 2, common.legend = T, legend="right")
-png("greenup_plots_L2_all_phenology_line_insect.png", units="in", width=10, height=8, res=300)
+png("phenology_plots_L2_all_phenology_line_insect.png", units="in", width=10, height=8, res=300)
 annotate_figure(phen_line_i,
                 left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
                 bottom = text_grob("Year", color = "black", size=15))
