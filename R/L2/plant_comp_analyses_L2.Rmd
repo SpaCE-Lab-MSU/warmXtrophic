@@ -254,9 +254,11 @@ modtest1k <- lmer(log(avg_pc) ~ mean_temp + (1|plot), kbs_comp_plot_amb, REML=FA
 modtest2k <- lmer(log(avg_pc) ~ GDD_cumulative + (1|plot), kbs_comp_plot_amb, REML=FALSE)
 
 AICtab(modtest1k,modtest2k)
-
 anova(modtest1k)
 summary(modtest1k)
+
+# making a table
+kable(anova(modtest1k)) %>% kableExtra::kable_styling()
 
 # species model for supp
 mod_spp_k <- lmer(cover ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_kbs_spp, REML=FALSE)
@@ -400,9 +402,11 @@ modtest1u <- lmer(log(avg_pc) ~ mean_temp + (1|plot), umbs_comp_plot_amb, REML=F
 modtest2u <- lmer(log(avg_pc) ~ GDD_cumulative + (1|plot), umbs_comp_plot_amb, REML=FALSE)
 
 AICtab(modtest1u,modtest2u)
-
 anova(modtest1u)
 summary(modtest1u)
+
+# making a table
+kable(anova(modtest1u)) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
 exp((-1.78002) +  (0.31009)*0) # 0.1686348 

@@ -198,6 +198,9 @@ exp((4.984e+00) + (2.009e-02)*1) # 149.0214
 # effect:
 149.0214 - 146.0574 # = 2.965  
 # warming plots delayed seed set by ~2.965 days
+
+# making a table
+kable(anova(modtest1)) %>% kableExtra::kable_styling()
 ```
 
 UMBS PLOT LEVEL
@@ -310,6 +313,8 @@ AICtab(modtest1, modtest2, weights=T)
 anova(modtest1)
 summary(modtest1)
 
+# making a table
+kable(anova(modtest1)) %>% kableExtra::kable_styling()
 ```
 
 ```{r}

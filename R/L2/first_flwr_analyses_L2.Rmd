@@ -244,6 +244,9 @@ AICtab(modtest1u, modtest2u, weights=T)
 
 anova(modtest1u)
 summary(modtest1u)
+
+# making a table
+kable(anova(modtest1u)) %>% kableExtra::kable_styling()
 ```
 
 UMBS plot level
@@ -326,6 +329,9 @@ AICtab(modtest1u,modtest2u, weights = T)
 
 anova(modtest1u)
 summary(modtest1u)
+
+# making a table
+kable(anova(modtest1u)) %>% kableExtra::kable_styling()
 
 ```
 
