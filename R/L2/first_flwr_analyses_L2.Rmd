@@ -61,19 +61,11 @@ flwr_spp$julian_min <- as.numeric(as.integer(flwr_spp$julian_min))
 ```
 
 ```{r}
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
-flwr_plot$state <- as.factor(flwr_plot$state)
-levels(flwr_plot$state)
-# [1] "ambient" "warmed" 
-flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
-levels(flwr_plot$state)
-# [1] "warmed"  "ambient"
-
-str(flwr_plot)
-
 # delete 2021 data from dataframe - doesn't make sense to have bc we can't get min flower/sd, median flower, or 
 # flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
 #flwr_plot <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
+flwr_plot <- flwr_plot[-which(flwr_plot$year == "2015" & flwr_plot$site == "kbs"),]
+flwr_spp <- flwr_spp[-which(flwr_spp$year == "2015" & flwr_spp$site == "kbs"),]
 
 umbs_plot <- subset(flwr_plot, site == "umbs") # pull out umbs only data at plot level
 kbs_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot level
@@ -81,7 +73,6 @@ kbs_plot <- subset(flwr_plot, site == "kbs") # pull out kbs only data at plot le
 # species specific dataframes for kbs and umbs
 flwr_kbs_spp <- subset(flwr_spp, site == "kbs")
 flwr_umbs_spp <- subset(flwr_spp, site == "umbs")
-
 ```
 
 KBS Plot Level
@@ -124,7 +115,7 @@ Leverage plots and detecting Outliers
 # Plot level data
 # KBS State-only model
 fit_plot_state_kbs <- lm(log(julian_min) ~ state, data = kbs_plot)
-outlierTest(fit_plot_state_kbs) # no outliers
+outlierTest(fit_plot_state_kbs) # line 168 outlier
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
 leveragePlots(fit_plot_state_kbs)
@@ -148,7 +139,6 @@ Mixed Effects Model
 ```{r}
 # KBS PLOT LEVEL - Looking at FIRST date of flowering
 mod1 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_plot, REML = FALSE)
-ggplot(kbs_plot,aes(x=plot,y=julian_min)) + geom_jitter() + geom_boxplot(alpha=0.2) + facet_wrap(~plot)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -219,17 +209,10 @@ emmip(mod9p, insecticide~state)
 kable(anova(mod9p)) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
-exp((5.277390) +  (0.0279)*0) # 195.858 
-exp((5.277390) +  (0.0279)*1) # 201.3994
+exp((5.164064) +  (0.013017)*0) # 174.8737 
+exp((5.164064) +  (0.013017)*1) # 177.1649
 # effect:
-201.3994 - 195.858 # effect of warming - warmed plots increased the date of first flower by 5.5414 days
-
-# effect size from emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
-# calculating effect size - accounting for log transformation
-exp((5.277390) +  (-0.0251)*0) # 195.858 
-exp((5.277390) +  (-0.0251)*1) # 191.0032
-# effect:
-191.0032 - 195.858 # effect of warming - warmed plots increased the date of first flower by 4.8548 days
+177.1649 - 174.8737 # effect of warming - warmed plots increased the date of first flower by 2.2912 days
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency

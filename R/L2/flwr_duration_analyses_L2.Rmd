@@ -57,19 +57,24 @@ flwr_spp <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv"))
 flwr_spp$julian_min <- as.numeric(as.integer(flwr_spp$julian_min))
 
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
-flwr_plot$state <- as.factor(flwr_plot$state)
-levels(flwr_plot$state)
+#flwr_plot$state <- as.factor(flwr_plot$state)
+#levels(flwr_plot$state)
 # [1] "ambient" "warmed" 
-flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
-levels(flwr_plot$state)
+#flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
+#levels(flwr_plot$state)
 # [1] "warmed"  "ambient"
 
 flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
 flwr_spp$flwr_duration <- as.numeric(as.character(flwr_spp$flwr_duration))
 
-# delete 2021 data from dataframe -doesn't make sense to have bc we can't get min flower/sd, median flower, or 
+# delete 2021 data from umbs dataframe - doesn't make sense to have bc we can't get min flower/sd, median flower, or 
 # flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
-#flwr_plot <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
+#flwr_plot1 <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
+#flwr_spp <- flwr_spp[-which(flwr_spp$year == "2021" & flwr_plot$site == "umbs"),]
+
+# also delete date 2015 data since some species may have started flowering before chambers were placed
+flwr_plot <- flwr_plot[-which(flwr_plot$year == "2015" & flwr_plot$site == "kbs"),]
+flwr_spp <- flwr_spp[-which(flwr_spp$year == "2015" & flwr_plot$site == "kbs"),]
 
 # Kara's edits:
 # adding 1 to each occurrence in the flwr_duration column so everything is scaled up the same & removes 0's
@@ -89,7 +94,7 @@ flwr_umbs_spp <- subset(flwr_spp, site == "umbs")
 ### KBS ###
 hist(kbs_flwr_plot$flwr_duration_scaled)
 qqnorm(kbs_flwr_plot$flwr_duration_scaled)
-shapiro.test(kbs_flwr_plot$flwr_duration_scaled) # pvalue is almost > 0.05 so we do not reject the null hypothesis that the data is normal (aka close to normally distributed)
+shapiro.test(kbs_flwr_plot$flwr_duration_scaled) # not normally distributed but close
 
 # Exploring distributions for these data:
 descdist(kbs_flwr_plot$flwr_duration_scaled, discrete = FALSE)
@@ -160,15 +165,15 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(flwr_duration_scaled ~ state, data = kbs_flwr_plot)
-outlierTest(fit_plot_state_kbs) # no outliers
+fit_plot_state_kbs <- lm(log(flwr_duration_scaled) ~ state, data = kbs_flwr_plot)
+outlierTest(fit_plot_state_kbs) # line 52 is an outlier
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
 leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(flwr_duration_scaled ~ state + year_factor, data = kbs_flwr_plot)
+fit_plot_stateyear_kbs <- lm(log(flwr_duration_scaled) ~ state + year_factor, data = kbs_flwr_plot)
 outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)

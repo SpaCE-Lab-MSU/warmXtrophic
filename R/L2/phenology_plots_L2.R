@@ -34,7 +34,9 @@ gr_growth <- read.csv(file.path(L2_dir,"greenup/final_greenup_growthhabit_L2.csv
 gr_origin <- read.csv(file.path(L2_dir,"greenup/final_greenup_origin_L2.csv"))
 
 flwr_spp <- read.csv(file.path(L2_dir,"phenology/final_flwr_species_L2.csv"))
-flwr_plot <- read.csv(file.path(L2_dir,"phenology/final_flwr_plot_L2.csv"))
+flwr_spp <- flwr_spp[-which(flwr_spp$year == "2015" & flwr_spp$site == "kbs"),] # remove 2015 data
+flwr_plot <- read.csv(file.path(L2_dir,"phenology/final_flwr_plot_L2.csv")) 
+flwr_plot <- flwr_plot[-which(flwr_plot$year == "2015" & flwr_plot$site == "kbs"),] # remove 2015 data
 sd_spp <- read.csv(file.path(L2_dir, "phenology/final_sd_species_L2.csv"))
 sd_plot <- read.csv(file.path(L2_dir, "phenology/final_sd_plot_L2.csv"))
 
@@ -504,7 +506,7 @@ flwr_dot_i_kbs <- flwr_dot_i_kbs + labs(title=NULL) + annotate("text", x = 0.5, 
                                                                           axis.title.y = element_text(size=17),
                                                                           legend.text = element_text(size=17),
                                                                           legend.title = element_text(size=17)) +
-        scale_y_continuous(breaks = seq(176,187, by = 3))
+        scale_y_continuous(breaks = seq(173,187, by = 3))
 flwr_dot_i_umbs <- flwr_dot_i("UMBS")
 flwr_dot_i_umbs <- flwr_dot_i_umbs + labs(y=NULL, title=NULL) + annotate("text", x = 0.5, y=167.75, label = "D", size=5) + theme(axis.title.y=element_blank(),
                                                                                     #axis.text.y = element_blank(),
@@ -534,13 +536,13 @@ flwr_dur_dot_i <- function(loc) {
                        theme_bw(14))
 }
 flwr_dur_dot_i_kbs <- flwr_dur_dot_i("KBS")
-flwr_dur_dot_i_kbs <- flwr_dur_dot_i_kbs + labs(title=NULL) + annotate("text", x = 0.5, y=19.75, label = "E", size=5) + theme(axis.text.x = element_blank(),
+flwr_dur_dot_i_kbs <- flwr_dur_dot_i_kbs + labs(title=NULL) + annotate("text", x = 0.5, y = 21.5, label = "E", size=5) + theme(axis.text.x = element_blank(),
                                                                                   axis.text.y = element_text(size=17),
                                                                                   axis.title.y = element_text(size=17),
                                                                                   legend.text = element_text(size=17),
                                                                                   legend.title = element_text(size=17)) +
-        scale_y_continuous(breaks = c(17, 18, 19, 20), 
-                           labels = c("  17", "  18", "  19", "  20"))
+        scale_y_continuous(breaks = c(17, 18, 19, 20, 21), 
+                           labels = c("  17", "  18", "  19", "  20", "  21"))
 flwr_dur_dot_i_umbs <- flwr_dur_dot_i("UMBS")
 flwr_dur_dot_i_umbs <- flwr_dur_dot_i_umbs + labs(y=NULL, title=NULL) + annotate("text", x = 0.5, y=28.25, label = "F", size=5) + theme(axis.title.y=element_blank(),
                                                                                             #axis.text.y = element_blank(),
