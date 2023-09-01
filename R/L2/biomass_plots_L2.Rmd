@@ -135,7 +135,9 @@ kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = 
         theme_bw(14) +
         theme(plot.title = element_text(size=17),
               axis.text.x = element_text(size=15),
-              axis.text.y = element_text(size=15))
+              axis.text.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=17))
 # plot level UMBS
 umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = insecticide)) +
         geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), pch=21,size=1,position=position_dodge(0.2)) +
@@ -150,7 +152,9 @@ umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill =
         theme_bw(14) +
         theme(plot.title = element_text(size = 17),
               axis.text.x = element_text(size=15),
-              axis.text.y = element_text(size=15)) +
+              axis.text.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=17)) +
         scale_x_discrete(labels=c("ambient"="Ambient","warmed"="Warmed"))
 
 biomass_comb_dot <- ggpubr::ggarrange(kbs_bio_dot, umbs_bio_dot,

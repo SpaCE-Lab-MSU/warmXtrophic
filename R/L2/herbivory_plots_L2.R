@@ -97,12 +97,12 @@ binom_dot_k <- ggplot(herb_binom_eaten_k, aes(x = state, y = mean_n, fill=insect
         annotate("text", x = 0.5, y=50, label = "A", size=5) +
         theme_bw() +
         theme(legend.position="none") +
-        theme(plot.title = element_text(size = 17),
-              axis.text.y = element_text(size=15),
+        theme(plot.title = element_text(size = 20),
+              axis.text.y = element_text(size=17),
               axis.text.x=element_blank(),
-              axis.title.y=element_text(size=15),
-              legend.title=element_text(size=15), 
-              legend.text=element_text(size=15)) +
+              axis.title.y=element_text(size=17),
+              legend.title=element_text(size=17), 
+              legend.text=element_text(size=17)) +
         guides(color = "none")
 binom_dot_u <- ggplot(herb_binom_eaten_u, aes(x = state, y = mean_n, fill=insecticide)) +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), ,pch=21,size=1,position=position_dodge(0.2)) +
@@ -115,12 +115,12 @@ binom_dot_u <- ggplot(herb_binom_eaten_u, aes(x = state, y = mean_n, fill=insect
         annotate("text", x = 0.5, y=50, label = "B", size=5) +
         theme_bw() +
         theme(legend.position="none") +
-        theme(plot.title = element_text(size = 17),
+        theme(plot.title = element_text(size = 20),
               axis.text.x=element_blank(),
               axis.text.y = element_blank(),
               axis.title.y = element_blank(),
-              legend.title=element_text(size=15), 
-              legend.text=element_text(size=15)) +
+              legend.title=element_text(size=17), 
+              legend.text=element_text(size=17)) +
         guides(color = "none")
 
 # amount eaten plot
@@ -152,9 +152,9 @@ eaten_k_i <- ggplot(sum_herb_overall_k_i, aes(x = state, y = avg_eaten, fill=ins
         annotate("text", x = 0.5, y=22, label = "C", size=5) +
         theme_bw() +
         theme(legend.position="none") +
-        theme(axis.text.y = element_text(size=15),
-              axis.text.x=element_text(size=15),
-              axis.title.y=element_text(size=15))
+        theme(axis.text.y = element_text(size=17),
+              axis.text.x=element_text(size=17),
+              axis.title.y=element_text(size=17))
 eaten_u_i <- ggplot(sum_herb_overall_u_i, aes(x = state, y = avg_eaten,fill=insecticide)) +
         geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),pch=21,size=1,position=position_dodge(0.2)) +
         labs(x = NULL, y = "Amount eaten (%)", title=NULL) +
@@ -167,16 +167,14 @@ eaten_u_i <- ggplot(sum_herb_overall_u_i, aes(x = state, y = avg_eaten,fill=inse
         theme_bw() +
         theme(legend.position="none") +
         theme(axis.text.y = element_blank(),
-              axis.text.x=element_text(size=15),
+              axis.text.x=element_text(size=17),
               axis.title.y=element_blank())
 
 # plotting binary response & amount eaten on same figure
-binary_overall_i <- ggarrange(binom_dot_k, binom_dot_u,
+png("binary_dots_insecticide.png", units="in", width=9, height=7, res=300)
+ggarrange(binom_dot_k, binom_dot_u,
                               eaten_k_i, eaten_u_i,
                               nrow = 2, ncol = 2, common.legend = T, legend="right",widths = c(1, 0.9))
-png("binary_dots_insecticide.png", units="in", width=9, height=8, res=300)
-annotate_figure(binary_overall_i,
-                bottom = text_grob("Treatment                                ", color = "black",size=15))
 dev.off()
 
 

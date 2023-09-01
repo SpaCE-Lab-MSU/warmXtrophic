@@ -125,10 +125,10 @@ c_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = carbon_mean, fill = insecti
         annotate("text", x = 0.5, y=46.9, label = "A", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size=15),
-              title = element_text(size=17),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              axis.text.y = element_text(size=17),
+              title = element_text(size=20),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 cn_treat_umbs <- cn_treatment %>%
         filter(site == "umbs")
 c_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = carbon_mean, fill = insecticide)) +
@@ -149,10 +149,10 @@ c_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = carbon_mean, fill = insec
         annotate("text", x = 0.5, y=45.75, label = "B", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size=15),
-              title = element_text(size=17),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              axis.text.y = element_text(size=17),
+              title = element_text(size=20),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 c_comb <- ggpubr::ggarrange(c_kbs, c_umbs,
                             ncol = 2, common.legend = T, legend="none")
 png("carbon_treatmentlevel_L2.png", units="in", width=9, height=4, res=300)
@@ -202,10 +202,10 @@ n_kbs <- ggplot(cn_treat_kbs, aes(x = treatment, y = nitrogen_mean, fill = insec
         annotate("text", x = 0.5, y=2.145, label = "C", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size=15),
-              title = element_text(size=17),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              axis.text.y = element_text(size=17),
+              title = element_text(size=20),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 cn_treat_umbs <- cn_treatment %>%
         filter(site == "umbs")
 n_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = nitrogen_mean, fill = insecticide)) +
@@ -228,10 +228,10 @@ n_umbs <- ggplot(cn_treat_umbs, aes(x = treatment, y = nitrogen_mean, fill = ins
         annotate("text", x = 0.5, y=2, label = "D", size=5) +
         theme_bw(14) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size=15),
-              title = element_text(size=17),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              axis.text.y = element_text(size=17),
+              title = element_text(size=20),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 n_comb <- ggpubr::ggarrange(n_kbs, n_umbs,
                             ncol = 2, common.legend = T, legend="none")
 png("nitrogen_treatmentlevel_L2.png", units="in", width=9, height=4, res=300)
@@ -323,11 +323,11 @@ sla_kbs <- ggplot(sla_treatment_kbs, aes(x = state, y = sla_mean, fill = insecti
         #coord_cartesian(ylim=c(42,48)) +
         annotate("text", x = 0.5, y=222, label = "E", size=5) +
         theme_bw(14) +
-        theme(axis.text.x = element_text(size=15),
-              axis.text.y = element_text(size=15),
-              title = element_text(size=17),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+        theme(axis.text.x = element_text(size=17),
+              axis.text.y = element_text(size=17),
+              title = element_text(size=20),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 sla_umbs <- ggplot(sla_treatment_umbs, aes(x = state, y = sla_mean, fill = insecticide)) +
         #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
         geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=1,position=position_dodge(0.3)) +
@@ -347,11 +347,11 @@ sla_umbs <- ggplot(sla_treatment_umbs, aes(x = state, y = sla_mean, fill = insec
         #coord_cartesian(ylim=c(42,48)) +
         annotate("text", x = 0.5, y=140, label = "F", size=5) +
         theme_bw(14) +
-        theme(axis.text.x = element_text(size=15),
-              axis.text.y = element_text(size=15),
-              title = element_text(size=17),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+        theme(axis.text.x = element_text(size=17),
+              axis.text.y = element_text(size=17),
+              title = element_text(size=20),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 sla_comb <- ggpubr::ggarrange(sla_kbs, sla_umbs,
                               ncol = 2, common.legend = T, legend="none")
 png("sla_treatmentlevel_L2.png", units="in", width=9, height=4, res=300)

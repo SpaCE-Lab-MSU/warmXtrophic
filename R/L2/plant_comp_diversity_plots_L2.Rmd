@@ -411,7 +411,7 @@ shannon_dot_i <- function(loc) {
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                               labs(x = NULL, y = "Shannon Diversity Index", title = loc) +
+                               labs(x = NULL, y = "Shannon Diversity \n Index", title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        coord_cartesian(ylim=c(1.00,1.355)) +
                        theme_bw(14))
@@ -419,21 +419,26 @@ shannon_dot_i <- function(loc) {
 shannon_dot_i_kbs <- shannon_dot_i("KBS")
 shannon_dot_i_kbs <- shannon_dot_i_kbs + 
         annotate("text", x = 0.5, y=1.35, label = "A", size=5) +
-        theme(plot.title = element_text(size=17),
-              axis.text.y = element_text(size=15),
+        theme(plot.title = element_text(size=20),
+              axis.text.y = element_text(size=17),
+              axis.title.y = element_text(size=17),
               axis.text.x = element_blank(),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17)) +
+        scale_y_continuous(breaks = c(1.0, 1.1, 1.2, 1.3), 
+                           labels = c("  1.0", "  1.1", "  1.2", "  1.3"))
 shannon_dot_i_umbs <- shannon_dot_i("UMBS")
 shannon_dot_i_umbs <- shannon_dot_i_umbs + 
         labs(y=NULL) + 
         annotate("text", x = 0.5, y=1.35, label = "B", size=5) +
         theme(axis.title.y = element_blank(),
               axis.text.x = element_blank(),
-              plot.title = element_text(size=17),
+              plot.title = element_text(size=20),
               axis.text.y = element_blank(),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17)) +
+        scale_y_continuous(breaks = c(1.0, 1.1, 1.2, 1.3), 
+                           labels = c("  1.0", "  1.1", "  1.2", "  1.3"))
 
 # Simpson diversity
 sum_simpson_all$full_treat <- paste(sum_simpson_all$state, sum_simpson_all$insecticide, sep="_")
@@ -448,7 +453,7 @@ simpson_dot_i <- function(loc) {
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                               labs(x = NULL, y = "Simpson Diversity Index", title = NULL) +
+                               labs(x = NULL, y = "Simpson's Diversity \n Index", title = NULL) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        coord_cartesian(ylim=c(0.50,0.65)) +
                        theme_bw(14))
@@ -457,10 +462,10 @@ simpson_dot_i_kbs <- simpson_dot_i("KBS")
 simpson_dot_i_kbs <- simpson_dot_i_kbs + 
         annotate("text", x = 0.5, y=0.65, label = "C", size=5) +
         theme(axis.text.x = element_blank(),
-              axis.text.y = element_text(size=15),
-              axis.title.y = element_text(size=15),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              axis.text.y = element_text(size=17),
+              axis.title.y = element_text(size=17),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 
 simpson_dot_i_umbs <- simpson_dot_i("UMBS")
 simpson_dot_i_umbs <- simpson_dot_i_umbs + 
@@ -469,8 +474,8 @@ simpson_dot_i_umbs <- simpson_dot_i_umbs +
         theme(axis.title.y=element_blank(),
               axis.text.x = element_blank(),
               axis.text.y = element_blank(),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 
 # Richness
 sum_richness_all$full_treat <- paste(sum_richness_all$state, sum_richness_all$insecticide, sep="_")
@@ -485,7 +490,7 @@ richness_dot_i <- function(loc) {
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                               labs(x = NULL, y = "Richness", title = NULL) +
+                               labs(x = NULL, y = "Species\nRichness", title = NULL) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        coord_cartesian(ylim=c(4.0,8.5)) +
                        theme_bw(14))
@@ -493,25 +498,32 @@ richness_dot_i <- function(loc) {
 richness_dot_i_kbs <- richness_dot_i("KBS")
 richness_dot_i_kbs <- richness_dot_i_kbs + 
         annotate("text", x = 0.5, y = 8.5, label = "E", size=5) +
-        theme(axis.text.y = element_text(size=15),
-              axis.title.y = element_text(size=15),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+        theme(axis.text.y = element_text(size=17),
+              axis.text.x = element_text(size=17),
+              axis.title.y = element_text(size=17),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17)) +
+        scale_y_continuous(breaks = c(4, 5, 6, 7, 8), 
+                           labels = c("     4", "     5", "     6", "     7", "     8"))
 
 richness_dot_i_umbs <- richness_dot_i("UMBS")
 richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + 
         annotate("text", x = 0.5, y=8.5, label = "F", size=5) +
         theme(axis.title.y=element_blank(),
               axis.text.y = element_blank(),
-              legend.text = element_text(size=15),
-              legend.title = element_text(size=15))
+              axis.text.x = element_text(size=17),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17)) +
+        scale_y_continuous(breaks = c(4, 5, 6, 7, 8), 
+                           labels = c("    4", "    5", "    6", "    7", "    8"))
 
 png("diversity_indices_L2_all_dot_insect.png", units="in", width=10, height=9, res=300)
 ggpubr::ggarrange(shannon_dot_i_kbs, shannon_dot_i_umbs,
                                 simpson_dot_i_kbs, simpson_dot_i_umbs,
                                 richness_dot_i_kbs, richness_dot_i_umbs,
                                 nrow = 3, ncol = 2, common.legend = T, legend="right",
-                                align = "v")
+                  widths = c(1, 0.8),
+                  heights = c(1.35, 1.2, 1.3))
 dev.off()
 ```
 
