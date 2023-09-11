@@ -16,6 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ## DATA OUTPUT: Plots of PAR data  
 
 ```{r, echo = F, message = F}
+
+######## not used in manuscript #######
+
+
 # clear all existing data
 rm(list=ls())
 
