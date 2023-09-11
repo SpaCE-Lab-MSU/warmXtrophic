@@ -10,8 +10,7 @@
 #               Often SLA data is associated or “linked” with other data sets, sometimes with the same 
 #               plant being harvested or surveyed. For example, we often took herbivory visual 
 #               assessment data and took tissue for Carbon/Nitrogen analysis at the same time and same 
-#               individual plant that SLA was taken. So, there are “details” associated with the SLA 
-#               data set that will be provided in the updated methods.
+#               individual plant that SLA was taken.
 
 # Clear all existing data
 rm(list=ls())
@@ -24,7 +23,7 @@ L0_dir <- Sys.getenv("L0DIR")
 L1_dir <- Sys.getenv("L1DIR")
 list.files(L1_dir)
 
-# Above .Renviron not working for PLZ; hard-coding in here
+# set working dir (if above method does not work)
 L0_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L0"
 L1_dir <- "/Volumes/GoogleDrive/Shared\ drives/SpaCE_Lab_warmXtrophic/data/L1"
 
@@ -129,7 +128,6 @@ CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="B"]<- 2
 CN_2017_acmi_edited_1["replicate"][CN_2017_acmi_edited_1["replicate"]=="C"]<- 3
 # Assign "replicate" = "subsample_number"
 names(CN_2017_acmi_edited_1)[3] <- "subsample_number" #changing column name to match 2017 soca data
-# ***MARK: should double check that "replicate" and "subsample_number" mean the same thing***
 
 CN_kbs_2017 <- merge(CN_2017_acmi_edited_1, CN_2017_soca_edited, all = TRUE) # merge edited kbs soca and acmi into one dataframe
 
