@@ -1,10 +1,11 @@
-# TITLE:          warmXtrophic biomass and plant composition analyses
+# TITLE:          warmXtrophic biomass analyses
 # AUTHORS:        Kara Dobson
 # COLLABORATORS:  Phoebe Zarnetske, Mark Hammond, Pat Bills, Moriah Young
 # DATA INPUT:     Data imported as csv files from shared Google drive L0 folder
 # DATA OUTPUT:    analyses on biomass data
 # PROJECT:        warmXtrophic
 # DATE:           Feb 2022
+
 
 # Clear all existing data
 rm(list=ls())
@@ -32,10 +33,10 @@ umbs_biomass_21 <- umbs_biomass_21 %>% dplyr::select(-X)
 
 # making separate dataframe for biomass - easier in analyses
 kbs_biomass_only <- kbs_biomass_21 %>%
-        select(-cover) %>%
+        dplyr::select(-cover) %>%
         drop_na(weight_g)
 umbs_biomass_only <- umbs_biomass_21 %>%
-        select(-cover) %>%
+        dplyr::select(-cover) %>%
         drop_na(weight_g)
 
 # removing uninformative & unwanted species
@@ -57,7 +58,7 @@ umbs_plot_biomass <- umbs_biomass_live %>%
         summarize(plot_sum_g = sum(weight_g, na.rm = TRUE))
 
 # making a dataframe for regression between cover and biomass - removing uninformative species first
-# note: need to fix this & look at total live cover against total biomass per plot
+# note: this regression not used in manuscript
 kbs_biomass_reg <- kbs_biomass_21[!grepl("Litter", kbs_biomass_21$species),]
 kbs_biomass_reg <- kbs_biomass_reg[!grepl("Total Live", kbs_biomass_reg$species),]
 kbs_biomass_reg <- kbs_biomass_reg[!grepl("Unknown", kbs_biomass_reg$species),]
@@ -86,7 +87,6 @@ umbs_biomass_reg$cover <- as.numeric(umbs_biomass_reg$cover)
 str(umbs_biomass_reg)
 
 # keeping species that are found in W and A plots, not just one or the other
-# not using this in models below (yet) - could it skew results of total biomass?
 # tried all models with live2 dataframe and results seemed the same as with the live dataframe
 xtabs(weight_g ~ state + species, data=kbs_biomass_live) # some species have 0 biomass in one treatment
 kbs_biomass_live2 <- kbs_biomass_live %>%
@@ -100,16 +100,20 @@ umbs_biomass_live2 <- umbs_biomass_live %>%
         filter(all(c('warmed', 'ambient') %in% state))
 xtabs(weight_g ~ state + species, data=umbs_biomass_live2)
 
+
+
 #########################################
 # KBS
 
-#### Data exploration ###
+#########################################
+
+### Data exploration ###
 hist(kbs_biomass_only$weight_g)
 qqnorm(kbs_biomass_only$weight_g)
 shapiro.test(kbs_biomass_only$weight_g)
 # very right skewed
 
-#### Data exploration ### - cleaned up dataframe
+# Data exploration - cleaned up dataframe
 hist(kbs_biomass_live$weight_g)
 qqnorm(kbs_biomass_live$weight_g)
 shapiro.test(kbs_biomass_live$weight_g)
@@ -167,69 +171,8 @@ leveneTest(residuals(fit2_k) ~ kbs_biomass_live$species)
 
 
 ### Data analyses ###
-# models with random effect - species included here #
-mod1_k <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
-mod2_k <- lmer(log(weight_g) ~ state * species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
-mod3_k <- lmer(log(weight_g) ~ state + species + (1|plot), kbs_biomass_live, REML=FALSE)
-mod4_k <- lmer(log(weight_g) ~ state * species + (1|plot), kbs_biomass_live, REML=FALSE)
-mod5_k <- lmer(log(weight_g) ~ state + (1|plot/species), kbs_biomass_live, REML=FALSE)
-mod6_k <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
-mod7_k <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
-mod8_k <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), kbs_biomass_live, REML=FALSE)
-mod9_k <- lmer(log(weight_g) ~ state + (1|species), kbs_biomass_live, REML=FALSE)
-          
-# comparing models from above
-anova(mod1_k,mod2_k) # mod 2
-anova(mod2_k,mod3_k) # mod 2
-anova(mod2_k,mod4_k) # mod 4
-anova(mod4_k,mod5_k) # mod 4
-anova(mod4_k,mod6_k) # mod 4
-anova(mod4_k,mod7_k) # mod 4
-anova(mod4_k,mod8_k) # mod 4
-anova(mod4_k,mod9_k) # mod 4
-AICctab(mod1_k,mod2_k,mod3_k,mod4_k,mod5_k,mod6_k,mod7_k,mod8_k,mod9_k,weights=T)
-# based on these comparisons, mod2 and mod4 both seem good (mod4 better). will look at model w/ insecticide to see if theres a treatment effect
-
-# mod2
-plot_model(mod2_k, show.values=TRUE, show.p=TRUE)
-tab_model(mod2_k)
-summary(mod2_k)
-anova(mod2_k)
-emmip(mod2_k, state ~ species) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        theme_minimal()
-# code below pulls out state-species comparisons
-mod2k.emm <- emmeans(mod2_k, ~ state * species)
-contrast(mod2k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-
-#mod4
-plot_model(mod4_k, show.values=TRUE, show.p=TRUE)
-tab_model(mod4_k)
-summary(mod4_k)
-anova(mod4_k)
-emmip(mod4_k, state ~ species) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        theme_minimal()
-# code below pulls out state-species comparisons
-mod4k.emm <- emmeans(mod4_k, ~ state * species)
-contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-
-# for supp
-modk_supp <- lm(log(weight_g) ~ state * insecticide + species, kbs_biomass_live)
-anova(modk_supp)
-kable(anova(modk_supp)) %>% kableExtra::kable_styling()
-
-
-
-#### plot-level analyses ####
-mod1_kp <- lm(plot_sum_g ~ state+insecticide, data=kbs_plot_biomass)
+# plot-level analyses
 mod2_kp <- lm(plot_sum_g ~ state*insecticide, data=kbs_plot_biomass)
-anova(mod1_kp, mod2_kp)
-AICctab(mod1_kp,mod2_kp) # 1 better, but using 2 to see pairwise comparisons
-
-table <- anova(mod1_kp,mod2_kp)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(mod1_kp, mod2_kp)
 
 outlierTest(mod2_kp) # no outliers
 hist(mod2_kp$residuals)
@@ -239,8 +182,8 @@ leveneTest(residuals(mod2_kp) ~ kbs_plot_biomass$state)
 leveneTest(residuals(mod2_kp) ~ kbs_plot_biomass$insecticide)
 shapiro.test(resid(mod2_kp))
 # looks good
-anova(mod2_kp)
-summary(mod2_kp) ###* used this in paper *###
+anova(mod2_kp) ### used in manuscript ###
+summary(mod2_kp)
 kable(anova(mod2_kp)) %>% kableExtra::kable_styling()
 
 # comparisons
@@ -248,8 +191,13 @@ emmeans(mod2_kp, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod2kp.emm <- emmeans(mod2_kp, ~ state*insecticide)
 contrast(mod2kp.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 
+# for supp
+modk_supp <- lm(log(weight_g) ~ state * insecticide + species, kbs_biomass_live)
+anova(modk_supp)
+kable(anova(modk_supp)) %>% kableExtra::kable_styling()
 
 # regression #
+### not used in manuscript ###
 cor.test(kbs_biomass_reg$cover, kbs_biomass_reg$weight_g, method="pearson")
 lm1 <- lm(cover ~ weight_g, data = kbs_biomass_reg)
 plot(cover ~ weight_g, data = kbs_biomass_reg)
@@ -259,14 +207,15 @@ summary(lm1)
 
 #########################################
 # UMBS
+#########################################
 
-#### Data exploration ###
+### Data exploration ###
 hist(umbs_biomass_only$weight_g)
 qqnorm(umbs_biomass_only$weight_g)
 shapiro.test(umbs_biomass_only$weight_g)
 # very right skewed
 
-#### Data exploration ### - cleaned up dataframe
+# Data exploration - cleaned up dataframe
 hist(umbs_biomass_live$weight_g)
 qqnorm(umbs_biomass_live$weight_g)
 shapiro.test(umbs_biomass_live$weight_g)
@@ -318,6 +267,98 @@ leveneTest(residuals(fit2_u) ~ umbs_biomass_live$species)
 # Check for normal residuals - did this above
 
 
+
+### Data analyses ### 
+# plot-level analyses #
+mod2_up <- lm(plot_sum_g ~ state * insecticide, data=umbs_plot_biomass)
+
+outlierTest(mod2_up) # no outliers
+hist(mod2_up$residuals)
+qqPlot(mod2_up, main="QQ Plot") 
+leveragePlots(mod2_up)
+leveneTest(residuals(mod2_up) ~ umbs_plot_biomass$state)
+leveneTest(residuals(mod2_up) ~ umbs_plot_biomass$insecticide)
+shapiro.test(resid(mod2_up))
+# looks good
+anova(mod2_up) ### used in manuscript ###
+summary(mod2_up)
+kable(anova(mod2_up)) %>% kableExtra::kable_styling()
+
+# comparisons
+emmeans(mod2_up, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod2up.emm <- emmeans(mod2_up, ~ state*insecticide)
+contrast(mod2up.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+# for supp
+modu_supp <- lm(log(weight_g) ~ state * insecticide + species, umbs_biomass_live)
+anova(modu_supp)
+kable(anova(modu_supp)) %>% kableExtra::kable_styling()
+
+# regression #
+### not used in manuscript ###
+cor.test(umbs_biomass_reg$cover, umbs_biomass_reg$weight_g, method="pearson")
+lm1 <- lm(cover ~ weight_g, data = umbs_biomass_reg)
+plot(cover ~ weight_g, data = umbs_biomass_reg)
+abline(lm1)
+summary(lm1)
+
+
+
+
+
+
+
+######## old code - not used in manuscript ########
+# KBS
+# models with random effect - species included here #
+### not used in manuscript, except to see species effect ###
+mod1_k <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
+mod2_k <- lmer(log(weight_g) ~ state * species + insecticide + (1|plot), kbs_biomass_live, REML=FALSE)
+mod3_k <- lmer(log(weight_g) ~ state + species + (1|plot), kbs_biomass_live, REML=FALSE)
+mod4_k <- lmer(log(weight_g) ~ state * species + (1|plot), kbs_biomass_live, REML=FALSE)
+mod5_k <- lmer(log(weight_g) ~ state + (1|plot/species), kbs_biomass_live, REML=FALSE)
+mod6_k <- lmer(log(weight_g) ~ state + insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
+mod7_k <- lmer(log(weight_g) ~ state * insecticide + species + (1|plot), kbs_biomass_live, REML=FALSE)
+mod8_k <- lmer(log(weight_g) ~ state + (1|plot) + (1|species), kbs_biomass_live, REML=FALSE)
+mod9_k <- lmer(log(weight_g) ~ state + (1|species), kbs_biomass_live, REML=FALSE)
+
+# comparing models from above
+anova(mod1_k,mod2_k) # mod 2
+anova(mod2_k,mod3_k) # mod 2
+anova(mod2_k,mod4_k) # mod 4
+anova(mod4_k,mod5_k) # mod 4
+anova(mod4_k,mod6_k) # mod 4
+anova(mod4_k,mod7_k) # mod 4
+anova(mod4_k,mod8_k) # mod 4
+anova(mod4_k,mod9_k) # mod 4
+AICctab(mod1_k,mod2_k,mod3_k,mod4_k,mod5_k,mod6_k,mod7_k,mod8_k,mod9_k,weights=T)
+# based on these comparisons, mod2 and mod4 both seem good (mod4 better). will look at model w/ insecticide to see if theres a treatment effect
+
+# mod2
+plot_model(mod2_k, show.values=TRUE, show.p=TRUE)
+tab_model(mod2_k)
+summary(mod2_k)
+anova(mod2_k)
+emmip(mod2_k, state ~ species) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        theme_minimal()
+# code below pulls out state-species comparisons
+mod2k.emm <- emmeans(mod2_k, ~ state * species)
+contrast(mod2k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+
+#mod4
+plot_model(mod4_k, show.values=TRUE, show.p=TRUE)
+tab_model(mod4_k)
+summary(mod4_k)
+anova(mod4_k)
+emmip(mod4_k, state ~ species) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        theme_minimal()
+# code below pulls out state-species comparisons
+mod4k.emm <- emmeans(mod4_k, ~ state * species)
+contrast(mod4k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+
+# UMBS
 ### Data analyses ###
 # data seems normal after accounting for variation in species
 mod1_u <- lmer(log(weight_g) ~ state + species + insecticide + (1|plot), umbs_biomass_live, REML=FALSE)
@@ -365,60 +406,5 @@ emmip(mod4_u, state ~ species) +
 mod4u.emm <- emmeans(mod4_u, ~ state * species)
 contrast(mod4u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
-# for supp
-modu_supp <- lm(log(weight_g) ~ state * insecticide + species, umbs_biomass_live)
-anova(modu_supp)
-kable(anova(modu_supp)) %>% kableExtra::kable_styling()
-
-
-
-# non mixed-effect models #
-mod9_u <- lm(log(weight_g) ~ state, umbs_biomass_live2)
-mod10_u <- lm(log(weight_g) ~ state + species, umbs_biomass_live2)
-mod11_u <- lm(log(weight_g) ~ state * species, umbs_biomass_live2)
-
-anova(mod9_u,mod10_u)
-anova(mod10_u,mod11_u)
-anova(mod11_u)
-mod11u.emm <- emmeans(mod11_u, ~ state * species)
-contrast(mod11u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod11_u, species~state)
-
-
-# plot-level analyses #
-mod1_up <- lm(plot_sum_g ~ state + insecticide, data=umbs_plot_biomass)
-mod2_up <- lm(plot_sum_g ~ state * insecticide, data=umbs_plot_biomass)
-
-anova (mod1_up,mod2_up)
-AICctab(mod1_up,mod2_up) # mod 1 better, but using mod 2 to look at comparisons
-
-table2 <- anova(mod1_up,mod2_up)
-kable(table2) %>% kableExtra::kable_styling()
-AICctab(mod1_up, mod2_up)
-
-outlierTest(mod2_up) # no outliers
-hist(mod2_up$residuals)
-qqPlot(mod2_up, main="QQ Plot") 
-leveragePlots(mod2_up)
-leveneTest(residuals(mod2_up) ~ umbs_plot_biomass$state)
-leveneTest(residuals(mod2_up) ~ umbs_plot_biomass$insecticide)
-shapiro.test(resid(mod2_up))
-# looks good
-anova(mod2_up)
-summary(mod2_up)
-kable(anova(mod2_up)) %>% kableExtra::kable_styling()
-
-# comparisons
-emmeans(mod2_up, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod2up.emm <- emmeans(mod2_up, ~ state*insecticide)
-contrast(mod2up.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
-
-
-# regression #
-cor.test(umbs_biomass_reg$cover, umbs_biomass_reg$weight_g, method="pearson")
-lm1 <- lm(cover ~ weight_g, data = umbs_biomass_reg)
-plot(cover ~ weight_g, data = umbs_biomass_reg)
-abline(lm1)
-summary(lm1)
 
 
