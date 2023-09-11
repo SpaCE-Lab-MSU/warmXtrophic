@@ -55,7 +55,7 @@ KBS_1_2018 <- merge(KBS_1H_2018, KBS_1U_2018, by="Date.Time..GMT.04.00", all.x=T
 KBS_1_2019 <- merge(KBS_1H_2019, KBS_1U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_1_2020 <- merge(KBS_1H_2020, KBS_1U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_1_2021 <- merge(KBS_1H_2021, KBS_1U_2021, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
-# note: sensor 1 for KBS failed for 2021 - it is removed in the analyses and plotting scripts
+# note: sensor 1 for KBS failed for 2021 - it is removed in the data removal script
 
 # Apply functions
 list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS_1_2018, KBS_1_2019=KBS_1_2019, KBS_1_2020=KBS_1_2020, KBS_1_2021=KBS_1_2021)

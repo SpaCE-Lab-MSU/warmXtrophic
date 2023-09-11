@@ -69,12 +69,11 @@ herb_list <- lapply(herb_list, lowercase)
 herb_list[1] <- lapply(herb_list[1], change_col_names)
 herb_list[7] <- lapply(herb_list[7], change_col_names)
 herb_list <- lapply(herb_list, change_date)
-# only apply this function to non-2015 data because it removes all data from those files (??)
+# only apply this function to non-2015 data because it removes all data from those files
 herb_list[2:6] <- lapply(herb_list[2:6], remove_col, name=c("julian", "notes"))
 herb_list[8:12] <- lapply(herb_list[8:12], remove_col, name=c("julian", "notes"))
 
 # check for misspellings
-# ones im not sure of: Sora (kbs2017), no other misspellings
 lapply(herb_list, spp_name)
 lapply(herb_list, site_name)
 

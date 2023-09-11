@@ -82,7 +82,7 @@ UMBS_GDD <- UMBS_GDD_calc %>%
 # for phenology, determine range for each as spring equinox -> date of latest date for each phenological event
 # may have to be a bit earlier than the spring equinox to account for green-up
 # note: using julian day 59 and 96 instead of spring equinox because the earliest recorded green-up occurs on 59 at KBS, and 96 at UMBS
-# for herbivory & plant comps: determine date range of beginning of season (earliest green-up) -> latest record for each variable
+# for all vars: determine date range of beginning of season (earliest green-up) -> latest record for each variable
 
 
 ### phenology ###

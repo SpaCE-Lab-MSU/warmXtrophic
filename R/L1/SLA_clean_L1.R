@@ -10,8 +10,7 @@
 #               Often SLA data is associated or “linked” with other data sets, sometimes with the same 
 #               plant being harvested or surveyed. For example, we often took herbivory visual 
 #               assessment data and took tissue for Carbon/Nitrogen analysis at the same time and same 
-#               individual plant that SLA was taken. So, there are “details” associated with the SLA 
-#               data set that will be provided in the updated methods.
+#               individual plant that SLA was taken.
 
 # Clear all existing data
 rm(list=ls())
@@ -120,14 +119,13 @@ sla20k["Plant_Number"][sla20k["Plant_Number"]=="5a"]<-5
 sla20k["Plant_Number"][sla20k["Plant_Number"]=="5b"]<-5
 sort(unique(sla20k$Plant_Number))
 
-# Are the masses Wet or Dry? Assume Wet for now (check with MORIAH)
 # Edit 2019 KBS SLA to add up mass
 sla19k$Mass_g<-sla19k$Fresh_leaf_g + sla19k$Fresh_midriff_g
 sla19k$Fresh_leaf_g<-NULL
 sla19k$Fresh_midriff_g<-NULL
 sla19k$Dry_leaf_g<-NULL
 sla19k$Dry_midriff_g<-NULL
-# Edit to reflect no squared measures (check with MORIAH)
+# Edit to reflect no squared measures
 names(sla19k)[names(sla19k) == "Avg_width_cm2"] <-"Avg_Width_cm"
 names(sla19k)[names(sla19k) == "Length_cm2"] <-"Length_cm"
 

@@ -62,7 +62,7 @@ remove_spp <- function(df){
         return(df)
 }
 
-# change site names
+# change spp names
 change_spp <- function(df){
   df$species[df$species == "Sora"] <- "Soca"
   return(df)

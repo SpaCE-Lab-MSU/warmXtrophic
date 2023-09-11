@@ -15,7 +15,7 @@ rm(list=ls())
 library(tidyverse)
 
 # Source in needed functions
-source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/phenology_functions_L1.R")
+#source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/phenology_functions_L1.R")
 source("~/warmXtrophic/R/L1/phenology_functions_L1.R")
 
 # Set working directory 
@@ -117,15 +117,6 @@ lapply(phen_list, spp_name) # looks good
 # Fixing action names
 phen_list <- lapply(phen_list, change_action)
 lapply(phen_list, action_check) # looks good
-
-# Would be great to write some code where you can compare the species codes in the data with
-# our species list
-#spp_name <- function(df){
-#        spp <- unique(sort(df[["Species"]]))
-#        return(spp)
-#}
-#unique(dat$Species)
-#setdiff(unique(dat$Species), unique(taxa$code))
 
 # Removing species
 phen_list <- lapply(phen_list, remove_spp)
