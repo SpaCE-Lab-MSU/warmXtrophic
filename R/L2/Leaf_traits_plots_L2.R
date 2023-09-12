@@ -361,7 +361,7 @@ sla_main <- annotate_figure(sla_comb,
 dev.off()
 
 
-# Year and warming
+# Year and warming #
 sla_treatment_kbs_year <- sla_treatment %>%
         filter(site == "kbs")
 sla_treatment_umbs_year <- sla_treatment %>%
