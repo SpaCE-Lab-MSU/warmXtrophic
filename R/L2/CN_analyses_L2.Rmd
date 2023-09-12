@@ -35,8 +35,6 @@ L1_dir<-Sys.getenv("L1DIR")
 
 # Read in data
 cn <- read.csv(file.path(L1_dir, "CN/CN_L1.csv"))
-# Re-order "state" so gg plotting colors works better for blue=ambient; red=warmed
-cn$state <- factor(cn$state,levels=c("warmed","ambient"))
 cn <- cn %>%
   rename(treatment = state)
 # check species in dataframe
@@ -227,6 +225,8 @@ plot(n.m1)
 qqnorm(resid(n.m1))
 
 
+
+###### stats for manuscript start here ######
 ### model comparisons - per site###
 # for species-specific models, I also included species as a subset below & re-ran the models for each subset species
 c1_kbs <- c1 %>%
@@ -242,18 +242,20 @@ n1_umbs <- n1 %>%
 #### carbon - KBS ####
 # hypothesized model - with species
 c.hyp.k <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = c1_kbs)
-anova(c.hyp.k)
+anova(c.hyp.k) ### used in manuscript ###
 mod.emm <- emmeans(c.hyp.k, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
 kable(anova(c.hyp.k)) %>% kableExtra::kable_styling()
+
 # hypothesized model - species as random effect
 c.hyp.k2 <- lmer(carbon ~ treatment * insecticide + year + (1|plot/species/plant_number), data = c1_kbs)
-anova(c.hyp.k2)
+anova(c.hyp.k2) ### used in manuscript ###
 mod.emm <- emmeans(c.hyp.k2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
 kable(anova(c.hyp.k2)) %>% kableExtra::kable_styling()
+
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for C as a function of just temp to see how real temp data affects C
@@ -263,68 +265,24 @@ temp.c.kbs <- lmer(carbon ~ mean_temp + (1|plot/species/plant_number), c1_kbs_am
 anova(temp.c.kbs)
 summary(temp.c.kbs)
 
-# old models comparisons
-# carbon - KBS
-c.m1 <- lmer(carbon ~ treatment + species + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m2 <- lmer(carbon ~ treatment * species + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m3 <- lmer(carbon ~ treatment + species + year + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m4 <- lmer(carbon ~ treatment + year + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m5 <- lmer(carbon ~ treatment * year + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m6 <- lmer(carbon ~ treatment + species + insecticide + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m7 <- lmer(carbon ~ treatment + insecticide + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m8 <- lmer(carbon ~ treatment * insecticide + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m9 <- lmer(carbon ~ treatment * insecticide + year + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m10 <- lmer(carbon ~ treatment + insecticide + year + species + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m11 <- lmer(carbon ~ insecticide + year + species + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m12 <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot) + (1|plant_id), data = c1_kbs)
-c.m13 <- lmer(carbon ~ treatment + year + insecticide + (1|plot) + (1|plant_id), data = c1_kbs)
-
-AICctab(c.m1,c.m2,c.m3,c.m4,c.m5,c.m6,c.m7,c.m8,c.m9, c.m10, c.m11, c.m12, c.m13)
-anova(c.m1,c.m2) #m1
-anova(c.m1,c.m3) #m3
-anova(c.m3,c.m4) #m3
-anova(c.m3,c.m5) #m3
-anova(c.m3,c.m6) #m3
-anova(c.m3,c.m7) #m3
-anova(c.m3,c.m8) #m3
-anova(c.m3,c.m9) #m3
-anova(c.m3,c.m10) #m10
-anova(c.m10,c.m11) #m11
-anova(c.m11,c.m12) #m11
-anova(c.m11,c.m13) #m11
-
-anova(c.m11)
-summary(c.m11)
-# effect of insecticide = 0.24652% more C for insecticide plants
-
-# making table
-table <- anova(c.m11,c.m12)
-kable(table) %>% kableExtra::kable_styling()
-AICctab(c.m11,c.m12)
-
-# for comparisons of species-specific models (can only run the models w/o species as a factor)
-AICctab(c.m4,c.m5,c.m7,c.m8,c.m9,c.m13)
-
-# note: for Soca C, c.m5 needs as.factor(year) to see within year comparisons
-mod11u.emm <- emmeans(c.m5, ~ treatment * year)
-contrast(mod11u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-
 
 #### carbon - UMBS ####
 # hypothesized model - with species
 c.hyp.u <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = c1_umbs)
-anova(c.hyp.u)
+anova(c.hyp.u) ### used in manuscript ###
 mod.emm <- emmeans(c.hyp.u, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(c.hyp.u)) %>% kableExtra::kable_styling()
+
 # hypothesized model - species as random effect
 c.hyp.u2 <- lmer(carbon ~ treatment * insecticide + year + (1|plot/species/plant_number), data = c1_umbs)
-anova(c.hyp.u2)
+anova(c.hyp.u2) ### used in manuscriot ###
 mod.emm <- emmeans(c.hyp.u2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(c.hyp.u2)) %>% kableExtra::kable_styling()
+
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for C as a function of just temp to see how real temp data affects C
@@ -334,66 +292,26 @@ temp.c.umbs <- lmer(carbon ~ mean_temp + (1|plot/species/plant_number), c1_umbs_
 anova(temp.c.umbs)
 summary(temp.c.umbs)
 
-# old model comparisons
-c.m1u <- lmer(carbon ~ treatment + species + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m2u <- lmer(carbon ~ treatment * species + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m3u <- lmer(carbon ~ treatment + species + year + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m4u <- lmer(carbon ~ treatment + year + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m5u <- lmer(carbon ~ treatment * year + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m6u <- lmer(carbon ~ treatment + species + insecticide + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m7u <- lmer(carbon ~ treatment + insecticide + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m8u <- lmer(carbon ~ treatment * insecticide + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m9u <- lmer(carbon ~ treatment * insecticide + year + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m10u <- lmer(carbon ~ treatment + insecticide + year + species + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m11u <- lmer(carbon ~ insecticide + year + species + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m12u <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m13u <- lmer(carbon ~ species + year + (1|plot) + (1|plant_id), data = c1_umbs)
-c.m14u <- lmer(carbon ~ treatment + year + insecticide + (1|plot) + (1|plant_id), data = c1_umbs)
-
-AICctab(c.m1u,c.m2u,c.m3u,c.m4u,c.m5u,c.m6u,c.m7u,c.m8u,c.m9u,c.m10u, c.m11u, c.m12u, c.m13u, c.m14u)
-anova(c.m1u,c.m2u) #m1
-anova(c.m1u,c.m3u) #m3
-anova(c.m3u,c.m4u) #m3
-anova(c.m3u,c.m5u) #m3
-anova(c.m3u,c.m6u) #m3
-anova(c.m3u,c.m7u) #m3
-anova(c.m3u,c.m8u) #m3
-anova(c.m3u,c.m9u) #m3
-anova(c.m3u,c.m10u) #m3
-anova(c.m3u,c.m11u) #m3
-anova(c.m3u,c.m12u) #m3
-anova(c.m3u,c.m13u) #m13
-anova(c.m13u,c.m14u) #m13
-
-anova(c.m13u)
-summary(c.m3u)
-
-# making table
-table2 <- anova(c.m13u,c.m12u)
-kable(table2) %>% kableExtra::kable_styling()
-AICctab(c.m13u,c.m12u)
-
-# for comparisons of species-specific models (can only run the models w/o species as a factor)
-AICctab(c.m4u,c.m5u,c.m7u,c.m8u,c.m9u,c.m14u)
-
 
 #### nitrogen - KBS ####
 # hypothesized model - with species
 n.hyp.k <- lmer(nitrogen ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = n1_kbs)
-anova(n.hyp.k)
+anova(n.hyp.k) ### used in manuscriot ###
 summary(n.hyp.k)
 mod.emm <- emmeans(n.hyp.k, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.k)) %>% kableExtra::kable_styling()
+
 # hypothesized model - species as random effect
 n.hyp.k2 <- lmer(nitrogen ~ treatment * insecticide + year + (1|plot/species/plant_number), data = n1_kbs)
-anova(n.hyp.k2)
+anova(n.hyp.k2) ### used in manuscriot ###
 summary(n.hyp.k2)
 mod.emm <- emmeans(n.hyp.k2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.k2)) %>% kableExtra::kable_styling()
+
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for N as a function of just temp to see how real temp data affects N
@@ -403,65 +321,25 @@ temp.n.kbs <- lmer(nitrogen ~ mean_temp + (1|plot/species/plant_number), n1_kbs_
 anova(temp.n.kbs)
 summary(temp.n.kbs)
 
-# old model comparisons
-n.m1 <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m2 <- lmer(nitrogen ~ treatment * species + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m3 <- lmer(nitrogen ~ treatment + species + year + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m4 <- lmer(nitrogen ~ treatment + year + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m5 <- lmer(nitrogen ~ treatment * year + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m6 <- lmer(nitrogen ~ treatment + species + insecticide + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m7 <- lmer(nitrogen ~ treatment + insecticide + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m8 <- lmer(nitrogen ~ treatment * insecticide + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m9 <- lmer(nitrogen ~ treatment * insecticide + year + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m10 <- lmer(nitrogen ~ treatment + insecticide + year + species + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m11 <- lmer(nitrogen ~ insecticide + year + species + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m12 <- lmer(nitrogen ~ treatment * insecticide + year + species + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m13 <- lmer(nitrogen ~ species + year + (1|plot) + (1|plant_id), data = n1_kbs)
-n.m14 <- lmer(nitrogen ~ treatment + year + insecticide + (1|plot) + (1|plant_id), data = n1_kbs)
-
-AICctab(n.m1,n.m2,n.m3,n.m4,n.m5,n.m6,n.m7,n.m8,n.m9, n.m10, n.m11, n.m12, n.m13, n.m14)
-anova(n.m1,n.m2) #m1
-anova(n.m1,n.m3) #m3
-anova(n.m3,n.m4) #m3
-anova(n.m3,n.m5) #m3
-anova(n.m3,n.m6) #m3
-anova(n.m3,n.m7) #m3
-anova(n.m3,n.m8) #m3
-anova(n.m3,n.m9) #m3
-anova(n.m3,n.m10) #m3
-anova(n.m3,n.m11) #m3
-anova(n.m3,n.m12) #m3
-anova(n.m3,n.m13) #m13
-anova(n.m13,n.m14) #m13
-
-anova(n.m13)
-summary(n.m4)
-
-# making table
-table3 <- anova(n.m13,n.m12)
-kable(table3) %>% kableExtra::kable_styling()
-AICctab(n.m13,n.m12)
-
-# for comparisons of species-specific models (can only run the models w/o species as a factor)
-AICctab(n.m4,n.m5,n.m7,n.m8,n.m9,n.m14)
-
 
 #### nitrogen - UMBS ####
 # hypothesized model - with species
 n.hyp.u <- lmer(nitrogen ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = n1_umbs)
-anova(n.hyp.u)
+anova(n.hyp.u) ### used in manuscriot ###
 summary(n.hyp.u)
 mod.emm <- emmeans(n.hyp.u, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.u)) %>% kableExtra::kable_styling()
+
 # hypothesized model - species as random effect
 n.hyp.u2 <- lmer(nitrogen ~ treatment * insecticide + year + (1|plot/species/plant_number), data = n1_umbs)
-anova(n.hyp.u2)
+anova(n.hyp.u2) ### used in manuscriot ###
 mod.emm <- emmeans(n.hyp.u2, ~ treatment * insecticide)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.u2)) %>% kableExtra::kable_styling()
+
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for N as a function of just temp to see how real temp data affects N
@@ -470,53 +348,6 @@ n1_umbs_amb <- n1_umbs %>%
 temp.n.umbs <- lmer(nitrogen ~ mean_temp + (1|plot/species/plant_number), n1_umbs_amb, REML=FALSE)
 anova(temp.n.umbs)
 summary(temp.n.umbs)
-
-# old model comparisons
-n.m1u <- lmer(nitrogen ~ treatment + species + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m2u <- lmer(nitrogen ~ treatment * species + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m3u <- lmer(nitrogen ~ treatment + species + year + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m4u <- lmer(nitrogen ~ treatment + year + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m5u <- lmer(nitrogen ~ treatment * year + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m6u <- lmer(nitrogen ~ treatment + species + insecticide + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m7u <- lmer(nitrogen ~ treatment + insecticide + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m8u <- lmer(nitrogen ~ treatment * insecticide + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m9u <- lmer(nitrogen ~ treatment * insecticide + year + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m10u <- lmer(nitrogen ~ treatment + insecticide + year + species + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m11u <- lmer(nitrogen ~ insecticide + year + species + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m12u <- lmer(nitrogen ~ treatment * insecticide + year + species + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m13u <- lmer(nitrogen ~ species + year + (1|plot) + (1|plant_id), data = n1_umbs)
-n.m14u <- lmer(nitrogen ~ treatment + year + insecticide + (1|plot) + (1|plant_id), data = n1_umbs)
-
-AICctab(n.m1u,n.m2u,n.m3u,n.m4u,n.m5u,n.m6u,n.m7u,n.m8u,n.m9u,n.m10u, n.m11u, n.m12u, n.m13u, n.m14u)
-anova(n.m1u,n.m2u) #m2
-anova(n.m2u,n.m3u) #m3
-anova(n.m3u,n.m4u) #m3
-anova(n.m3u,n.m5u) #m3
-anova(n.m3u,n.m6u) #m3
-anova(n.m3u,n.m7u) #m3
-anova(n.m3u,n.m8u) #m3
-anova(n.m3u,n.m9u) #m3
-anova(n.m3u,n.m10u) #m3
-anova(n.m3u,n.m11u) #m3
-anova(n.m3u,n.m12u) #m3
-anova(n.m3u,n.m13u) #m3
-anova(n.m3u,n.m14u) #m3
-
-anova(n.m3u)
-summary(n.m3u)
-
-# making table
-table4 <- anova(n.m3u,n.m12u)
-kable(table4) %>% kableExtra::kable_styling()
-AICctab(n.m3u,n.m12u)
-
-# for comparisons of species-specific models (can only run the models w/o species as a factor)
-AICctab(n.m4u,n.m5u,n.m7u,n.m8u,n.m9u,n.m14u)
-anova(n.m4u,n.m5u)
-
-# note: for species-specific N, n.m5u needs as.factor(year) to see within year comparisons
-mod11u.emm <- emmeans(n.m5u, ~ treatment * year)
-contrast(mod11u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
 ```
 

@@ -21,7 +21,7 @@ L1_dir<-Sys.getenv("L1DIR")
 prism_set_dl_dir("/Volumes/GoogleDrive/Shared drives/SpaCE_Lab_warmXtrophic/data/L1/climate_data/")
 
 # get 30-year normals for precip and temperature
-# code below commented out because data is already downloaded - redownload when 2020 normals available
+# code below commented out because data is already downloaded
 #get_prism_normals("ppt", "4km", annual = TRUE, keepZip = FALSE)
 #get_prism_normals("tmean", "4km", annual = TRUE, keepZip = FALSE)
 prism_archive_ls()
@@ -62,6 +62,7 @@ emmet <- m.df %>%
 
 
 ### old code with NOAA climate data in warmX drive ###
+# not used in manuscript #
 # Set working directory
 L1_dir<-Sys.getenv("L1DIR")
 

@@ -51,7 +51,6 @@ herb <- herb %>%
 
 
 
-
 ##### chance of being eaten + amount eaten - both sites dot plots #####
 # selecting KBS, making binary response for if eaten or not overall
 herb_binom_k_i <- herb %>%
@@ -179,7 +178,6 @@ dev.off()
 
 
 
-
 #### herbivory per year ####
 # selecting KBS, making binary response for if eaten or not overall
 herb_binom_k_year <- herb %>%
@@ -291,8 +289,6 @@ dev.off()
 
 
 
-
-
 ##### amount eaten for all species at each site #####
 sum_herb_spp2 <- herb[herb$p_eaten != 0, ]
 sum_herb_spp2 <- sum_herb_spp2 %>%
@@ -326,8 +322,6 @@ annotate_figure(herb_overall_merge,
                 left = text_grob("Amount eaten (%)", color = "black", rot = 90, size=15),
                 bottom = text_grob("Treatment", color = "black", size=15))
 dev.off()
-
-
 
 
 
@@ -416,133 +410,6 @@ annotate_figure(herb_spp_binom_merge,
                 left = text_grob("Chance of being eaten (%)", color = "black", rot = 90, size=17),
                 bottom = text_grob("Treatment                           ", color = "black", size=17))
 dev.off()
-
-
-
-
-# temp data regressions
-herb_kbs <- herb %>%
-        filter(site == "KBS" & state == "ambient")
-herb_umbs <- herb %>%
-        filter(site == "UMBS" & state == "ambient")
-
-# looking to see which temp variable best correlates with herbivory
-kbs_gdd <- ggplot(herb_kbs, aes(x = GDD_cumulative, y = p_eaten, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-umbs_gdd <- ggplot(herb_umbs, aes(x = GDD_cumulative, y = p_eaten, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-kbs_mean <- ggplot(herb_kbs, aes(x = mean_temp, y = p_eaten, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-umbs_mean <- ggplot(herb_umbs, aes(x = mean_temp, y = p_eaten, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-kbs_med <- ggplot(herb_kbs, aes(x = median_temp, y = p_eaten, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-umbs_med <- ggplot(herb_umbs, aes(x = median_temp, y = p_eaten, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Median temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-kbs_max <- ggplot(herb_kbs, aes(x = max_temp, y = p_eaten, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-umbs_max <- ggplot(herb_umbs, aes(x = max_temp, y = p_eaten, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Max temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-
-gdd_temp_merge <- ggpubr::ggarrange(kbs_gdd,umbs_gdd,
-                                    kbs_mean,umbs_mean,
-                                    kbs_med,umbs_med,
-                                    kbs_max,umbs_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="none")
-png("herb_gdd_temp.png", units="in", width=7, height=8, res=300)
-annotate_figure(gdd_temp_merge,
-                left = text_grob("Percent eaten (%)", color = "black", rot = 90, size=15),
-                top = text_grob("KBS                                                      UMBS", color = "black", size=15))
-dev.off()
-
 
 
 
@@ -679,4 +546,137 @@ gdd_mean_temp_merge <- ggpubr::ggarrange(temp_prob_eaten_k,temp_prob_eaten_u,
 png("herb_gdd_mean_temp.png", units="in", width=7, height=6, res=300)
 annotate_figure(gdd_mean_temp_merge,
                 bottom = text_grob("Mean temperature (°C)              ", color = "black", size=14))
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+########### figs not in manuscript ############
+# temp data regressions
+herb_kbs <- herb %>%
+        filter(site == "KBS" & state == "ambient")
+herb_umbs <- herb %>%
+        filter(site == "UMBS" & state == "ambient")
+# looking to see which temp variable best correlates with herbivory
+kbs_gdd <- ggplot(herb_kbs, aes(x = GDD_cumulative, y = p_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_gdd <- ggplot(herb_umbs, aes(x = GDD_cumulative, y = p_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Cumulative growing degree days (GDD)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_mean <- ggplot(herb_kbs, aes(x = mean_temp, y = p_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_mean <- ggplot(herb_umbs, aes(x = mean_temp, y = p_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_med <- ggplot(herb_kbs, aes(x = median_temp, y = p_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Median temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_med <- ggplot(herb_umbs, aes(x = median_temp, y = p_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Median temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+kbs_max <- ggplot(herb_kbs, aes(x = max_temp, y = p_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Max temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_max <- ggplot(herb_umbs, aes(x = max_temp, y = p_eaten, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Max temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+
+gdd_temp_merge <- ggpubr::ggarrange(kbs_gdd,umbs_gdd,
+                                    kbs_mean,umbs_mean,
+                                    kbs_med,umbs_med,
+                                    kbs_max,umbs_max,
+                                    ncol = 2, nrow=4,common.legend=T,legend="none")
+png("herb_gdd_temp.png", units="in", width=7, height=8, res=300)
+annotate_figure(gdd_temp_merge,
+                left = text_grob("Percent eaten (%)", color = "black", rot = 90, size=15),
+                top = text_grob("KBS                                                      UMBS", color = "black", size=15))
 dev.off()

@@ -82,10 +82,6 @@ with(herb_umbs,table(species,state,p_eaten==0))
 herb_kbs %>% count(state, species)
 herb_umbs %>% count(state, species)
 
-# removing rare species
-# not doing this for now
-# herb_kbs_in <- herb_kbs_in[!grepl("Pore",herb_kbs_in$species),]
-
 # making date column a date
 herb_kbs$date <- as.Date(herb_kbs$date)
 herb_umbs$date <- as.Date(herb_umbs$date)
@@ -211,12 +207,11 @@ trunc.k <- glmmTMB(p_eaten ~ state * insecticide + year,
 summary(trunc.k) #matches the k.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
-# * used in paper * #
 full.model.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/plant_number),
                    data=herb_kbs,
                    zi=~.,
                    family=truncated_nbinom2)
-summary(full.model.k)
+summary(full.model.k) # * used in paper * #
 tab_model(full.model.k)
 
 # species specific model (for the supplement)
@@ -238,14 +233,20 @@ temp.model.k <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
 summary(temp.model.k)
 tab_model(temp.model.k)
 
-sum_herb_overall_k_i3 <- herb_kbs_amb %>%
-        group_by(plot,mean_temp) %>%
-        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
-                  se = std.error(p_eaten, na.rm = TRUE)) %>%
-        filter(!(is.na(mean_temp)))
-herb_kbs_amb2 <- herb_kbs_amb[herb_kbs_amb$p_eaten != 0, ]
-plot(sum_herb_overall_k_i3$avg_eaten~sum_herb_overall_k_i3$mean_temp)
-abline(lm(sum_herb_overall_k_i3$avg_eaten~sum_herb_overall_k_i3$mean_temp))
+# origin models (for the supplement) #
+herb_kbs2 <- herb_kbs %>%
+        filter(!(origin == 'Both')) 
+k.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_kbs2, dist = "negbin", 
+                  zero.dist = "binomial")
+summary(k.m2.ho)
+
+# growth form models (for supplement) #
+herb_kbs3 <- herb_kbs %>%
+        filter(!(growth_habit == ""))
+k.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_kbs3, dist = "negbin", 
+                  zero.dist = "binomial")
+summary(k.m2.hg)
+
 
 
 
@@ -263,14 +264,6 @@ qqPlot(fit)
 # looking at each treatment separately
 hist(herb_umbs$p_eaten[herb_umbs$state == "ambient"])
 hist(herb_umbs$p_eaten[herb_umbs$state == "warmed"])
-
-# gamma distribution? - error message "the function mle failed to estimate the parameters"
-#fit.gamma <- fitdist(herb_umbs$p_eaten, "gamma")
-#plot(fit.gamma)
-
-# lognormal distribution? - error message "values must be positive to fit a lognormal"
-#fit.ln <- fitdist(herb_umbs$p_eaten, "lnorm")
-#plot(fit.ln)
 
 # log transform
 herb_umbs$p_log <- log(herb_umbs$p_eaten+1)
@@ -319,12 +312,11 @@ trunc.u <- glmmTMB(p_eaten ~ state * insecticide + year,
 summary(trunc.u) #matches the u.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
-# * model used in paper * #
 full.model.u <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/plant_number),
                       data=herb_umbs,
                       zi=~.,
                       family=truncated_nbinom2)
-summary(full.model.u)
+summary(full.model.u) # * model used in paper * #
 tab_model(full.model.u)
 
 # species specific model (for the supplement)
@@ -333,6 +325,7 @@ full.model.sp.u <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|p
                            zi=~.,
                            family=truncated_nbinom2)
 summary(full.model.sp.u) 
+tab_model(full.model.sp.u)
 
 # temperature model
 herb_umbs_amb <- herb_umbs %>%
@@ -344,9 +337,27 @@ temp.model.u <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
 summary(temp.model.u)
 tab_model(temp.model.u)
 
+# origin models (for supplement) #
+herb_umbs2 <- herb_umbs %>%
+        filter(!(origin == 'Both' |
+                         origin == ""))
+u.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_umbs2, dist = "negbin", 
+                  zero.dist = "binomial")
+summary(u.m2.ho)
+
+# growth form models (for supplement) #
+u.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_umbs, dist = "negbin", 
+                  zero.dist = "binomial")
+summary(u.m2.hg) #*used this output in the paper*#
 
 
 
+
+
+
+
+############### code not used in manuscript ####################
+# except some of the origin and growth form code below, in the supplement
 
 ################# KBS plot-level analyses #####################
 # first, checking for normality
@@ -467,15 +478,6 @@ exp(0.53933 + -0.21288*1)/(1+exp(0.53933 + -0.21288*1)) # 0.5808954
 # effect:
 0.5808954 - 0.6316565 # -0.0507611, so a 5 % lesser chance of experiencing herb. for warmed plants
 
-## Questions
-# Did I back transform correctly above & interpret the model right?
-# I know the count model fits a model to the non-zero data while the zero hurdle calculates the prob that a observation is not zero
-# for the count model, I used exp() to back transform due to log link, while the zero model used a logit link
-# I'm confused on the percentage part - For the count model, I treated the effect as the same units as the data themselves, which are % leaf eaten
-# so the effect of warming in the count model shows 0.60% less leaf eaten compared to ambient
-# however, for the zero model, is it given as a true percentage, and therefore the decimal point needs moved?
-# I did that above, to show 5% lesser change, but is it actually 0.05%?
-# could also just report the odds ratio, shown below
 
 # calculating odds
 expCoef <- exp(coef((k.m1.h)))
