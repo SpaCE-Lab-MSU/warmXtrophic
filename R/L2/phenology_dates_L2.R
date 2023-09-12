@@ -210,8 +210,6 @@ u + facet_wrap(vars(species)) + theme(axis.text.x = element_text(angle = 90), le
 # There are several singletons (species that are only observed once or twice), some that may be mis-IDed, and some that are only first noticed in July or August, which is hard to believe. For now they should be removed but the cleaning on this should take place in plant_comp_clean_L0.R.
 # Need to make some decisions about which of these species to include or re-assign to a different species. All of that needs to be done in plant_comp_clean_L0.R
 
-## PLZ Stopped updating here 10:20am March 10, 2021
-
 # By species, find the max of the firstjulian at the site level to determine the last day of the greenup window per site and year
 greenup3 <- greenup2 %>%
   group_by(site, year) %>%
@@ -603,7 +601,7 @@ write.csv(finalgreeno, file.path(L2_dir, "greenup/final_greenup_origin_L2.csv"))
 
 
 
-# KD 2022: note that the code below has not been updated recently & may not be accurate
+# KD 2022: note that the code below is old - not used in manuscript
 ## Finding species whose mean half cover was within the window of green-up observations each year
 # First, finding the mean half cover date per species
 half_cover_mean <- half_cover_dates_df %>%
@@ -630,6 +628,10 @@ half_cover_kbs <- half_cover_mean_kbs %>%
 half_cover_kbs <- unique(half_cover_kbs[c("species", "year")])
 # this dataframe shows species who reached their half cover dates within the greenup window
 # can pick these out and analyze these separately
+
+
+
+
 
 
 ###### FLOWERING ###### (Moriah did this)
