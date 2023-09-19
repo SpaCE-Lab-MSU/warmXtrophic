@@ -2,9 +2,9 @@
 
 PI: Phoebe Zarnetske
 
-Collaborators: Mark Hammond, Moriah Young, Kara Dobson
+Collaborators: Mark Hammond, Moriah Young, Kara Dobson, Emily Parker
 
-Prior collaborators/technicians: Nina Lany, Kileigh Welshofer, Kathryn Schmidt, Amy Wrobleski, Emily Parker
+Prior collaborators/technicians: Nina Lany, Kileigh Welshofer, Kathryn Schmidt, Amy Wrobleski
 
 Funding: Michigan State University
 
@@ -12,7 +12,7 @@ This repository contains R scripts that organize, analyze, and plot data from th
 
 A manuscript is in preparation summarizing the data from 2015-2021, co-led by Kara Dobson and Moriah Young, coauthors: Phoebe Zarnetske, Mark Hammond.
 
-Data exists on the Google Shared Drive: SpaCE_Lab_warmXtrophic/data
+Data exist on the Google Shared Drive: SpaCE_Lab_warmXtrophic/data, and data will be published via Environmental Data Initiative, when the manuscript is published.
 
 The experiment began in June 2015 and at each site includes the following treatments:
 
