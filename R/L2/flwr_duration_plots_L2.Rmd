@@ -31,68 +31,8 @@ L1_dir<-Sys.getenv("L1DIR")
 L2_dir<-Sys.getenv("L2DIR")
 list.files(L1_dir)
 
-# Read in data
-# Set ggplot2 plotting
-# This code for ggplot2 sets the theme to mostly black and white 
-# (Arial font, and large font, base size=24)
-theme_set(theme_bw(14))
-theme_update(axis.text.x = element_text(size = 12, angle = 90),
-             axis.text.y = element_text(size = 12))
 
 # Read in data
-flwr_species <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) # species level data
-flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # plot level data
-flwr_plot_origin <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_origin_L2.csv")) # plot level data for origin
-flwr_plot_growthhabit <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_growthhabit_L2.csv")) # plot level data for growth habit
-
-# making site names capital for cleaner plots - from Kara
-change_site <- function(df){
-  df$site[df$site == "umbs"] <- "UMBS"
-  df$site[df$site == "kbs"] <- "KBS"
-  return(df)
-}
-
-flwr_species <- change_site(flwr_species) # using function from above
-flwr_plot <- change_site(flwr_plot) # using function from above
-
-# creating a vector with cleaned up insecticide labels for plotting - from Kara
-insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
-
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
-flwr_species$state <- as.factor(flwr_species$state)
-levels(flwr_species$state)
-# [1] "ambient" "warmed" 
-flwr_species$state <- factor(flwr_species$state, levels(flwr_species$state)[c(2,1)])
-levels(flwr_species$state)
-# [1] "warmed"  "ambient"
-
-# again for plot level data
-flwr_plot$state <- as.factor(flwr_plot$state)
-levels(flwr_plot$state)
-# [1] "ambient" "warmed" 
-flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
-levels(flwr_plot$state)
-# [1] "warmed"  "ambient"
-
-# make flwr_duration numeric
-flwr_species$flwr_duration <- as.numeric(as.character(flwr_species$flwr_duration))
-flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
-flwr_plot_origin$flwr_duration <- as.numeric(as.character(flwr_plot_origin$flwr_duration))
-flwr_plot_growthhabit$flwr_duration <- as.numeric(as.character(flwr_plot_growthhabit$flwr_duration))
-
-# Kara's edits:
-# adding 1 to each occurrence in the flwr_duration column so everything is scaled up the same & removes 0's
-flwr_plot$flwr_duration_scaled <- flwr_plot$flwr_duration+1
-flwr_species$flwr_duration_scaled <- flwr_species$flwr_duration+1
-flwr_plot_origin$flwr_duration_scaled <- flwr_plot_origin$flwr_duration+1
-flwr_plot_growthhabit$flwr_duration_scaled <- flwr_plot_growthhabit$flwr_duration+1
-
-```
-
-Need to wrangle data differently than what we have above. Need a column with first julian date of flower and 
-a last julian date of flower
-```{r}
-# read in flower and seed set data
 flwr_sd <- read.csv(file.path(L1_dir, "phenology/final_flwr_sd_L1.csv"))
 str(flwr_sd)
 
@@ -101,15 +41,18 @@ str(flwr_sd)
 flwr_sd <- flwr_sd[-which(flwr_sd$year == "2021" & flwr_sd$site == "umbs"),]
 flwr_sd <- flwr_sd[-which(flwr_sd$year == "2015"),]
 
-# trying to add empty values for 2021 to umbs so the x-axis matches the other plots
+# adding empty values for 2021 to umbs so the x-axis matches the other plots
 flwr_plot2 <- flwr_sd
 de<-data.frame("umbs",NA, NA, "flower", NA, NA, "2021", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA , NA, NA, NA, NA, 7)
 names(de)<-c("site","plot","species", "action", "date", "julian", "year", "month", "treatment_key","state","insecticide","scientific_name","common_name", "usda_species", "lter_species", "origin", "group", "family", "duration", "growth_habit", "rhizomatous", "year_factor")
 flwr_sd <- rbind(flwr_plot2, de)
 
-# Create separate data frames for flowering and seeding
+# Subset dataset to just include flowering
 phen_flwr <- subset(flwr_sd, action == "flower")
+```
 
+Data wrangling to get flowering duration
+```{r}
 # data frame with julian date of first flower
 flwr_min <- phen_flwr %>% 
         group_by(site, plot, species, year, state, action, origin, insecticide, treatment_key, year_factor,
@@ -139,72 +82,13 @@ flwr_avg_max <- flwr_duration %>%
         summarise(avg_last_flwr = mean(last_flwr))
 
 flwr_avg_duration <- merge(flwr_avg_min, flwr_avg_max)
-
-flwr_avg_duration_19 <- subset(flwr_avg_duration, year == "2019" & site == "kbs")
 flwr_avg_duration_umbs <- subset(flwr_avg_duration, site == "umbs")
-flwr_avg_duration_kbs <- subset(flwr_avg_duration, site == "kbs")    
+flwr_avg_duration_kbs <- subset(flwr_avg_duration, site == "kbs")
 ```
 
 Horizontal Line Chart 
 https://stackoverflow.com/questions/59728092/multiple-horizontal-line-chart-in-r
-Flower duration at plot level by treatment
-```{r}
-ggplot(flwr_avg_duration_19) +
-        geom_segment(aes(x = avg_first_flwr, xend = avg_last_flwr, y = treatment_key, yend = treatment_key, color= as.factor(treatment_key)), size = 2) +
-        labs(title = "KBS 2019 Average Flower Duration", x = "Julian Date", y = "Treatment") +
-        scale_y_discrete(labels=c("A0" = "Ambient",
-                                  "AI" = "Ambient +\n Reduced\n Herbivory",
-                                  "W0"="Warmed",
-                                  "WI"="Warmed +\n Reduced\n Herbivory")) +
-        theme(legend.position = "none")
-
-```
-
-All years onto one plot
-```{r}
-# KBS
-flwr_avg_duration_kbs_plot <- ggplot(flwr_avg_duration_kbs) +
-                geom_linerange(aes(xmin = avg_first_flwr, xmax = avg_last_flwr,
-                   y = treatment_key, 
-                   color = as.factor(treatment_key),
-                   group = year), size = 2, 
-                 position = position_dodge(width = 0.5)) +
-        #geom_dl(aes(label=year), method = "last.points") + # doesn't work
-  labs(title = "KBS", x = "Julian Date", y = "Treatment") +
-  scale_y_discrete(labels = c("A0" = "Ambient",
-                              "AI" = "Ambient +\n Reduced\n Herbivory",
-                              "W0" = "Warmed",
-                              "WI" = "Warmed +\n Reduced\n Herbivory")) +
-  theme(legend.position = "none") 
-flwr_avg_duration_kbs_plot
-# 2021 data from kbs looks like it should be deleted? Ask Mark about this. Maybe data wasn't taking as frequently as other years
-
-# UMBS
-flwr_avg_duration_umbs_plot <- ggplot(flwr_avg_duration_umbs) +
-                geom_linerange(aes(xmin = avg_first_flwr, xmax = avg_last_flwr,
-                   y = treatment_key, 
-                   color = as.factor(treatment_key),
-                   group = year), size = 2, 
-                 position = position_dodge(width = 0.5)) +
-        #geom_dl(aes(label=year), method = "last.points") + # doesn't work
-  labs(title = "UMBS", x = "Julian Date", y = "Treatment") +
-  scale_y_discrete(labels = c("A0" = "Ambient",
-                              "AI" = "Ambient +\n Reduced\n Herbivory",
-                              "W0" = "Warmed",
-                              "WI" = "Warmed +\n Reduced\n Herbivory")) +
-  theme(legend.position = "none") 
-flwr_avg_duration_umbs_plot
-
-flwr_dur <- ggarrange(flwr_avg_duration_kbs_plot, flwr_avg_duration_umbs_plot, nrow = 2)
-png("flwr_duration_plots_L2_avg_all_years.png", units="in", width=8, height=12, res=300)
-annotate_figure(flwr_dur,
-                top = text_grob("Average Duration of Flowering", color = "black"),
-                bottom = text_grob("Treatment", color = "black"))
-
-dev.off()
-```
-
-switching axis
+Flower duration at plot level by treatment for all years
 ```{r}
 # KBS
 flwr_avg_duration_kbs_plot2 <- ggplot(flwr_avg_duration_kbs) +
