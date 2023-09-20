@@ -56,27 +56,13 @@ flwr_plot <- read.csv(file.path(L2_dir, "phenology/final_flwr_plot_L2.csv")) # p
 flwr_spp <- read.csv(file.path(L2_dir, "phenology/final_flwr_species_L2.csv")) 
 flwr_spp$julian_min <- as.numeric(as.integer(flwr_spp$julian_min))
 
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
-#flwr_plot$state <- as.factor(flwr_plot$state)
-#levels(flwr_plot$state)
-# [1] "ambient" "warmed" 
-#flwr_plot$state <- factor(flwr_plot$state, levels(flwr_plot$state)[c(2,1)])
-#levels(flwr_plot$state)
-# [1] "warmed"  "ambient"
-
 flwr_plot$flwr_duration <- as.numeric(as.character(flwr_plot$flwr_duration))
 flwr_spp$flwr_duration <- as.numeric(as.character(flwr_spp$flwr_duration))
 
-# delete 2021 data from umbs dataframe - doesn't make sense to have bc we can't get min flower/sd, median flower, or 
-# flower duration from 2021 UMBS since data was not collected at the same frequency as previous years
-#flwr_plot1 <- flwr_plot[-which(flwr_plot$year == "2021" & flwr_plot$site == "umbs"),]
-#flwr_spp <- flwr_spp[-which(flwr_spp$year == "2021" & flwr_plot$site == "umbs"),]
-
-# also delete date 2015 data since some species may have started flowering before chambers were placed
+# also delete 2015 data since some species may have started flowering before chambers were placed
 flwr_plot <- flwr_plot[-which(flwr_plot$year == "2015" & flwr_plot$site == "kbs"),]
 flwr_spp <- flwr_spp[-which(flwr_spp$year == "2015" & flwr_plot$site == "kbs"),]
 
-# Kara's edits:
 # adding 1 to each occurrence in the flwr_duration column so everything is scaled up the same & removes 0's
 flwr_plot$flwr_duration_scaled <- flwr_plot$flwr_duration+1
 flwr_spp$flwr_duration_scaled <- flwr_spp$flwr_duration+1
@@ -124,6 +110,67 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 # weibull, probably going with log transformation
 ```
 
+# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
+# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
+
+```{r}
+# Plot level data
+# KBS State-only model
+fit_plot_state_kbs <- lm(log(flwr_duration_scaled) ~ state, data = kbs_flwr_plot)
+outlierTest(fit_plot_state_kbs) # line 52 is an outlier
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
+
+# KBS State and year model
+fit_plot_stateyear_kbs <- lm(log(flwr_duration_scaled) ~ state + year_factor, data = kbs_flwr_plot)
+outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
+qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
+hist(fit_plot_stateyear_kbs$residuals)
+leveragePlots(fit_plot_stateyear_kbs)
+ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal 
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(log(flwr_duration_scaled) ~ state * year, data = kbs_flwr_plot)
+interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
+```
+
+# KBS Plot-level Mixed Effects Models:
+```{r, error=TRUE}
+# Our hypothesized model is  mod9p
+mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+summary(mod9p)
+anova(mod9p)
+
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
+
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
+kbs_flwr_plot_amb <- kbs_flwr_plot %>%
+        filter(state == "ambient")
+modtest1u <- lmer(flwr_duration_scaled ~ mean_temp + (1|plot), kbs_flwr_plot, REML=FALSE)
+modtest2u <- lmer(flwr_duration_scaled ~ GDD_cumulative + (1|plot), kbs_flwr_plot, REML=FALSE)
+
+AICtab(modtest1u, modtest2u, weights=T)
+# growing degree days model is better but we are going to use the mean temp for all models
+
+anova(modtest1u)
+summary(modtest1u)
+
+# making a table
+kable(anova(modtest1u)) %>% kableExtra::kable_styling()
+```
+
 # UMBS PLOT LEVEL - Looking at DURATION of flowering
 ```{r, warning=F, error=TRUE}
 ### UMBS ###
@@ -159,33 +206,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 # Weibull, probably going with log transformation
 ```
 
-# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
-# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
-
-```{r}
-# Plot level data
-# KBS State-only model
-fit_plot_state_kbs <- lm(log(flwr_duration_scaled) ~ state, data = kbs_flwr_plot)
-outlierTest(fit_plot_state_kbs) # line 52 is an outlier
-qqPlot(fit_plot_state_kbs, main="QQ Plot") 
-hist(fit_plot_state_kbs$residuals)
-leveragePlots(fit_plot_state_kbs)
-ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
-
-# KBS State and year model
-fit_plot_stateyear_kbs <- lm(log(flwr_duration_scaled) ~ state + year_factor, data = kbs_flwr_plot)
-outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
-qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
-hist(fit_plot_stateyear_kbs$residuals)
-leveragePlots(fit_plot_stateyear_kbs)
-ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal 
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-fit3 <- lm(log(flwr_duration_scaled) ~ state * year, data = kbs_flwr_plot)
-interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
-```
-
+# Leverage plots and detecting Outliers
 ```{r}
 # Plot level data
 # UMBS State-only model
@@ -210,81 +231,10 @@ fit3 <- lm(flwr_duration_scaled ~ state * year, data = umbs_flwr_plot)
 interact_plot(fit3, pred = year, modx = state)
 ```
 
-# KBS Plot-level Mixed Effects Models:
-```{r, error=TRUE}
-mod1p <- lmer(flwr_duration_scaled ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod2p <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod3p <- lmer(flwr_duration_scaled ~ insecticide + state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod4p <- lmer(flwr_duration_scaled ~ insecticide * state + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod5p <- lmer(flwr_duration_scaled ~ state + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod6p <- lmer(flwr_duration_scaled ~ state + year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod7p <- lmer(flwr_duration_scaled ~ state * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod8p <- lmer(flwr_duration_scaled ~ state * year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod10p <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-mod11p <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
-anova(mod1p, mod2p) # go with 1p although they are nearly identical
-AICctab(mod1p, mod2p, weights=T)
-anova(mod1p)
-summary(mod1p)
-
-# Our hypothesized model is  mod9p
-summary(mod9p)
-anova(mod9p)
-
-# comparisons
-emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
-
-# making a table
-kable(anova(mod9p)) %>% kableExtra::kable_styling()
-
-# adding in our temp data into some models
-# note: including state, year, and temp data into a model leads to rank deficiency
-# so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
-kbs_flwr_plot_amb <- kbs_flwr_plot %>%
-        filter(state == "ambient")
-modtest1u <- lmer(flwr_duration_scaled ~ mean_temp + (1|plot), kbs_flwr_plot, REML=FALSE)
-modtest2u <- lmer(flwr_duration_scaled ~ GDD_cumulative + (1|plot), kbs_flwr_plot, REML=FALSE)
-
-AICtab(modtest1u, modtest2u, weights=T)
-# growing degree days model is better but we are going to use the mean temp for all models
-
-anova(modtest1u)
-summary(modtest1u)
-
-# making a table
-kable(anova(modtest1u)) %>% kableExtra::kable_styling()
-```
-
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
-mod1up <- lmer(flwr_duration_scaled ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod2up <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod3up <- lmer(flwr_duration_scaled ~ insecticide + state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod4up <- lmer(flwr_duration_scaled ~ insecticide * state + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod5up <- lmer(flwr_duration_scaled ~ state + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod6up <- lmer(flwr_duration_scaled ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod7up <- lmer(flwr_duration_scaled ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod8up <- lmer(flwr_duration_scaled ~ state * year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+# Our hypothesized model is mod9p
 mod9up <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod10up <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-mod11up <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
-AICctab(mod1up, mod2up, mod3up, mod4up, mod5up, mod6up, mod7up, mod8up, mod9up, mod10up, mod11up, weights=T)
-anova(mod1up, mod2up) # go with simpler model 1up
-AICctab(mod2up, mod1up, weights=T) #mod1up
-anova(mod1up)
-summary(mod1up)
-
-# with herb reduction included in model
-anova(mod3up)
-# with herb reduction as interactive term
-anova(mod9up)
-
-#Our hypothesized model is  mod9p
 summary(mod9up)
 anova(mod9up)
 
@@ -315,18 +265,69 @@ summary(modtest1u)
 kable(anova(modtest1u)) %>% kableExtra::kable_styling()
 ```
 
+Species models for supplement
 ```{r}
-# UMBS
-# species model for supp
+# KBS
 mod_spp_k <- lmer(flwr_duration_scaled ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
 # making a table
 kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
 
 # UMBS
-# species model for supp
 mod_spp_u <- lmer(flwr_duration_scaled ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
 kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
 ```
+
+
+
+
+
+
+
+
+KBS and UMBS models not used in manuscript
+```{r}
+#KBS
+mod1p <- lmer(flwr_duration_scaled ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod2p <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod3p <- lmer(flwr_duration_scaled ~ insecticide + state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod4p <- lmer(flwr_duration_scaled ~ insecticide * state + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod5p <- lmer(flwr_duration_scaled ~ state + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod6p <- lmer(flwr_duration_scaled ~ state + year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod7p <- lmer(flwr_duration_scaled ~ state * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod8p <- lmer(flwr_duration_scaled ~ state * year_factor + insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod10p <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod11p <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), kbs_flwr_plot, REML=FALSE)
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 5p and 7p are the top models
+anova(mod1p, mod2p) # go with 1p although they are nearly identical
+AICctab(mod1p, mod2p, weights=T)
+anova(mod1p)
+summary(mod1p)
+
+#UMBS
+mod1up <- lmer(flwr_duration_scaled ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod2up <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod3up <- lmer(flwr_duration_scaled ~ insecticide + state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod4up <- lmer(flwr_duration_scaled ~ insecticide * state + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod5up <- lmer(flwr_duration_scaled ~ state + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod6up <- lmer(flwr_duration_scaled ~ state + year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod7up <- lmer(flwr_duration_scaled ~ state * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod8up <- lmer(flwr_duration_scaled ~ state * year_factor + insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod9up <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod10up <- lmer(flwr_duration_scaled ~ state + insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+mod11up <- lmer(flwr_duration_scaled ~ state * year_factor * insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
+AICctab(mod1up, mod2up, mod3up, mod4up, mod5up, mod6up, mod7up, mod8up, mod9up, mod10up, mod11up, weights=T)
+anova(mod1up, mod2up) # go with simpler model 1up
+AICctab(mod2up, mod1up, weights=T) #mod1up
+anova(mod1up)
+summary(mod1up)
+
+# with herb reduction included in model
+anova(mod3up)
+# with herb reduction as interactive term
+anova(mod9up)
+```
+
