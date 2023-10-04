@@ -218,9 +218,5 @@ comp_diversity$year <- as.numeric(as.character(comp_diversity$year))
 
 # write a new csv with diversity indices and upload to the shared google drive L2 data folder
 write.csv(comp_diversity, file.path(L2_dir, "plant_composition/final_plant_comp_diversity_L2.csv"), row.names = F)
-
-# create separate data frames for kbs and umbs sites
-kbs_diversity <- subset(comp_diversity, site == "kbs")
-umbs_diversity <- subset(comp_diversity, site == "umbs")
 ```
 

@@ -287,21 +287,21 @@ annotate_figure(comp_overall_merge,
 dev.off()
 ```
 
-For the supplemental document - line graph by site and year (need to work on)
+For the supplemental document
 ```{r}
-# filter the data to contain the mean and std error for relabun of each site
+# filter the data to contain the mean and std error for percent cover of each site
 pc_avg <- comp %>%
   group_by(site, state, year) %>%
   summarize(avg_pc = mean(avg_pc, na.rm = TRUE),
             se = std.error(avg_pc, na.rm = TRUE))
 
-# filter the data to contain the mean and std error for relabun of each site for origin
+# filter the data to contain the mean and std error for percent cover of each site for origin
 origin_pc_avg <- origin %>%
   group_by(site, state, origin, year) %>%
   summarize(avg_pc = mean(avg_origin_pc, na.rm = TRUE),
             se = std.error(avg_origin_pc, na.rm = TRUE))
 
-# filter the data to contain the mean and std error for relabun of each site for growth habit
+# filter the data to contain the mean and std error for percent cover of each site for growth habit
 growth_pc_avg <- growth %>%
   group_by(site, state, growth_habit, year) %>%
   summarize(avg_pc = mean(avg_growth_pc, na.rm = TRUE),

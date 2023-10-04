@@ -53,6 +53,16 @@ sum_shannon <- diversity %>%
   summarize(avg_shannon = mean(shannon, na.rm = TRUE),
             se = std.error(shannon, na.rm = TRUE))
 
+sum_simpson <- diversity %>%
+  group_by(site, state, year) %>%
+  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
+            se = std.error(simpson, na.rm = TRUE))
+
+sum_richness <- diversity %>%
+  group_by(site, state, year) %>%
+  summarize(avg_richness = mean(richness, na.rm = TRUE),
+            se = std.error(richness, na.rm = TRUE))
+
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 sum_shannon$state <- as.factor(sum_shannon$state)
 levels(sum_shannon$state)
@@ -61,12 +71,6 @@ sum_shannon$state <- factor(sum_shannon$state, levels(sum_shannon$state)[c(2,1)]
 levels(sum_shannon$state)
 # [1] "warmed"  "ambient"
 
-sum_simpson <- diversity %>%
-  group_by(site, state, year) %>%
-  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
-            se = std.error(simpson, na.rm = TRUE))
-
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 sum_simpson$state <- as.factor(sum_simpson$state)
 levels(sum_simpson$state)
 # [1] "ambient" "warmed" 
@@ -74,12 +78,6 @@ sum_simpson$state <- factor(sum_simpson$state, levels(sum_simpson$state)[c(2,1)]
 levels(sum_simpson$state)
 # [1] "warmed"  "ambient"
 
-sum_richness <- diversity %>%
-  group_by(site, state, year) %>%
-  summarize(avg_richness = mean(richness, na.rm = TRUE),
-            se = std.error(richness, na.rm = TRUE))
-
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 sum_richness$state <- as.factor(sum_richness$state)
 levels(sum_richness$state)
 # [1] "ambient" "warmed" 
@@ -87,11 +85,23 @@ sum_richness$state <- factor(sum_richness$state, levels(sum_richness$state)[c(2,
 levels(sum_richness$state)
 # [1] "warmed"  "ambient"
 
+# Including insecticide treatment
 # averages + std error for plot level data + insecticide treatment
 sum_shannon_i <- diversity %>%
   group_by(site, state, insecticide, year) %>%
   summarize(avg_shannon = mean(shannon, na.rm = TRUE),
             se = std.error(shannon, na.rm = TRUE))
+
+sum_simpson_i <- diversity %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
+            se = std.error(simpson, na.rm = TRUE))
+
+
+sum_richness_i <- diversity %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_richness = mean(richness, na.rm = TRUE),
+            se = std.error(richness, na.rm = TRUE))
 
 # Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 sum_shannon_i$state <- as.factor(sum_shannon_i$state)
@@ -101,12 +111,6 @@ sum_shannon_i$state <- factor(sum_shannon_i$state, levels(sum_shannon_i$state)[c
 levels(sum_shannon_i$state)
 # [1] "warmed"  "ambient"
 
-sum_simpson_i <- diversity %>%
-  group_by(site, state, insecticide, year) %>%
-  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
-            se = std.error(simpson, na.rm = TRUE))
-
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 sum_simpson_i$state <- as.factor(sum_simpson_i$state)
 levels(sum_simpson_i$state)
 # [1] "ambient" "warmed" 
@@ -114,12 +118,6 @@ sum_simpson_i$state <- factor(sum_simpson_i$state, levels(sum_simpson_i$state)[c
 levels(sum_simpson_i$state)
 # [1] "warmed"  "ambient"
 
-sum_richness_i <- diversity %>%
-  group_by(site, state, insecticide, year) %>%
-  summarize(avg_richness = mean(richness, na.rm = TRUE),
-            se = std.error(richness, na.rm = TRUE))
-
-# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
 sum_richness_i$state <- as.factor(sum_richness_i$state)
 levels(sum_richness_i$state)
 # [1] "ambient" "warmed" 
@@ -139,242 +137,10 @@ sum_richness_i <- change_site(sum_richness_i)
 # Set ggplot2 plotting
 # This code for ggplot2 sets the theme to mostly black and white 
 # (Arial font, and large font, base size=24)
-theme_set(theme_bw(14))
+#theme_set(theme_bw(14))
 #theme_update(axis.text.x = element_text(size = 13),
 #             axis.text.y = element_text(size = 16),
 #             axis.title = element_text(size=16,face="bold"))
-```
-
-## Combining diversity indices - state only
-## Boxplot
-```{r, echo=F}
-# shannon plot
-shannon_overall_plot <- function(loc) { 
-  shannon_plot <- subset(diversity, site == loc)
-  return(ggplot(shannon_plot, aes(x = state, y = shannon, fill=state)) +
-           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
-                 facet_grid(.~year) +
-           geom_boxplot(outlier.shape=NA, alpha=0.7) +
-           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
-           labs(x = NULL, y = "Shannon", title = loc) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
-           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-            theme_classic())
-}
-
-shannon_overall_kbs <- shannon_overall_plot("KBS")
-shannon_overall_kbs <- shannon_overall_kbs + theme(axis.text.x=element_blank())
-shannon_overall_umbs <- shannon_overall_plot("UMBS")
-shannon_overall_umbs <- shannon_overall_umbs + theme(axis.text.x=element_blank()) + labs(y = NULL)
-
-# simpson plot
-simpson_overall_plot <- function(loc) { 
-  simpson_plot <- subset(diversity, site == loc)
-  return(ggplot(simpson_plot, aes(x = state, y = simpson, fill=state)) +
-           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
-                 facet_grid(.~year) +
-           geom_boxplot(outlier.shape=NA, alpha=0.7) +
-           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
-           labs(x = NULL, y = "Simpson", title = loc) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
-           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-           theme_classic())
-}
-
-simpson_overall_kbs <- simpson_overall_plot("KBS")
-simpson_overall_kbs <- simpson_overall_kbs + theme(axis.text.x=element_blank()) + labs(title = NULL)
-simpson_overall_umbs <- simpson_overall_plot("UMBS")
-simpson_overall_umbs <- simpson_overall_umbs + labs(y = NULL, title = NULL) + theme(axis.text.x=element_blank())
-
-# richness plot
-richness_overall_plot <- function(loc) { 
-  richness_plot <- subset(diversity, site == loc)
-  return(ggplot(richness_plot, aes(x = state, y = richness, fill=state)) +
-           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
-                 facet_grid(.~year) +
-           geom_boxplot(outlier.shape=NA, alpha=0.7) +
-           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
-           labs(x = NULL, y = "Species Richness", title = loc) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
-           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
-           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
-            theme_classic())
-}
-
-richness_overall_kbs <- richness_overall_plot("KBS")
-richness_overall_kbs <- richness_overall_kbs + labs(title = NULL)
-richness_overall_umbs <- richness_overall_plot("UMBS")
-richness_overall_umbs <- richness_overall_umbs + labs(y = NULL, title = NULL)
-
-diversity_overall_boxplot <- ggpubr::ggarrange(shannon_overall_kbs, shannon_overall_umbs,
-                          simpson_overall_kbs, simpson_overall_umbs,
-                          richness_overall_kbs, richness_overall_umbs,
-                          nrow = 3, ncol = 2, legend = "none")
-diversity_overall_boxplot
-png("plant_comp_diversity_plots_L2_all_diversity_boxplot.png", units="in", width=8, height=8, res=300)
-annotate_figure(diversity_overall_boxplot,
-                left = text_grob("Ecological Diversity Indices", color = "black", rot = 90),
-                bottom = text_grob("Year", color = "black"))
-dev.off()
-```
-
-## Combining diversity indices - state only
-## Line plot
-```{r, echo=F}
-# how to make the desired plots below:
-# http://www.sthda.com/english/wiki/ggplot2-line-plot-quick-start-guide-r-software-and-data-visualization
-
-# shannon plot
-sum_shannon$year <- as.factor(sum_shannon$year)
-shannon_overall_plot <- function(loc) { 
-  shannon_plot <- subset(sum_shannon, site == loc)
-  return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group = state)) +
-                           coord_cartesian(ylim = c(0.5,1.75)) +
-                 geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.15)) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Shannon", title = loc, color = "Treatment"))
-}
-
-shannon_overall_kbs <- shannon_overall_plot("KBS")
-shannon_overall_kbs <- shannon_overall_kbs + theme(axis.text.x=element_blank())
-shannon_overall_umbs <- shannon_overall_plot("UMBS")
-shannon_overall_umbs <- shannon_overall_umbs + theme(axis.text.x=element_blank(),
-                                                     axis.text.y=element_blank()) + labs(y = NULL)
-
-# simpson plot
-sum_simpson$year <- as.factor(sum_simpson$year)
-simpson_overall_plot <- function(loc) { 
-  simpson_plot <- subset(sum_simpson, site == loc)
-  return(ggplot(simpson_plot, aes(x = year, y = avg_simpson, group = state)) +
-                 coord_cartesian(ylim = c(0.3, 0.8)) +
-                 geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1, position=position_dodge(0.15)) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Simpson", title = loc, color = "Treatment"))
-}
-
-simpson_overall_kbs <- simpson_overall_plot("KBS")
-simpson_overall_kbs <- simpson_overall_kbs + theme(axis.text.x=element_blank()) + labs(title = NULL)
-simpson_overall_umbs <- simpson_overall_plot("UMBS")
-simpson_overall_umbs <- simpson_overall_umbs + labs(y = NULL, title = NULL) + theme(axis.text.x=element_blank(),
-                                                                                    axis.text.y=element_blank())
-
-# richness plot
-sum_richness$year <- as.factor(sum_richness$year)
-richness_overall_plot <- function(loc) { 
-  richness_plot <- subset(sum_richness, site == loc)
-  return(ggplot(richness_plot, aes(x = year, y = avg_richness, group = state)) +
-                 coord_cartesian(ylim = c(3, 10.5)) +
-                 geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1, position=position_dodge(0.15)) +
-           geom_line(aes(color=state), size = 1) +
-           geom_point(aes(color=state), size = 2) +
-           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
-           labs(x = NULL, y = "Richness", title = loc, color = "Treatment"))
-}
-
-richness_overall_kbs <- richness_overall_plot("KBS")
-richness_overall_kbs <- richness_overall_kbs + labs(title = NULL)
-richness_overall_umbs <- richness_overall_plot("UMBS")
-richness_overall_umbs <- richness_overall_umbs + labs(y = NULL, title = NULL) + theme(axis.text.y=element_blank())
-
-diversity_overall_line <- ggpubr::ggarrange(shannon_overall_kbs, shannon_overall_umbs,
-                          simpson_overall_kbs, simpson_overall_umbs,
-                          richness_overall_kbs, richness_overall_umbs,
-                          nrow = 3, ncol = 2, common.legend = T, legend="bottom")
-diversity_overall_line
-png("plant_comp_diversity_plots_L2_all_diversity_lineplot.png", units="in", width=10, height=10, res=300)
-annotate_figure(diversity_overall_line,
-                bottom = text_grob("Year", color = "black"))
-dev.off()
-```
-
-## Combining diversity indices - all treatments
-## Line plot with insecticide - code from Kara
-```{r}
-# Shannon
-sum_shannon_i$year <- as.factor(sum_shannon_i$year)
-sum_shannon_i$full_treat <- paste(sum_shannon_i$state, sum_shannon_i$insecticide, sep="_")
-sum_shannon_line_i <- function(loc) { 
-        shannon_plot <- subset(sum_shannon_i, site == loc)
-        return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.15)) +
-                       geom_line(size = 1) +
-                       geom_point(size = 2) +
-                       scale_color_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
-                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dashed", "solid", "dashed"),
-                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       labs(x = NULL, y = "Shannon", title = loc) +
-                       theme_bw(14))
-}
-sum_shannon_line_i_kbs <- sum_shannon_line_i("KBS")
-sum_shannon_line_i_kbs <- sum_shannon_line_i_kbs + theme(axis.text.x=element_blank())
-sum_shannon_line_i_umbs <- sum_shannon_line_i("UMBS")
-sum_shannon_line_i_umbs <- sum_shannon_line_i_umbs + labs(y=NULL) + theme(axis.text.x=element_blank())
-
-#Simpson
-sum_simpson_i$year <- as.factor(sum_simpson_i$year)
-sum_simpson_i$full_treat <- paste(sum_simpson_i$state, sum_simpson_i$insecticide, sep="_")
-sum_simpson_line_i <- function(loc) { 
-        simpson_plot <- subset(sum_simpson_i, site == loc)
-        return(ggplot(simpson_plot, aes(x = year, y = avg_simpson, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1, position=position_dodge(0.15)) +
-                       geom_line(size = 1) +
-                       geom_point(size = 2) +
-                       scale_color_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
-                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dashed", "solid", "dashed"),
-                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       labs(x = NULL, y = "Simpson", title = loc) +
-                       theme_bw(14))
-}
-sum_simpson_line_i_kbs <- sum_simpson_line_i("KBS")
-sum_simpson_line_i_kbs <- sum_simpson_line_i_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
-sum_simpson_line_i_umbs <- sum_simpson_line_i("UMBS")
-sum_simpson_line_i_umbs <- sum_simpson_line_i_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank())
-
-#Richness
-sum_richness_i$year <- as.factor(sum_richness_i$year)
-sum_richness_i$full_treat <- paste(sum_richness_i$state, sum_richness_i$insecticide, sep="_")
-sum_richness_line_i <- function(loc) { 
-        richness_plot <- subset(sum_richness_i, site == loc)
-        return(ggplot(richness_plot, aes(x = year, y = avg_richness, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1, position=position_dodge(0.15)) +
-                       geom_line(size = 1) +
-                       geom_point(size = 2) +
-                       scale_color_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
-                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dashed", "solid", "dashed"),
-                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       labs(x = NULL, y = "Species Richness", title = loc) +
-                       theme_bw(14))
-}
-sum_richness_line_i_kbs <- sum_richness_line_i("KBS")
-sum_richness_line_i_kbs <- sum_richness_line_i_kbs + labs(title=NULL)
-sum_richness_line_i_umbs <- sum_richness_line_i("UMBS")
-sum_richness_line_i_umbs <- sum_richness_line_i_umbs + labs(y=NULL, title=NULL)
-
-diversity_line_i <- ggpubr::ggarrange(sum_shannon_line_i_kbs, sum_shannon_line_i_umbs,
-                          sum_simpson_line_i_kbs, sum_simpson_line_i_umbs,
-                          sum_richness_line_i_kbs, sum_richness_line_i_umbs,
-                          nrow = 3, ncol = 2, legend = "none")
-diversity_line_i
-png("plant_comp_diversity_plots_L2_all_diversity_lineplot_insect.png", units="in", width=11, height=8, res=300)
-annotate_figure(diversity_line_i,
-                left = text_grob("Ecological Diversity Indices", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
-dev.off()
 ```
 
 Averages + std error for plot level data + insecticide treatment across all years (what will be used in the paper)
@@ -396,6 +162,7 @@ sum_richness_all <- diversity %>%
             se = std.error(richness, na.rm = TRUE))
 ```
 
+# used in manuscript
 Dot plot with insecticide
 ```{r}
 # Shannon diversity
@@ -526,4 +293,250 @@ ggpubr::ggarrange(shannon_dot_i_kbs, shannon_dot_i_umbs,
                   heights = c(1.35, 1.2, 1.3))
 dev.off()
 ```
+
+## used in supp
+## Combining diversity indices - state only
+## Line plot
+```{r, echo=F}
+# how to make the desired plots below:
+# http://www.sthda.com/english/wiki/ggplot2-line-plot-quick-start-guide-r-software-and-data-visualization
+
+# shannon plot
+sum_shannon$year <- as.factor(sum_shannon$year)
+shannon_overall_plot <- function(loc) { 
+  shannon_plot <- subset(sum_shannon, site == loc)
+  return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group = state)) +
+                           coord_cartesian(ylim = c(0.5,1.75)) +
+                 geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.15)) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Shannon", title = loc, color = "Treatment"))
+}
+
+shannon_overall_kbs <- shannon_overall_plot("KBS")
+shannon_overall_kbs <- shannon_overall_kbs + theme(axis.text.x=element_blank())
+shannon_overall_umbs <- shannon_overall_plot("UMBS")
+shannon_overall_umbs <- shannon_overall_umbs + theme(axis.text.x=element_blank(),
+                                                     axis.text.y=element_blank()) + labs(y = NULL)
+
+# simpson plot
+sum_simpson$year <- as.factor(sum_simpson$year)
+simpson_overall_plot <- function(loc) { 
+  simpson_plot <- subset(sum_simpson, site == loc)
+  return(ggplot(simpson_plot, aes(x = year, y = avg_simpson, group = state)) +
+                 coord_cartesian(ylim = c(0.3, 0.8)) +
+                 geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1, position=position_dodge(0.15)) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Simpson", title = loc, color = "Treatment"))
+}
+
+simpson_overall_kbs <- simpson_overall_plot("KBS")
+simpson_overall_kbs <- simpson_overall_kbs + theme(axis.text.x=element_blank()) + labs(title = NULL)
+simpson_overall_umbs <- simpson_overall_plot("UMBS")
+simpson_overall_umbs <- simpson_overall_umbs + labs(y = NULL, title = NULL) + theme(axis.text.x=element_blank(),
+                                                                                    axis.text.y=element_blank())
+
+# richness plot
+sum_richness$year <- as.factor(sum_richness$year)
+richness_overall_plot <- function(loc) { 
+  richness_plot <- subset(sum_richness, site == loc)
+  return(ggplot(richness_plot, aes(x = year, y = avg_richness, group = state)) +
+                 coord_cartesian(ylim = c(3, 10.5)) +
+                 geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1, position=position_dodge(0.15)) +
+           geom_line(aes(color=state), size = 1) +
+           geom_point(aes(color=state), size = 2) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a"), labels=c("Ambient","Warmed")) +
+           labs(x = NULL, y = "Richness", title = loc, color = "Treatment"))
+}
+
+richness_overall_kbs <- richness_overall_plot("KBS")
+richness_overall_kbs <- richness_overall_kbs + labs(title = NULL)
+richness_overall_umbs <- richness_overall_plot("UMBS")
+richness_overall_umbs <- richness_overall_umbs + labs(y = NULL, title = NULL) + theme(axis.text.y=element_blank())
+
+diversity_overall_line <- ggpubr::ggarrange(shannon_overall_kbs, shannon_overall_umbs,
+                          simpson_overall_kbs, simpson_overall_umbs,
+                          richness_overall_kbs, richness_overall_umbs,
+                          nrow = 3, ncol = 2, common.legend = T, legend="bottom")
+diversity_overall_line
+png("plant_comp_diversity_plots_L2_all_diversity_lineplot.png", units="in", width=10, height=10, res=300)
+annotate_figure(diversity_overall_line,
+                bottom = text_grob("Year", color = "black"))
+dev.off()
+```
+
+
+
+
+
+
+
+
+
+
+
+## Not used in manuscript or supp
+## Combining diversity indices - state only
+## Boxplot
+```{r, echo=F}
+# shannon plot
+shannon_overall_plot <- function(loc) { 
+  shannon_plot <- subset(diversity, site == loc)
+  return(ggplot(shannon_plot, aes(x = state, y = shannon, fill=state)) +
+           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
+                 facet_grid(.~year) +
+           geom_boxplot(outlier.shape=NA, alpha=0.7) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
+           labs(x = NULL, y = "Shannon", title = loc) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+            theme_classic())
+}
+
+shannon_overall_kbs <- shannon_overall_plot("KBS")
+shannon_overall_kbs <- shannon_overall_kbs + theme(axis.text.x=element_blank())
+shannon_overall_umbs <- shannon_overall_plot("UMBS")
+shannon_overall_umbs <- shannon_overall_umbs + theme(axis.text.x=element_blank()) + labs(y = NULL)
+
+# simpson plot
+simpson_overall_plot <- function(loc) { 
+  simpson_plot <- subset(diversity, site == loc)
+  return(ggplot(simpson_plot, aes(x = state, y = simpson, fill=state)) +
+           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
+                 facet_grid(.~year) +
+           geom_boxplot(outlier.shape=NA, alpha=0.7) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
+           labs(x = NULL, y = "Simpson", title = loc) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+           theme_classic())
+}
+
+simpson_overall_kbs <- simpson_overall_plot("KBS")
+simpson_overall_kbs <- simpson_overall_kbs + theme(axis.text.x=element_blank()) + labs(title = NULL)
+simpson_overall_umbs <- simpson_overall_plot("UMBS")
+simpson_overall_umbs <- simpson_overall_umbs + labs(y = NULL, title = NULL) + theme(axis.text.x=element_blank())
+
+# richness plot
+richness_overall_plot <- function(loc) { 
+  richness_plot <- subset(diversity, site == loc)
+  return(ggplot(richness_plot, aes(x = state, y = richness, fill=state)) +
+           facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
+                 facet_grid(.~year) +
+           geom_boxplot(outlier.shape=NA, alpha=0.7) +
+           geom_jitter(aes(alpha=0.8, color=state, fill=state), shape=16, size=2) +
+           labs(x = NULL, y = "Species Richness", title = loc) +
+           scale_color_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_fill_manual(values = c("#a6bddb", "#fb6a4a")) +
+           scale_x_discrete(labels=c("ambient" = "A", "warmed" = "W")) +
+            theme_classic())
+}
+
+richness_overall_kbs <- richness_overall_plot("KBS")
+richness_overall_kbs <- richness_overall_kbs + labs(title = NULL)
+richness_overall_umbs <- richness_overall_plot("UMBS")
+richness_overall_umbs <- richness_overall_umbs + labs(y = NULL, title = NULL)
+
+diversity_overall_boxplot <- ggpubr::ggarrange(shannon_overall_kbs, shannon_overall_umbs,
+                          simpson_overall_kbs, simpson_overall_umbs,
+                          richness_overall_kbs, richness_overall_umbs,
+                          nrow = 3, ncol = 2, legend = "none")
+diversity_overall_boxplot
+png("plant_comp_diversity_plots_L2_all_diversity_boxplot.png", units="in", width=8, height=8, res=300)
+annotate_figure(diversity_overall_boxplot,
+                left = text_grob("Ecological Diversity Indices", color = "black", rot = 90),
+                bottom = text_grob("Year", color = "black"))
+dev.off()
+```
+
+## not in manuscript or supp
+## Combining diversity indices - all treatments
+## Line plot with insecticide - code from Kara
+```{r}
+# Shannon
+sum_shannon_i$year <- as.factor(sum_shannon_i$year)
+sum_shannon_i$full_treat <- paste(sum_shannon_i$state, sum_shannon_i$insecticide, sep="_")
+sum_shannon_line_i <- function(loc) { 
+        shannon_plot <- subset(sum_shannon_i, site == loc)
+        return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group=full_treat, linetype=full_treat, color = full_treat)) +
+                       geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.15)) +
+                       geom_line(size = 1) +
+                       geom_point(size = 2) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dashed", "solid", "dashed"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Shannon", title = loc) +
+                       theme_bw(14))
+}
+sum_shannon_line_i_kbs <- sum_shannon_line_i("KBS")
+sum_shannon_line_i_kbs <- sum_shannon_line_i_kbs + theme(axis.text.x=element_blank())
+sum_shannon_line_i_umbs <- sum_shannon_line_i("UMBS")
+sum_shannon_line_i_umbs <- sum_shannon_line_i_umbs + labs(y=NULL) + theme(axis.text.x=element_blank())
+
+#Simpson
+sum_simpson_i$year <- as.factor(sum_simpson_i$year)
+sum_simpson_i$full_treat <- paste(sum_simpson_i$state, sum_simpson_i$insecticide, sep="_")
+sum_simpson_line_i <- function(loc) { 
+        simpson_plot <- subset(sum_simpson_i, site == loc)
+        return(ggplot(simpson_plot, aes(x = year, y = avg_simpson, group=full_treat, linetype=full_treat, color = full_treat)) +
+                       geom_errorbar(aes(ymin=avg_simpson-se, ymax=avg_simpson+se), width=.1, position=position_dodge(0.15)) +
+                       geom_line(size = 1) +
+                       geom_point(size = 2) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dashed", "solid", "dashed"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Simpson", title = loc) +
+                       theme_bw(14))
+}
+sum_simpson_line_i_kbs <- sum_simpson_line_i("KBS")
+sum_simpson_line_i_kbs <- sum_simpson_line_i_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
+sum_simpson_line_i_umbs <- sum_simpson_line_i("UMBS")
+sum_simpson_line_i_umbs <- sum_simpson_line_i_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank())
+
+#Richness
+sum_richness_i$year <- as.factor(sum_richness_i$year)
+sum_richness_i$full_treat <- paste(sum_richness_i$state, sum_richness_i$insecticide, sep="_")
+sum_richness_line_i <- function(loc) { 
+        richness_plot <- subset(sum_richness_i, site == loc)
+        return(ggplot(richness_plot, aes(x = year, y = avg_richness, group=full_treat, linetype=full_treat, color = full_treat)) +
+                       geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1, position=position_dodge(0.15)) +
+                       geom_line(size = 1) +
+                       geom_point(size = 2) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dashed", "solid", "dashed"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Species Richness", title = loc) +
+                       theme_bw(14))
+}
+sum_richness_line_i_kbs <- sum_richness_line_i("KBS")
+sum_richness_line_i_kbs <- sum_richness_line_i_kbs + labs(title=NULL)
+sum_richness_line_i_umbs <- sum_richness_line_i("UMBS")
+sum_richness_line_i_umbs <- sum_richness_line_i_umbs + labs(y=NULL, title=NULL)
+
+diversity_line_i <- ggpubr::ggarrange(sum_shannon_line_i_kbs, sum_shannon_line_i_umbs,
+                          sum_simpson_line_i_kbs, sum_simpson_line_i_umbs,
+                          sum_richness_line_i_kbs, sum_richness_line_i_umbs,
+                          nrow = 3, ncol = 2, legend = "none")
+diversity_line_i
+png("plant_comp_diversity_plots_L2_all_diversity_lineplot_insect.png", units="in", width=11, height=8, res=300)
+annotate_figure(diversity_line_i,
+                left = text_grob("Ecological Diversity Indices", color = "black", rot = 90, size=15),
+                bottom = text_grob("Year", color = "black", size=15))
+dev.off()
+```
+
 

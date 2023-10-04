@@ -165,45 +165,10 @@ outlierTest(mod1) # no outliers
 ```
 
 ```{r}
-mod1p <- lmer(log(julian_min) ~ state + (1|plot), kbs_plot, REML=FALSE)
-mod2p <- lmer(log(julian_min) ~ insecticide + (1|plot), kbs_plot, REML=FALSE)
-mod3p <- lmer(log(julian_min) ~ insecticide + state + (1|plot), kbs_plot, REML=FALSE)
-mod4p <- lmer(log(julian_min) ~ insecticide * state + (1|plot), kbs_plot, REML=FALSE)
-mod5p <- lmer(log(julian_min) ~ state + year_factor + (1|plot), kbs_plot, REML=FALSE)
-mod6p <- lmer(log(julian_min) ~ state + year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
-mod7p <- lmer(log(julian_min) ~ state * year_factor + (1|plot), kbs_plot, REML=FALSE)
-mod8p <- lmer(log(julian_min) ~ state * year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
-mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
-mod10p <- lmer(log(julian_min) ~ state + insecticide * year_factor + (1|plot), kbs_plot, REML=FALSE)
-mod11p <- lmer(log(julian_min) ~ state * year_factor * insecticide + (1|plot), kbs_plot, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 7p and 8p are the top models
-anova(mod7p, mod8p) # go with 7p although they are nearly identical
-AICctab(mod7p, mod8p, weights=T) # 7p
-summ(mod7p)
-anova(mod7p)
-summary(mod7p)
-emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
-
-kbs_plot$year_factor <- as.factor(kbs_plot$year_factor)
-mod7p %>%
-  emmeans(pairwise ~ state | year_factor) %>%
-  pluck("contrasts")
-
-#including herb reduction
-anova(mod8p)
-#including herb reduction as interactive term
-anova(mod9p)
-
 #Our hypothesized model is  mod9p
+mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
 summary(mod9p)
 anova(mod9p)
-
-# comparisons
-emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
-emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
 
 # making a table
 kable(anova(mod9p)) %>% kableExtra::kable_styling()
@@ -243,7 +208,7 @@ shapiro.test(umbs_plot$julian_min) # pvalue is > 0.05 so we fail to reject the n
 Leverage plots and detecting Outliers
 ```{r}
 # Plot level data
-# KBS State-only model
+# UMBS State-only model
 fit_plot_state_umbs <- lm(julian_min ~ state, data = umbs_plot)
 outlierTest(fit_plot_state_umbs) # no outliers
 qqPlot(fit_plot_state_umbs, main="QQ Plot") 
@@ -251,7 +216,7 @@ hist(fit_plot_state_umbs$residuals)
 leveragePlots(fit_plot_state_umbs)
 ols_test_normality(fit_plot_state_umbs) # looks ok besides Kolmogorov-Smirnov test
 
-# KBS State and year model
+# UMBS State and year model
 fit_plot_stateyear_umbs <- lm(julian_min ~ state + year_factor, data = umbs_plot)
 outlierTest(fit_plot_stateyear_umbs) 
 qqPlot(fit_plot_stateyear_umbs, main="QQ Plot") 
@@ -266,36 +231,10 @@ interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
 ```{r}
-mod1pu <- lmer(julian_min ~ state + (1|plot), umbs_plot, REML=FALSE)
-mod2pu <- lmer(julian_min ~ insecticide + (1|plot), umbs_plot, REML=FALSE)
-mod3pu <- lmer(julian_min ~ insecticide + state + (1|plot), umbs_plot, REML=FALSE)
-mod4pu <- lmer(julian_min ~ insecticide * state + (1|plot), umbs_plot, REML=FALSE)
-mod5pu <- lmer(julian_min ~ state + year_factor + (1|plot), umbs_plot, REML=FALSE)
-mod6pu <- lmer(julian_min ~ state + year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
-mod7pu <- lmer(julian_min ~ state * year_factor + (1|plot), umbs_plot, REML=FALSE)
-mod8pu <- lmer(julian_min ~ state * year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
-mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_plot, REML=FALSE)
-mod10pu <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), umbs_plot, REML=FALSE)
-mod11pu <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_plot, REML=FALSE)
-AICctab(mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T) # model 10p and 6p are the top models
-anova(mod10pu, mod6pu) # go with 10p
-AICctab(mod10pu, mod6pu, weights=T) #10p
-summ(mod10pu)
-summary(mod10pu)
-anova(mod10pu)
-emmeans(mod10pu, list(pairwise ~ state + year_factor), adjust = "tukey")
-emmeans(mod10pu, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
-emmeans(mod10pu, list(pairwise ~ year_factor), adjust = "tukey")
-
 #Our hypothesized model is  mod9p
+mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_plot, REML=FALSE)
 summary(mod9pu)
 anova(mod9pu)
-
-# comparisons
-emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
-contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9pu, insecticide~state)
 
 # making a table
 kable(anova(mod9pu)) %>% kableExtra::kable_styling()
@@ -318,7 +257,7 @@ kable(anova(modtest1u)) %>% kableExtra::kable_styling()
 
 ```
 
-
+Species models for supplement
 ```{r}
 # KBS
 # species model for supp
@@ -333,5 +272,77 @@ mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_fa
 anova(mod_spp_u)
 # making a table
 kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+```
+
+
+
+
+KBS and UMBS models not used in manuscript
+```{r}
+#KBS
+mod1p <- lmer(log(julian_min) ~ state + (1|plot), kbs_plot, REML=FALSE)
+mod2p <- lmer(log(julian_min) ~ insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod3p <- lmer(log(julian_min) ~ insecticide + state + (1|plot), kbs_plot, REML=FALSE)
+mod4p <- lmer(log(julian_min) ~ insecticide * state + (1|plot), kbs_plot, REML=FALSE)
+mod5p <- lmer(log(julian_min) ~ state + year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod6p <- lmer(log(julian_min) ~ state + year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod7p <- lmer(log(julian_min) ~ state * year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod8p <- lmer(log(julian_min) ~ state * year_factor + insecticide + (1|plot), kbs_plot, REML=FALSE)
+mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod10p <- lmer(log(julian_min) ~ state + insecticide * year_factor + (1|plot), kbs_plot, REML=FALSE)
+mod11p <- lmer(log(julian_min) ~ state * year_factor * insecticide + (1|plot), kbs_plot, REML=FALSE)
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) # model 7p and 8p are the top models
+anova(mod7p, mod8p) # go with 7p although they are nearly identical
+AICctab(mod7p, mod8p, weights=T) # 7p
+summ(mod7p)
+anova(mod7p)
+summary(mod7p)
+emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
+
+kbs_plot$year_factor <- as.factor(kbs_plot$year_factor)
+mod7p %>%
+  emmeans(pairwise ~ state | year_factor) %>%
+  pluck("contrasts")
+
+#including herb reduction
+anova(mod8p)
+#including herb reduction as interactive term
+anova(mod9p)
+
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
+#UMBS
+mod1pu <- lmer(julian_min ~ state + (1|plot), umbs_plot, REML=FALSE)
+mod2pu <- lmer(julian_min ~ insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod3pu <- lmer(julian_min ~ insecticide + state + (1|plot), umbs_plot, REML=FALSE)
+mod4pu <- lmer(julian_min ~ insecticide * state + (1|plot), umbs_plot, REML=FALSE)
+mod5pu <- lmer(julian_min ~ state + year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod6pu <- lmer(julian_min ~ state + year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod7pu <- lmer(julian_min ~ state * year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod8pu <- lmer(julian_min ~ state * year_factor + insecticide + (1|plot), umbs_plot, REML=FALSE)
+mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod10pu <- lmer(julian_min ~ state + insecticide * year_factor + (1|plot), umbs_plot, REML=FALSE)
+mod11pu <- lmer(julian_min ~ state * year_factor * insecticide + (1|plot), umbs_plot, REML=FALSE)
+AICctab(mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T) # model 10p and 6p are the top models
+anova(mod10pu, mod6pu) # go with 10p
+AICctab(mod10pu, mod6pu, weights=T) #10p
+summ(mod10pu)
+summary(mod10pu)
+anova(mod10pu)
+emmeans(mod10pu, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod10pu, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
+emmeans(mod10pu, list(pairwise ~ year_factor), adjust = "tukey")
+
+# comparisons
+emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
+contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9pu, insecticide~state)
+
 ```
 

@@ -196,31 +196,6 @@ outlierTest(modfull) # no outliers
 year.mod.test1 <- lmer(log(avg_pc) ~ state + year + (1|plot), kbs_comp_plot, REML=FALSE)
 year.mod.test2 <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
 anova(year.mod.test1, year.mod.test2) #year.mod.test2
-
-# plot-level models 
-modfull <- lmer(log(avg_pc) ~ state*as.factor(year_factor) + insecticide*year_factor + (1|plot), kbs_comp_plot, REML=F)
-mod1p <- lmer(log(avg_pc) ~ state + (1|plot), kbs_comp_plot, REML=FALSE)
-mod2p <- lmer(log(avg_pc) ~ insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
-mod3p <- lmer(log(avg_pc) ~ insecticide + state + (1|plot), kbs_comp_plot, REML=FALSE)
-mod4p <- lmer(log(avg_pc) ~ insecticide * state + (1|plot), kbs_comp_plot, REML=FALSE)
-mod5p <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
-mod6p <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
-mod7p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
-mod8p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
-mod9p <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
-mod10p <- lmer(log(avg_pc) ~ state + insecticide * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
-mod11p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) * insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
-
-AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
-anova(mod5p, mod6p)
-
-AICctab(mod5p, mod6p, weights=T) # 5p
-summ(mod5p)
-summary(mod5p)
-anova(mod5p)
-emmeans(mod5p, list(pairwise ~ state + year_factor), adjust = "tukey")
-emmeans(mod5p, list(pairwise ~ state), adjust = "tukey")
-
 ```
 
 Hypothesized model
@@ -229,12 +204,6 @@ Hypothesized model
 mod9p <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
 summary(mod9p)
 anova(mod9p)
-
-# comparisons
-emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
 
 # making a table
 kable(anova(mod9p)) %>% kableExtra::kable_styling()
@@ -359,36 +328,10 @@ outlierTest(modfullu)
 ```
 
 ```{r}
-# plot-level models 
-modfullu <- lmer(log(avg_pc) ~ state*as.factor(year_factor) + insecticide*year_factor + (1|plot), umbs_comp_plot, REML=F)
-mod1pu <- lmer(log(avg_pc) ~ state + (1|plot), umbs_comp_plot, REML=FALSE)
-mod2pu <- lmer(log(avg_pc) ~ insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
-mod3pu <- lmer(log(avg_pc) ~ insecticide + state + (1|plot), umbs_comp_plot, REML=FALSE)
-mod4pu <- lmer(log(avg_pc) ~ insecticide * state + (1|plot), umbs_comp_plot, REML=FALSE)
-mod5pu <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
-mod6pu <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
-mod7pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
-mod8pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
-mod9pu <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
-mod10pu <- lmer(log(avg_pc) ~ state + insecticide * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
-mod11pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) * insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
-AICtab(modfullu, mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T)
-anova(mod5pu, mod6pu)
-AICctab(mod5pu, mod6pu, weights=T) # 5p
-summ(mod5pu)
-summary(mod5pu)
-anova(mod5pu)
-emmeans(mod5pu, list(pairwise ~ state + as.factor(year_factor)), adjust = "tukey")
-
 #Our hypothesized model is  mod9p
+mod9pu <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
 summary(mod9pu)
 anova(mod9pu)
-
-# comparisons
-emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
-contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9pu, insecticide~state)
 
 # making a table
 kable(anova(mod9pu)) %>% kableExtra::kable_styling()
@@ -497,12 +440,6 @@ anova(year.mod.test1, year.mod.test2) #year.mod.test2
 mod_native_k <- lmer(log(avg_origin_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_native_plot, REML=FALSE) #hypothesized model
 summary(mod_native_k)
 anova(mod_native_k)
-
-# comparisons
-emmeans(mod_native_k, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_native_k.emm <- emmeans(mod_native_k, ~ state*insecticide)
-contrast(mod_native_k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_native_k, insecticide~state)
 
 # making a table
 kable(anova(mod_native_k)) %>% kableExtra::kable_styling()
@@ -684,12 +621,6 @@ mod_native_u <- lmer(log(avg_origin_pc) ~ state * insecticide + as.factor(year_f
 summary(mod_native_u)
 anova(mod_native_u)
 
-# comparisons
-emmeans(mod_native_u, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_native_u.emm <- emmeans(mod_native_u, ~ state*insecticide)
-contrast(mod_native_u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_native_u, insecticide~state)
-
 # making a table
 kable(anova(mod_native_u)) %>% kableExtra::kable_styling()
 
@@ -778,12 +709,6 @@ mod_exotic_u <- lmer(log(avg_origin_pc) ~ state * insecticide + as.factor(year_f
 summary(mod_exotic_u)
 anova(mod_exotic_u)
 
-# comparisons
-emmeans(mod_exotic_u, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_exotic_u.emm <- emmeans(mod_exotic_u, ~ state*insecticide)
-contrast(mod_exotic_u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_exotic_u, insecticide~state)
-
 # making a table
 kable(anova(mod_exotic_u)) %>% kableExtra::kable_styling()
 
@@ -871,12 +796,6 @@ anova(year.mod.test1, year.mod.test2) #year.mod.test2
 mod_forb_k <- lmer(log(avg_growth_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_forb_plot, REML=FALSE) #hypothesized model
 summary(mod_forb_k)
 anova(mod_forb_k)
-
-# comparisons
-emmeans(mod_forb_k, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_forb_k.emm <- emmeans(mod_forb_k, ~ state*insecticide)
-contrast(mod_forb_k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_forb_k, insecticide~state)
 
 # making a table
 kable(anova(mod_forb_k)) %>% kableExtra::kable_styling()
@@ -971,12 +890,6 @@ mod_graminoid_k <- lmer(log(avg_growth_pc) ~ state * insecticide + as.factor(yea
 summary(mod_graminoid_k)
 anova(mod_graminoid_k)
 
-# comparisons
-emmeans(mod_graminoid_k, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_graminoid_k.emm <- emmeans(mod_graminoid_k, ~ state*insecticide)
-contrast(mod_graminoid_k.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_graminoid_k, insecticide~state)
-
 # making a table
 kable(anova(mod_graminoid_k)) %>% kableExtra::kable_styling()
 
@@ -1063,12 +976,6 @@ anova(year.mod.test1, year.mod.test2) #year.mod.test2
 mod_forb_u <- lmer(log(avg_growth_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), umbs_forb_plot, REML=FALSE) #hypothesized model
 summary(mod_forb_u)
 anova(mod_forb_u)
-
-# comparisons
-emmeans(mod_forb_u, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_forb_u.emm <- emmeans(mod_forb_u, ~ state*insecticide)
-contrast(mod_forb_u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_forb_u, insecticide~state)
 
 # making a table
 kable(anova(mod_forb_u)) %>% kableExtra::kable_styling()
@@ -1173,4 +1080,73 @@ anova(mod_spp_ug)
 kable(anova(mod_spp_ug)) %>% kableExtra::kable_styling()
 ```
 
+
+
+
+
+
+
+
+#KBS and UMBS models not used in manuscript
+```{r}
+# KBS plot-level
+# plot-level models 
+modfull <- lmer(log(avg_pc) ~ state*as.factor(year_factor) + insecticide*year_factor + (1|plot), kbs_comp_plot, REML=F)
+mod1p <- lmer(log(avg_pc) ~ state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod2p <- lmer(log(avg_pc) ~ insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod3p <- lmer(log(avg_pc) ~ insecticide + state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod4p <- lmer(log(avg_pc) ~ insecticide * state + (1|plot), kbs_comp_plot, REML=FALSE)
+mod5p <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
+mod6p <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod7p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
+mod8p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+mod9p <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
+mod10p <- lmer(log(avg_pc) ~ state + insecticide * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE)
+mod11p <- lmer(log(avg_pc) ~ state * as.factor(year_factor) * insecticide + (1|plot), kbs_comp_plot, REML=FALSE)
+
+AICtab(modfull, mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T)
+anova(mod5p, mod6p)
+
+AICctab(mod5p, mod6p, weights=T) # 5p
+summ(mod5p)
+summary(mod5p)
+anova(mod5p)
+emmeans(mod5p, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod5p, list(pairwise ~ state), adjust = "tukey")
+
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
+##############################################################
+# UMBS plot-level
+# plot-level models 
+modfullu <- lmer(log(avg_pc) ~ state*as.factor(year_factor) + insecticide*year_factor + (1|plot), umbs_comp_plot, REML=F)
+mod1pu <- lmer(log(avg_pc) ~ state + (1|plot), umbs_comp_plot, REML=FALSE)
+mod2pu <- lmer(log(avg_pc) ~ insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
+mod3pu <- lmer(log(avg_pc) ~ insecticide + state + (1|plot), umbs_comp_plot, REML=FALSE)
+mod4pu <- lmer(log(avg_pc) ~ insecticide * state + (1|plot), umbs_comp_plot, REML=FALSE)
+mod5pu <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
+mod6pu <- lmer(log(avg_pc) ~ state + as.factor(year_factor) + insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
+mod7pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
+mod8pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) + insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
+mod9pu <- lmer(log(avg_pc) ~ state * insecticide + as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
+mod10pu <- lmer(log(avg_pc) ~ state + insecticide * as.factor(year_factor) + (1|plot), umbs_comp_plot, REML=FALSE)
+mod11pu <- lmer(log(avg_pc) ~ state * as.factor(year_factor) * insecticide + (1|plot), umbs_comp_plot, REML=FALSE)
+AICtab(modfullu, mod1pu, mod2pu, mod3pu, mod4pu, mod5pu, mod6pu, mod7pu, mod8pu, mod9pu, mod10pu, mod11pu, weights=T)
+anova(mod5pu, mod6pu)
+AICctab(mod5pu, mod6pu, weights=T) # 5p
+summ(mod5pu)
+summary(mod5pu)
+anova(mod5pu)
+emmeans(mod5pu, list(pairwise ~ state + as.factor(year_factor)), adjust = "tukey")
+
+# comparisons
+emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
+contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9pu, insecticide~state)
+```
 

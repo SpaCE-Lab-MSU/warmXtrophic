@@ -434,39 +434,10 @@ year.mod.test1 <- lmer(log(simpson) ~ state + year + (1|plot), kbs_diversity, RE
 year.mod.test2 <- lmer(log(simpson) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
 anova(year.mod.test1, year.mod.test2) #year.mod.test2
 
-mod1 <- lmer(log(simpson) ~ state + (1|plot), kbs_diversity, REML=FALSE)
-mod2 <- lmer(log(simpson) ~ insecticide + (1|plot), kbs_diversity, REML=FALSE)
-mod3 <- lmer(log(simpson) ~ insecticide + state + (1|plot), kbs_diversity, REML=FALSE)
-mod4 <- lmer(log(simpson) ~ insecticide * state + (1|plot), kbs_diversity, REML=FALSE)
-mod5 <- lmer(log(simpson) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
-mod6 <- lmer(log(simpson) ~ state + year_factor + insecticide + (1|plot), kbs_diversity, REML=FALSE)
-mod7 <- lmer(log(simpson) ~ state * year_factor + (1|plot), kbs_diversity, REML=FALSE)
-mod8 <- lmer(log(simpson) ~ state * year_factor + insecticide + (1|plot), kbs_diversity, REML=FALSE)
-mod9 <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
-mod10 <- lmer(log(simpson) ~ state + insecticide * year_factor + (1|plot), kbs_diversity, REML=FALSE)
-mod11 <- lmer(log(simpson) ~ state * year_factor * insecticide + (1|plot), kbs_diversity, REML=FALSE)
-AICctab(mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8, mod9, mod10, mod11, weights=T) 
-anova(mod10, mod5)
-AICctab(mod10, mod5, weights=T) #10p
-summary(mod10)
-summ(mod10)
-anova(mod10)
-emmeans(mod10, list(pairwise ~ state + year_factor), adjust = "tukey")
-emmeans(mod10, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
-emmeans(mod10, list(pairwise ~ year_factor), adjust = "tukey")
-
-# with herb reduction as interactive term
-anova(mod9)
-
 #Our hypothesized model is  mod9p
+mod9 <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
 summary(mod9)
 anova(mod9)
-
-# comparisons
-emmeans(mod9, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9.emm <- emmeans(mod9, ~ state*insecticide)
-contrast(mod9.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9, insecticide~state)
 
 # making a table
 kable(anova(mod9)) %>% kableExtra::kable_styling()
@@ -630,12 +601,6 @@ mod_u_sh <- lmer(shannon ~ state * insecticide + year_factor + (1|plot), umbs_di
 summary(mod_u_sh)
 anova(mod_u_sh)
 
-# comparisons
-emmeans(mod_u_sh, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_u_sh.emm <- emmeans(mod_u_sh, ~ state*insecticide)
-contrast(mod_u_sh.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_u_sh, insecticide~state)
-
 # making a table
 kable(anova(mod_u_sh)) %>% kableExtra::kable_styling()
 ```
@@ -687,12 +652,6 @@ mod_kr <- lmer(log(richness) ~ state * insecticide + year_factor + (1|plot), kbs
 summary(mod_kr)
 anova(mod_kr)
 
-# comparisons
-emmeans(mod_kr, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_kr.emm <- emmeans(mod_kr, ~ state*insecticide)
-contrast(mod_kr.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_kr, insecticide~state)
-
 # making a table
 kable(anova(mod_kr)) %>% kableExtra::kable_styling()
 
@@ -703,17 +662,6 @@ exp((1.96971) +  (0.23710)*1) # 9.086684
 # effect:
 9.086684 - 7.168597 # effect of warming - warmed plots had 1.918087 less species than ambient plots
 
-# herbivores present
-exp((1.96971) +  (0.237)*0) # 7.168597 
-exp((1.96971) +  (0.237)*1) # 9.085775
-# effect:
-9.085775 - 7.168597 # effect of warming - warmed plots had 1.917178 less species than ambient plots
-
-# reduced herbivory
-exp((1.96971) +  (0.207)*0) # 7.168597
-exp((1.96971) +  (0.207)*1) # 8.81725
-# effect:
-8.81725 - 7.168597 # effect of warming - warmed plots had 1.648653 less species than ambient plots
 ```
 
 UMBS 
@@ -762,14 +710,40 @@ mod_ur <- lmer(log(richness) ~ state * insecticide + year_factor + (1|plot), umb
 summary(mod_ur)
 anova(mod_ur)
 
-# comparisons
-emmeans(mod_ur, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod_ur.emm <- emmeans(mod_ur, ~ state*insecticide)
-contrast(mod_ur.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod_ur, insecticide~state)
-
 # making a table
 kable(anova(mod_ur)) %>% kableExtra::kable_styling()
 
+```
+
+
+
+
+
+
+
+
+#KBS and UMBS models not used in manuscript
+```{r}
+# kBS Simpson
+mod1 <- lmer(log(simpson) ~ state + (1|plot), kbs_diversity, REML=FALSE)
+mod2 <- lmer(log(simpson) ~ insecticide + (1|plot), kbs_diversity, REML=FALSE)
+mod3 <- lmer(log(simpson) ~ insecticide + state + (1|plot), kbs_diversity, REML=FALSE)
+mod4 <- lmer(log(simpson) ~ insecticide * state + (1|plot), kbs_diversity, REML=FALSE)
+mod5 <- lmer(log(simpson) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod6 <- lmer(log(simpson) ~ state + year_factor + insecticide + (1|plot), kbs_diversity, REML=FALSE)
+mod7 <- lmer(log(simpson) ~ state * year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod8 <- lmer(log(simpson) ~ state * year_factor + insecticide + (1|plot), kbs_diversity, REML=FALSE)
+mod9 <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod10 <- lmer(log(simpson) ~ state + insecticide * year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod11 <- lmer(log(simpson) ~ state * year_factor * insecticide + (1|plot), kbs_diversity, REML=FALSE)
+AICctab(mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8, mod9, mod10, mod11, weights=T) 
+anova(mod10, mod5)
+AICctab(mod10, mod5, weights=T) #10p
+summary(mod10)
+summ(mod10)
+anova(mod10)
+emmeans(mod10, list(pairwise ~ state + year_factor), adjust = "tukey")
+emmeans(mod10, list(pairwise ~ insecticide*year_factor), adjust = "tukey")
+emmeans(mod10, list(pairwise ~ year_factor), adjust = "tukey")
 ```
 

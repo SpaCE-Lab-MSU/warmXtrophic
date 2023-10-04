@@ -144,12 +144,6 @@ mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot
 summary(mod9p)
 anova(mod9p)
 
-# comparisons
-emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
-
 # making a table
 kable(anova(mod9p)) %>% kableExtra::kable_styling()
 
@@ -241,12 +235,6 @@ anova(mod9up)
 # making a table
 kable(anova(mod9up)) %>% kableExtra::kable_styling()
 
-# comparisons
-emmeans(mod9up, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod9up.emm <- emmeans(mod9up, ~ state*insecticide)
-contrast(mod9up.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9up, insecticide~state)
-
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
@@ -307,6 +295,12 @@ AICctab(mod1p, mod2p, weights=T)
 anova(mod1p)
 summary(mod1p)
 
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
 #UMBS
 mod1up <- lmer(flwr_duration_scaled ~ state + (1|plot), umbs_flwr_plot, REML=FALSE)
 mod2up <- lmer(flwr_duration_scaled ~ insecticide + (1|plot), umbs_flwr_plot, REML=FALSE)
@@ -329,5 +323,11 @@ summary(mod1up)
 anova(mod3up)
 # with herb reduction as interactive term
 anova(mod9up)
+
+# comparisons
+emmeans(mod9up, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod9up.emm <- emmeans(mod9up, ~ state*insecticide)
+contrast(mod9up.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9up, insecticide~state)
 ```
 

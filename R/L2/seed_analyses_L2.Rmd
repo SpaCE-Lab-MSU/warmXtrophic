@@ -141,37 +141,13 @@ interact_plot(fit3, pred = year, modx = state) # this doesn't work
 
 KBS Plot-level Mixed Effects Models
 ```{r, error=TRUE}
-mod1p <- lmer(log(julian_min) ~ state + (1|plot), kbs_sd_plot, REML=FALSE)
-mod2p <- lmer(log(julian_min) ~ insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
-mod3p <- lmer(log(julian_min) ~ insecticide + state + (1|plot), kbs_sd_plot, REML=FALSE)
-mod4p <- lmer(log(julian_min) ~ insecticide * state + (1|plot), kbs_sd_plot, REML=FALSE)
-mod5p <- lmer(log(julian_min) ~ state + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
-mod6p <- lmer(log(julian_min) ~ state + year_factor + insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
-mod7p <- lmer(log(julian_min) ~ state * year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
-mod8p <- lmer(log(julian_min) ~ state * year_factor + insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
-mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
-mod10p <- lmer(log(julian_min) ~ state + insecticide * year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
-mod11p <- lmer(log(julian_min) ~ state * year_factor * insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) 
-anova(mod7p, mod8p) 
-AICctab(mod7p, mod8p, weights=T)
-summary(mod7p)
-anova(mod7p)
-emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
-
 #Our hypothesized model is  mod9p
+mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
 summary(mod9p)
 anova(mod9p)
 
 # making a table
 kable(anova(mod9p)) %>% kableExtra::kable_styling()
-
-# comparisons
-emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
-emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
-mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
-contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
 
 # calculating effect size - accounting for log transformation
 exp((5.392e+00) +  (1.588e-02)*0) # 219.6422 
@@ -264,6 +240,81 @@ interact_plot(fit3_plot_umbs, pred = year, modx = state)
 
 UMBS Plot-level Mixed Effects Models
 ```{r}
+#Our hypothesized model is  mod9p
+mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_sd_plot, REML=FALSE)
+summary(mod9pu)
+anova(mod9pu)
+
+# making a table
+kable(anova(mod9pu)) %>% kableExtra::kable_styling()
+
+# adding in our temp data into some models
+# note: including state, year, and temp data into a model leads to rank deficiency
+# so below, we test for date of first seed set as a function of just temp to see how real temp data affects date of first seed set
+umbs_sd_plot_amb <- umbs_sd_plot %>%
+        filter(state == "ambient")
+modtest1 <- lmer(julian_min ~ mean_temp + (1|plot), umbs_sd_plot, REML=FALSE)
+modtest2 <- lmer(julian_min ~ GDD_cumulative + (1|plot), umbs_sd_plot, REML=FALSE)
+
+AICtab(modtest1, modtest2, weights=T)
+
+anova(modtest1)
+summary(modtest1)
+
+# making a table
+kable(anova(modtest1)) %>% kableExtra::kable_styling()
+```
+
+Species models for supplement
+```{r}
+# KBS
+# species model for supp
+mod_spp_k <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), sd_kbs_spp, REML=FALSE)
+anova(mod_spp_k)
+# making a table
+kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
+
+# UMBS
+# species model for supp
+mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), sd_umbs_spp, REML=FALSE)
+anova(mod_spp_u)
+# making a table
+kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+```
+
+
+
+
+
+KBS and UMBS models not used in manuscript
+```{r}
+# KBS
+mod1p <- lmer(log(julian_min) ~ state + (1|plot), kbs_sd_plot, REML=FALSE)
+mod2p <- lmer(log(julian_min) ~ insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
+mod3p <- lmer(log(julian_min) ~ insecticide + state + (1|plot), kbs_sd_plot, REML=FALSE)
+mod4p <- lmer(log(julian_min) ~ insecticide * state + (1|plot), kbs_sd_plot, REML=FALSE)
+mod5p <- lmer(log(julian_min) ~ state + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
+mod6p <- lmer(log(julian_min) ~ state + year_factor + insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
+mod7p <- lmer(log(julian_min) ~ state * year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
+mod8p <- lmer(log(julian_min) ~ state * year_factor + insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
+mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
+mod10p <- lmer(log(julian_min) ~ state + insecticide * year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
+mod11p <- lmer(log(julian_min) ~ state * year_factor * insecticide + (1|plot), kbs_sd_plot, REML=FALSE)
+AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p, weights=T) 
+anova(mod7p, mod8p) 
+AICctab(mod7p, mod8p, weights=T)
+summary(mod7p)
+anova(mod7p)
+emmeans(mod7p, list(pairwise ~ state*year_factor), adjust = "tukey")
+
+# comparisons
+emmeans(mod9p, list(pairwise ~ state*insecticide), adjust = "tukey")
+emmeans(mod9p, list(pairwise ~ state), adjust = "tukey")
+mod9p.emm <- emmeans(mod9p, ~ state*insecticide)
+contrast(mod9p.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod9p, insecticide~state)
+
+# UMBS
 mod1pu <- lmer(julian_min ~ state + (1|plot), umbs_sd_plot, REML=FALSE)
 mod2pu <- lmer(julian_min ~ insecticide + (1|plot), umbs_sd_plot, REML=FALSE)
 mod3pu <- lmer(julian_min ~ insecticide + state + (1|plot), umbs_sd_plot, REML=FALSE)
@@ -287,49 +338,10 @@ anova(mod6pu)
 # including herb reduction as interactive term
 anova(mod9pu)
 
-#Our hypothesized model is  mod9p
-summary(mod9pu)
-anova(mod9pu)
-
-# making a table
-kable(anova(mod9pu)) %>% kableExtra::kable_styling()
-
 # comparisons
 emmeans(mod9pu, list(pairwise ~ state*insecticide), adjust = "tukey")
 mod9pu.emm <- emmeans(mod9pu, ~ state*insecticide)
 contrast(mod9pu.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod9pu, insecticide~state)
-
-# adding in our temp data into some models
-# note: including state, year, and temp data into a model leads to rank deficiency
-# so below, we test for date of first seed set as a function of just temp to see how real temp data affects date of first seed set
-umbs_sd_plot_amb <- umbs_sd_plot %>%
-        filter(state == "ambient")
-modtest1 <- lmer(julian_min ~ mean_temp + (1|plot), umbs_sd_plot, REML=FALSE)
-modtest2 <- lmer(julian_min ~ GDD_cumulative + (1|plot), umbs_sd_plot, REML=FALSE)
-
-AICtab(modtest1, modtest2, weights=T)
-
-anova(modtest1)
-summary(modtest1)
-
-# making a table
-kable(anova(modtest1)) %>% kableExtra::kable_styling()
-```
-
-```{r}
-# KBS
-# species model for supp
-mod_spp_k <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), sd_kbs_spp, REML=FALSE)
-anova(mod_spp_k)
-# making a table
-kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
-
-# UMBS
-# species model for supp
-mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), sd_umbs_spp, REML=FALSE)
-anova(mod_spp_u)
-# making a table
-kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
 ```
 
