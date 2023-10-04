@@ -2,7 +2,7 @@
 # AUTHORS:        Kara Dobson
 # COLLABORATORS:  Moriah Young, Phoebe Zarnetske, Mark Hammond
 # DATA INPUT:     Data imported as csv files from shared Google drive L1 plant comp folder
-# DATA OUTPUT:    Plots of SLA, C, and N data
+# DATA OUTPUT:    Plots of SLA, C, and N data. Biomass data is also merged into a figure here
 # PROJECT:        warmXtrophic
 # DATE:           July 2023
 
@@ -21,6 +21,11 @@ L1_dir<-Sys.getenv("L1DIR")
 # Read in data
 cn <- read.csv(file.path(L1_dir, "CN/CN_L1.csv"))
 sla <- read.csv(file.path(L1_dir,"SLA/SLA_L1_nooutliers.csv")) # this L1 csv was made in the SLA_analyses script
+# reading in biomass data here to merge w/ leaf traits in a fig
+kbs_biomass_21 <- read.csv(file.path(L1_dir, "ANPP/kbs_biomass_2021_L1.csv"))
+umbs_biomass_21 <- read.csv(file.path(L1_dir, "ANPP/umbs_biomass_2021_L1.csv"))
+kbs_biomass_21 <- kbs_biomass_21 %>% dplyr::select(-X) # get rid of "X" column that shows up (could fix this in cleaning script)
+umbs_biomass_21 <- umbs_biomass_21 %>% dplyr::select(-X)
 
 
 # manipulating CN data
@@ -94,6 +99,45 @@ sla_treatment3 <- sla1 %>%
 #        summarize(mean_sla = mean(sla,na.rm=T),
 #                  se = std.error(sla,na.rm=T),
 #                  count=n())
+
+
+# making separate dataframe for biomass - easier in plots
+kbs_biomass_only <- kbs_biomass_21 %>%
+        dplyr::select(-cover) %>%
+        drop_na(weight_g)
+umbs_biomass_only <- umbs_biomass_21 %>%
+        dplyr::select(-cover) %>%
+        drop_na(weight_g)
+# remove uninformative species from biomass
+kbs_biomass_live <- kbs_biomass_only[!grepl("Litter", kbs_biomass_only$species),]
+kbs_biomass_live <- kbs_biomass_live[!grepl("Umsp", kbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_only[!grepl("Litter", umbs_biomass_only$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Standing_Dead", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Surface_Litter", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Lisp", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Umsp", umbs_biomass_live$species),]
+# keeping species found only in w and a
+kbs_biomass_live2 <- kbs_biomass_live %>%
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+umbs_biomass_live2 <- umbs_biomass_live %>%
+        group_by(species) %>% 
+        filter(all(c('warmed', 'ambient') %in% state))
+# summarizing data
+biomass_sum_k2 <- kbs_biomass_live %>%
+        group_by(plot, state, insecticide) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+biomass_sum_k3 <- biomass_sum_k2 %>%
+        group_by(state, insecticide) %>%
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+biomass_sum_u2 <- umbs_biomass_live %>%
+        group_by(plot, state, insecticide) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+biomass_sum_u3 <- biomass_sum_u2 %>%
+        group_by(state, insecticide) %>%
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
 
 
 # clean insecticide + site labels for plotting
@@ -312,7 +356,7 @@ sla_kbs <- ggplot(sla_treatment_kbs, aes(x = state, y = sla_mean, fill = insecti
         #geom_bar(position = "identity", stat = "identity", color = 'black') +
         #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
         #        position = "identity") +
-        labs(x = NULL, y = bquote("Specific leaf area " (cm^2/g)), fill = "Treatment", title=NULL) +
+        labs(x = NULL, y = bquote("SLA " (cm^2/g)), fill = "Treatment", title=NULL) +
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
@@ -323,7 +367,7 @@ sla_kbs <- ggplot(sla_treatment_kbs, aes(x = state, y = sla_mean, fill = insecti
         #coord_cartesian(ylim=c(42,48)) +
         annotate("text", x = 0.5, y=222, label = "E", size=5) +
         theme_bw(14) +
-        theme(axis.text.x = element_text(size=17),
+        theme(axis.text.x = element_blank(),
               axis.text.y = element_text(size=17),
               title = element_text(size=20),
               legend.text = element_text(size=17),
@@ -347,7 +391,7 @@ sla_umbs <- ggplot(sla_treatment_umbs, aes(x = state, y = sla_mean, fill = insec
         #coord_cartesian(ylim=c(42,48)) +
         annotate("text", x = 0.5, y=140, label = "F", size=5) +
         theme_bw(14) +
-        theme(axis.text.x = element_text(size=17),
+        theme(axis.text.x = element_blank(),
               axis.text.y = element_text(size=17),
               title = element_text(size=20),
               legend.text = element_text(size=17),
@@ -442,10 +486,58 @@ dev.off()
 
 
 
-### combining C, N, and SLA figs ###
-png("leaf_traits_L2.png", units="in", width=10, height=10, res=300)
-ggpubr::ggarrange(c_kbs,c_umbs,n_kbs,n_umbs,sla_kbs,sla_umbs,
-                  ncol = 2, nrow = 3, common.legend = T, legend="right",
+### Overall averages btwn treatments biomass - dot plot
+# plot level KBS
+kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = insecticide)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), pch=21,size=1,position=position_dodge(0.2)) +
+        #scale_shape_manual(name="Treatment",
+        #                   values = c(1, 19),
+        #                   labels=c("Herivory","Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#FFB451", "#0b0055"),
+                          labels=c("Herbivory","Reduced Herbivory")) +
+        labs(title=NULL, y=bquote("Biomass " ('g/0.20m'^2)), x=NULL) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        scale_y_continuous(breaks = c(90,120,150,180), 
+                           labels = c("90", "120", "150", "180")) +
+        annotate("text", x = 0.5, y=190, label = "G", size=5) +
+        #ylim(90,200) +
+        theme_bw(14) +
+        theme(axis.text.x = element_text(size=17),
+              axis.text.y = element_text(size=17),
+              title = element_text(size=20),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
+# plot level UMBS
+umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = insecticide)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), pch=21,size=1,position=position_dodge(0.2)) +
+        #scale_shape_manual(name="Treatment",
+        #                   values = c(1, 19),
+        #                   labels=c("Herbivory","Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#FFB451", "#0b0055"),
+                          labels=c("Herbivory","Reduced Herbivory")) +
+        labs(title=NULL, y=NULL, x=NULL) +
+        scale_y_continuous(breaks = c(30,40,50,60), 
+                           labels = c("     30", "     40", "     50", "     60")) +
+        annotate("text", x = 0.5, y=58, label = "H", size=5) +
+        #ylim(30,65) +
+        theme_bw(14) +
+        theme(axis.text.x = element_text(size=17),
+              axis.text.y = element_text(size=17),
+              title = element_text(size=20),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17)) +
+        scale_x_discrete(labels=c("ambient"="Ambient","warmed"="Warmed"))
+biomass_comb_dot <- ggpubr::ggarrange(kbs_bio_dot, umbs_bio_dot,
+                                      ncol = 2, common.legend = T, legend="right")
+
+
+
+### combining C, N, SLA, and biomass figs ###
+png("leaf_traits_biomass_L2.png", units="in", width=10, height=11, res=300)
+ggpubr::ggarrange(c_kbs,c_umbs,n_kbs,n_umbs,sla_kbs,sla_umbs,kbs_bio_dot,umbs_bio_dot,
+                  ncol = 2, nrow = 4, common.legend = T, legend="right",
                   widths = c(1, 1),
                   heights = c(1, 0.9, 0.95))
 dev.off()

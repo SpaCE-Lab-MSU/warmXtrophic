@@ -63,11 +63,28 @@ umbs_biomass_live2 <- umbs_biomass_live %>%
         group_by(species) %>% 
         filter(all(c('warmed', 'ambient') %in% state))
 
+# summarizing data
+biomass_sum_k2 <- kbs_biomass_live %>%
+        group_by(plot, state, insecticide) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+biomass_sum_k3 <- biomass_sum_k2 %>%
+        group_by(state, insecticide) %>%
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+biomass_sum_u2 <- umbs_biomass_live %>%
+        group_by(plot, state, insecticide) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+biomass_sum_u3 <- biomass_sum_u2 %>%
+        group_by(state, insecticide) %>%
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+
 # clean insecticide labels for plotting
 insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 
 
 
+########## note: biomass fig below was copied into the leaf_traits_plots_L2.R script ############
 ### Overall averages btwn treatments - dot plot
 # plot level KBS
 kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = insecticide)) +
@@ -167,13 +184,6 @@ dev.off()
 ####### figures not used in manuscript #######
 ### Overall averages btwn treatments - barplot
 # plot level KBS
-biomass_sum_k2 <- kbs_biomass_live %>%
-        group_by(plot, state, insecticide) %>%
-        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
-biomass_sum_k3 <- biomass_sum_k2 %>%
-        group_by(state, insecticide) %>%
-        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
-                  se = std.error(avg_weight, na.rm = TRUE))
 kbs_bio <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = state)) +
         facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
@@ -186,13 +196,6 @@ kbs_bio <- ggplot(biomass_sum_k3, aes(x = state, y = average_weight, fill = stat
         theme(plot.title = element_text(size=20),
               axis.text.y = element_text(size=17))
 # plot level UMBS
-biomass_sum_u2 <- umbs_biomass_live %>%
-        group_by(plot, state, insecticide) %>%
-        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
-biomass_sum_u3 <- biomass_sum_u2 %>%
-        group_by(state, insecticide) %>%
-        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
-                  se = std.error(avg_weight, na.rm = TRUE))
 umbs_bio <- ggplot(biomass_sum_u3, aes(x = state, y = average_weight, fill = state)) +
         facet_grid(.~insecticide, labeller = as_labeller(insect_labels)) +
         geom_bar(position = "identity", stat = "identity", col = "black") +
