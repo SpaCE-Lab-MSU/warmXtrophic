@@ -24,8 +24,8 @@ taxon <- read.csv(file.path(L0_dir,"taxon.csv")) # taxon meta data
 meta <- read.csv(file.path(L0_dir, "plot.csv")) # plot meta data
 
 # Source in needed functions
-#source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/ANPP_functions_L1.R") 
-source("~/warmXtrophic/R/L1/biomass_functions_L1.R")
+source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/biomass_functions_L1.R") 
+#source("~/warmXtrophic/R/L1/biomass_functions_L1.R")
 
 ## KBS
 kbs_biomass_20 <- read.csv(file.path(L0_dir, "KBS/2020/kbs_ancillary_biomass_2020.csv"))
@@ -109,7 +109,7 @@ View(umbs_ANPP_21)
 colnames(taxon)[which(names(taxon) == "code")] <- "species" # changing column name for merging
 # removing columns I don't want from taxon
 taxon <- remove_col(taxon, name=c("X", "USDA_code", "LTER_code", "site", "old_name", 
-                                  "old_code", "X.1"))
+                                  "old_code", "X.1", "note1", "note2"))
 
 # merging with taxon information
 # left join with final_ANPP as left dataframe to keep all biomass data, but only keep taxon info for given species in biomass dataframe
@@ -126,7 +126,7 @@ final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("quadrat_number"))
 final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("X.2"))
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
-write.csv(final2_umbs_anpp_21, file.path(L1_dir,"ANPP/umbs_biomass_2021_L1.csv"))
+write.csv(final2_umbs_anpp_21, file.path(L1_dir,"ANPP/umbs_biomass_2021_L1.csv"), row.names=F)
 
 
 ### KBS
@@ -188,8 +188,9 @@ View(kbs_ANPP_21)
 # merging taxon info with dataframe
 colnames(taxon)[which(names(taxon) == "code")] <- "species" # changing column name for merging
 # removing columns I don't want from taxon
-taxon <- remove_col(taxon, name=c("X", "USDA_code", "LTER_code", "site", "old_name", 
-                                  "old_code", "X.1", "X.2"))
+#taxon <- remove_col(taxon, name=c("X", "USDA_code", "LTER_code", "site", "old_name", 
+#                                  "old_code", "X.1", "X.2", "note1", "note2"))
+
 # merging with taxon information
 # left join with final_ANPP as left dataframe to keep all biomass data, but only keep taxon info for given species in biomass dataframe
 final_kbs_anpp_21 <- left_join(kbs_ANPP_21, taxon, by = "species")
@@ -204,7 +205,7 @@ final2_kbs_anpp_21 <- left_join(final_kbs_anpp_21, meta, by = "plot")
 final2_kbs_anpp_21 <- remove_col(final2_kbs_anpp_21, name=c("quadrat"))
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
-write.csv(final2_kbs_anpp_21, file.path(L1_dir,"ANPP/kbs_biomass_2021_L1.csv"))
+write.csv(final2_kbs_anpp_21, file.path(L1_dir,"ANPP/kbs_biomass_2021_L1.csv"), , row.names=F)
 
 
 
@@ -311,6 +312,6 @@ final_ANPP_20_join <- left_join(final_ANPP_20, taxon, by = "species")
 
 ################################################################################
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
-write.csv(final_ANPP_20_join, file.path(L1_dir,"ANPP/biomass_2020_L1.csv"))
+write.csv(final_ANPP_20_join, file.path(L1_dir,"ANPP/biomass_2020_L1.csv"), row.names=F)
 
 
