@@ -123,7 +123,7 @@ final2_umbs_anpp_21 <- left_join(final_umbs_anpp_21, meta, by = "plot")
 
 # removing columns
 final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("quadrat_number"))
-final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("X.2"))
+#final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("X.2"))
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
 write.csv(final2_umbs_anpp_21, file.path(L1_dir,"ANPP/umbs_biomass_2021_L1.csv"), row.names=F)
