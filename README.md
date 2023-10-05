@@ -43,4 +43,6 @@ Biomass (computed from relationship between community composition and biomass of
 
 In 2017 we added C&N composition and SLA from plant leaves for a few species.
 
+Data will be available on EDI. For some L2 scripts, the L1 data must first be ran through its associated L1 script to create the data necessary for L2.
+
 ![EDI Workflow Image](docs/EDI_harmonization_procedure_general.png)
