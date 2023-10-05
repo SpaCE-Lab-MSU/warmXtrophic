@@ -14,11 +14,10 @@ The experiment began in June 2015 and at each site includes the following treatm
 
 2015-2017: warming (via open top chambers), herbivore reduction (via insecticide, small mammal exclosures)
 
-2018-2021: warming (via open top chambers), herbivore reduction (via insecticide)
+2018-2021: warming (via open top chambers), herbivore reduction (via insecticide). In 2018 we removed the small mammal exclosures as they did not affect any of the plant response variables.
 
-In 2018 we removed the small mammal exclosures as they did not affect any of the plant response variables.
+The total number of replicates for each treatment is 6 at each site, excluding the small mammal treatment.
 
-The total number of replicates is 6 at each site, excluding the small mammal treatment.
 
 
 Response variables include:
@@ -38,6 +37,8 @@ Herbivory: percent of plant species eaten at end of summer
 Biomass (computed from relationship between community composition and biomass of similar plots outside experiment)
 
 In 2017 we added C&N composition and SLA from plant leaves for a few species.
+
+
 
 Data will be available on EDI. For some L2 scripts, the L1 data must first be ran through its associated L1 script to create the data necessary for L2.
 
