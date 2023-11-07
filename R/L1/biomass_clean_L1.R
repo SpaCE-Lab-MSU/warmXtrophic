@@ -218,14 +218,18 @@ write.csv(final2_kbs_anpp_21, file.path(L1_dir,"ANPP/kbs_biomass_2021_L1.csv"), 
 View(kbs_biomass_20)
 # get rid of unnecessary columns
 kbs_biomass_20 <- remove_col(kbs_biomass_20, name=c("dry_weight_g", "notes", "bag", "bag_size", "bag_code", "weight",
-                                                      "n_bags", "bag_weight", "date"))
+                                                      "n_bags", "bag_weight"))
 str(kbs_biomass_20)
+
+colnames(kbs_biomass_20) <- sub("date", "biomass_date", colnames(kbs_biomass_20)) # change column name
 
 # Plant Comp data
 View(kbs_plantcomp_20)
 # get rid of unnecessary columns
-kbs_plantcomp_20 <- remove_col(kbs_plantcomp_20, name=c("Julian", "Notes", "Date"))
+kbs_plantcomp_20 <- remove_col(kbs_plantcomp_20, name=c("Julian", "Notes"))
 str(kbs_plantcomp_20)
+
+colnames(kbs_plantcomp_20) <- sub("Date", "percent_cover_Date", colnames(kbs_plantcomp_20)) # change column name
 
 # Change column names to lowercase so that we can merge with the biomass file
 names(kbs_plantcomp_20) <- tolower(names(kbs_plantcomp_20))
@@ -244,7 +248,7 @@ colnames(kbs_ANPP_20) <- sub("final_biomass_g", "weight_g", colnames(kbs_ANPP_20
 
 kbs_ANPP_20$year <- "2020" # add year to data frame
 
-kbs_ANPP_20 <- kbs_ANPP_20[, c("site", "year", "plot", "species", "cover", "weight_g")] # reorganize column order
+kbs_ANPP_20 <- kbs_ANPP_20[, c("site", "percent_cover_date", "biomass_date", "year", "plot", "species", "cover", "weight_g")] # reorganize column order
 View(kbs_ANPP_20)
 
 ## UMBS
@@ -253,14 +257,18 @@ View(kbs_ANPP_20)
 View(umbs_biomass_20)
 # get ride of unwanted columns
 umbs_biomass_20 <- remove_col(umbs_biomass_20, name=c("dry_weight..g.", "X", "dry_weight_kbs", "X.1", "dried.bag.weight", 
-                                                "bag", "notes", "X.2", "date"))
+                                                "bag", "notes", "X.2"))
 umbs_biomass_20 <- umbs_biomass_20[-c(93, 94, 95),] # get ride of unwanted rows
+
+colnames(umbs_biomass_20) <- sub("date", "biomass_date", colnames(umbs_biomass_20)) # change column name
 
 # Plant Comp data
 View(umbs_plantcomp_20)
 # get ride of unwanted columns
-umbs_plantcomp_20 <- remove_col(umbs_plantcomp_20, name=c("Julian", "Notes", "Date"))
+umbs_plantcomp_20 <- remove_col(umbs_plantcomp_20, name=c("Julian", "Notes"))
 str(umbs_plantcomp_20)
+
+colnames(umbs_plantcomp_20) <- sub("Date", "percent_cover_Date", colnames(umbs_plantcomp_20)) # change column name
 
 # Change column names to lowercase so that we can merge with the biomass file
 names(umbs_plantcomp_20) <- tolower(names(umbs_plantcomp_20))
@@ -271,7 +279,7 @@ View(umbs_ANPP_20)
 
 umbs_ANPP_20$year <- "2020" # add year to data frame
 
-umbs_ANPP_20 <- umbs_ANPP_20[, c("site", "year", "plot", "species", "cover", "weight_g")] # reorganize column order
+umbs_ANPP_20 <- umbs_ANPP_20[, c("site", "percent_cover_date", "biomass_date", "year", "plot", "species", "cover", "weight_g")] # reorganize column order
 View(umbs_ANPP_20)
 
 # Merge the kbs and umbs files together
