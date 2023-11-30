@@ -212,6 +212,15 @@ full.model.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/p
                    zi=~.,
                    family=truncated_nbinom2)
 summary(full.model.k) # * used in paper * #
+ggpredict(full.model.k, c("state","insecticide"))
+# back transforming #
+# note: in zero-inflated model, we're testing the probability of being zero
+# negative estimate (<0) means fewer 0's, positive estimate (>0) means more 0's
+# positive estimate means it is more likely to be zero (or, there is a reduced probability of being eaten)
+# negative estimates means it is less likely to be zero (or, there is an increased probability of being eaten)
+invlogit(0.16274) # 0.54
+invlogit(0.16274+0.44553) # 0.65
+0.65-0.54 # 0.11 - reduced herbivory decreased the probability of being eaten by 0.11
 tab_model(full.model.k)
 
 # species specific model (for the supplement)
@@ -226,12 +235,19 @@ tab_model(full.model.sp.k)
 # temperature model
 herb_kbs_amb <- herb_kbs %>%
         filter(state == "ambient")
-temp.model.k <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
+temp.model.k <- glmmTMB(p_eaten ~ mean_temp,
                            data=herb_kbs_amb,
                            zi=~.,
                            family=truncated_nbinom2)
 summary(temp.model.k)
-tab_model(temp.model.k)
+ggpredict(temp.model.k, "mean_temp")
+# back transforming #
+# want to find probability change from temp of 15 to temp of 16
+# ( (p2 - p1) / p1 ) * 100 for probability change from p1 to p2
+( invlogit(9.8971 - 0.5890*16) - 
+                invlogit(9.8971 - 0.5890*15) ) / 
+        invlogit(9.8971 - 0.5890*15) # for every degree increase in temp, probability of being eaten increases by 0.17
+tab_model(temp.model.k) 
 
 # origin models (for the supplement) #
 herb_kbs2 <- herb_kbs %>%
@@ -317,6 +333,19 @@ full.model.u <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/p
                       zi=~.,
                       family=truncated_nbinom2)
 summary(full.model.u) # * model used in paper * #
+# back transforming #
+exp(1.22351) # 3.40 - estimate for insects
+exp(1.22351 - 0.59676) # 1.87 - estimate for no insects
+3.4-1.87 # 1.53 - reduced herbivory decreased herbivory levels by 1.53%
+# note: in zero-inflated model, we're testing the probability of being zero
+# negative estimate (<0) means fewer 0's, positive estimate (>0) means more 0's
+# so a positive estimate means it is more likely to be zero (or, there is a reduced probability of being eaten)
+invlogit(0.47128) # 0.62
+invlogit(0.47128-0.57265) # 0.47
+0.62-0.47 # 0.15 - warming increased the probability of being eaten by 0.15
+invlogit(0.47128) # 0.62
+invlogit(0.47128+0.76031) # 0.77
+0.77-0.62 # 0.15 - reduced herbivory decreased the probability of being eaten by 0.15
 tab_model(full.model.u)
 
 # species specific model (for the supplement)
@@ -330,11 +359,16 @@ tab_model(full.model.sp.u)
 # temperature model
 herb_umbs_amb <- herb_umbs %>%
         filter(state == "ambient")
-temp.model.u <- glmmTMB(p_eaten ~ mean_temp + (1|plot/species/plant_number),
+temp.model.u <- glmmTMB(p_eaten ~ mean_temp,
                         data=herb_umbs_amb,
                         zi=~.,
                         family=truncated_nbinom2)
+plot(ggpredict(temp.model.u, terms = "mean_temp"))
 summary(temp.model.u)
+# back transforming #
+# want to find change from temp of 15 to temp of 16
+( exp(20.7013 - 1.1594*16) - exp(20.7013 - 1.1594*15) /
+                exp(20.7013 - 1.1594*15) )
 tab_model(temp.model.u)
 
 # origin models (for supplement) #

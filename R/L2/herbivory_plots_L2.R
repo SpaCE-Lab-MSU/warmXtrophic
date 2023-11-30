@@ -102,7 +102,9 @@ binom_dot_k <- ggplot(herb_binom_eaten_k, aes(x = state, y = mean_n, fill=insect
               axis.title.y=element_text(size=17),
               legend.title=element_text(size=17), 
               legend.text=element_text(size=17)) +
-        guides(color = "none")
+        guides(color = "none") +
+        scale_y_continuous(breaks = c(0.2,0.3,0.4,0.5), 
+                           labels = c("  0.2", "  0.3", "  0.4", "  0.5"))
 binom_dot_u <- ggplot(herb_binom_eaten_u, aes(x = state, y = mean_n, fill=insecticide)) +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), ,pch=21,size=1,position=position_dodge(0.2)) +
         labs(x = NULL, y = "Probability of being eaten", title="UMBS") +
@@ -126,7 +128,7 @@ binom_dot_u <- ggplot(herb_binom_eaten_u, aes(x = state, y = mean_n, fill=insect
 # selecting KBS, average amount eaten if herbivory > 0
 sum_herb_overall_k_i <- herb %>%
         filter(site == "KBS")
-sum_herb_overall_k_i <- sum_herb_overall_k_i[sum_herb_overall_k_i$p_eaten != 0, ]
+#sum_herb_overall_k_i <- sum_herb_overall_k_i[sum_herb_overall_k_i$p_eaten != 0, ]
 sum_herb_overall_k_i <- sum_herb_overall_k_i %>%
         group_by(state, insecticide) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
@@ -134,7 +136,7 @@ sum_herb_overall_k_i <- sum_herb_overall_k_i %>%
 # selecting UMBS, average amount eaten if herbivory > 0
 sum_herb_overall_u_i <- herb %>%
         filter(site == "UMBS")
-sum_herb_overall_u_i <- sum_herb_overall_u_i[sum_herb_overall_u_i$p_eaten != 0, ]
+#sum_herb_overall_u_i <- sum_herb_overall_u_i[sum_herb_overall_u_i$p_eaten != 0, ]
 sum_herb_overall_u_i <- sum_herb_overall_u_i %>%
         group_by(state,insecticide) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
@@ -147,8 +149,8 @@ eaten_k_i <- ggplot(sum_herb_overall_k_i, aes(x = state, y = avg_eaten, fill=ins
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
-        ylim(5,22) +
-        annotate("text", x = 0.5, y=22, label = "C", size=5) +
+        ylim(1,10) +
+        annotate("text", x = 0.5, y=10, label = "C", size=5) +
         theme_bw() +
         theme(legend.position="none") +
         theme(axis.text.y = element_text(size=17),
@@ -161,8 +163,8 @@ eaten_u_i <- ggplot(sum_herb_overall_u_i, aes(x = state, y = avg_eaten,fill=inse
         scale_fill_manual(name="Treatment",
                           values = c("#FFB451", "#0b0055"),
                           labels=c("Herbivory","Reduced Herbivory")) +
-        ylim(5,22) +
-        annotate("text", x = 0.5, y=22, label = "D", size=5) +
+        ylim(1,10) +
+        annotate("text", x = 0.5, y=10, label = "D", size=5) +
         theme_bw() +
         theme(legend.position="none") +
         theme(axis.text.y = element_blank(),
@@ -173,7 +175,7 @@ eaten_u_i <- ggplot(sum_herb_overall_u_i, aes(x = state, y = avg_eaten,fill=inse
 png("binary_dots_insecticide.png", units="in", width=9, height=7, res=300)
 ggarrange(binom_dot_k, binom_dot_u,
                               eaten_k_i, eaten_u_i,
-                              nrow = 2, ncol = 2, common.legend = T, legend="right",widths = c(1, 0.9))
+                              nrow = 2, ncol = 2, common.legend = T, legend="right",widths = c(1.1, 0.9))
 dev.off()
 
 
@@ -456,7 +458,7 @@ temp_prob_eaten_k <- ggplot(kbs_herb_binom_temp, aes(x = mean_temp, y = n, color
                           labels = c("Ambient","Warmed"),
                           name = "Treatment") +
         theme_classic() +
-        xlim(15,15.6) +
+        xlim(14.9,15.7) +
         theme(legend.title=element_text(size=13), 
               legend.text=element_text(size=13),
               title=element_text(size=14),
@@ -475,7 +477,7 @@ temp_prob_eaten_u <- ggplot(umbs_herb_binom_temp, aes(x = mean_temp, y = n, colo
                           labels = c("Ambient","Warmed"),
                           name = "Treatment") +
         theme_classic() +
-        xlim(15,17.1) +
+        xlim(14.9,17.1) +
         theme(legend.title=element_text(size=13), 
               legend.text=element_text(size=13),
               title=element_text(size=14),
@@ -487,8 +489,8 @@ temp_prob_eaten_u <- ggplot(umbs_herb_binom_temp, aes(x = mean_temp, y = n, colo
 # amount eaten plot
 sum_herb_overall_k_i2 <- herb %>%
         filter(site == "KBS" & state == "ambient")
-sum_herb_overall_k_i3 <- sum_herb_overall_k_i2[sum_herb_overall_k_i2$p_eaten != 0, ]
-sum_herb_overall_k_i3 <- sum_herb_overall_k_i3 %>%
+#sum_herb_overall_k_i3 <- sum_herb_overall_k_i2[sum_herb_overall_k_i2$p_eaten != 0, ]
+sum_herb_overall_k_i3 <- sum_herb_overall_k_i2 %>%
         group_by(plot,species,year,state) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
@@ -497,8 +499,8 @@ kbs_herb_am_temp <- kbs_herb_am_temp[!duplicated(kbs_herb_am_temp), ]
 
 sum_herb_overall_u_i2 <- herb %>%
         filter(site == "UMBS" & state == "ambient")
-sum_herb_overall_u_i3 <- sum_herb_overall_u_i2[sum_herb_overall_u_i2$p_eaten != 0, ]
-sum_herb_overall_u_i3 <- sum_herb_overall_u_i3 %>%
+#sum_herb_overall_u_i3 <- sum_herb_overall_u_i2[sum_herb_overall_u_i2$p_eaten != 0, ]
+sum_herb_overall_u_i3 <- sum_herb_overall_u_i2 %>%
         group_by(plot,species,year,state) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
@@ -516,7 +518,7 @@ temp_amount_eaten_k <- ggplot(kbs_herb_am_temp, aes(x = mean_temp, y = avg_eaten
                           labels = c("Ambient","Warmed"),
                           name = "Treatment") +
         theme_classic() +
-        xlim(15,15.6) +
+        xlim(14.9,15.7) +
         theme(legend.title=element_text(size=13), 
               legend.text=element_text(size=13),
               plot.subtitle=element_text(size=13),
@@ -535,7 +537,7 @@ temp_amount_eaten_u <- ggplot(umbs_herb_am_temp, aes(x = mean_temp, y = avg_eate
                           labels = c("Ambient","Warmed"),
                           name = "Treatment") +
         theme_classic() +
-        xlim(15,17.1) +
+        xlim(14.9,17.1) +
         theme(legend.title=element_text(size=13), 
               legend.text=element_text(size=13),
               plot.subtitle=element_text(size=13),
