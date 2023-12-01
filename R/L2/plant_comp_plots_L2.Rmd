@@ -475,12 +475,9 @@ umbs_comp_max <- ggplot(comp_umbsp, aes(x = max_temp, y = avg_pc, color = state)
         theme(legend.title=element_text(size=12), 
               legend.text=element_text(size=12))
 
-gdd_comp_merge <- ggpubr::ggarrange(kbs_comp_gdd,umbs_comp_gdd,
-                                    kbs_comp_mean,umbs_comp_mean,
-                                    kbs_comp_med,umbs_comp_med,
-                                    kbs_comp_max,umbs_comp_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="none")
-png("comp_gdd_temp.png", units="in", width=7, height=8, res=300)
+gdd_comp_merge <- ggpubr::ggarrange(kbs_comp_mean,umbs_comp_mean,
+                                    ncol = 2, common.legend=T,legend="none")
+png("comp_gdd_temp.png", units="in", width=7, height=5, res=300)
 annotate_figure(gdd_comp_merge,
                 left = text_grob("Average percent cover (%)", color = "black", rot = 90, size=15),
                 top = text_grob("KBS                                                      UMBS", color = "black", size=15))

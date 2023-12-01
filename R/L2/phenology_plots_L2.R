@@ -744,18 +744,16 @@ umbs_max <- ggplot(green_umbsp, aes(x = max_temp, y = med_half_cover_date, color
         theme(legend.title=element_text(size=12), 
               legend.text=element_text(size=12))
 
-gdd_temp_merge <- ggpubr::ggarrange(kbs_gdd,umbs_gdd,
-                                    kbs_mean,umbs_mean,
-                                    kbs_med,umbs_med,
-                                    kbs_max,umbs_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="none")
-png("greenup_gdd_temp.png", units="in", width=7, height=8, res=300)
+# using the mean
+gdd_temp_merge <- ggpubr::ggarrange(kbs_mean,umbs_mean,
+                                    ncol = 2, common.legend=T,legend="none")
+png("greenup_gdd_temp.png", units="in", width=7, height=5, res=300)
 annotate_figure(gdd_temp_merge,
                 left = text_grob("Green-up half cover julian date", color = "black", rot = 90, size=15),
                 top = text_grob("KBS                                                      UMBS", color = "black", size=15))
 dev.off()
 
-# looking to see which temp variable best correlates with flowring
+# looking to see which temp variable best correlates with flowering
 kbs_flwr_gdd <- ggplot(flwr_kbsp, aes(x = GDD_cumulative, y = julian_min, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
@@ -861,12 +859,9 @@ umbs_flwr_max <- ggplot(flwr_umbsp, aes(x = max_temp, y = julian_min, color = st
         theme(legend.title=element_text(size=12), 
               legend.text=element_text(size=12))
 
-gdd_flwr_merge <- ggpubr::ggarrange(kbs_flwr_gdd,umbs_flwr_gdd,
-                                    kbs_flwr_mean,umbs_flwr_mean,
-                                    kbs_flwr_med,umbs_flwr_med,
-                                    kbs_flwr_max,umbs_flwr_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="none")
-png("flwrup_gdd_temp.png", units="in", width=7, height=8, res=300)
+gdd_flwr_merge <- ggpubr::ggarrange(kbs_flwr_mean,umbs_flwr_mean,
+                                    ncol = 2, common.legend=T,legend="none")
+png("flwrup_gdd_temp.png", units="in", width=7, height=5, res=300)
 annotate_figure(gdd_flwr_merge,
                 left = text_grob("Minimum julian date of flowering", color = "black", rot = 90, size=15),
                 top = text_grob("KBS                                                      UMBS", color = "black", size=15))
@@ -979,12 +974,9 @@ umbs_flwr_dur_max <- ggplot(flwr_umbsp, aes(x = max_temp, y = flwr_duration, col
         theme(legend.title=element_text(size=12), 
               legend.text=element_text(size=12))
 
-gdd_flwr_dur_merge <- ggpubr::ggarrange(kbs_flwr_dur_gdd,umbs_flwr_dur_gdd,
-                                    kbs_flwr_dur_mean,umbs_flwr_dur_mean,
-                                    kbs_flwr_dur_med,umbs_flwr_dur_med,
-                                    kbs_flwr_dur_max,umbs_flwr_dur_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="none")
-png("flwr_dur_gdd_temp.png", units="in", width=7, height=8, res=300)
+gdd_flwr_dur_merge <- ggpubr::ggarrange(kbs_flwr_dur_mean,umbs_flwr_dur_mean,
+                                    ncol = 2, common.legend=T,legend="none")
+png("flwr_dur_gdd_temp.png", units="in", width=7, height=5, res=300)
 annotate_figure(gdd_flwr_dur_merge,
                 left = text_grob("Duration of flowering (# of days)", color = "black", rot = 90, size=15),
                 top = text_grob("KBS                                                 UMBS", color = "black", size=15))
@@ -1097,12 +1089,9 @@ umbs_sd_max <- ggplot(sd_umbsp, aes(x = max_temp, y = julian_min, color = state)
         theme(legend.title=element_text(size=12), 
               legend.text=element_text(size=12))
 
-gdd_sd_merge <- ggpubr::ggarrange(kbs_sd_gdd,umbs_sd_gdd,
-                                    kbs_sd_mean,umbs_sd_mean,
-                                    kbs_sd_med,umbs_sd_med,
-                                    kbs_sd_max,umbs_sd_max,
-                                    ncol = 2, nrow=4,common.legend=T,legend="none")
-png("sd_gdd_temp.png", units="in", width=7, height=8, res=300)
+gdd_sd_merge <- ggpubr::ggarrange(kbs_sd_mean,umbs_sd_mean,
+                                    ncol = 2, common.legend=T,legend="none")
+png("sd_gdd_temp.png", units="in", width=7, height=5, res=300)
 annotate_figure(gdd_sd_merge,
                 left = text_grob("Minimum julian date of seed set", color = "black", rot = 90, size=15),
                 top = text_grob("KBS                                                      UMBS", color = "black", size=15))
