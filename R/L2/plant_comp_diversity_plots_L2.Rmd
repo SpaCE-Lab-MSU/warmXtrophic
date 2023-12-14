@@ -177,7 +177,7 @@ richness_dot_i <- function(loc) {
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
                                          labels=c("Herbivory","Reduced Herbivory")) +
-                               labs(x = NULL, y = NULL, title = NULL) +
+                               labs(x = NULL, y = NULL, title = loc) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        coord_cartesian(ylim=c(4.0,8.5)) +
                        theme_bw(14))
@@ -194,21 +194,20 @@ richness_dot_i_kbs <- richness_dot_i_kbs +
                            labels = c("     4", "     5", "     6", "     7", "     8"))
 
 richness_dot_i_umbs <- richness_dot_i("UMBS")
-richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + 
-        theme(axis.title.y=element_blank(),
-              plot.title = element_text(size=20),
-              axis.text.y = element_blank(),
-              axis.text.x = element_text(size=17),
-              legend.text = element_text(size=17),
-              legend.title = element_text(size=17)) +
+richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
+                                                      plot.title = element_text(size=20),
+                                                      axis.text.y = element_blank(),
+                                                      axis.text.x = element_text(size=17),
+                                                      legend.text = element_text(size=17),
+                                                      legend.title = element_text(size=17)) +
         scale_y_continuous(breaks = c(4, 5, 6, 7, 8), 
                            labels = c("    4", "    5", "    6", "    7", "    8"))
 
 richness_all_dot_i <- ggpubr::ggarrange(richness_dot_i_kbs, richness_dot_i_umbs,
                                 nrow = 1, ncol = 2, common.legend = T, legend="right",
-                                widths = c(1, 0.9))
+                                widths = c(1, 0.85))
 
-png("species_richness_L2_all_dot_insect.png", units="in", width=8, height=5, res=300)
+png("species_richness_L2_all_dot_insect.png", units="in", width=9, height=5, res=300)
 annotate_figure(richness_all_dot_i,
                 left = text_grob("Species Richness", color = "black", rot = 90, size=17))
 dev.off()
