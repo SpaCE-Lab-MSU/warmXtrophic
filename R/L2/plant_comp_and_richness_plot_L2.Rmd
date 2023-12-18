@@ -87,19 +87,22 @@ comp_dot_i <- function(loc) {
 }
 comp_dot_i_kbs <- comp_dot_i("KBS")
 comp_dot_i_kbs <- comp_dot_i_kbs + labs(y = "Cover (%)") +
-                                        theme(plot.title = element_text(size=20),
+        annotate("text", x = 0.5, y=24, label = "A", size=5) +
+        theme(plot.title = element_text(size=20),
                                      axis.text.y = element_text(size=17),
                                      axis.text.x = element_blank(),
                                      axis.title.y = element_text(size=17),
                                      legend.text = element_text(size=17),
                                      legend.title = element_text(size=17))
 comp_dot_i_umbs <- comp_dot_i("UMBS")
-comp_dot_i_umbs <- comp_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
-                                                      plot.title = element_text(size=20),
-                                                      axis.text.y = element_blank(),
-                                                      axis.text.x = element_blank(),
-                                                      legend.text = element_text(size=17),
-                                                      legend.title = element_text(size=17))
+comp_dot_i_umbs <- comp_dot_i_umbs + labs(y=NULL) + 
+        annotate("text", x = 0.5, y=24, label = "B", size=5) + 
+        theme(axis.title.y=element_blank(),
+              plot.title = element_text(size=20),
+              axis.text.y = element_blank(),
+              axis.text.x = element_blank(),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17))
 
 # Species Richness
 sum_richness_all$full_treat <- paste(sum_richness_all$state, sum_richness_all$insecticide, sep="_")
@@ -121,6 +124,7 @@ richness_dot_i <- function(loc) {
 }
 richness_dot_i_kbs <- richness_dot_i("KBS")
 richness_dot_i_kbs <- richness_dot_i_kbs + labs(y = "Species Richness") +
+        annotate("text", x = 0.5, y=8.5, label = "C", size=5) +
         theme(plot.title = element_text(size=20),
                                      axis.text.y = element_text(size=17),
                                      axis.text.x = element_text(size=17),
@@ -131,11 +135,13 @@ richness_dot_i_kbs <- richness_dot_i_kbs + labs(y = "Species Richness") +
                            labels = c("  4", "  5", "  6", "  7", "  8"))
 
 richness_dot_i_umbs <- richness_dot_i("UMBS")
-richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
-                                                      axis.text.y = element_blank(),
-                                                      axis.text.x = element_text(size=17),
-                                                      legend.text = element_text(size=17),
-                                                      legend.title = element_text(size=17)) +
+richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + 
+        annotate("text", x = 0.5, y=8.5, label = "D", size=5) +
+        theme(axis.title.y=element_blank(),
+              axis.text.y = element_blank(),
+              axis.text.x = element_text(size=17),
+              legend.text = element_text(size=17),
+              legend.title = element_text(size=17)) +
         scale_y_continuous(breaks = c(4, 5, 6, 7, 8), 
                            labels = c("4", "5", "6", "7", "8"))
 
