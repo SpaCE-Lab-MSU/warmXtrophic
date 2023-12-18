@@ -8,7 +8,7 @@ editor_options:
 ---
 
 COLLABORATORS: Kara Dobson, Phoebe Zarnetske, Mark Hammond, Pat Bills 
-DATA INPUT: Clean & plot plant comp csv from the shared Google drive  
+DATA INPUT: Clean plot plant comp csv and plant comp diversity csv files from the shared Google drive  
 DATA OUTPUT: Code and Rmd are in the scripts folder in Github  
 PROJECT: warmXtrophic 
 
@@ -128,7 +128,7 @@ richness_dot_i_kbs <- richness_dot_i_kbs + labs(y = "Species Richness") +
                                      legend.text = element_text(size=17),
                                      legend.title = element_text(size=17)) +
         scale_y_continuous(breaks = c(4, 5, 6, 7, 8), 
-                           labels = c("     4", "     5", "     6", "     7", "     8"))
+                           labels = c("  4", "  5", "  6", "  7", "  8"))
 
 richness_dot_i_umbs <- richness_dot_i("UMBS")
 richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=element_blank(),
@@ -137,14 +137,14 @@ richness_dot_i_umbs <- richness_dot_i_umbs + labs(y=NULL) + theme(axis.title.y=e
                                                       legend.text = element_text(size=17),
                                                       legend.title = element_text(size=17)) +
         scale_y_continuous(breaks = c(4, 5, 6, 7, 8), 
-                           labels = c("    4", "    5", "    6", "    7", "    8"))
+                           labels = c("4", "5", "6", "7", "8"))
 
 pc_richness_all_dot_i <- ggpubr::ggarrange(comp_dot_i_kbs, comp_dot_i_umbs, 
                                         richness_dot_i_kbs, richness_dot_i_umbs,
                                 nrow = 2, ncol = 2, common.legend = T, legend="right",
                                 widths = c(1, 0.85))
 
-png("plant_comp_and_richness_L2_all_dot_insect.png", units="in", width=9, height=5, res=300)
+png("plant_comp_and_richness_L2_all_dot_insect.png", units="in", width=10, height=8, res=300)
 pc_richness_all_dot_i
 dev.off()
 
