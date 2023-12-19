@@ -251,16 +251,24 @@ tab_model(temp.model.k)
 
 # origin models (for the supplement) #
 herb_kbs2 <- herb_kbs %>%
-        filter(!(origin == 'Both')) 
-k.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_kbs2, dist = "negbin", 
-                  zero.dist = "binomial")
+        filter(!(origin == 'Both' | origin == "")) 
+#k.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_kbs2, dist = "negbin", 
+#                  zero.dist = "binomial")
+k.m2.ho <- glmmTMB(p_eaten ~ state * origin + year + (1|plot/species/plant_number),
+        data=herb_kbs2,
+        zi=~.,
+        family=truncated_nbinom2)
 summary(k.m2.ho)
 
 # growth form models (for supplement) #
 herb_kbs3 <- herb_kbs %>%
-        filter(!(growth_habit == ""))
-k.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_kbs3, dist = "negbin", 
-                  zero.dist = "binomial")
+        filter(!(growth_habit == "" | growth_habit == "Vine" | growth_habit == "Shrub"))
+#k.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_kbs3, dist = "negbin", 
+#                  zero.dist = "binomial")
+k.m2.hg <- glmmTMB(p_eaten ~ state * growth_habit + year + (1|plot/species/plant_number),
+                   data=herb_kbs3,
+                   zi=~.,
+                   family=truncated_nbinom2)
 summary(k.m2.hg)
 
 
@@ -375,19 +383,30 @@ tab_model(temp.model.u)
 herb_umbs2 <- herb_umbs %>%
         filter(!(origin == 'Both' |
                          origin == ""))
-u.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_umbs2, dist = "negbin", 
-                  zero.dist = "binomial")
+#u.m2.ho <- hurdle(p_eaten ~ state * origin + year, data = herb_umbs2, dist = "negbin", 
+#                  zero.dist = "binomial")
+u.m2.ho <- glmmTMB(p_eaten ~ state * origin + year + (1|plot/species/plant_number),
+           data=herb_umbs2,
+           zi=~.,
+           family=truncated_nbinom2)
 summary(u.m2.ho)
 
 # growth form models (for supplement) #
-u.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_umbs, dist = "negbin", 
-                  zero.dist = "binomial")
+#u.m2.hg <- hurdle(p_eaten ~ state * growth_habit + year, data = herb_umbs, dist = "negbin", 
+#                  zero.dist = "binomial")
+herb_umbs <- within(herb_umbs, growth_habit <- relevel(factor(growth_habit), ref = "Forb"))
+herb_umbs <- within(herb_umbs, state <- relevel(factor(state), ref = "ambient"))
+u.m2.hg <- glmmTMB(p_eaten ~ state * growth_habit + year + (1|plot/species/plant_number),
+           data=herb_umbs,
+           zi=~.,
+           family=truncated_nbinom2)
 summary(u.m2.hg) #*used this output in the paper*#
 
 
 
 
-
+# ambient forb - warmed graminoid: yes
+# ambient gram - warmed forb: yes
 
 
 ############### code not used in manuscript ####################
