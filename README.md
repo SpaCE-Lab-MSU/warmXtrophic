@@ -36,7 +36,9 @@ All analyses were conducted using R (R Core Team 2020)
 
 ### L1
 
-The L1 scripts take raw data files and clean them into L1 data versions. The clean L1 data is already available on our EDI repository.
+The L1 scripts take raw data files and clean them into L1 data versions. The clean L1 data is already available on our EDI repository. We do not currently have raw, L0 data available in our EDI repository, but it may be published in a future version of the repo.
+
+Scripts with "functions" in the file name (e.g., "biomass_functions.R") contain functions used in that response variables' cleaning script. Cleaning scripts are designated with "clean" in the file name (e.g., "biomass_clean_L1.R"). The "HOBO_pairedsensor_cleanup" and "HOBO_pendantdata_cleanup" scripts take the raw HOBO data and clean it, and those scripts are followed by the "HOBO_pairedsensor_merge" and "HOBO_pendantdata_merge" scripts, which then merge together all clean HOBO data.
 
 A few L1 scripts take pre-cleaned L1 data and do a second transformation. These include the HOBO_data_removal.R script and the HOBO_GDD_L1.R script.
 
