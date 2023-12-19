@@ -8,6 +8,24 @@ Young, M. L., Dobson, K. D., Hammond, M. D., Zarnetske, P. L. In review. Plant
 community responses to direct and herbivore-mediated indirect effects of climate warming
 across multiple years. Ecology. *Moriah and Kara are joint first authors
 
+### Response variables include:
+
+Phenology: greenup
+
+Phenology: flowering
+
+Phenology: flowering duration
+
+Phenology: seed set
+
+Community composition: percent cover, diversity metrics (Shannon index, Simpson index, species richness)
+
+Herbivory: probability of a leaf being eaten & the amount of leaf area eaten
+
+Plant biomass: harvested at the end of the 2021 growing season
+
+Leaf traits: Specific leaf area (SLA), N content, C content
+
 ## Workflow
 
 L1 data must be downloaded prior to running the R script associated with that response variable. Each response variable (e.g., biomass, green-up, etc.) typically has its own R script for cleaning and analysis. Some traits are grouped for L2 figure making scripts (e.g., leaf traits are SLA, C, and N). For some L2 scripts, the L1 data must first be ran through its associated L1 script to create the data necessary for L2.
@@ -22,6 +40,9 @@ The L1 data that are processed in the scripts in this repository will be publish
 
 - Spatial extent: Two experimental sites in Hickory Corners (Kellogg Biological Station) and Pellston (University of Michigan Biological Station), MI, USA.
 - Temporal extent: 2015-2021
+    - 2015-2017: warming (via open top chambers), herbivore reduction (via insecticide, small mammal exclosures)
+    - 2018-2021: warming (via open top chambers), herbivore reduction (via insecticide). In 2018 we removed the small mammal exclosures as they did not affect any response variables.
+        - The total number of replicates for each treatment is 6 at each site, excluding the small mammal treatment.
 
 ## Usage
 
@@ -70,32 +91,6 @@ Prior collaborators/technicians: Nina Lany, Kileigh Welshofer, Kathryn Schmidt, 
 
 For inquiries related to the data and scripts, please contact Phoebe Zarnetske: @plz@msu.edu
 
-## Old (need to place elsewhere above)
+### Funding
 
-Funding: Michigan State University (including Kellogg Biological Station, and KBS LTER)
-
-The experiment began in June 2015 and at each site includes the following treatments:
-
-2015-2017: warming (via open top chambers), herbivore reduction (via insecticide, small mammal exclosures)
-
-2018-2021: warming (via open top chambers), herbivore reduction (via insecticide). In 2018 we removed the small mammal exclosures as they did not affect any of the plant response variables.
-
-The total number of replicates for each treatment is 6 at each site, excluding the small mammal treatment.
-
-Response variables include:
-
-Phenology: greenup
-
-Phenology: flowering
-
-Phenology: flowering duration
-
-Phenology: seed set
-
-Community composition: percent cover
-
-Herbivory: percent of plant species eaten at end of summer
-
-Biomass (computed from relationship between community composition and biomass of similar plots outside experiment)
-
-In 2017 we added C&N composition and SLA from plant leaves for a few species.
+Michigan State University (including Kellogg Biological Station, and KBS LTER)
