@@ -93,4 +93,5 @@ For inquiries related to the data and scripts, please contact Phoebe Zarnetske: 
 
 ### Funding
 
-Michigan State University (including Kellogg Biological Station, and KBS LTER)
+Moriah Young was supported by the National Science Foundation (NSF) Graduate Research Fellowship Program (DGE: 184-8739). Kara Dobson was supported by the Michigan State College of Natural Science and the NRT-IMPACTS program through NSF (DGE: 1828149). Support for this research was also provided by the NSF LTER Program (DEB: 2224712) at the Kellogg Biological Station and Michigan State University AgBioResearch.
+
