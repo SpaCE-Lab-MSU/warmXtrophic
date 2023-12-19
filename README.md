@@ -10,13 +10,7 @@ across multiple years. Ecology. *Moriah and Kara are joint first authors
 
 ### Response variables include:
 
-Phenology: greenup
-
-Phenology: flowering
-
-Phenology: flowering duration
-
-Phenology: seed set
+Phenology: greenup, flowering, flowering duration, seed set
 
 Community composition: percent cover, diversity metrics (Shannon index, Simpson index, species richness)
 
