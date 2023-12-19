@@ -48,6 +48,16 @@ HOBO_GDD_L1.R: uses the clean, L1 data from the HOBO_data_removal.R script and c
 
 ### L2
 
+Prior to running the analyses or plots for the response variables in the L2 scripts, a few scripts must first be ran:
+
+phenology_dates_L2.R: This script takes the cleaned plant composition and phenology data and calculates the plot-level and species-level averages for green-up, flowering, flowering duration, and seed set. It outputs separate csv files for each variable, which are needed for further scripts on analyses and plotting.
+
+plant_comp_data_wrangling_L2.R: This script takes the cleaned plant composition data and calculates the plot-level and species-level averages plant composition data, including for growth forms (forb and graminoid) and plant origin (native and exotic). It outputs separate csv files for each variable, which are needed for further scripts on analyses and plotting.
+
+plant_comp_diversity_calculations_L2.R: This script takes the cleaned plant composition data and calculates species diversity metrics, including Shannon index, Simpson index, and species richness. It outputs a separate csv containing these calculated variables, which are needed for further scripts on analyses and plotting.
+
+All other L2 files are labelled with either "analyses" or "plots" in the file name (e.g., "herbivory_analyses_L2.R and herbivory_plots_L2.R"). Also included in the file name is the response variable that is being analyzed or plotted.
+
 ## Contributors
 
 PI: Phoebe Zarnetske
