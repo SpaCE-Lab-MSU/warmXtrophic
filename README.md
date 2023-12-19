@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repository contains R scripts that organize, clean, analyze, and plot data from the long-term Warming X Trophic Interactions experiment at Kellogg Biological Station and University of Michigan Biological Station (UMBS). A manuscript is currently in review summarizing the data from 2015-2021, co-led by Kara Dobson and Moriah Young, coauthors: Phoebe Zarnetske, Mark Hammond.
+This repository contains R scripts that organize, clean, analyze, and plot data from the long-term Warming X Trophic Interactions experiment at Kellogg Biological Station (KBS) and University of Michigan Biological Station (UMBS). A manuscript is currently in review summarizing the data from 2015-2021, co-led by Kara Dobson and Moriah Young, coauthors: Phoebe Zarnetske, Mark Hammond.
 
 Young, M. L., Dobson, K. D., Hammond, M. D., Zarnetske, P. L. In review. Plant
 community responses to direct and herbivore-mediated indirect effects of climate warming
@@ -10,20 +10,18 @@ across multiple years. Ecology. *Moriah and Kara are joint first authors
 
 ## Workflow
 
-For some L2 scripts, the L1 data must first be ran through its associated L1 script to create the data necessary for L2.
+L1 data must be downloaded prior to running the R script associated with that response variable. Each response variable (e.g., biomass, green-up, etc.) typically has its own R script for cleaning and analysis. Some traits are grouped for L2 figure making scripts (e.g., leaf traits are SLA, C, and N). For some L2 scripts, the L1 data must first be ran through its associated L1 script to create the data necessary for L2.
 
 ![EDI Workflow Image](docs/EDI_harmonization_procedure_general.png)
 
 ## Location of data
 
-Data that are processed or result from the scripts in this repository are stored in a shared Google drive. The L1 data are also published as an EDI package (DOI here)
+The L1 data that are processed in the scripts in this repository will be published as an EDI package (DOI here). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps.
 
-## Spatiotemporal extent and resolution
+## Spatiotemporal extent
 
-- Spatial extent: 
-- Spatial resolution: 
+- Spatial extent: Two experimental sites in Hickory Corners (Kellogg Biological Station) and Pellston (University of Michigan Biological Station), MI, USA.
 - Temporal extent: 2015-2021
-- Temporal resolution: 
 
 ## Usage
 
@@ -31,8 +29,8 @@ All analyses were conducted using R (R Core Team 2020)
 
 ### File Naming Conventions
 
-- Data Files:
-- Scripts:
+- Data Files: File names typically contain the response variable, site, and data stage designation. For example, "UMBS_pairedsensors_L1.csv" would represent data from UMBS for the air temperature paired sensors as a clean, L1 version. Some data files may not have a site name (e.g., "final_flwr_sd_L1.csv"), meaning both KBS and UMBS are contained within that file. More meta-data file information is avaiable in our EDI data repository.
+- Scripts: Scripts are separated into two folders: L1 and L2. L1 files take raw data and clean it, thus resulting in our clean L1 data files available in EDI. The L2 files take the cleaned data and analyse/plot it. Scripts are named with their respecitive response variable and if the data is being analyzed or plotted (e.g., "herbivory_analyses_L2.R and herbivory_plots_L2.R").
 
 ## Scripts
 
