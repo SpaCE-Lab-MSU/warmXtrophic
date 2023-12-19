@@ -1,14 +1,56 @@
 # warmXtrophic
 
+## Introduction
+
+This repository contains R scripts that organize, clean, analyze, and plot data from the long-term Warming X Trophic Interactions experiment at Kellogg Biological Station and University of Michigan Biological Station (UMBS). A manuscript is currently in review summarizing the data from 2015-2021, co-led by Kara Dobson and Moriah Young, coauthors: Phoebe Zarnetske, Mark Hammond.
+
+Young, M. L., Dobson, K. D., Hammond, M. D., Zarnetske, P. L. In review. Plant
+community responses to direct and herbivore-mediated indirect effects of climate warming
+across multiple years. Ecology. *Moriah and Kara are joint first authors
+
+## Workflow
+
+For some L2 scripts, the L1 data must first be ran through its associated L1 script to create the data necessary for L2.
+
+![EDI Workflow Image](docs/EDI_harmonization_procedure_general.png)
+
+## Location of data
+
+Data that are processed or result from the scripts in this repository are stored in a shared Google drive. The L1 data are also published as an EDI package (DOI here)
+
+## Spatiotemporal extent and resolution
+
+- Spatial extent: 
+- Spatial resolution: 
+- Temporal extent: 2015-2021
+- Temporal resolution: 
+
+## Usage
+
+All analyses were conducted using R (R Core Team 2020)
+
+### File Naming Conventions
+
+- Data Files:
+- Scripts:
+
+## Scripts
+
+## Contributors
+
 PI: Phoebe Zarnetske
 
 Collaborators: Mark Hammond, Moriah Young, Kara Dobson, Emily Parker
 
 Prior collaborators/technicians: Nina Lany, Kileigh Welshofer, Kathryn Schmidt, Amy Wrobleski
 
-Funding: Michigan State University (including Kellogg Biological Station, and KBS LTER)
+## Contact
 
-This repository contains R scripts that organize, analyze, and plot data from the long term Warming X Trophic Interactions experiment at Kellogg Biological Station and University of Michigan Biological Station (UMBS). A manuscript is in preparation summarizing the data from 2015-2021, co-led by Kara Dobson and Moriah Young, coauthors: Phoebe Zarnetske, Mark Hammond.
+For inquiries related to the data and scripts, please contact Phoebe Zarnetske: @plz@msu.edu
+
+## Old (need to place elsewhere above)
+
+Funding: Michigan State University (including Kellogg Biological Station, and KBS LTER)
 
 The experiment began in June 2015 and at each site includes the following treatments:
 
@@ -17,8 +59,6 @@ The experiment began in June 2015 and at each site includes the following treatm
 2018-2021: warming (via open top chambers), herbivore reduction (via insecticide). In 2018 we removed the small mammal exclosures as they did not affect any of the plant response variables.
 
 The total number of replicates for each treatment is 6 at each site, excluding the small mammal treatment.
-
-
 
 Response variables include:
 
@@ -37,9 +77,3 @@ Herbivory: percent of plant species eaten at end of summer
 Biomass (computed from relationship between community composition and biomass of similar plots outside experiment)
 
 In 2017 we added C&N composition and SLA from plant leaves for a few species.
-
-
-
-Data will be available on EDI. For some L2 scripts, the L1 data must first be ran through its associated L1 script to create the data necessary for L2.
-
-![EDI Workflow Image](docs/EDI_harmonization_procedure_general.png)
