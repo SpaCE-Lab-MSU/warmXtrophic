@@ -34,6 +34,18 @@ All analyses were conducted using R (R Core Team 2020)
 
 ## Scripts
 
+### L1
+
+The L1 scripts take raw data files and clean them into L1 data versions. The clean L1 data is already available on our EDI repository.
+
+A few L1 scripts take pre-cleaned L1 data and do a second transformation. These include the HOBO_data_removal.R script and the HOBO_GDD_L1.R script.
+
+HOBO_data_removal.R: Takes the clean, L1 data files from the paired sensors cleaning scripts (e.g., "UMBS_pairedsensors_L1.csv") and remove outliers/inaccurate data. The output of this script makes a version of L1 data with some data removed (e.g., "UMBS_pairedsensors_dataremoved_L1.csv").
+
+HOBO_GDD_L1.R: uses the clean, L1 data from the HOBO_data_removal.R script and calculates cumulative GDD and median, mean, and max temperatures for given timeframes. The HOBO_data_removal.R script must be ran prior to running this script.
+
+### L2
+
 ## Contributors
 
 PI: Phoebe Zarnetske
