@@ -72,6 +72,12 @@ green_umbs <- subset(greenup, site == "umbs")
 green_kbs_spp <- subset(greenup_spp, site == "kbs")
 green_umbs_spp <- subset(greenup_spp, site == "umbs")
 
+# making dataframe containing only 2020 data
+green_kbs_2020 <- green_kbs %>%
+        filter(year == 2020)
+green_umbs_2020 <- green_umbs %>%
+        filter(year == 2020)
+
 # checking raw data
 hist(green_kbs$med_half_cover_date)
 qqnorm(green_kbs$med_half_cover_date)
@@ -111,6 +117,17 @@ leveneTest(residuals(fitp2) ~ green_kbs$state)
 ols_test_normality(fitp2)
 shapiro.test(resid(fitp2))
 
+# KBS 2020
+fitp2<- lm(med_half_cover_date~state, data = green_kbs_2020)
+outlierTest(fitp2) # one outlier - 85; leaving for now because it seems true
+#green_kbsp2 <- green_kbsp2[-(85),] # removing the outlier
+qqPlot(fitp2, main="QQ Plot") 
+hist(fitp2$residuals)
+leveragePlots(fitp2)
+leveneTest(residuals(fitp2) ~ green_kbs_2020$state)
+ols_test_normality(fitp2)
+shapiro.test(resid(fitp2))
+
 # UMBS
 fitpu2<- lm(med_half_cover_date~state, data = green_umbs)
 outlierTest(fitpu2) # no outliers
@@ -118,6 +135,16 @@ qqPlot(fitpu2, main="QQ Plot")
 hist(fitpu2$residuals)
 leveragePlots(fitpu2)
 leveneTest(residuals(fitpu2) ~ green_umbs$state)
+ols_test_normality(fitpu2)
+shapiro.test(resid(fitpu2))
+
+# UMBS 2020
+fitpu2<- lm(med_half_cover_date~state, data = green_umbs_2020)
+outlierTest(fitpu2) # no outliers
+qqPlot(fitpu2, main="QQ Plot") 
+hist(fitpu2$residuals)
+leveragePlots(fitpu2)
+leveneTest(residuals(fitpu2) ~ green_umbs_2020$state)
 ols_test_normality(fitpu2)
 shapiro.test(resid(fitpu2))
 
@@ -152,18 +179,21 @@ shapiro.test(resid(fitpu2_y))
 year.mod.test1 <- lmer(med_half_cover_date ~ state + year_factor+(1|plot), green_kbs, REML=FALSE)
 year.mod.test2 <- lmer(med_half_cover_date ~ state + as.factor(year_factor)+(1|plot), green_kbs, REML=FALSE)
 anova(year.mod.test1,year.mod.test2)
-# going to use year as a factor
+# going to use year as a factor for multi-year model
 # I also think this makes the most sense because I don't think we expect there to be a much of a trend over time for green-up; maybe if we had a longer time span, but I don't think 6 years is enough to detect a trend over time and the results will be more influenced by between year variation in temp, precip, etc.
 
-# plot-level model 
-mod9p <- lmer(med_half_cover_date ~ state * insecticide + as.factor(year_factor) + (1|plot), green_kbs, REML=FALSE)
+# plot level - final year model
+mod_final_year <- lm(med_half_cover_date ~ state * insecticide, green_kbs_2020)
+summary(mod_final_year)
+anova(mod_final_year)
 
+# plot-level model - all years
+mod9p <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year) + (1|plot), green_kbs, REML=FALSE)
 summary(mod9p)
-anova(mod9p) ### used in manuscript ###
-
+anova(mod9p)
 # comparisons
+contrast(emmeans(mod9p, ~state*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
 contrast(emmeans(mod9p, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
 # making a table
 kable(anova(mod9p)) %>% kableExtra::kable_styling()
 
@@ -194,15 +224,17 @@ year.mod.test2u <- lmer(med_half_cover_date ~ state + as.factor(year_factor)+(1|
 anova(year.mod.test1u,year.mod.test2u)
 # going to use year as a factor
 
-# plot-level model
-mod9p_u <- lmer(med_half_cover_date ~ state * insecticide + as.factor(year_factor) + (1|plot), green_umbs, REML=FALSE)
+# plot level - final year model
+modu_final_year <- lm(med_half_cover_date ~ state * insecticide, green_umbs_2020)
+summary(modu_final_year)
+anova(modu_final_year)
 
+# plot-level - all years model
+mod9p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year) + (1|plot), green_umbs, REML=FALSE)
 summary(mod9p_u)
 anova(mod9p_u) ### used in manuscript ###
-
 # comparisons
-contrast(emmeans(mod9p_u, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
-emmip(mod9p, insecticide~state)
+contrast(emmeans(mod9p, ~state*insecticide*as.factor(year)), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
 kable(anova(mod9p_u)) %>% kableExtra::kable_styling()
 
