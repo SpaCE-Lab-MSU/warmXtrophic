@@ -49,21 +49,6 @@ greenup_spp <- read.csv(file.path(L2_dir, "greenup/final_greenup_species_L2.csv"
 # check variable types
 str(greenup)
 
-# adding sequential year variable starting at 1: this is because 2016... are large numbers compare with other values in the dataset. We can always label axes with these real years.
-greenup$year_factor[greenup$year == 2016] <- 1
-greenup$year_factor[greenup$year == 2017] <- 2
-greenup$year_factor[greenup$year == 2018] <- 3
-greenup$year_factor[greenup$year == 2019] <- 4
-greenup$year_factor[greenup$year == 2020] <- 5
-greenup$year_factor[greenup$year == 2021] <- 6
-
-greenup_spp$year_factor[greenup_spp$year == 2016] <- 1
-greenup_spp$year_factor[greenup_spp$year == 2017] <- 2
-greenup_spp$year_factor[greenup_spp$year == 2018] <- 3
-greenup_spp$year_factor[greenup_spp$year == 2019] <- 4
-greenup_spp$year_factor[greenup_spp$year == 2020] <- 5
-greenup_spp$year_factor[greenup_spp$year == 2021] <- 6
-
 # create dataframes for kbs and umbs - remember that these contain species within plots
 green_kbs <- subset(greenup, site == "kbs")
 green_umbs <- subset(greenup, site == "umbs")
@@ -94,6 +79,7 @@ shapiro.test(green_kbs_spp$spp_half_cover_date)
 hist(green_umbs_spp$spp_half_cover_date)
 qqnorm(green_umbs_spp$spp_half_cover_date)
 shapiro.test(green_umbs_spp$spp_half_cover_date)
+
 
 
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
@@ -149,7 +135,7 @@ ols_test_normality(fitpu2)
 shapiro.test(resid(fitpu2))
 
 # KBS state + year
-fitp2_y<- lm(med_half_cover_date~state+year_factor, data = green_kbs)
+fitp2_y<- lm(med_half_cover_date~state+as.factor(year), data = green_kbs)
 outlierTest(fitp2_y) # no outliers
 qqPlot(fitp2_y, main="QQ Plot") 
 hist(fitp2_y$residuals)
@@ -160,7 +146,7 @@ ols_test_normality(fitp2_y)
 shapiro.test(resid(fitp2_y))
 
 # UMBS state + year
-fitpu2_y<- lm(med_half_cover_date~state+year, data = green_umbs)
+fitpu2_y<- lm(med_half_cover_date~state+as.factor(year), data = green_umbs)
 outlierTest(fitpu2_y)
 qqPlot(fitpu2_y, main="QQ Plot") 
 hist(fitpu2_y$residuals)
@@ -171,16 +157,8 @@ shapiro.test(resid(fitpu2_y))
 
 
 
-
-
 ###### green-up models #####
 ## KBS ##
-# testing if year as continuous or year as a factor makes more sense (test models)
-year.mod.test1 <- lmer(med_half_cover_date ~ state + year_factor+(1|plot), green_kbs, REML=FALSE)
-year.mod.test2 <- lmer(med_half_cover_date ~ state + as.factor(year_factor)+(1|plot), green_kbs, REML=FALSE)
-anova(year.mod.test1,year.mod.test2)
-# going to use year as a factor for multi-year model
-# I also think this makes the most sense because I don't think we expect there to be a much of a trend over time for green-up; maybe if we had a longer time span, but I don't think 6 years is enough to detect a trend over time and the results will be more influenced by between year variation in temp, precip, etc.
 
 # plot level - final year model
 mod_final_year <- lm(med_half_cover_date ~ state * insecticide, green_kbs_2020)
@@ -202,15 +180,11 @@ kable(anova(mod9p)) %>% kableExtra::kable_styling()
 green_kbs_amb <- green_kbs %>%
         filter(state == "ambient")
 modtest1 <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_kbs_amb, REML=FALSE)
-modtest2 <- lmer(med_half_cover_date ~ GDD_cumulative + (1|plot), green_kbs_amb, REML=FALSE)
-
-AICtab(modtest1,modtest2)
-
 anova(modtest1)
 summary(modtest1)
 
 # species model for supp
-mod_spp_k <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year_factor) + (1|plot), green_kbs_spp, REML=FALSE)
+mod_spp_k <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year) + (1|plot), green_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
 # making a table
 kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
@@ -218,11 +192,6 @@ kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
 
 
 ## UMBS ##
-# testing if year as continuous or year as a factor makes more sense (test models)
-year.mod.test1u <- lmer(med_half_cover_date ~ state + year_factor+(1|plot), green_umbs, REML=FALSE)
-year.mod.test2u <- lmer(med_half_cover_date ~ state + as.factor(year_factor)+(1|plot), green_umbs, REML=FALSE)
-anova(year.mod.test1u,year.mod.test2u)
-# going to use year as a factor
 
 # plot level - final year model
 modu_final_year <- lm(med_half_cover_date ~ state * insecticide, green_umbs_2020)
@@ -234,7 +203,7 @@ mod9p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year) + (1
 summary(mod9p_u)
 anova(mod9p_u) ### used in manuscript ###
 # comparisons
-contrast(emmeans(mod9p, ~state*insecticide*as.factor(year)), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast(emmeans(mod9p_u, ~state*insecticide*as.factor(year)), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
 kable(anova(mod9p_u)) %>% kableExtra::kable_styling()
 
@@ -243,74 +212,13 @@ kable(anova(mod9p_u)) %>% kableExtra::kable_styling()
 green_umbs_amb <- green_umbs %>%
         filter(state == "ambient")
 modtest1u <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_umbs_amb, REML=FALSE)
-modtest2u <- lmer(med_half_cover_date ~ GDD_cumulative + (1|plot), green_umbs_amb, REML=FALSE)
-
-AICtab(modtest1u,modtest2u)
-
 anova(modtest1u)
 summary(modtest1u)
 
 # species model for supp
-mod_spp_u <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year_factor) + (1|plot), green_umbs_spp, REML=FALSE)
+mod_spp_u <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year) + (1|plot), green_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
 kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
-
-
-
-
-
-
-
-####### code for models not used in manuscript #######
-# KBS
-mod1p <- lmer(med_half_cover_date ~ state + (1|plot), green_kbs, REML=FALSE)
-mod2p <- lmer(med_half_cover_date ~ insecticide + (1|plot), green_kbs, REML=FALSE)
-mod3p <- lmer(med_half_cover_date ~ insecticide + state + (1|plot), green_kbs, REML=FALSE)
-mod4p <- lmer(med_half_cover_date ~ insecticide * state + (1|plot), green_kbs, REML=FALSE)
-mod5p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + (1|plot), green_kbs, REML=FALSE)
-mod6p <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + insecticide + (1|plot), green_kbs, REML=FALSE)
-mod7p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + (1|plot), green_kbs, REML=FALSE)
-mod8p <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + insecticide + (1|plot), green_kbs, REML=FALSE)
-mod10p <- lmer(med_half_cover_date ~ state + insecticide * as.factor(year_factor) + (1|plot), green_kbs, REML=FALSE)
-mod11p <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + (1|plot), green_kbs, REML=FALSE)
-
-AICctab(mod1p, mod2p, mod3p, mod4p, mod5p, mod6p, mod7p, mod8p, mod9p, mod10p, mod11p,weights=T)
-
-anova(mod1p, mod2p) #same, 2p very slightly better
-anova(mod2p, mod3p) #3p
-anova(mod3p, mod4p) #3p
-anova(mod3p, mod5p) #5p
-anova(mod5p, mod6p) #6p
-anova(mod6p, mod7p) #7p
-anova(mod7p, mod8p) #mod8p
-anova(mod8p, mod9p) #mod8p (note: 9p is hypothesized model - going with 9 because it contains the interaction)
-anova(mod9p, mod10p) #mod9p
-anova(mod9p, mod11p) #mod11p slightly better - going with 9p for overall results, but can use 11p to talk about how these results vary by year
-
-# UMBS
-mod1p_u <- lmer(med_half_cover_date ~ state + (1|plot), green_umbs, REML=FALSE)
-mod2p_u <- lmer(med_half_cover_date ~ insecticide + (1|plot), green_umbs, REML=FALSE)
-mod3p_u <- lmer(med_half_cover_date ~ insecticide + state + (1|plot), green_umbs, REML=FALSE)
-mod4p_u <- lmer(med_half_cover_date ~ insecticide * state + (1|plot), green_umbs, REML=FALSE)
-mod5p_u <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + (1|plot), green_umbs, REML=FALSE)
-mod6p_u <- lmer(med_half_cover_date ~ state + as.factor(year_factor) + insecticide + (1|plot), green_umbs, REML=FALSE)
-mod7p_u <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + (1|plot), green_umbs, REML=FALSE)
-mod8p_u <- lmer(med_half_cover_date ~ state * as.factor(year_factor) + insecticide + (1|plot), green_umbs, REML=FALSE)
-mod10p_u <- lmer(med_half_cover_date ~ state + insecticide * as.factor(year_factor) + (1|plot), green_umbs, REML=FALSE)
-mod11p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year_factor) + (1|plot), green_umbs, REML=FALSE)
-
-AICtab(mod1p_u, mod2p_u, mod3p_u, mod4p_u, mod5p_u, mod6p_u, mod7p_u, mod8p_u, mod9p_u, mod10p_u, mod11p_u,weights=T)
-
-anova(mod1p_u, mod2p_u) #2p
-anova(mod2p_u, mod3p_u) #2p
-anova(mod2p_u, mod4p_u) #2p
-anova(mod2p_u, mod5p_u) #mod5p
-anova(mod5p_u, mod6p_u) #mod6p
-anova(mod6p_u, mod7p_u) #mod6p_u
-anova(mod6p_u, mod8p_u) #mod6p_u
-anova(mod6p_u, mod9p_u) #mod6p_u 
-anova(mod6p_u, mod10p_u) #mod6p_u
-anova(mod6p_u, mod11p_u) #mod11p_u
 
 
