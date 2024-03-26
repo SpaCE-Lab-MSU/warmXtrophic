@@ -270,7 +270,7 @@ sum_green_plot_i3_v2 <- sum_green_plot_i3_v2 %>% # plot level average (n=6 per t
         summarize(avg_julian = mean(avg1, na.rm = TRUE),
                   se = std.error(se1, na.rm = TRUE))
 
-###############
+
 # add empty values for 2015 to kbs flowering so the x-axis matches the other plots
 flwr_plot2 <- flwr_plot
 de3<-data.frame("KBS",NA,"2015",NA,"ambient","insects",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
@@ -287,6 +287,12 @@ sum_flwr_plot_i2 <- flwr_plot3 %>%
         group_by(site, state, insecticide, year) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
                   se = std.error(julian_min, na.rm = TRUE))
+sum_flwr_plot_dur_i3 <- flwr_plot3 %>%
+        group_by(site, state, insecticide, year) %>%
+        summarize(avg_julian = mean(flwr_duration, na.rm = TRUE),
+                  se = std.error(flwr_duration, na.rm = TRUE))
+
+
 
 ### line plot with insecticide ###
 # greenup
@@ -297,13 +303,13 @@ gr_line_i <- function(loc) {
         return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",color="black",pch=21,size=0.6) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.6) +
                        #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_fill_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
                                              values = c("solid", "dotdash", "solid", "dotdash"),
@@ -326,13 +332,13 @@ flwr_line_i <- function(loc) {
         return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",color="black",pch=21,size=0.6) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.6) +
                        #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_fill_manual(name="Treatment",
-                                         values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                         values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
                                              values = c("solid", "dotdash", "solid", "dotdash"),
@@ -347,6 +353,35 @@ flwr_line_i_umbs <- flwr_line_i("UMBS")
 flwr_line_i_umbs <- flwr_line_i_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
                                                                         axis.title.y=element_blank())
 
+# flower duration
+sum_flwr_plot_dur_i3$year <- as.factor(sum_flwr_plot_dur_i3$year)
+sum_flwr_plot_dur_i3$full_treat <- paste(sum_flwr_plot_dur_i3$state, sum_flwr_plot_dur_i3$insecticide, sep="_")
+flwr_dur_line_i <- function(loc) { 
+        flwr_dur_plot <- subset(sum_flwr_plot_dur_i3, site == loc)
+        return(ggplot(flwr_dur_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
+                       #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
+                       geom_line(size = 1) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.6) +
+                       #geom_point(size = 2) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
+                                         labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dotdash", "solid", "dotdash"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Flowering duration", title = loc) +
+                       #ylim(160,215) +
+                       theme_bw(14))
+}
+flwr_dur_line_i_kbs <- flwr_dur_line_i("KBS")
+flwr_dur_line_i_kbs <- flwr_dur_line_i_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
+flwr_dur_line_i_umbs <- flwr_dur_line_i("UMBS")
+flwr_dur_line_i_umbs <- flwr_dur_line_i_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
+                                                                        axis.title.y=element_blank())
+
 #seed
 sum_sd_plot_i$year <- as.factor(sum_sd_plot_i$year)
 sum_sd_plot_i$full_treat <- paste(sum_sd_plot_i$state, sum_sd_plot_i$insecticide, sep="_")
@@ -355,13 +390,13 @@ sd_line_i <- function(loc) {
         return(ggplot(sd_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat, fill=full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",color="black",pch=21,size=0.6) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.6) +
                        #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_fill_manual(name="Treatment",
-                                         values = c("#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"),
+                                         values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
                                              values = c("solid", "dotdash", "solid", "dotdash"),
@@ -377,8 +412,9 @@ sd_line_i_umbs <- sd_line_i_umbs + labs(y=NULL, title=NULL)+ theme(axis.title.y=
 
 phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                                  flwr_line_i_kbs, flwr_line_i_umbs,
+                                 flwr_dur_line_i_kbs, flwr_dur_line_i_umbs,
                                  sd_line_i_kbs, sd_line_i_umbs,
-                                 nrow = 3, ncol = 2, common.legend = T, legend="right")
+                                 nrow = 4, ncol = 2, common.legend = T, legend="right")
 png("phenology_plots_L2_all_phenology_line_insect.png", units="in", width=10, height=8, res=300)
 annotate_figure(phen_line_i,
                 left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
