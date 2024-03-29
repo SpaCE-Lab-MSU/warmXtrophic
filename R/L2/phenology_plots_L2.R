@@ -300,10 +300,10 @@ sum_green_plot_i2_v2$year <- as.factor(sum_green_plot_i2_v2$year)
 sum_green_plot_i2_v2$full_treat <- paste(sum_green_plot_i2_v2$state, sum_green_plot_i2_v2$insecticide, sep="_")
 gr_line_i <- function(loc) { 
         gr_plot <- subset(sum_green_plot_i2_v2, site == loc)
-        return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
+        return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat, shape=full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.6) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",shape=21,size=0.6) +
                        #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -314,6 +314,9 @@ gr_line_i <- function(loc) {
                        scale_linetype_manual(name="Treatment",
                                              values = c("solid", "dotdash", "solid", "dotdash"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       #scale_shape_manual(name="Treatment",
+                       #                      values = c(21, 22, 21, 22),
+                       #                      labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Green-up", title = loc) +
                        #ylim(100,165) +
                        theme_bw(14))
