@@ -188,11 +188,11 @@ herb_binom_k_year <- herb %>%
 herb_binom_k_year$p_eaten[herb_binom_k_year$p_eaten == 1] <- "Eaten"
 herb_binom_k_year$p_eaten[herb_binom_k_year$p_eaten == 0] <- "Not Eaten"
 herb_binom_sumk_year <- herb_binom_k_year %>%
-        group_by(plot, year, p_eaten) %>%
-        count(p_eaten) %>%
-        group_by(plot, year) %>%
+        group_by(plot, year, state, insecticide, p_eaten) %>%
+        count(year,state, insecticide, p_eaten) %>%
+        group_by(plot, state, insecticide, year) %>%
         mutate(n = n/sum(n)) %>%
-        group_by(year,p_eaten) %>%
+        group_by(year, state, insecticide, p_eaten) %>%
         summarize(mean_n = mean(n),
                   se = std.error(n))
 herb_binom_eaten_k_year <- herb_binom_sumk_year %>%
@@ -204,86 +204,136 @@ herb_binom_u_year <- herb %>%
 herb_binom_u_year$p_eaten[herb_binom_u_year$p_eaten == 1] <- "Eaten"
 herb_binom_u_year$p_eaten[herb_binom_u_year$p_eaten == 0] <- "Not Eaten"
 herb_binom_sumu_year <- herb_binom_u_year %>%
-        group_by(plot, year, p_eaten) %>%
-        count(p_eaten) %>%
-        group_by(plot, year) %>%
+        group_by(plot, year, state, insecticide, p_eaten) %>%
+        count(year,state, insecticide, p_eaten) %>%
+        group_by(plot, state, insecticide, year) %>%
         mutate(n = n/sum(n)) %>%
-        group_by(year,p_eaten) %>%
+        group_by(year, state, insecticide, p_eaten) %>%
         summarize(mean_n = mean(n),
                   se = std.error(n))
 herb_binom_eaten_u_year <- herb_binom_sumu_year %>%
         filter(p_eaten == "Eaten")
 # plotting
-binom_dot_k_year <- ggplot(herb_binom_eaten_k_year, aes(x = year, y = mean_n)) +
-        geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), fill="#0b0055",pch=21,size=1,position=position_dodge(0.2)) +
+herb_binom_eaten_k_year$year <- as.factor(herb_binom_eaten_k_year$year)
+herb_binom_eaten_k_year$full_treat <- paste(herb_binom_eaten_k_year$state, herb_binom_eaten_k_year$insecticide, sep="_")
+binom_dot_k_year <- ggplot(herb_binom_eaten_k_year, aes(x = year, y = mean_n, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), linetype="solid",pch=21,size=0.6) +
         labs(x = NULL, y = "Probability of being eaten", title="KBS") +
-        ylim(0.15,0.70) +
+        #ylim(0.15,0.70) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
         theme_bw() +
-        theme(legend.position="none") +
+       # theme(legend.position="none") +
         theme(plot.title = element_text(size = 17),
               axis.text.y = element_text(size=13),
               axis.text.x = element_blank(),
               axis.title.y=element_text(size=15),
               legend.title=element_text(size=14), 
-              legend.text=element_text(size=12)) +
-        guides(color = "none")
-binom_dot_u_year <- ggplot(herb_binom_eaten_u_year, aes(x = year, y = mean_n)) +
-        geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), fill="#0b0055",pch=21,size=1,position=position_dodge(0.2)) +
-        labs(x = NULL, y = NULL, title="UMBS") +
-        ylim(0.15,0.70) +
+              legend.text=element_text(size=12))
+
+herb_binom_eaten_u_year$year <- as.factor(herb_binom_eaten_u_year$year)
+herb_binom_eaten_u_year$full_treat <- paste(herb_binom_eaten_u_year$state, herb_binom_eaten_u_year$insecticide, sep="_")
+binom_dot_u_year <- ggplot(herb_binom_eaten_u_year, aes(x = year, y = mean_n, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), linetype="solid",pch=21,size=0.6) +
+        labs(x = NULL, y = "Probability of being eaten", title="UMBS") +
+        #ylim(0.15,0.70) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
         theme_bw() +
-        theme(legend.position="none") +
+        # theme(legend.position="none") +
         theme(plot.title = element_text(size = 17),
-              axis.text.y = element_blank(),
+              axis.text.y = element_text(size=13),
               axis.text.x = element_blank(),
-              axis.title.y=element_text(size=15),
+              axis.title.y=element_blank(),
               legend.title=element_text(size=14), 
-              legend.text=element_text(size=12)) +
-        guides(color = "none")
+              legend.text=element_text(size=12))
 
 # amount eaten plot
 # selecting KBS, average amount eaten if herbivory > 0
 sum_herb_overall_k_year <- herb %>%
         filter(site == "KBS")
-sum_herb_overall_k_year <- sum_herb_overall_k_year[sum_herb_overall_k_year$p_eaten != 0, ]
 sum_herb_overall_k_year <- sum_herb_overall_k_year %>%
-        group_by(year) %>%
+        group_by(year, state, insecticide,) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 # selecting KBS, average amount eaten if herbivory > 0
 sum_herb_overall_u_year <- herb %>%
         filter(site == "UMBS")
-sum_herb_overall_u_year <- sum_herb_overall_u_year[sum_herb_overall_u_year$p_eaten != 0, ]
 sum_herb_overall_u_year <- sum_herb_overall_u_year %>%
-        group_by(year) %>%
+        group_by(year, state, insecticide,) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
 # plotting
-eaten_k_year <- ggplot(sum_herb_overall_k_year, aes(x = year, y = avg_eaten)) +
-        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),fill="#0b0055",pch=21,size=1,position=position_dodge(0.2)) +
+sum_herb_overall_k_year$year <- as.factor(sum_herb_overall_k_year$year)
+sum_herb_overall_k_year$full_treat <- paste(sum_herb_overall_k_year$state, sum_herb_overall_k_year$insecticide, sep="_")
+eaten_k_year <- ggplot(sum_herb_overall_k_year, aes(x = year, y = avg_eaten, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), linetype="solid",pch=21,size=0.6) +
         labs(x = NULL, y = "Amount eaten (%)", title=NULL) +
-        #ylim(5,21) +
+        #ylim(0.15,0.70) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
         theme_bw() +
-        theme(legend.position="none") +
-        theme(axis.text.y = element_text(size=13),
-              plot.subtitle = element_text(size=16),
-              axis.text.x=element_text(size=13),
-              axis.title.y=element_text(size=15))
-eaten_u_year <- ggplot(sum_herb_overall_u_year, aes(x = year, y = avg_eaten)) +
-        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),fill="#0b0055",pch=21,size=1,position=position_dodge(0.2)) +
-        labs(x = NULL, y = NULL, title=NULL) +
-        #ylim(5,21) +
+        # theme(legend.position="none") +
+        theme(plot.title = element_text(size = 17),
+              axis.text.y = element_text(size=13),
+              axis.text.x = element_text(size=13),
+              axis.title.y=element_text(size=15),
+              legend.title=element_text(size=14), 
+              legend.text=element_text(size=12))
+
+sum_herb_overall_u_year$year <- as.factor(sum_herb_overall_u_year$year)
+sum_herb_overall_u_year$full_treat <- paste(sum_herb_overall_u_year$state, sum_herb_overall_u_year$insecticide, sep="_")
+eaten_u_year <- ggplot(sum_herb_overall_u_year, aes(x = year, y = avg_eaten, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), linetype="solid",pch=21,size=0.6) +
+        labs(x = NULL, y = "Amount eaten (%)", title=NULL) +
+        #ylim(0.15,0.70) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
         theme_bw() +
-        theme(legend.position="none") +
-        theme(axis.text.y = element_blank(),
-              plot.subtitle = element_text(size=16),
-              axis.text.x=element_text(size=13),
-              axis.title.y=element_blank())
+        # theme(legend.position="none") +
+        theme(plot.title = element_text(size = 17),
+              axis.text.y = element_text(size=13),
+              axis.text.x = element_text(size=13),
+              axis.title.y=element_blank(),
+              legend.title=element_text(size=14), 
+              legend.text=element_text(size=12))
 
 # plotting binary response & amount eaten on same figure
 binary_overall_year <- ggarrange(binom_dot_k_year, binom_dot_u_year,
                               eaten_k_year, eaten_u_year,
-                              nrow = 2, ncol = 2, common.legend = T, legend="none",widths = c(1, 0.9))
+                              nrow = 2, ncol = 2, common.legend = T, legend="right",widths = c(1, 0.9))
 png("binary_dots_year.png", units="in", width=9, height=8, res=300)
 annotate_figure(binary_overall_year,
                 bottom = text_grob("Year", color = "black",size=15))
