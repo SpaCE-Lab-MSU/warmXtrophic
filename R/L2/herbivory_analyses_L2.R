@@ -43,19 +43,10 @@ str(herb)
 
 
 ################## Checking data for both KBS and UMBS #####################
-# changing scale of years
-herb$year1<-herb$year
-herb$year[herb$year == 2015] <- 1
-herb$year[herb$year == 2016] <- 2
-herb$year[herb$year == 2017] <- 3
-herb$year[herb$year == 2018] <- 4
-herb$year[herb$year == 2019] <- 5
-herb$year[herb$year == 2020] <- 6
-herb$year1 <- as.factor(herb$year1)
 
 # plot-level herb totals
 herb_plot <- herb %>%
-        group_by(plot, state, site, year1) %>%
+        group_by(plot, state, site, year) %>%
         summarize(plot_total = sum(p_eaten))
 
 # create dataframes for kbs and umbs only
@@ -63,8 +54,6 @@ herb_kbs <- subset(herb, site == "kbs")
 herb_umbs <- subset(herb, site == "umbs")
 herb_kbs_plot <- subset(herb_plot, site == "kbs")
 herb_umbs_plot <- subset(herb_plot, site == "umbs")
-# made separate dataframes for insects & no insects because the amount of herbivory measurements between
-# each species differs with each, and is relevant for the below data checks
 
 # only keep species that were recorded in both warmed and ambient plots
 herb_kbs <- herb_kbs %>%
@@ -89,12 +78,12 @@ herb_umbs$date <- as.Date(herb_umbs$date)
 # determine one date per year to avoid replication (also bc some years only measured once while others didn't)
 # can have multiple dates per year if measurements were taken over 2 days & have diff plots/species
 unique(herb_kbs$date)
-kbs_date <- unique(herb_kbs[c("species","date", "plot","year1")])
+kbs_date <- unique(herb_kbs[c("species","date", "plot","year")])
 herb_kbs <- herb_kbs %>%
         filter(!(date == "2015-09-04"))
 # keeping two 2017s and 2019s because diff species/plots
 unique(herb_umbs$date)
-umbs_date <- unique(herb_umbs[c("species","date", "plot", "year1")])
+umbs_date <- unique(herb_umbs[c("species","date", "plot", "year")])
 herb_umbs <- herb_umbs %>%
         filter(!(date == "2015-08-12" | date == "2020-08-24" & plot == "B4")) # keeping two 2020's because diff plots (except this one)
 
@@ -123,11 +112,11 @@ herb_umbs_noin <- herb_umbs_noin %>%
 
 ###################### KBS herbivory distribution check ########################
 # How much of the data is zeros?
-100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #69% - thats a lot! probably have to use some type of zero-inflated model,
+100*sum(herb_kbs$p_eaten == 0)/nrow(herb_kbs) #71% - thats a lot! probably have to use some type of zero-inflated model,
 # but I'll still check for normality & try some transformations below
-100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #61%
-100*sum(herb_kbs_in$p_eaten == 0)/nrow(herb_kbs_in) #72%
-100*sum(herb_umbs_in$p_eaten == 0)/nrow(herb_umbs_in) #70%
+100*sum(herb_umbs$p_eaten == 0)/nrow(herb_umbs) #70%
+100*sum(herb_kbs_in$p_eaten == 0)/nrow(herb_kbs_in) #69%
+100*sum(herb_umbs_in$p_eaten == 0)/nrow(herb_umbs_in) #61%
 
 ### determining distribution ###
 descdist(herb_kbs$p_eaten, discrete = FALSE)
@@ -192,7 +181,7 @@ herb_kbs_in %>%
 ############### KBS herbivory hurdle model  ################
 # hypothesized model
 # however, hurdle function can't have random effects
-k.hyp <- hurdle(p_eaten ~ state * insecticide + year,
+k.hyp <- hurdle(p_eaten ~ state * insecticide * as.factor(year),
                 data = herb_kbs,
                 dist = "negbin", 
                 zero.dist = "binomial")
@@ -200,28 +189,32 @@ summary(k.hyp)
 
 # using glmmTMB to account for random effect
 # first, make sure the output matched the hurdle function output
-trunc.k <- glmmTMB(p_eaten ~ state * insecticide + year,
+trunc.k <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year),
                    data=herb_kbs,
                    zi=~.,
                    family=truncated_nbinom2)
 summary(trunc.k) #matches the k.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
-full.model.k <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/plant_number),
+full.model.k <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year) + (1|plot/species/plant_number),
                    data=herb_kbs,
                    zi=~.,
                    family=truncated_nbinom2)
 summary(full.model.k) # * used in paper * #
-ggpredict(full.model.k, c("state","insecticide"))
+emm_count <- emmeans(full.model.k, ~ state*insecticide*as.factor(year))
+emm_zero <- emmeans(full.model.k, ~ state*insecticide*as.factor(year), component = "zi")
+pairs(emm_count, contrast = "pairwise", simple = "each", type="response")
+pairs(emm_zero, contrast = "pairwise", simple = "each", type="response")
 # back transforming #
 # note: in zero-inflated model, we're testing the probability of being zero
 # negative estimate (<0) means fewer 0's, positive estimate (>0) means more 0's
 # positive estimate means it is more likely to be zero (or, there is a reduced probability of being eaten)
 # negative estimates means it is less likely to be zero (or, there is an increased probability of being eaten)
-invlogit(0.16274) # 0.54
-invlogit(0.16274+0.44553) # 0.65
-0.65-0.54 # 0.11 - reduced herbivory decreased the probability of being eaten by 0.11
-tab_model(full.model.k)
+# 2019 warmed: no insects vs. insects
+exp(0.264) # 1.302128 -> 1.30% increase increase
+0.14 * 1.302128 # 0.1822979 -> 0.18 increase in probability of being eaten for warmed no insects. 0.14 was initial prob. for warmed insects
+exp(0.254) # 1.289172
+0.20 * 1.289172 # 0.2578344
 
 # species specific model (for the supplement)
 full.model.sp.k <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|plot/species/plant_number),
@@ -336,11 +329,15 @@ trunc.u <- glmmTMB(p_eaten ~ state * insecticide + year,
 summary(trunc.u) #matches the u.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
-full.model.u <- glmmTMB(p_eaten ~ state * insecticide + year + (1|plot/species/plant_number),
-                      data=herb_umbs,
-                      zi=~.,
-                      family=truncated_nbinom2)
-summary(full.model.u) # * model used in paper * #
+full.model.u <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year) + (1|plot/species/plant_number),
+                        data=herb_umbs,
+                        zi=~.,
+                        family=truncated_nbinom2)
+summary(full.model.u) # * used in paper * #
+emm_count <- emmeans(full.model.u, ~ state*insecticide*as.factor(year))
+emm_zero <- emmeans(full.model.u, ~ state*insecticide*as.factor(year), component = "zi")
+pairs(emm_count, contrast = "pairwise", simple = "each", type="response")
+pairs(emm_zero, contrast = "pairwise", simple = "each", type="response")
 # back transforming #
 exp(1.22351) # 3.40 - estimate for insects
 exp(1.22351 - 0.59676) # 1.87 - estimate for no insects

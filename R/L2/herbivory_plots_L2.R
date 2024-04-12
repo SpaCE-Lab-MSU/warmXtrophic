@@ -334,7 +334,7 @@ eaten_u_year <- ggplot(sum_herb_overall_u_year, aes(x = year, y = avg_eaten, gro
 binary_overall_year <- ggarrange(binom_dot_k_year, binom_dot_u_year,
                               eaten_k_year, eaten_u_year,
                               nrow = 2, ncol = 2, common.legend = T, legend="right",widths = c(1, 0.9))
-png("binary_dots_year.png", units="in", width=9, height=8, res=300)
+png("herb_binary_dots_year.png", units="in", width=9.5, height=7, res=300)
 annotate_figure(binary_overall_year,
                 bottom = text_grob("Year", color = "black",size=15))
 dev.off()
