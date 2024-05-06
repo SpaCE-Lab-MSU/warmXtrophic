@@ -137,15 +137,15 @@ fit3 <- lm(log(flwr_duration_scaled) ~ state * year, data = kbs_flwr_plot)
 interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
-# KBS Plot-level Mixed Effects Models:
-```{r, error=TRUE}
-# Our hypothesized model is  mod9p
-mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
-summary(mod9p)
-anova(mod9p)
+# KBS Plot-level model - ALL YEARS
+```{r}
+# Our hypothesized model is:
+mod_k_all <- lmer(flwr_duration_scaled ~ state * insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+summary(mod_k_all)
+anova(mod_k_all)
 
 # making a table
-kable(anova(mod9p)) %>% kableExtra::kable_styling()
+kable(anova(mod_k_all), digits = 2) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -228,12 +228,12 @@ interact_plot(fit3, pred = year, modx = state)
 # UMBS Plot-level Mixed Effects Models:
 ```{r}
 # Our hypothesized model is mod9p
-mod9up <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
-summary(mod9up)
-anova(mod9up)
+mod_u_all <- lmer(flwr_duration_scaled ~ state * insecticide * year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+summary(mod_u_all)
+anova(mod_u_all)
 
 # making a table
-kable(anova(mod9up)) %>% kableExtra::kable_styling()
+kable(anova(mod_u_all), digits = 2) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -256,16 +256,16 @@ kable(anova(modtest1u)) %>% kableExtra::kable_styling()
 Species models for supplement
 ```{r}
 # KBS
-mod_spp_k <- lmer(flwr_duration_scaled ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_kbs_spp, REML=FALSE)
+mod_spp_k <- lmer(flwr_duration_scaled ~ state * insecticide * as.factor(year_factor) + species + (1|plot), flwr_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
 # making a table
-kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
+kable(anova(mod_spp_k), digits = 2) %>% kableExtra::kable_styling()
 
 # UMBS
-mod_spp_u <- lmer(flwr_duration_scaled ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_umbs_spp, REML=FALSE)
+mod_spp_u <- lmer(flwr_duration_scaled ~ state * insecticide * as.factor(year_factor) + species + (1|plot), flwr_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
-kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+kable(anova(mod_spp_u), digits = 2) %>% kableExtra::kable_styling()
 ```
 
 
@@ -274,8 +274,29 @@ kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
 
 
 
-
 KBS and UMBS models not used in manuscript
+# KBS Plot-level Mixed Effects Models:
+```{r}
+# Our hypothesized model is  mod9p
+mod9p <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+summary(mod9p)
+anova(mod9p)
+
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
+```
+
+# UMBS Plot-level Mixed Effects Models:
+```{r}
+# Our hypothesized model is  mod9p
+mod9pu <- lmer(flwr_duration_scaled ~ state * insecticide + year_factor + (1|plot), umbs_flwr_plot, REML=FALSE)
+summary(mod9pu)
+anova(mod9pu)
+
+# making a table
+kable(anova(mod9pu)) %>% kableExtra::kable_styling()
+```
+
 ```{r}
 #KBS
 mod1p <- lmer(flwr_duration_scaled ~ state + (1|plot), kbs_flwr_plot, REML=FALSE)
