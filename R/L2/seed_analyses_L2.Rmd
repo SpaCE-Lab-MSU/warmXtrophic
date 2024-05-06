@@ -137,24 +137,37 @@ ols_test_normality(fit_plot_stateyear_kbs)
 
 fit3 <- lm(log(julian_min) ~ state * year, data = kbs_sd_plot)
 interact_plot(fit3, pred = year, modx = state) # this doesn't work
+
+# remove outliers, lines 144 and 204
+kbs_sd_plot_nooutlier <- kbs_sd_plot[!rownames(kbs_sd_plot) == '144', ]
+kbs_sd_plot_nooutlier <- kbs_sd_plot_nooutlier[!rownames(kbs_sd_plot_nooutlier) == '204', ]
+# KBS State-only model
+fit_plot_state_kbs <- lm(log(julian_min) ~ state, data = kbs_sd_plot_nooutlier)
+outlierTest(fit_plot_state_kbs) # outliers - 144, 217
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs)
 ```
 
-KBS Plot-level Mixed Effects Models
-```{r, error=TRUE}
+# KBS Plot-level model - ALL YEARS
+```{r}
 #Our hypothesized model is  mod9p
-mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
-summary(mod9p)
-anova(mod9p)
-
-# making a table
-kable(anova(mod9p)) %>% kableExtra::kable_styling()
+mod_k_all <- lmer(log(julian_min) ~ state * insecticide * year_factor + (1|plot), kbs_sd_plot_nooutlier, REML=FALSE)
+summary(mod_k_all)
+anova(mod_k_all)
 
 # calculating effect size - accounting for log transformation
-exp((5.392e+00) +  (1.588e-02)*0) # 219.6422 
-exp((5.392e+00) +  (1.588e-02)*1) # 223.158
+exp((5.341e+00) +  (7.018e-02)*0) # 208.7213 
+exp((5.341e+00) +  (7.018e-02)*1) # 223.8956
 # effect:
-223.158 - 219.6422 # = 3.5158  
-# warming plots delayed seed set by ~3.5 days 
+223.8956 - 208.7213 # = 15.1743  
+# warming plots delayed seed set by 15.2 days 
+
+# comparisons
+contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+# making a table
+kable(anova(mod_k_all), digits = 2) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -214,7 +227,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 
 ```
 
-```{r, error=TRUE}
+```{r}
 # Plot level data
 # UMBS State-only model
 fit_plot_state_umbs <- lm(julian_min ~ state, data = umbs_sd_plot)
@@ -238,15 +251,17 @@ fit3_plot_umbs <- lm(julian_min ~ state * year, data = umbs_sd_plot)
 interact_plot(fit3_plot_umbs, pred = year, modx = state)
 ```
 
-UMBS Plot-level Mixed Effects Models
+# UMBS Plot-level model - ALL YEARS
 ```{r}
 #Our hypothesized model is  mod9p
-mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_sd_plot, REML=FALSE)
-summary(mod9pu)
-anova(mod9pu)
+mod_u_all <- lmer(julian_min ~ state * insecticide * year_factor + (1|plot), umbs_sd_plot, REML=FALSE)
+summary(mod_u_all)
+anova(mod_u_all)
 
+# comparisons
+contrast(emmeans(mod_u_all, ~state*insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
-kable(anova(mod9pu)) %>% kableExtra::kable_styling()
+kable(anova(mod_u_all), digits = 3) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -262,24 +277,55 @@ anova(modtest1)
 summary(modtest1)
 
 # making a table
-kable(anova(modtest1)) %>% kableExtra::kable_styling()
+kable(anova(modtest1), digits = 3) %>% kableExtra::kable_styling()
 ```
 
-Species models for supplement
+Supplement
+
+KBS Plot-level Mixed Effects Models
+```{r, error=TRUE}
+#Our hypothesized model is  mod9p
+mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
+summary(mod9p)
+anova(mod9p)
+
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
+
+# calculating effect size - accounting for log transformation
+exp((5.392e+00) +  (1.588e-02)*0) # 219.6422 
+exp((5.392e+00) +  (1.588e-02)*1) # 223.158
+# effect:
+223.158 - 219.6422 # = 3.5158  
+# warming plots delayed seed set by ~3.5 days 
+```
+
+UMBS Plot-level Mixed Effects Models
+```{r}
+#Our hypothesized model is  mod9pu
+mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_sd_plot, REML=FALSE)
+summary(mod9pu)
+anova(mod9pu)
+
+# making a table
+kable(anova(mod9pu)) %>% kableExtra::kable_styling()
+```
+
+Species models
 ```{r}
 # KBS
 # species model for supp
-mod_spp_k <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), sd_kbs_spp, REML=FALSE)
+mod_spp_k <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), sd_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
 # making a table
 kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
 
 # UMBS
 # species model for supp
-mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), sd_umbs_spp, REML=FALSE)
+mod_spp_u <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), sd_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
-kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+kable(anova(mod_spp_u), digits = 3) %>% kableExtra::kable_styling()
 ```
 
 
