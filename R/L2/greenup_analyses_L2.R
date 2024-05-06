@@ -170,10 +170,18 @@ mod9p <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year) + (1|p
 summary(mod9p)
 anova(mod9p)
 # comparisons
-contrast(emmeans(mod9p, ~state*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
-contrast(emmeans(mod9p, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.k <- contrast(emmeans(mod9p, ~state*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.k2 <- contrast(emmeans(mod9p, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
-kable(anova(mod9p)) %>% kableExtra::kable_styling()
+kable(anova(mod9p), digits = 5) %>% kableExtra::kable_styling()
+result.k = as.data.frame(contrast.k)
+result.k <- result.k %>%
+        mutate_if(is.numeric, round, digits=2)
+kable(result.k) %>% kableExtra::kable_styling()
+result.k2 = as.data.frame(contrast.k2)
+result.k2 <- result.k2 %>%
+        mutate_if(is.numeric, round, digits=2)
+kable(result.k2) %>% kableExtra::kable_styling()
 
 # adding in our temp data
 # below, we test for green-up as a function of just temp to see how real temp data affects green-up
@@ -203,9 +211,13 @@ mod9p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year) + (1
 summary(mod9p_u)
 anova(mod9p_u) ### used in manuscript ###
 # comparisons
-contrast(emmeans(mod9p_u, ~state*insecticide*as.factor(year)), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.u <- contrast(emmeans(mod9p_u, ~state*insecticide*as.factor(year)), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
-kable(anova(mod9p_u)) %>% kableExtra::kable_styling()
+kable(anova(mod9p_u), digits = 2) %>% kableExtra::kable_styling()
+result = as.data.frame(contrast.u)
+result <- result %>%
+        mutate_if(is.numeric, round, digits=2)
+kable(result) %>% kableExtra::kable_styling()
 
 # adding in our temp data 
 # below, we test for green-up as a function of just temp to see how real temp data affects green-up

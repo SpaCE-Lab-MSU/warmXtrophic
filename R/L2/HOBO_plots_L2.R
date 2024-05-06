@@ -144,14 +144,14 @@ Fig1_soil_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, fill=tre
 
 Fig1_soil_line_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, color=treatment,group=treatment, fill=treatment)) +
         geom_line(size = 0.75) +
-        geom_pointrange(aes(ymin=average_temp-se, ymax=average_temp+se), color="black",pch=21,size=0.75) +
+        geom_pointrange(aes(ymin=average_temp-se, ymax=average_temp+se),pch=21,size=0.75) +
         #geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se),
         #              width=.2,color="black",linetype="solid") +
         scale_fill_manual(name="Treatment",
-                           values = c("#a6bddb", "#fb6a4a"),
+                           values = c("#a6bddb", "#AE1F00"),
                            labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
         scale_color_manual(name="Treatment",
-                          values = c("#a6bddb", "#fb6a4a"),
+                          values = c("#a6bddb", "#AE1F00"),
                           labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
         labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5,18.5) +
@@ -190,24 +190,23 @@ Fig1_soil_moist_line_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_m
 Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=treatment, color=treatment, fill = treatment, linetype=treatment)) +
         #geom_errorbar(aes(ymin=avg-se, ymax=avg+se), position=position_dodge(0.15),
         #              width=.3,color="black",linetype="solid") +
-        geom_line(size = 0.75) +
-        geom_pointrange(aes(ymin=avg-se, ymax=avg+se), color="black",pch=21,size=0.75) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin=avg-se, ymax=avg+se),pch=21,size=0.75,linetype="solid") +
         scale_fill_manual(name="Treatment",
-                           values = c("#a6bddb", "#fb6a4a", "#a6bddb", "#fb6a4a"),
+                           values = c("#a6bddb", "#AE1F00", "#a6bddb", "#AE1F00"),
                            labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         scale_color_manual(name="Treatment",
-                          values = c("#a6bddb", "#fb6a4a", "#a6bddb", "#fb6a4a"),
+                          values = c("#a6bddb", "#AE1F00", "#a6bddb", "#AE1F00"),
                           labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         scale_linetype_manual(name="Treatment",
-                              values = c("solid", "solid", "dotdash", "dotdash"),
+                              values = c("solid", "solid", "dotted", "dotted"),
                               labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         ylim(16,26) +
         labs(title="KBS",y=NULL, x=NULL) +
         theme_bw(14) +
         theme(axis.title.x=element_blank(),
-              axis.text.x=element_blank()) +
-        theme(legend.position="none") +
-        theme(plot.title = element_text(size = 20),
+              axis.text.x=element_blank(),
+              plot.title = element_text(size = 20),
               legend.title=element_text(size=17), 
               legend.text=element_text(size=15),
               axis.text.y = element_text(size=15))
@@ -332,12 +331,12 @@ Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, c
         #geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), position=position_dodge(0.15),
         #              width=.3,color="black",linetype="solid") +
         geom_line(size = 0.75) +
-        geom_pointrange(aes(ymin=average_temp-se, ymax=average_temp+se), color="black",pch=21,size=0.75) +
+        geom_pointrange(aes(ymin=average_temp-se, ymax=average_temp+se),pch=21,size=0.75) +
         scale_fill_manual(name="Treatment",
-                           values = c("#a6bddb", "#fb6a4a"),
+                           values = c("#a6bddb", "#AE1F00"),
                            labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
         scale_color_manual(name="Treatment",
-                          values = c("#a6bddb", "#fb6a4a"),
+                          values = c("#a6bddb", "#AE1F00"),
                           labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
         labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5, 18.5) +
@@ -377,16 +376,16 @@ Fig1_soil_moist_line_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average
 Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=treatment, color=treatment,fill = treatment, linetype=treatment)) +
         #geom_errorbar(aes(ymin=avg-se, ymax=avg+se), position=position_dodge(0.15),
         #              width=.3,color="black",linetype="solid") +
-        geom_line(size = 0.75) +
-        geom_pointrange(aes(ymin=avg-se, ymax=avg+se), pch=21,size=0.75,linetype="solid",color="black") +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin=avg-se, ymax=avg+se), pch=21,size=0.75,linetype="solid") +
         scale_fill_manual(name="Treatment",
-                           values = c("#a6bddb", "#fb6a4a", "#a6bddb", "#fb6a4a"),
+                           values = c("#a6bddb", "#AE1F00", "#a6bddb", "#AE1F00"),
                            labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         scale_color_manual(name="Treatment",
-                           values = c("#a6bddb", "#fb6a4a", "#a6bddb", "#fb6a4a"),
+                           values = c("#a6bddb", "#AE1F00", "#a6bddb", "#AE1F00"),
                            labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         scale_linetype_manual(name="Treatment",
-                              values = c("solid", "solid", "dotdash", "dotdash"),
+                              values = c("solid", "solid", "dotted", "dotted"),
                               labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         ylim(16,26) +
         labs(title="UMBS",y=NULL, x=NULL) +
@@ -394,8 +393,8 @@ Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=t
         theme(axis.title.x=element_blank(),
               axis.text.x=element_blank(),
               axis.title.y=element_blank(),
-              axis.text.y=element_blank()) +
-        theme(plot.title = element_text(size = 20),
+              axis.text.y=element_blank(),
+              plot.title = element_text(size = 20),
               legend.title=element_text(size=17), 
               legend.text=element_text(size=15))
 
