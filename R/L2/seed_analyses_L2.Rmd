@@ -152,7 +152,7 @@ ols_test_normality(fit_plot_state_kbs)
 
 # KBS Plot-level model - ALL YEARS
 ```{r}
-#Our hypothesized model is  mod9p
+#Our hypothesized model is:
 mod_k_all <- lmer(log(julian_min) ~ state * insecticide * year_factor + (1|plot), kbs_sd_plot_nooutlier, REML=FALSE)
 summary(mod_k_all)
 anova(mod_k_all)
@@ -282,6 +282,30 @@ kable(anova(modtest1), digits = 3) %>% kableExtra::kable_styling()
 
 Supplement
 
+Species models
+```{r}
+# KBS
+# species model for supp
+mod_spp_k <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), sd_kbs_spp, REML=FALSE)
+anova(mod_spp_k)
+# making a table
+kable(anova(mod_spp_k), digits = 2) %>% kableExtra::kable_styling()
+
+# UMBS
+# species model for supp
+mod_spp_u <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), sd_umbs_spp, REML=FALSE)
+anova(mod_spp_u)
+# making a table
+kable(anova(mod_spp_u), digits = 2) %>% kableExtra::kable_styling()
+```
+
+
+
+
+
+
+KBS and UMBS models not used in manuscript
+
 KBS Plot-level Mixed Effects Models
 ```{r}
 #Our hypothesized model is  mod9p
@@ -311,28 +335,6 @@ anova(mod9pu)
 kable(anova(mod9pu)) %>% kableExtra::kable_styling()
 ```
 
-Species models
-```{r}
-# KBS
-# species model for supp
-mod_spp_k <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), sd_kbs_spp, REML=FALSE)
-anova(mod_spp_k)
-# making a table
-kable(anova(mod_spp_k), digits = 2) %>% kableExtra::kable_styling()
-
-# UMBS
-# species model for supp
-mod_spp_u <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), sd_umbs_spp, REML=FALSE)
-anova(mod_spp_u)
-# making a table
-kable(anova(mod_spp_u), digits = 2) %>% kableExtra::kable_styling()
-```
-
-
-
-
-
-KBS and UMBS models not used in manuscript
 ```{r}
 # KBS
 mod1p <- lmer(log(julian_min) ~ state + (1|plot), kbs_sd_plot, REML=FALSE)
