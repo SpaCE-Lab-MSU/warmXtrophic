@@ -1080,6 +1080,20 @@ anova(mod_spp_ug)
 kable(anova(mod_spp_ug)) %>% kableExtra::kable_styling()
 ```
 
+Sum of 2021 cover measurements - Table S1
+```{r}
+# Read in data
+comp_spp <- read.csv(file.path(L1_dir, "plant_composition/final_plantcomp_L1.csv"))
+
+comp_spp <- comp_spp %>%
+        filter(year == 2021 & state == "ambient") %>%
+        filter(!(cover == "<1"))
+comp_spp$cover <- as.numeric(comp_spp$cover)
+
+avg_comp <- comp_spp %>%
+        group_by(site, species) %>%
+        summarize(totalsum = sum(cover))
+```
 
 
 
