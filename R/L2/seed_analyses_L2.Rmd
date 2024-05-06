@@ -283,7 +283,7 @@ kable(anova(modtest1), digits = 3) %>% kableExtra::kable_styling()
 Supplement
 
 KBS Plot-level Mixed Effects Models
-```{r, error=TRUE}
+```{r}
 #Our hypothesized model is  mod9p
 mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_sd_plot, REML=FALSE)
 summary(mod9p)
@@ -318,14 +318,14 @@ Species models
 mod_spp_k <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), sd_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
 # making a table
-kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
+kable(anova(mod_spp_k), digits = 2) %>% kableExtra::kable_styling()
 
 # UMBS
 # species model for supp
 mod_spp_u <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), sd_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
-kable(anova(mod_spp_u), digits = 3) %>% kableExtra::kable_styling()
+kable(anova(mod_spp_u), digits = 2) %>% kableExtra::kable_styling()
 ```
 
 
