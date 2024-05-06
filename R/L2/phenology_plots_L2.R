@@ -312,7 +312,7 @@ gr_line_i <- function(loc) {
                                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dotdash", "solid", "dotdash"),
+                                             values = c("solid", "dotted", "solid", "dotted"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        #scale_shape_manual(name="Treatment",
                        #                      values = c(21, 22, 21, 22),
@@ -344,7 +344,7 @@ flwr_line_i <- function(loc) {
                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dotdash", "solid", "dotdash"),
+                                             values = c("solid", "dotted", "solid", "dotted"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Flowering", title = loc) +
                        #ylim(160,215) +
@@ -373,7 +373,7 @@ flwr_dur_line_i <- function(loc) {
                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dotdash", "solid", "dotdash"),
+                                             values = c("solid", "dotted", "solid", "dotted"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Flowering duration", title = loc) +
                        #ylim(160,215) +
@@ -402,7 +402,7 @@ sd_line_i <- function(loc) {
                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dotdash", "solid", "dotdash"),
+                                             values = c("solid", "dotted", "solid", "dotted"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Seed set", title = loc) +
                        #ylim(175,255) +

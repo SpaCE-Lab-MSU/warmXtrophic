@@ -24,8 +24,6 @@ sla <- read.csv(file.path(L1_dir,"SLA/SLA_L1_nooutliers.csv")) # this L1 csv was
 # reading in biomass data here to merge w/ leaf traits in a fig
 kbs_biomass_21 <- read.csv(file.path(L1_dir, "ANPP/kbs_biomass_2021_L1.csv"))
 umbs_biomass_21 <- read.csv(file.path(L1_dir, "ANPP/umbs_biomass_2021_L1.csv"))
-kbs_biomass_21 <- kbs_biomass_21 %>% dplyr::select(-X) # get rid of "X" column that shows up (could fix this in cleaning script)
-umbs_biomass_21 <- umbs_biomass_21 %>% dplyr::select(-X)
 
 
 # manipulating CN data
@@ -45,6 +43,12 @@ cn_treatment <- cn1 %>%
         group_by(site, plot, species, treatment, insecticide) %>%
         summarize(nitrogen = mean(nitrogen,na.rm=T), carbon = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T)) %>%    
         group_by(site,treatment,insecticide) %>%
+        summarize(nitrogen_mean = mean(nitrogen,na.rm=T), carbon_mean = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T),
+                  n_se = std.error(nitrogen,na.rm=T), c_se = std.error(carbon,na.rm=T)) 
+cn_treatment2 <- cn1 %>%
+        group_by(site, plot, species, treatment, insecticide, year) %>%
+        summarize(nitrogen = mean(nitrogen,na.rm=T), carbon = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T)) %>%    
+        group_by(site,treatment,insecticide, year) %>%
         summarize(nitrogen_mean = mean(nitrogen,na.rm=T), carbon_mean = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T),
                   n_se = std.error(nitrogen,na.rm=T), c_se = std.error(carbon,na.rm=T)) 
 # take the average by year + species
@@ -73,9 +77,9 @@ sla1 <- sla %>%
                   se = std.error(sla,na.rm=T)) 
 # take the yearly treatment-level mean
 sla_treatment <- sla1 %>%
-        group_by(site, plot, state,year) %>%
+        group_by(site, plot, state,insecticide, year) %>%
         summarize(sla = mean(sla,na.rm=T)) %>%    
-        group_by(site,year,state) %>%
+        group_by(site,year,state, insecticide) %>%
         summarize(sla_mean = mean(sla,na.rm=T),
                   se = std.error(sla,na.rm=T)) 
 # take the overall treatment-level mean
@@ -205,6 +209,54 @@ c_content_main <- annotate_figure(c_comb,
 dev.off()
 
 
+# Carbon year + warming + insecticide
+cn_treat_kbs_year <- cn_treatment2 %>%
+        filter(site == "kbs")
+cn_treat_kbs_year$full_treat <- paste(cn_treat_kbs_year$treatment, cn_treat_kbs_year$insecticide, sep="_")
+c_kbs_year <- ggplot(cn_treat_kbs_year, aes(x = as.factor(year), y = carbon_mean, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin=carbon_mean-c_se, ymax=carbon_mean+c_se), pch=21,size=0.5, linetype = "solid") +
+        labs(x = NULL, y = "Carbon (%)", fill = "Treatment", title="KBS") +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        theme_bw() +
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),
+              title = element_text(size=17),
+              axis.title = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+
+cn_treat_umbs_year <- cn_treatment2 %>%
+        filter(site == "umbs")
+cn_treat_umbs_year$full_treat <- paste(cn_treat_umbs_year$treatment, cn_treat_umbs_year$insecticide, sep="_")
+c_umbs_year <- ggplot(cn_treat_umbs_year, aes(x = as.factor(year), y = carbon_mean, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin=carbon_mean-c_se, ymax=carbon_mean+c_se), pch=21,size=0.5, linetype = "solid") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title="UMBS") +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        theme_bw() +
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),
+              title = element_text(size=17),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+
 # Carbon year + species + warming
 png("carbon_species_L2.png", units="in", width=6, height=4, res=300)
 ggplot(cn_spp, aes(x = year, y = carbon_mean, fill = treatment)) +
@@ -284,6 +336,53 @@ n_content_main <- annotate_figure(n_comb,
 dev.off()
 
 
+# Carbon year + warming + insecticide
+cn_treat_kbs_year <- cn_treatment2 %>%
+        filter(site == "kbs")
+cn_treat_kbs_year$full_treat <- paste(cn_treat_kbs_year$treatment, cn_treat_kbs_year$insecticide, sep="_")
+n_kbs_year <- ggplot(cn_treat_kbs_year, aes(x = as.factor(year), y = nitrogen_mean, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin=nitrogen_mean-n_se, ymax=nitrogen_mean+n_se), pch=21,size=0.5, linetype = "solid") +
+        labs(x = NULL, y = "Nitrogen (%)", fill = "Treatment", title=NULL) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        theme_bw() +
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),
+              axis.title = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+
+cn_treat_umbs_year <- cn_treatment2 %>%
+        filter(site == "umbs")
+cn_treat_umbs_year$full_treat <- paste(cn_treat_umbs_year$treatment, cn_treat_umbs_year$insecticide, sep="_")
+n_umbs_year <- ggplot(cn_treat_umbs_year, aes(x = as.factor(year), y = nitrogen_mean, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin=nitrogen_mean-n_se, ymax=nitrogen_mean+n_se), pch=21,size=0.5, linetype = "solid") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title=NULL) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        theme_bw() +
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=15))
+
+
 # Nitrogen species + year + warming
 png("nitrogen_species_L2.png", units="in", width=6, height=4, res=300)
 ggplot(cn_spp, aes(x = year, y = nitrogen_mean, fill = treatment)) +
@@ -307,8 +406,7 @@ cn_amb <- cn1 %>%
         filter(treatment == "ambient") %>%
         group_by(site,plot,year,species,treatment,mean_temp,median_temp,max_temp,GDD_cumulative) %>%
         summarize(nitrogen = mean(nitrogen,na.rm=T), carbon = mean(carbon,na.rm=T), weight_mg = mean(weight_mg,na.rm=T))
-        
-        
+
 png("carbon_temp_L2.png", units="in", width=6, height=4, res=300)
 ggplot(cn_amb, aes(x = mean_temp, y = carbon, color=treatment))+
         facet_wrap(.~site, labeller=as_labeller(site_label), scales="free") +
@@ -410,46 +508,43 @@ sla_treatment_kbs_year <- sla_treatment %>%
         filter(site == "kbs")
 sla_treatment_umbs_year <- sla_treatment %>%
         filter(site == "umbs")
-sla_kbs_year <- ggplot(sla_treatment_kbs_year, aes(x = as.factor(year), y = sla_mean, fill = state)) +
-        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
-        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=1,position=position_dodge(0.3)) +
-        #geom_bar(position = "identity", stat = "identity", color = 'black') +
-        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
-        #        position = "identity") +
-        labs(x = NULL, y = NULL, fill = "Treatment", title="KBS") +
-        #scale_fill_manual(name="Treatment",
-        #                                 values = c("#FFB451", "#0b0055"),
-        #                                 labels=c("Herbivory","Reduced Herbivory")) +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        #coord_cartesian(ylim=c(42,48)) +
-        theme_classic() +
-        theme(axis.text.x = element_text(size=15),
-              axis.text.y = element_text(size=15),
-              title = element_text(size=17),
+sla_treatment_kbs_year$full_treat <- paste(sla_treatment_kbs_year$state, sla_treatment_kbs_year$insecticide, sep="_")
+sla_treatment_umbs_year$full_treat <- paste(sla_treatment_umbs_year$state, sla_treatment_umbs_year$insecticide, sep="_")
+sla_kbs_year <- ggplot(sla_treatment_kbs_year, aes(x = as.factor(year), y = sla_mean, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=0.5, linetype = "solid") +
+        labs(x = NULL, y = bquote("SLA " (cm^2/g)), fill = "Treatment", title=NULL) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        theme_bw() +
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),
+              axis.title = element_text(size=15),
               legend.text = element_text(size=15),
               legend.title = element_text(size=15))
-sla_umbs_year <- ggplot(sla_treatment_umbs_year, aes(x = as.factor(year), y = sla_mean, fill = state)) +
-        #facet_wrap(.~insecticide, labeller = as_labeller(insect_labels)) +
-        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=1,position=position_dodge(0.3)) +
-        #geom_bar(position = "identity", stat = "identity", color = 'black') +
-        #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
-        #        position = "identity") +
-        labs(x = NULL, y = NULL, fill = "Treatment", title="UMBS") +
-        #scale_fill_manual(name="Treatment",
-        #                                 values = c("#FFB451", "#0b0055"),
-        #                                 labels=c("Herbivory","Reduced Herbivory")) +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
-        #scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        #coord_cartesian(ylim=c(42,48)) +
-        theme_classic() +
-        theme(axis.text.x = element_text(size=15),
-              axis.text.y = element_text(size=15),
-              title = element_text(size=17),
+sla_umbs_year <- ggplot(sla_treatment_umbs_year, aes(x = as.factor(year), y = sla_mean, group=full_treat, color=full_treat, fill=full_treat, linetype=full_treat)) +
+        geom_line(size = 1) +
+        geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se), pch=21,size=0.5, linetype = "solid") +
+        labs(x = NULL, y = NULL, fill = "Treatment", title=NULL) +
+        scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"), # "#a6bddb", "#a6bddb", "#fb6a4a", "#fb6a4a"
+                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_linetype_manual(name="Treatment",
+                              values = c("solid", "dotted", "solid", "dotted"),
+                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        theme_bw() +
+        theme(axis.text.x = element_text(size=14),
+              axis.text.y = element_text(size=14),
               legend.text = element_text(size=15),
               legend.title = element_text(size=15))
 sla_comb <- ggpubr::ggarrange(sla_kbs_year, sla_umbs_year,
@@ -536,8 +631,10 @@ biomass_comb_dot <- ggpubr::ggarrange(kbs_bio_dot, umbs_bio_dot,
 
 ### combining C, N, SLA, and biomass figs ###
 png("leaf_traits_biomass_L2.png", units="in", width=10, height=11, res=300)
-ggpubr::ggarrange(c_kbs,c_umbs,n_kbs,n_umbs,sla_kbs,sla_umbs,kbs_bio_dot,umbs_bio_dot,
-                  ncol = 2, nrow = 4, common.legend = T, legend="right",
+ggpubr::ggarrange(c_kbs_year,c_umbs_year,
+                  n_kbs_year,n_umbs_year,
+                  sla_kbs_year,sla_umbs_year,
+                  ncol = 2, nrow = 3, common.legend = T, legend="right",
                   widths = c(1, 1),
                   heights = c(1, 0.9, 0.95))
 dev.off()
