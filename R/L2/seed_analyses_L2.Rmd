@@ -143,7 +143,7 @@ kbs_sd_plot_nooutlier <- kbs_sd_plot[!rownames(kbs_sd_plot) == '144', ]
 kbs_sd_plot_nooutlier <- kbs_sd_plot_nooutlier[!rownames(kbs_sd_plot_nooutlier) == '204', ]
 # KBS State-only model
 fit_plot_state_kbs <- lm(log(julian_min) ~ state, data = kbs_sd_plot_nooutlier)
-outlierTest(fit_plot_state_kbs) # outliers - 144, 217
+outlierTest(fit_plot_state_kbs) # no outliers
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
 leveragePlots(fit_plot_state_kbs)
