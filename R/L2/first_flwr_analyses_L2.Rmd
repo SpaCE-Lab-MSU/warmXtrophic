@@ -133,51 +133,64 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 fit3 <- lm(julian_min ~ state * year, data = kbs_plot)
 interact_plot(fit3, pred = year, modx = state) 
+
+# remove outlier, line 168
+kbs_plot_nooutlier <- kbs_plot[!rownames(kbs_plot) == '168', ]
+descdist(kbs_plot_nooutlier$julian_min, discrete = FALSE)
+# KBS State-only model
+fit_plot_state_kbs <- lm(julian_min ~ state, data = kbs_plot_nooutlier)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs)
 ```
 
 Mixed Effects Model
 ```{r}
 # KBS PLOT LEVEL - Looking at FIRST date of flowering
-mod1 <- lmer(log(julian_min) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_plot, REML = FALSE)
+mod1 <- lmer(julian_min ~ state*insecticide*year_factor + (1|plot), kbs_plot_nooutlier, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
 par(mfrow=c(1,2))
 plot(mod1) # the ones in the data are making this look weird - idk this doesn't look great
-# Homogeneity of variance looks weird here 
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-leveneTest(residuals(mod1) ~ kbs_plot$state)
+leveneTest(residuals(mod1) ~ kbs_plot_nooutlier$state)
+# Assumption met
+leveneTest(residuals(mod1) ~ kbs_plot_nooutlier$insecticide) 
 # Assumption not met
-leveneTest(residuals(mod1) ~ kbs_plot$insecticide) 
-# Assumption not met
-leveneTest(residuals(mod1) ~ kbs_plot$plot)
-# Assumption not met
+leveneTest(residuals(mod1) ~ kbs_plot_nooutlier$plot)
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
 qqPlot(resid(mod1))
 hist(residuals(mod1))
-shapiro.test(resid(mod1)) # not normally distributed resids bc p<0.05
+shapiro.test(resid(mod1)) # normally distributed resids bc p>0.05
 outlierTest(mod1) # no outliers
 ```
 
+# KBS Plot-level model - ALL YEARS
 ```{r}
 #Our hypothesized model is  mod9p
-mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
-summary(mod9p)
-anova(mod9p)
-
-# making a table
-kable(anova(mod9p)) %>% kableExtra::kable_styling()
+mod_k_all <- lmer(log(julian_min) ~ state * insecticide * year_factor + (1|plot), kbs_plot_nooutlier, REML=FALSE)
+summary(mod_k_all)
+anova(mod_k_all)
 
 # calculating effect size - accounting for log transformation
-exp((5.164064) +  (0.013017)*0) # 174.8737 
-exp((5.164064) +  (0.013017)*1) # 177.1649
+exp((5.146226) +  (0.005052)*0) # 171.782 
+exp((5.146226) +  (0.005052)*1) # 172.652
 # effect:
-177.1649 - 174.8737 # effect of warming - warmed plots increased the date of first flower by 2.2912 days
+172.652 - 171.782 # effect of warming - warmed plots increased the date of first flower by 0.87 days
+
+# comparisons
+contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+# making a table
+kable(anova(mod_k_all), digits = 2) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -230,14 +243,15 @@ fit3 <- lm(julian_min ~ state * year, data = umbs_plot)
 interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
 ```
 
+# UMBS Plot-level model - ALL YEARS
 ```{r}
 #Our hypothesized model is  mod9p
-mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_plot, REML=FALSE)
-summary(mod9pu)
-anova(mod9pu)
+mod_u_all <- lmer(julian_min ~ state * insecticide * year_factor + (1|plot), umbs_plot, REML=FALSE)
+summary(mod_u_all)
+anova(mod_u_all)
 
 # making a table
-kable(anova(mod9pu)) %>% kableExtra::kable_styling()
+kable(anova(mod_u_all), digits = 2) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -261,23 +275,49 @@ Species models for supplement
 ```{r}
 # KBS
 # species model for supp
-mod_spp_k <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_kbs_spp, REML=FALSE)
+mod_spp_k <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), flwr_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
 # making a table
-kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
+kable(anova(mod_spp_k), digits = 2) %>% kableExtra::kable_styling()
 
 # UMBS
 # species model for supp
-mod_spp_u <- lmer(julian_min ~ state * insecticide + species + as.factor(year_factor) + (1|plot), flwr_umbs_spp, REML=FALSE)
+mod_spp_u <- lmer(julian_min ~ state * insecticide * as.factor(year_factor) + species + (1|plot), flwr_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
-kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
+kable(anova(mod_spp_u), digits = 2) %>% kableExtra::kable_styling()
 ```
 
 
 
 
 KBS and UMBS models not used in manuscript
+```{r}
+#Our hypothesized model is  mod9p
+mod9p <- lmer(log(julian_min) ~ state * insecticide + year_factor + (1|plot), kbs_plot, REML=FALSE)
+summary(mod9p)
+anova(mod9p)
+
+# making a table
+kable(anova(mod9p)) %>% kableExtra::kable_styling()
+
+# calculating effect size - accounting for log transformation
+exp((5.164064) +  (0.013017)*0) # 174.8737 
+exp((5.164064) +  (0.013017)*1) # 177.1649
+# effect:
+177.1649 - 174.8737 # effect of warming - warmed plots increased the date of first flower by 2.2912 days
+```
+
+```{r}
+#Our hypothesized model is  mod9p
+mod9pu <- lmer(julian_min ~ state * insecticide + year_factor + (1|plot), umbs_plot, REML=FALSE)
+summary(mod9pu)
+anova(mod9pu)
+
+# making a table
+kable(anova(mod9pu)) %>% kableExtra::kable_styling()
+```
+
 ```{r}
 #KBS
 mod1p <- lmer(log(julian_min) ~ state + (1|plot), kbs_plot, REML=FALSE)
