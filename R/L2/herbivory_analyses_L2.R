@@ -196,7 +196,7 @@ trunc.k <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year),
 summary(trunc.k) #matches the k.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
-full.model.k <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year) + (1|plot/species/plant_number),
+full.model.k <- glmmTMB(p_eaten ~ state * insecticide * year + (1|plot:species:plant_number),
                    data=herb_kbs,
                    zi=~.,
                    family=truncated_nbinom2)
@@ -217,10 +217,12 @@ exp(0.254) # 1.289172
 0.20 * 1.289172 # 0.2578344
 
 # species specific model (for the supplement)
-full.model.sp.k <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|plot/species/plant_number),
+full.model.sp.k <- glmmTMB(p_eaten ~ state * insecticide * year + species + (1|plot:species:plant_number),
                         data=herb_kbs,
                         zi=~.,
                         family=truncated_nbinom2)
+lrt <- lrtest(full.model.k, full.model.sp.k)
+print(lrt)
 summary(full.model.sp.k) 
 car::Anova(full.model.sp.k)
 tab_model(full.model.sp.k)
@@ -329,7 +331,7 @@ trunc.u <- glmmTMB(p_eaten ~ state * insecticide + year,
 summary(trunc.u) #matches the u.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
-full.model.u <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year) + (1|plot/species/plant_number),
+full.model.u <- glmmTMB(p_eaten ~ state * insecticide * year + (1|plot:species:plant_number),
                         data=herb_umbs,
                         zi=~.,
                         family=truncated_nbinom2)
@@ -354,10 +356,11 @@ invlogit(0.47128+0.76031) # 0.77
 tab_model(full.model.u)
 
 # species specific model (for the supplement)
-full.model.sp.u <- glmmTMB(p_eaten ~ state * insecticide + species + year + (1|plot/species/plant_number),
+full.model.sp.u <- glmmTMB(p_eaten ~ state * insecticide * year + species + (1|plot:species:plant_number),
                            data=herb_umbs,
                            zi=~.,
                            family=truncated_nbinom2)
+car::Anova(full.model.sp.u)
 summary(full.model.sp.u) 
 tab_model(full.model.sp.u)
 
