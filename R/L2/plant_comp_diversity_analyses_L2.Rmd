@@ -128,6 +128,17 @@ ols_test_normality(fit_stateyear_kbs)
 
 fit3 <- lm(log(simpson) ~ state*year, data = kbs_diversity)
 interact_plot(fit3, pred = year, modx = state)
+
+# remove outliers, lines 60 and 145
+kbs_diversity_nooutlier <- kbs_diversity[!rownames(kbs_diversity) == '60', ]
+kbs_diversity_nooutlier <- kbs_diversity_nooutlier[!rownames(kbs_diversity_nooutlier) == '145', ]
+# KBS State-only model
+fit_plot_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity_nooutlier)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs)
 ```
 
 MIXED EFFECT MODELS
@@ -326,38 +337,50 @@ ols_test_normality(fit_stateyear_kbs_shannon)
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-# I can't get these to work
-fit3 <- lm(log(shannon) ~ state*year, data = kbs_diversity)
+fit3 <- lm(shannon ~ state*year_factor, data = kbs_diversity)
 interact_plot(fit3, pred = year, modx = state)
+outlierTest(fit3) # 140
+qqPlot(fit3, main="QQ Plot") 
+
+# remove outliers, line 140
+kbs_diversity_nooutlier <- kbs_diversity[!rownames(kbs_diversity) == '140', ]
+# KBS State-only model
+fit_plot_state_kbs <- lm(shannon ~ state, data = kbs_diversity_nooutlier)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs)
 ```
 
 SHANNON
 KBS 
 ```{r}
-modfull_k_sh <- lmer(shannon ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
+modfull_k_sh <- lmer(shannon ~ state*insecticide*year_factor + (1|plot), kbs_diversity_nooutlier, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-par(mfrow=c(1,2))
 plot(modfull_k_sh)
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
-leveneTest(residuals(modfull_k_sh) ~ kbs_diversity$state)
+leveneTest(residuals(modfull_k_sh) ~ kbs_diversity_nooutlier$state)
 # Assumption met
-leveneTest(residuals(modfull_k_sh) ~ kbs_diversity$insecticide) 
-# Assumption not met 
-leveneTest(residuals(modfull_k_sh) ~ kbs_diversity$plot)
-# Assumption not met
+leveneTest(residuals(modfull_k_sh) ~ kbs_diversity_nooutlier$insecticide) 
+# Assumption met 
+leveneTest(residuals(modfull_k_sh) ~ kbs_diversity_nooutlier$plot)
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
 qqPlot(resid(modfull_k_sh))
 hist(residuals(modfull_k_sh))
 shapiro.test(resid(modfull_k_sh)) # not normally distributed resids bc p<0.05
-outlierTest(modfull_k_sh) # no outliers
+outlierTest(modfull_k_sh) # outliers #118
+
+kbs_diversity_nooutlier <- kbs_diversity[!rownames(kbs_diversity_nooutlier) == '118', ]
 
 # (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
 require(lme4)
@@ -368,12 +391,12 @@ shapiro.test(r_int_k_sh)
 # Normally distributed random effect pvalue > 0.05
 
 # testing if year as continuous or year as a factor makes more sense (test models)
-year.mod.testk_sh1 <- lmer(shannon ~ state + year + (1|plot), kbs_diversity, REML=FALSE)
+year.mod.testk_sh1 <- lmer(shannon ~ state + year + (1|plot), kbs_diversity_nooutlier, REML=FALSE)
 year.mod.testk_sh2 <- lmer(shannon ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
 anova(year.mod.testk_sh1, year.mod.testk_sh2) #year.mod.test2
 
 # hypothesized model
-mod_k_sh <- lmer(shannon ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod_k_sh <- lmer(shannon ~ state * insecticide * year_factor + (1|plot), kbs_diversity_nooutlier, REML=FALSE)
 
 summary(mod_k_sh)
 anova(mod_k_sh)
@@ -385,7 +408,7 @@ contrast(mod_k_sh.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_sh, insecticide~state)
 
 # making a table
-kable(anova(mod_k_sh)) %>% kableExtra::kable_styling()
+kable(anova(mod_k_sh), digits = 2) %>% kableExtra::kable_styling()
 ```
 
 UMBS
@@ -393,7 +416,7 @@ UMBS
 ### UMBS ###
 hist(umbs_diversity$shannon)
 qqnorm(umbs_diversity$shannon)
-shapiro.test(umbs_diversity$shannon) # pvalue is close to > 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
+shapiro.test(umbs_diversity$shannon) # pvalue is just above 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
 
 # Exploring distributions for these data:
 descdist(umbs_diversity$shannon, discrete = FALSE)
@@ -419,29 +442,31 @@ ols_test_normality(fit_stateyear_umbs_shannon)
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 # I can't get these to work
-fit3 <- lm(shannon ~ state*year, data = umbs_diversity)
+fit3 <- lm(shannon ~ state*year_factor, data = umbs_diversity)
 interact_plot(fit3, pred = year, modx = state)
+outlierTest(fit3) # no outliers
+qqPlot(fit3, main="QQ Plot") 
+hist(fit3$residuals)
+leveragePlots(fit3)
 ```
 
-UMBS
 ```{r}
-modfull_u_sh <- lmer(shannon ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
+modfull_u_sh <- lmer(shannon ~ state*insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-par(mfrow=c(1,2))
 plot(modfull_u_sh)
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
 leveneTest(residuals(modfull_u_sh) ~ umbs_diversity$state)
-# Assumption not met
+# Assumption met
 leveneTest(residuals(modfull_u_sh) ~ umbs_diversity$insecticide) 
-# Assumption not met 
+# Assumption met 
 leveneTest(residuals(modfull_u_sh) ~ umbs_diversity$plot)
-# Assumption not met
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -464,13 +489,13 @@ year.mod.testu_sh2 <- lmer(shannon ~ state + year_factor + (1|plot), umbs_divers
 anova(year.mod.testu_sh1, year.mod.testu_sh2) #year.mod.test2
 
 # hypothesized model
-mod_u_sh <- lmer(shannon ~ state * insecticide + year_factor + (1|plot), umbs_diversity, REML=FALSE)
+mod_u_sh <- lmer(shannon ~ state * insecticide * year_factor + (1|plot), umbs_diversity, REML=FALSE)
 
 summary(mod_u_sh)
 anova(mod_u_sh)
 
 # making a table
-kable(anova(mod_u_sh)) %>% kableExtra::kable_styling()
+kable(anova(mod_u_sh), digits = 3) %>% kableExtra::kable_styling()
 ```
 
 #Species Richness
@@ -515,7 +540,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "We
 
 ```{r}
 # KBS State-only model
-fit_state_kbs_richness <- lm(log(richness) ~ state, data = kbs_diversity)
+fit_state_kbs_richness <- lm(richness ~ state, data = kbs_diversity)
 outlierTest(fit_state_kbs_richness) # no
 qqPlot(fit_state_kbs_richness, main="QQ Plot") 
 hist(fit_state_kbs_richness$residuals)
@@ -523,7 +548,7 @@ leveragePlots(fit_state_kbs_richness)
 ols_test_normality(fit_state_kbs_richness)
 
 # KBS State and year model
-fit_stateyear_kbs_richness <- lm(log(richness) ~ state + year_factor, data = kbs_diversity)
+fit_stateyear_kbs_richness <- lm(richness ~ state + year_factor, data = kbs_diversity)
 outlierTest(fit_stateyear_kbs_richness) # no outliers
 qqPlot(fit_stateyear_kbs_richness, main="QQ Plot") 
 hist(fit_stateyear_kbs_richness$residuals)
@@ -532,28 +557,32 @@ ols_test_normality(fit_stateyear_kbs_richness)
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(log(richness) ~ state*year, data = kbs_diversity)
+fit3 <- lm(richness ~ state*year_factor, data = kbs_diversity)
 interact_plot(fit3, pred = year, modx = state)
+outlierTest(fit3) # no outliers
+qqPlot(fit3, main="QQ Plot") 
+hist(fit3$residuals)
+leveragePlots(fit3)
+ols_test_normality(fit3)
 ```
 
 ```{r}
-modfull_kr <- lmer(log(richness) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
+modfull_kr <- lmer(log(richness) ~ state*insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-par(mfrow=c(1,2))
 plot(modfull_kr)
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
 leveneTest(residuals(modfull_kr) ~ kbs_diversity$state)
-# Assumption not met
+# Assumption met
 leveneTest(residuals(modfull_kr) ~ kbs_diversity$insecticide) 
-# Assumption not met 
+# Assumption met 
 leveneTest(residuals(modfull_kr) ~ kbs_diversity$plot)
-# Assumption not met
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -576,20 +605,20 @@ year.mod.testkr2 <- lmer(log(richness) ~ state + year_factor + (1|plot), kbs_div
 anova(year.mod.testkr1, year.mod.testkr2) #year.mod.test2
 
 # hypothesized model
-mod_kr <- lmer(log(richness) ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod_kr <- lmer(log(richness) ~ state * insecticide * year_factor + (1|plot), kbs_diversity, REML=FALSE)
 
 summary(mod_kr)
 anova(mod_kr)
 
 # making a table
-kable(anova(mod_kr)) %>% kableExtra::kable_styling()
+kable(anova(mod_kr), digits = 3) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
 # overall
-exp((1.96971) +  (0.23710)*0) # 7.168597 
-exp((1.96971) +  (0.23710)*1) # 9.086684
+exp((2.00924) +  (0.12440)*0) # 7.457647 
+exp((2.00924) +  (0.12440)*1) # 8.445553
 # effect:
-9.086684 - 7.168597 # effect of warming - warmed plots had 1.918087 less species than ambient plots
+8.445553 - 7.457647 # effect of warming - warmed plots had 0.987906 less species than ambient plots
 ```
 
 UMBS
@@ -651,28 +680,32 @@ ols_test_normality(fit_stateyear_umbs_richness)
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 # I can't get these to work
-fit3 <- lm(log(richness) ~ state*year, data = umbs_diversity)
+fit3 <- lm(log(richness) ~ state*year_factor, data = umbs_diversity)
 interact_plot(fit3, pred = year, modx = state)
+outlierTest(fit3) # no outliers
+qqPlot(fit3, main="QQ Plot") 
+hist(fit3$residuals)
+leveragePlots(fit3)
+ols_test_normality(fit3)
 ```
 
 ```{r}
-modfull_ur <- lmer(log(richness) ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
+modfull_ur <- lmer(log(richness) ~ state*insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-par(mfrow=c(1,2))
 plot(modfull_ur)
 # Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
 # Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
 # *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
 
 leveneTest(residuals(modfull_ur) ~ umbs_diversity$state)
-# Assumption not met
+# Assumption met
 leveneTest(residuals(modfull_ur) ~ umbs_diversity$insecticide) 
-# Assumption not met 
+# Assumption met 
 leveneTest(residuals(modfull_ur) ~ umbs_diversity$plot)
-# Assumption not met
+# Assumption met
 
 # (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
 # Check for normal residuals
@@ -695,13 +728,13 @@ year.mod.testur2 <- lmer(log(richness) ~ state + year_factor + (1|plot), umbs_di
 anova(year.mod.testur1, year.mod.testur2) #year.mod.test2
 
 # hypothesized model
-mod_ur <- lmer(log(richness) ~ state * insecticide + year_factor + (1|plot), umbs_diversity, REML=FALSE)
+mod_ur <- lmer(log(richness) ~ state * insecticide * year_factor + (1|plot), umbs_diversity, REML=FALSE)
 
 summary(mod_ur)
 anova(mod_ur)
 
 # making a table
-kable(anova(mod_ur)) %>% kableExtra::kable_styling()
+kable(anova(mod_ur), digits = 2) %>% kableExtra::kable_styling()
 
 ```
 
