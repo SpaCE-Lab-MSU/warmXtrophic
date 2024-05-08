@@ -64,7 +64,7 @@ kbs_diversity <- subset(diver, site == "kbs")
 umbs_diversity <- subset(diver, site == "umbs")
 ```
 
-Simpson's Index
+#Simpson's Index
 KBS
 ```{r, warning=F}
 ### KBS ###
@@ -104,148 +104,9 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "We
 # log normal distribution looks to be the best based on AIC and BIC values or would it be gamma? (closest to zero?)
 ```
 
-UMBS
-```{r, warning=F}
-### UMBS ###
-hist(umbs_diversity$simpson) #skewed to the left
-qqnorm(umbs_diversity$simpson)
-shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
+These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
 
-# Exploring distributions for these data:
-descdist(umbs_diversity$simpson, discrete = FALSE)
-
-# Gamma distribution 
-fit.gamma <- fitdist(umbs_diversity$simpson, "gamma")
-plot(fit.gamma)
-
-# Weibull distribution
-fit.weibull  <- fitdist(umbs_diversity$simpson, "weibull")
-plot(fit.weibull)
-
-# Lognormal distribution 
-fit.ln <- fitdist(umbs_diversity$simpson, "lnorm")
-plot(fit.ln)
-
-# Exponential distribution is another option
-fit.exp <- fitdist(umbs_diversity$simpson, "exp")
-plot(fit.exp)
-
-par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
-denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-dev.off()
-
-# Goodness of fit comparisons across fits
-gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
-# log normal distribution looks to be the best based on AIC and BIC values
-```
-
-Shannon Index
-KBS
-```{r, warning=F}
-### KBS ###
-hist(kbs_diversity$shannon) 
-qqnorm(kbs_diversity$shannon)
-shapiro.test(kbs_diversity$shannon) # pvalue is > 0.05 - normally distributed
-```
-
-UMBS
-```{r, warning=F}
-### UMBS ###
-hist(umbs_diversity$shannon)
-qqnorm(umbs_diversity$shannon)
-shapiro.test(umbs_diversity$shannon) # pvalue is close to > 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
-
-# Exploring distributions for these data:
-descdist(umbs_diversity$shannon, discrete = FALSE)
-```
-
-Species Richness
-KBS
-```{r, warning=F}
-### KBS ###
-hist(kbs_diversity$richness) # looks pretty good
-qqnorm(kbs_diversity$richness)
-shapiro.test(kbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) but it's pretty close to normal
-
-# Exploring distributions for these data:
-descdist(kbs_diversity$richness, discrete = FALSE) # close to normal
-
-# Gamma distribution 
-fit.gamma <- fitdist(kbs_diversity$richness, "gamma")
-plot(fit.gamma)
-
-# Weibull distribution
-fit.weibull  <- fitdist(kbs_diversity$richness, "weibull")
-plot(fit.weibull)
-
-# Lognormal distribution 
-fit.ln <- fitdist(kbs_diversity$richness, "lnorm")
-plot(fit.ln)
-
-# Exponential distribution is another option
-fit.exp <- fitdist(kbs_diversity$richness, "exp")
-plot(fit.exp)
-
-par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
-denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-dev.off()
-
-# Goodness of fit comparisons across fits
-gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
-# weibull distribution looks to be the best based on AIC and BIC values
-```
-
-UMBS
-```{r, warning=F}
-### UMBS ###
-hist(umbs_diversity$richness) 
-qqnorm(umbs_diversity$richness)
-shapiro.test(umbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
-
-# Exploring distributions for these data:
-descdist(umbs_diversity$richness, discrete = FALSE)
-
-# Gamma distribution 
-fit.gamma <- fitdist(umbs_diversity$richness, "gamma")
-plot(fit.gamma)
-
-# Weibull distribution
-fit.weibull  <- fitdist(umbs_diversity$richness, "weibull")
-plot(fit.weibull)
-
-# Lognormal distribution 
-fit.ln <- fitdist(umbs_diversity$richness, "lnorm")
-plot(fit.ln)
-
-# Exponential distribution is another option
-fit.exp <- fitdist(umbs_diversity$richness, "exp")
-plot(fit.exp)
-
-par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
-denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-dev.off()
-
-# Goodness of fit comparisons across fits
-gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
-# log normal and gamma are essentially tied 
-```
-
-# Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
-# These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
-
-SIMPSON
 ```{r}
 # KBS State-only model
 fit_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity)
@@ -266,127 +127,6 @@ ols_test_normality(fit_stateyear_kbs)
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
 fit3 <- lm(log(simpson) ~ state*year, data = kbs_diversity)
-interact_plot(fit3, pred = year, modx = state)
-```
-
-```{r}
-# UMBS State-only model
-fit_state_umbs <- lm(log(simpson) ~ state, data = umbs_diversity)
-outlierTest(fit_state_umbs) # yes, row 186 and 198
-qqPlot(fit_state_umbs, main="QQ Plot") 
-hist(fit_state_umbs$residuals)
-leveragePlots(fit_state_umbs)
-ols_test_normality(fit_state_umbs)
-
-# UMBS State and year model
-fit_stateyear_umbs <- lm(log(simpson) ~ state + year_factor, data = umbs_diversity)
-outlierTest(fit_stateyear_kbs) # rows 60, 145
-qqPlot(fit_stateyear_umbs, main="QQ Plot") 
-hist(fit_stateyear_umbs$residuals)
-leveragePlots(fit_stateyear_umbs)
-ols_test_normality(fit_stateyear_umbs)
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-# I can't get these to work
-fit3 <- lm(log(simpson) ~ state*year, data = umbs_diversity)
-interact_plot(fit3, pred = year, modx = state)
-```
-
-SHANNON
-```{r}
-# KBS State-only model
-fit_state_kbs_shannon <- lm(shannon ~ state, data = kbs_diversity)
-outlierTest(fit_state_kbs_shannon) # no
-qqPlot(fit_state_kbs_shannon, main="QQ Plot") 
-hist(fit_state_kbs_shannon$residuals)
-leveragePlots(fit_state_kbs_shannon)
-ols_test_normality(fit_state_kbs_shannon)
-
-# KBS State and year model
-fit_stateyear_kbs_shannon <- lm(shannon ~ state + year_factor, data = kbs_diversity)
-outlierTest(fit_stateyear_kbs_shannon) # 140
-qqPlot(fit_stateyear_kbs_shannon, main="QQ Plot") 
-hist(fit_stateyear_kbs_shannon$residuals)
-leveragePlots(fit_stateyear_kbs_shannon)
-ols_test_normality(fit_stateyear_kbs_shannon)
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-# I can't get these to work
-fit3 <- lm(log(shannon) ~ state*year, data = kbs_diversity)
-interact_plot(fit3, pred = year, modx = state)
-```
-
-```{r}
-# UMBS State-only model
-fit_state_umbs_shannon <- lm(shannon ~ state, data = umbs_diversity)
-outlierTest(fit_state_umbs_shannon) # no outliers
-qqPlot(fit_state_umbs_shannon, main="QQ Plot") 
-hist(fit_state_umbs_shannon$residuals)
-leveragePlots(fit_state_umbs_shannon)
-ols_test_normality(fit_state_umbs_shannon)
-
-# UMBS State and year model
-fit_stateyear_umbs_shannon <- lm(shannon ~ state + year_factor, data = umbs_diversity)
-outlierTest(fit_stateyear_umbs_shannon) # no outliers
-qqPlot(fit_stateyear_umbs_shannon, main="QQ Plot") 
-hist(fit_stateyear_umbs_shannon$residuals)
-leveragePlots(fit_stateyear_umbs_shannon)
-ols_test_normality(fit_stateyear_umbs_shannon)
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-# I can't get these to work
-fit3 <- lm(shannon ~ state*year, data = umbs_diversity)
-interact_plot(fit3, pred = year, modx = state)
-```
-
-RICHNESS
-```{r}
-# KBS State-only model
-fit_state_kbs_richness <- lm(log(richness) ~ state, data = kbs_diversity)
-outlierTest(fit_state_kbs_richness) # no
-qqPlot(fit_state_kbs_richness, main="QQ Plot") 
-hist(fit_state_kbs_richness$residuals)
-leveragePlots(fit_state_kbs_richness)
-ols_test_normality(fit_state_kbs_richness)
-
-# KBS State and year model
-fit_stateyear_kbs_richness <- lm(log(richness) ~ state + year_factor, data = kbs_diversity)
-outlierTest(fit_stateyear_kbs_richness) # no outliers
-qqPlot(fit_stateyear_kbs_richness, main="QQ Plot") 
-hist(fit_stateyear_kbs_richness$residuals)
-leveragePlots(fit_stateyear_kbs_richness)
-ols_test_normality(fit_stateyear_kbs_richness)
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-fit3 <- lm(log(richness) ~ state*year, data = kbs_diversity)
-interact_plot(fit3, pred = year, modx = state)
-```
-
-```{r}
-# UMBS State-only model
-fit_state_umbs_richness <- lm(log(richness) ~ state, data = umbs_diversity)
-outlierTest(fit_state_umbs_richness) # no outliers
-qqPlot(fit_state_umbs_richness, main="QQ Plot") 
-hist(fit_state_umbs_richness$residuals)
-leveragePlots(fit_state_umbs_richness)
-ols_test_normality(fit_state_umbs_richness)
-
-# UMBS State and year model
-fit_stateyear_umbs_richness <- lm(log(richness) ~ state + year_factor, data = umbs_diversity)
-outlierTest(fit_stateyear_umbs_richness) # no outliers
-qqPlot(fit_stateyear_umbs_richness, main="QQ Plot") 
-hist(fit_stateyear_umbs_richness$residuals)
-leveragePlots(fit_stateyear_umbs_richness)
-ols_test_normality(fit_stateyear_umbs_richness)
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-# I can't get these to work
-fit3 <- lm(log(richness) ~ state*year, data = umbs_diversity)
 interact_plot(fit3, pred = year, modx = state)
 ```
 
@@ -440,13 +180,74 @@ summary(mod9)
 anova(mod9)
 
 # making a table
-kable(anova(mod9)) %>% kableExtra::kable_styling()
-
+kable(anova(mod9), digits = 2) %>% kableExtra::kable_styling()
 ```
 
 UMBS
+```{r, warning=F}
+### UMBS ###
+hist(umbs_diversity$simpson) #skewed to the left
+qqnorm(umbs_diversity$simpson)
+shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Exploring distributions for these data:
+descdist(umbs_diversity$simpson, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_diversity$simpson, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_diversity$simpson, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_diversity$simpson, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(umbs_diversity$simpson, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values
+```
+
 ```{r}
-modfull_u <- lmer(log(simpson) ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
+# UMBS State-only model
+fit_state_umbs <- lm(log(simpson) ~ state, data = umbs_diversity)
+outlierTest(fit_state_umbs) # yes, row 186 and 198
+qqPlot(fit_state_umbs, main="QQ Plot") 
+hist(fit_state_umbs$residuals)
+leveragePlots(fit_state_umbs)
+ols_test_normality(fit_state_umbs)
+
+# UMBS State and year model
+fit_stateyear_umbs <- lm(log(simpson) ~ state + year_factor, data = umbs_diversity)
+outlierTest(fit_stateyear_kbs) # rows 60, 145
+qqPlot(fit_stateyear_umbs, main="QQ Plot") 
+hist(fit_stateyear_umbs$residuals)
+leveragePlots(fit_stateyear_umbs)
+ols_test_normality(fit_stateyear_umbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(log(simpson) ~ state*year, data = umbs_diversity)
+interact_plot(fit3, pred = year, modx = state)
+```
+
+```{r}
+modfull_u <- lmer(log(simpson) ~ state*insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -480,7 +281,6 @@ shapiro.test(r_int_u)
 # Normally distributed random effect pvalue > 0.05
 ```
 
-UMBS
 ```{r}
 # hypothesized model
 mod1u <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), umbs_diversity, REML=FALSE)
@@ -496,6 +296,39 @@ emmip(mod1u, insecticide~state)
 
 # making a table
 kable(anova(mod1u)) %>% kableExtra::kable_styling()
+```
+
+#Shannon Index
+KBS
+```{r, warning=F}
+### KBS ###
+hist(kbs_diversity$shannon) 
+qqnorm(kbs_diversity$shannon)
+shapiro.test(kbs_diversity$shannon) # pvalue is > 0.05 - normally distributed
+```
+
+```{r}
+# KBS State-only model
+fit_state_kbs_shannon <- lm(shannon ~ state, data = kbs_diversity)
+outlierTest(fit_state_kbs_shannon) # no
+qqPlot(fit_state_kbs_shannon, main="QQ Plot") 
+hist(fit_state_kbs_shannon$residuals)
+leveragePlots(fit_state_kbs_shannon)
+ols_test_normality(fit_state_kbs_shannon)
+
+# KBS State and year model
+fit_stateyear_kbs_shannon <- lm(shannon ~ state + year_factor, data = kbs_diversity)
+outlierTest(fit_stateyear_kbs_shannon) # 140
+qqPlot(fit_stateyear_kbs_shannon, main="QQ Plot") 
+hist(fit_stateyear_kbs_shannon$residuals)
+leveragePlots(fit_stateyear_kbs_shannon)
+ols_test_normality(fit_stateyear_kbs_shannon)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(log(shannon) ~ state*year, data = kbs_diversity)
+interact_plot(fit3, pred = year, modx = state)
 ```
 
 SHANNON
@@ -556,6 +389,41 @@ kable(anova(mod_k_sh)) %>% kableExtra::kable_styling()
 ```
 
 UMBS
+```{r, warning=F}
+### UMBS ###
+hist(umbs_diversity$shannon)
+qqnorm(umbs_diversity$shannon)
+shapiro.test(umbs_diversity$shannon) # pvalue is close to > 0.05 so we do not reject the null hypothesis that the data is normal (aka normally distributed)
+
+# Exploring distributions for these data:
+descdist(umbs_diversity$shannon, discrete = FALSE)
+```
+
+```{r}
+# UMBS State-only model
+fit_state_umbs_shannon <- lm(shannon ~ state, data = umbs_diversity)
+outlierTest(fit_state_umbs_shannon) # no outliers
+qqPlot(fit_state_umbs_shannon, main="QQ Plot") 
+hist(fit_state_umbs_shannon$residuals)
+leveragePlots(fit_state_umbs_shannon)
+ols_test_normality(fit_state_umbs_shannon)
+
+# UMBS State and year model
+fit_stateyear_umbs_shannon <- lm(shannon ~ state + year_factor, data = umbs_diversity)
+outlierTest(fit_stateyear_umbs_shannon) # no outliers
+qqPlot(fit_stateyear_umbs_shannon, main="QQ Plot") 
+hist(fit_stateyear_umbs_shannon$residuals)
+leveragePlots(fit_stateyear_umbs_shannon)
+ols_test_normality(fit_stateyear_umbs_shannon)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(shannon ~ state*year, data = umbs_diversity)
+interact_plot(fit3, pred = year, modx = state)
+```
+
+UMBS
 ```{r}
 modfull_u_sh <- lmer(shannon ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
 
@@ -605,8 +473,69 @@ anova(mod_u_sh)
 kable(anova(mod_u_sh)) %>% kableExtra::kable_styling()
 ```
 
-RICHNESS
-KBS 
+#Species Richness
+KBS
+```{r, warning=F}
+### KBS ###
+hist(kbs_diversity$richness) # looks pretty good
+qqnorm(kbs_diversity$richness)
+shapiro.test(kbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed) but it's pretty close to normal
+
+# Exploring distributions for these data:
+descdist(kbs_diversity$richness, discrete = FALSE) # close to normal
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_diversity$richness, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_diversity$richness, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_diversity$richness, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(kbs_diversity$richness, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# weibull distribution looks to be the best based on AIC and BIC values
+```
+
+```{r}
+# KBS State-only model
+fit_state_kbs_richness <- lm(log(richness) ~ state, data = kbs_diversity)
+outlierTest(fit_state_kbs_richness) # no
+qqPlot(fit_state_kbs_richness, main="QQ Plot") 
+hist(fit_state_kbs_richness$residuals)
+leveragePlots(fit_state_kbs_richness)
+ols_test_normality(fit_state_kbs_richness)
+
+# KBS State and year model
+fit_stateyear_kbs_richness <- lm(log(richness) ~ state + year_factor, data = kbs_diversity)
+outlierTest(fit_stateyear_kbs_richness) # no outliers
+qqPlot(fit_stateyear_kbs_richness, main="QQ Plot") 
+hist(fit_stateyear_kbs_richness$residuals)
+leveragePlots(fit_stateyear_kbs_richness)
+ols_test_normality(fit_stateyear_kbs_richness)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(log(richness) ~ state*year, data = kbs_diversity)
+interact_plot(fit3, pred = year, modx = state)
+```
+
 ```{r}
 modfull_kr <- lmer(log(richness) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
 
@@ -661,10 +590,71 @@ exp((1.96971) +  (0.23710)*0) # 7.168597
 exp((1.96971) +  (0.23710)*1) # 9.086684
 # effect:
 9.086684 - 7.168597 # effect of warming - warmed plots had 1.918087 less species than ambient plots
-
 ```
 
-UMBS 
+UMBS
+```{r, warning=F}
+### UMBS ###
+hist(umbs_diversity$richness) 
+qqnorm(umbs_diversity$richness)
+shapiro.test(umbs_diversity$richness) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Exploring distributions for these data:
+descdist(umbs_diversity$richness, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_diversity$richness, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_diversity$richness, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_diversity$richness, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(umbs_diversity$richness, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal and gamma are essentially tied 
+```
+
+```{r}
+# UMBS State-only model
+fit_state_umbs_richness <- lm(log(richness) ~ state, data = umbs_diversity)
+outlierTest(fit_state_umbs_richness) # no outliers
+qqPlot(fit_state_umbs_richness, main="QQ Plot") 
+hist(fit_state_umbs_richness$residuals)
+leveragePlots(fit_state_umbs_richness)
+ols_test_normality(fit_state_umbs_richness)
+
+# UMBS State and year model
+fit_stateyear_umbs_richness <- lm(log(richness) ~ state + year_factor, data = umbs_diversity)
+outlierTest(fit_stateyear_umbs_richness) # no outliers
+qqPlot(fit_stateyear_umbs_richness, main="QQ Plot") 
+hist(fit_stateyear_umbs_richness$residuals)
+leveragePlots(fit_stateyear_umbs_richness)
+ols_test_normality(fit_stateyear_umbs_richness)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(log(richness) ~ state*year, data = umbs_diversity)
+interact_plot(fit3, pred = year, modx = state)
+```
+
 ```{r}
 modfull_ur <- lmer(log(richness) ~ state*year_factor + insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
 
