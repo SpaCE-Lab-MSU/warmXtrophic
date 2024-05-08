@@ -192,7 +192,7 @@ anova(modtest1)
 summary(modtest1)
 
 # species model for supp
-mod_spp_k <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year) + (1|plot), green_kbs_spp, REML=FALSE)
+mod_spp_k <- lmer(spp_half_cover_date ~ state * insecticide * as.factor(year) + species + (1|plot), green_kbs_spp, REML=FALSE)
 anova(mod_spp_k)
 # making a table
 kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
@@ -228,7 +228,7 @@ anova(modtest1u)
 summary(modtest1u)
 
 # species model for supp
-mod_spp_u <- lmer(spp_half_cover_date ~ state * insecticide + species + as.factor(year) + (1|plot), green_umbs_spp, REML=FALSE)
+mod_spp_u <- lmer(spp_half_cover_date ~ state * insecticide * as.factor(year) + species + (1|plot), green_umbs_spp, REML=FALSE)
 anova(mod_spp_u)
 # making a table
 kable(anova(mod_spp_u)) %>% kableExtra::kable_styling()
