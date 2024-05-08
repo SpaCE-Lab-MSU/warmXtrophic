@@ -178,9 +178,13 @@ plot_line_n <- function(loc) {
 }
 
 plot_line_kbs_n <- plot_line_n("KBS")
-plot_line_kbs_n <- plot_line_kbs_n + labs(title="KBS", y=NULL, subtitle = "Native") + theme(axis.text.x=element_blank())
+plot_line_kbs_n <- plot_line_kbs_n + labs(title="KBS", y=NULL, subtitle = "Native") +
+        theme(axis.text.x=element_blank()) +
+        annotate("text", x = 0.7, y=111, label = "A", size=5)
 plot_line_umbs_n <- plot_line_n("UMBS")
-plot_line_umbs_n <- plot_line_umbs_n + labs(title="UMBS", y=NULL, subtitle = "Native") + theme(axis.text.x=element_blank())
+plot_line_umbs_n <- plot_line_umbs_n + labs(title="UMBS", y=NULL, subtitle = "Native") +
+        theme(axis.text.x=element_blank()) +
+        annotate("text", x = 0.7, y=49, label = "B", size=5)
 
 exotic_pc_avg <- origin_pc_avg %>% filter(origin == "Exotic")
 
@@ -204,13 +208,17 @@ plot_line_e <- function(loc) {
 }
 
 plot_line_kbs_e <- plot_line_e("KBS")
-plot_line_kbs_e <- plot_line_kbs_e + labs(title=NULL, y=NULL, subtitle = "Exotic")
+plot_line_kbs_e <- plot_line_kbs_e + labs(title=NULL, y=NULL, subtitle = "Exotic") +
+        annotate("text", x = 0.7, y=36, label = "C", size=5)
 plot_line_umbs_e <- plot_line_e("UMBS")
-plot_line_umbs_e <- plot_line_umbs_e + labs(title=NULL, y=NULL, subtitle = "Exotic")
+plot_line_umbs_e <- plot_line_umbs_e + labs(title=NULL, y=NULL, subtitle = "Exotic") +
+        annotate("text", x = 0.7, y=55, label = "D", size=5)
 
 plot_line_origin <- ggpubr::ggarrange(plot_line_kbs_n, plot_line_umbs_n,
                                       plot_line_kbs_e, plot_line_umbs_e,
-                          nrow = 2, ncol = 2, common.legend = T, legend="right")
+                                      nrow = 2, ncol = 2, common.legend = T, legend="right")
+plot_line_origin
+
 png("origin_avg_percent_cover_plots_by_year_L2.png", units="in", width=9, height=8, res=300)
 annotate_figure(plot_line_origin,
                 left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
@@ -242,9 +250,11 @@ plot_line_f <- function(loc) {
 }
 
 plot_line_kbs_f <- plot_line_f("KBS")
-plot_line_kbs_f <- plot_line_kbs_f + labs(title="KBS", y=NULL, subtitle = "Forb") + theme(axis.text.x=element_blank())
+plot_line_kbs_f <- plot_line_kbs_f + labs(title="KBS", y=NULL, subtitle = "Forb") + theme(axis.text.x=element_blank()) +
+        annotate("text", x = 0.7, y=91, label = "A", size=5)
 plot_line_umbs_f <- plot_line_f("UMBS")
-plot_line_umbs_f <- plot_line_umbs_f + labs(title="UMBS", y=NULL, subtitle = "Forb") + theme(axis.text.x=element_blank())
+plot_line_umbs_f <- plot_line_umbs_f + labs(title="UMBS", y=NULL, subtitle = "Forb") + theme(axis.text.x=element_blank()) +
+        annotate("text", x = 0.7, y=38, label = "B", size=5)
 
 graminoid_pc_avg <- growth_pc_avg %>% filter(growth_habit == "Graminoid")
 
@@ -268,13 +278,17 @@ plot_line_g <- function(loc) {
 }
 
 plot_line_kbs_g <- plot_line_g("KBS")
-plot_line_kbs_g <- plot_line_kbs_g + labs(title=NULL, y=NULL, subtitle = "Graminoid")
+plot_line_kbs_g <- plot_line_kbs_g + labs(title=NULL, y=NULL, subtitle = "Graminoid") +
+        annotate("text", x = 0.7, y=50, label = "C", size=5)
 plot_line_umbs_g <- plot_line_g("UMBS")
-plot_line_umbs_g <- plot_line_umbs_g + labs(title=NULL, y=NULL, subtitle = "Graminoid")
+plot_line_umbs_g <- plot_line_umbs_g + labs(title=NULL, y=NULL, subtitle = "Graminoid") +
+        annotate("text", x = 0.7, y=50, label = "D", size=5)
 
 plot_line_gh <- ggpubr::ggarrange(plot_line_kbs_f, plot_line_umbs_f,
                                       plot_line_kbs_g, plot_line_umbs_g,
                           nrow = 2, ncol = 2, common.legend = T, legend="right")
+plot_line_gh
+
 png("growth_habit_avg_percent_cover_plots_by_year_L2.png", units="in", width=9, height=8, res=300)
 annotate_figure(plot_line_gh,
                 left = text_grob("Cover (%)", color = "black", rot = 90, size=15),

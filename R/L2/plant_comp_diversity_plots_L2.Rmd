@@ -142,7 +142,7 @@ sum_richness_i <- change_site(sum_richness_i)
 #             axis.title = element_text(size=16,face="bold"))
 ```
 
-Averages + std error for plot level data + insecticide treatment across all years (what will be used in the paper)
+Averages + std error for plot level data + insecticide treatment across all years (not used in paper)
 ```{r}
 # averages + std error for plot level data - state only
 sum_shannon_all <- diversity %>%
