@@ -241,7 +241,7 @@ summary(m.hyp.k)
 contrast(emmeans(m.hyp.k, ~state*insecticide*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
 
 # hypothesized model - with species
-m.hyp.k2 <- lmer(sla^(1/3) ~ state * insecticide + species + year + (1|plot/species/plant_number), data = sla_kbs, REML=FALSE)
+m.hyp.k2 <- lmer(sla^(1/3) ~ state * insecticide * year + species + (1|plot/species/plant_number), data = sla_kbs, REML=FALSE)
 anova(m.hyp.k2)
 # table
 kable(anova(m.hyp.k2)) %>% kableExtra::kable_styling()
@@ -259,7 +259,7 @@ contrast(emmeans(m.hyp.u, ~state*insecticide*year), "pairwise", simple = "each",
 kable(anova(m.hyp.u), digits=2) %>% kableExtra::kable_styling()
 
 # hypothesized model - with species
-m.hyp.u2 <- lmer(sla^(1/3) ~ state * insecticide + species + year + (1|plot/species/plant_number), data = sla_umbs, REML=FALSE)
+m.hyp.u2 <- lmer(sla^(1/3) ~ state * insecticide * year + species + (1|plot/species/plant_number), data = sla_umbs, REML=FALSE)
 anova(m.hyp.u2)
 # table
 kable(anova(m.hyp.u2)) %>% kableExtra::kable_styling()

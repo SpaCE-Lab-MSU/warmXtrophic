@@ -24,6 +24,7 @@ library(bbmle)
 library(lme4)
 library(fitdistrplus)
 library(pwr)
+library(kableExtra)
 
 # Set working directory
 L1_dir<-Sys.getenv("L1DIR")
@@ -241,7 +242,7 @@ n1_umbs <- n1 %>%
 
 #### carbon - KBS ####
 # hypothesized model - with species
-c.hyp.k <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = c1_kbs)
+c.hyp.k <- lmer(carbon ~ treatment * insecticide * as.factor(year) + species + (1|plot/species/plant_number), data = c1_kbs)
 anova(c.hyp.k)
 mod.emm <- emmeans(c.hyp.k, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
@@ -251,9 +252,13 @@ kable(anova(c.hyp.k)) %>% kableExtra::kable_styling()
 # hypothesized model - species as random effect
 c.hyp.k2 <- lmer(carbon ~ treatment * insecticide * as.factor(year) + (1|plot/species/plant_number), data = c1_kbs)
 anova(c.hyp.k2) ### used in manuscript ###
-contrast(emmeans(c.hyp.k2, ~treatment*insecticide*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.k <- contrast(emmeans(c.hyp.k2, ~treatment*insecticide*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # making a table
 kable(anova(c.hyp.k2),digits=2) %>% kableExtra::kable_styling()
+result.k = as.data.frame(contrast.k)
+result.k <- result.k %>%
+        mutate_if(is.numeric, round, digits=2)
+kable(result.k) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -267,7 +272,7 @@ summary(temp.c.kbs)
 
 #### carbon - UMBS ####
 # hypothesized model - with species
-c.hyp.u <- lmer(carbon ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = c1_umbs)
+c.hyp.u <- lmer(carbon ~ treatment * insecticide * as.factor(year) + species + (1|plot/species/plant_number), data = c1_umbs)
 anova(c.hyp.u)
 mod.emm <- emmeans(c.hyp.u, ~ treatment * insecticide + species)
 contrast(mod.emm, "pairwise", simple = "each", combine = F, adjust = "mvt")
@@ -293,7 +298,7 @@ summary(temp.c.umbs)
 
 #### nitrogen - KBS ####
 # hypothesized model - with species
-n.hyp.k <- lmer(nitrogen ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = n1_kbs)
+n.hyp.k <- lmer(nitrogen ~ treatment * insecticide * as.factor(year) + species + (1|plot/species/plant_number), data = n1_kbs)
 anova(n.hyp.k)
 summary(n.hyp.k)
 mod.emm <- emmeans(n.hyp.k, ~ treatment * insecticide + species)
@@ -305,9 +310,13 @@ kable(anova(n.hyp.k), digits=2) %>% kableExtra::kable_styling()
 n.hyp.k2 <- lmer(nitrogen ~ treatment * insecticide * as.factor(year) + (1|plot/species/plant_number), data = n1_kbs)
 anova(n.hyp.k2) ### used in manuscript ###
 summary(n.hyp.k2)
-contrast(emmeans(n.hyp.k2, ~treatment*insecticide*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.k <- contrast(emmeans(n.hyp.k2, ~treatment**year), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.k2), digits=2) %>% kableExtra::kable_styling()
+result.k = as.data.frame(contrast.k)
+result.k <- result.k %>%
+        mutate_if(is.numeric, round, digits=2)
+kable(result.k) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -321,7 +330,7 @@ summary(temp.n.kbs)
 
 #### nitrogen - UMBS ####
 # hypothesized model - with species
-n.hyp.u <- lmer(nitrogen ~ treatment * insecticide + year + species + (1|plot/species/plant_number), data = n1_umbs)
+n.hyp.u <- lmer(nitrogen ~ treatment * insecticide * as.factor(year) + species + (1|plot/species/plant_number), data = n1_umbs)
 anova(n.hyp.u)
 summary(n.hyp.u)
 mod.emm <- emmeans(n.hyp.u, ~ treatment * insecticide + species)
@@ -332,9 +341,14 @@ kable(anova(n.hyp.u)) %>% kableExtra::kable_styling()
 # hypothesized model - species as random effect
 n.hyp.u2 <- lmer(nitrogen ~ treatment * insecticide * as.factor(year) + (1|plot/species/plant_number), data = n1_umbs)
 anova(n.hyp.u2) ### used in manuscript ###
-contrast(emmeans(n.hyp.u2, ~treatment*insecticide*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.u <- contrast(emmeans(n.hyp.u2, ~treatment**year), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.u2), digits=2) %>% kableExtra::kable_styling()
+result.u = as.data.frame(contrast.u)
+result.u <- result.u %>%
+        mutate_if(is.numeric, round, digits=2)
+kable(result.u) %>% kableExtra::kable_styling()
+
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
