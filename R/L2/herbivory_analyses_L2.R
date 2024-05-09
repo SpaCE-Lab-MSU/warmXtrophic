@@ -196,15 +196,24 @@ trunc.k <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year),
 summary(trunc.k) #matches the k.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
-full.model.k <- glmmTMB(p_eaten ~ state * insecticide * year + (1|plot:species:plant_number),
+full.model.k <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year) + (1|plot:species:plant_number),
                    data=herb_kbs,
                    zi=~.,
                    family=truncated_nbinom2)
 summary(full.model.k) # * used in paper * #
 emm_count <- emmeans(full.model.k, ~ state*insecticide*as.factor(year))
 emm_zero <- emmeans(full.model.k, ~ state*insecticide*as.factor(year), component = "zi")
-pairs(emm_count, contrast = "pairwise", simple = "each", type="response")
-pairs(emm_zero, contrast = "pairwise", simple = "each", type="response")
+k.count <- pairs(emm_count, contrast = "pairwise", simple = "each", type="response")
+k.zero <- pairs(emm_zero, contrast = "pairwise", simple = "each", type="response")
+# getting outputs into table format
+result.k.count = as.data.frame(k.count)
+result.k.count <- result.k.count %>%
+        mutate_if(is.numeric, round, digits=2)
+kable(result.k.count) %>% kableExtra::kable_styling()
+result.k.zero = as.data.frame(k.zero)
+result.k.zero <- result.k.zero %>%
+        mutate_if(is.numeric, round, digits=2)
+kable(result.k.zero) %>% kableExtra::kable_styling()
 # back transforming #
 # note: in zero-inflated model, we're testing the probability of being zero
 # negative estimate (<0) means fewer 0's, positive estimate (>0) means more 0's
@@ -331,7 +340,7 @@ trunc.u <- glmmTMB(p_eaten ~ state * insecticide + year,
 summary(trunc.u) #matches the u.hyp output
 
 # adding in random effects of plant number nested within species nested within plot
-full.model.u <- glmmTMB(p_eaten ~ state * insecticide * year + (1|plot:species:plant_number),
+full.model.u <- glmmTMB(p_eaten ~ state * insecticide * as.factor(year) + (1|plot:species:plant_number),
                         data=herb_umbs,
                         zi=~.,
                         family=truncated_nbinom2)
