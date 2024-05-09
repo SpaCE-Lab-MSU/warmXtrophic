@@ -286,7 +286,7 @@ plot_line_umbs_g <- plot_line_umbs_g + labs(title=NULL, y=NULL, subtitle = "Gram
 
 plot_line_gh <- ggpubr::ggarrange(plot_line_kbs_f, plot_line_umbs_f,
                                       plot_line_kbs_g, plot_line_umbs_g,
-                          nrow = 2, ncol = 2, common.legend = T, legend="right")
+                          nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 plot_line_gh
 
 png("growth_habit_avg_percent_cover_plots_by_year_L2.png", units="in", width=9, height=8, res=300)
