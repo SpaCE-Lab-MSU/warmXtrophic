@@ -220,6 +220,7 @@ binom_dot_k_year <- ggplot(herb_binom_eaten_k_year, aes(x = year, y = mean_n, gr
         geom_line(size = 1) +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), linetype="solid",pch=21,size=0.6) +
         labs(x = NULL, y = "Probability of being eaten", title="KBS") +
+        annotate("text", x = 0.6, y=0.78, label = "A", size=5) +
         #ylim(0.15,0.70) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -245,6 +246,7 @@ binom_dot_u_year <- ggplot(herb_binom_eaten_u_year, aes(x = year, y = mean_n, gr
         geom_line(size = 1) +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), linetype="solid",pch=21,size=0.6) +
         labs(x = NULL, y = "Probability of being eaten", title="UMBS") +
+        annotate("text", x = 0.6, y=0.90, label = "B", size=5) +
         #ylim(0.15,0.70) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -286,6 +288,7 @@ eaten_k_year <- ggplot(sum_herb_overall_k_year, aes(x = year, y = avg_eaten, gro
         geom_line(size = 1) +
         geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), linetype="solid",pch=21,size=0.6) +
         labs(x = NULL, y = "Amount eaten (%)", title=NULL) +
+        annotate("text", x = 0.6, y=9, label = "C", size=5) +
         #ylim(0.15,0.70) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -311,6 +314,7 @@ eaten_u_year <- ggplot(sum_herb_overall_u_year, aes(x = year, y = avg_eaten, gro
         geom_line(size = 1) +
         geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), linetype="solid",pch=21,size=0.6) +
         labs(x = NULL, y = "Amount eaten (%)", title=NULL) +
+        annotate("text", x = 0.6, y=15.8, label = "D", size=5) +
         #ylim(0.15,0.70) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -321,6 +325,8 @@ eaten_u_year <- ggplot(sum_herb_overall_u_year, aes(x = year, y = avg_eaten, gro
         scale_linetype_manual(name="Treatment",
                               values = c("solid", "dotted", "solid", "dotted"),
                               labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+        scale_y_continuous(breaks = c(0,5,10,15), 
+                           labels = c("   0", "   5", "   10", "   15")) +
         theme_bw() +
         # theme(legend.position="none") +
         theme(plot.title = element_text(size = 17),
@@ -333,8 +339,8 @@ eaten_u_year <- ggplot(sum_herb_overall_u_year, aes(x = year, y = avg_eaten, gro
 # plotting binary response & amount eaten on same figure
 binary_overall_year <- ggarrange(binom_dot_k_year, binom_dot_u_year,
                               eaten_k_year, eaten_u_year,
-                              nrow = 2, ncol = 2, common.legend = T, legend="right",widths = c(1, 0.9))
-png("herb_binary_dots_year.png", units="in", width=9.5, height=7, res=300)
+                              nrow = 2, ncol = 2, common.legend = T, legend="right",widths = c(1, 1))
+png("herb_binary_dots_year.png", units="in", width=10, height=7, res=300)
 annotate_figure(binary_overall_year,
                 bottom = text_grob("Year", color = "black",size=15))
 dev.off()

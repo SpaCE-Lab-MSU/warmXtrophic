@@ -322,9 +322,9 @@ gr_line_i <- function(loc) {
                        theme_bw(14))
 }
 gr_line_i_kbs <- gr_line_i("KBS")
-gr_line_i_kbs <- gr_line_i_kbs + theme(axis.text.x=element_blank())
+gr_line_i_kbs <- gr_line_i_kbs + annotate("text", x = 0.7, y=137, label = "A", size=5) + theme(axis.text.x=element_blank())
 gr_line_i_umbs <- gr_line_i("UMBS")
-gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + theme(axis.text.x=element_blank(),
+gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + annotate("text", x = 0.6, y=154, label = "B", size=5) + theme(axis.text.x=element_blank(),
                                                         axis.title.y=element_blank())
 
 #flower
@@ -351,9 +351,9 @@ flwr_line_i <- function(loc) {
                        theme_bw(14))
 }
 flwr_line_i_kbs <- flwr_line_i("KBS")
-flwr_line_i_kbs <- flwr_line_i_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
+flwr_line_i_kbs <- flwr_line_i_kbs + annotate("text", x = 0.7, y=204, label = "C", size=5) + theme(axis.text.x=element_blank()) + labs(title=NULL)
 flwr_line_i_umbs <- flwr_line_i("UMBS")
-flwr_line_i_umbs <- flwr_line_i_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
+flwr_line_i_umbs <- flwr_line_i_umbs + annotate("text", x = 0.6, y=176, label = "D", size=5) + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
                                                                         axis.title.y=element_blank())
 
 # flower duration
@@ -380,10 +380,18 @@ flwr_dur_line_i <- function(loc) {
                        theme_bw(14))
 }
 flwr_dur_line_i_kbs <- flwr_dur_line_i("KBS")
-flwr_dur_line_i_kbs <- flwr_dur_line_i_kbs + theme(axis.text.x=element_blank()) + labs(title=NULL)
+flwr_dur_line_i_kbs <- flwr_dur_line_i_kbs + annotate("text", x = 0.7, y=35, label = "E", size=5) +
+        scale_y_continuous(breaks = c(10,20,30), 
+                           labels = c("  10", "  20", "  30")) +
+        theme(axis.text.x=element_blank()) +
+        labs(title=NULL)
 flwr_dur_line_i_umbs <- flwr_dur_line_i("UMBS")
-flwr_dur_line_i_umbs <- flwr_dur_line_i_umbs + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
-                                                                        axis.title.y=element_blank())
+flwr_dur_line_i_umbs <- flwr_dur_line_i_umbs +annotate("text", x = 0.6, y=36, label = "F", size=5) +
+        scale_y_continuous(breaks = c(20,25,30,35), 
+                           labels = c("  20", "  25", "  30", "  35")) +
+        labs(y=NULL, title=NULL) +
+        theme(axis.text.x=element_blank(),
+              axis.title.y=element_blank())
 
 #seed
 sum_sd_plot_i$year <- as.factor(sum_sd_plot_i$year)
@@ -404,24 +412,24 @@ sd_line_i <- function(loc) {
                        scale_linetype_manual(name="Treatment",
                                              values = c("solid", "dotted", "solid", "dotted"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       labs(x = NULL, y = "Seed set", title = loc) +
+                       labs(x = "Year", y = "Seed set", title = loc) +
                        #ylim(175,255) +
                        theme_bw(14))
 }
 sd_line_i_kbs <- sd_line_i("KBS")
-sd_line_i_kbs <- sd_line_i_kbs + labs(title=NULL)
+sd_line_i_kbs <- sd_line_i_kbs + annotate("text", x = 0.7, y=250, label = "G", size=5) + labs(title=NULL)
 sd_line_i_umbs <- sd_line_i("UMBS")
-sd_line_i_umbs <- sd_line_i_umbs + labs(y=NULL, title=NULL)+ theme(axis.title.y=element_blank())
+sd_line_i_umbs <- sd_line_i_umbs + annotate("text", x = 0.6, y=196, label = "H", size=5) + labs(y=NULL, title=NULL)+ theme(axis.title.y=element_blank())
 
 phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                                  flwr_line_i_kbs, flwr_line_i_umbs,
                                  flwr_dur_line_i_kbs, flwr_dur_line_i_umbs,
                                  sd_line_i_kbs, sd_line_i_umbs,
-                                 nrow = 4, ncol = 2, common.legend = T, legend="right")
-png("phenology_plots_L2_all_phenology_line_insect.png", units="in", width=10, height=8, res=300)
+                                 nrow = 4, ncol = 2, common.legend = T, legend="right",
+                                 heights=c(1.1,1,1,1.2))
+png("phenology_plots_L2_all_phenology_line_insect.png", units="in", width=11, height=10, res=300)
 annotate_figure(phen_line_i,
-                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
+                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15))
 dev.off()
 
 
