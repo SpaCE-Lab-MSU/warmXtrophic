@@ -215,8 +215,27 @@ mod_k_full <- lmer(log(avg_pc) ~ state * insecticide * as.factor(year_factor) + 
 summary(mod_k_full)
 anova(mod_k_full)
 
-# making a table
-kable(anova(mod_k_full), digits = 2) %>% kableExtra::kable_styling()
+# comparisons
+contrast.k1 <- contrast(emmeans(mod_k_full, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result1 = as.data.frame(contrast.k1)
+
+result1 <- result1 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result1) %>% kableExtra::kable_styling()
+
+# comparisons
+contrast.k2 <- contrast(emmeans(mod_k_full, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result2 = as.data.frame(contrast.k2)
+
+result2 <- result2 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result2) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
 exp((2.763627) +  (0.013714)*0) # 15.85725 
@@ -448,8 +467,16 @@ mod_native_k <- lmer(log(avg_origin_pc) ~ state * insecticide * as.factor(year_f
 summary(mod_native_k)
 anova(mod_native_k)
 
-# making a table
-kable(anova(mod_native_k), digits = 2) %>% kableExtra::kable_styling()
+# comparisons
+contrast.k <- contrast(emmeans(mod_native_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result = as.data.frame(contrast.k)
+
+result <- result %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result) %>% kableExtra::kable_styling()
 
 # species model for supp
 mod_spp_kn <- lmer(cover ~ state * insecticide * as.factor(year_factor) + species  + (1|plot), comp_kbs_native_spp, REML=FALSE)
@@ -540,8 +567,38 @@ exp((1.66121) +  (-0.07345)*1) # 4.892777
 # effect:
 4.892777 - 5.265678 # effect of warming - warmed plots had -0.372901 or 0.37% less exotic species percent cover than ambient plots
 
-# making a table
-kable(anova(mod_exotic_k), digits = 2) %>% kableExtra::kable_styling()
+# comparison 1
+contrast1 <- contrast(emmeans(mod_exotic_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result1 = as.data.frame(contrast1)
+
+result1 <- result1 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result1) %>% kableExtra::kable_styling()
+
+# comparison 2
+contrast2 <- contrast(emmeans(mod_exotic_k, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result2 = as.data.frame(contrast2)
+
+result2 <- result2 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result2) %>% kableExtra::kable_styling()
+
+# comparison 3
+contrast3 <- contrast(emmeans(mod_exotic_k, ~state*insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result3 = as.data.frame(contrast3)
+
+result3 <- result3 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result3) %>% kableExtra::kable_styling()
 
 # species model for supp
 mod_spp_ke <- lmer(cover ~ state * insecticide + species + as.factor(year_factor) + (1|plot), comp_kbs_exotic_spp, REML=FALSE)
@@ -712,8 +769,16 @@ mod_exotic_u <- lmer(log(avg_origin_pc) ~ state * insecticide * as.factor(year_f
 summary(mod_exotic_u)
 anova(mod_exotic_u)
 
-# making a table
-kable(anova(mod_exotic_u), digits = 2) %>% kableExtra::kable_styling()
+# comparison 3
+contrast3 <- contrast(emmeans(mod_exotic_u, ~state*insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result3 = as.data.frame(contrast3)
+
+result3 <- result3 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result3) %>% kableExtra::kable_styling()
 
 # species model for supp
 mod_spp_ue <- lmer(cover ~ state * insecticide * as.factor(year_factor) + species + (1|plot), comp_umbs_exotic_spp, REML=FALSE)
@@ -798,8 +863,16 @@ mod_forb_k <- lmer(log(avg_growth_pc) ~ state * insecticide * as.factor(year_fac
 summary(mod_forb_k)
 anova(mod_forb_k)
 
-# making a table
-kable(anova(mod_forb_k), digits = 2) %>% kableExtra::kable_styling()
+# comparison
+contrast <- contrast(emmeans(mod_forb_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result = as.data.frame(contrast)
+
+result <- result %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result) %>% kableExtra::kable_styling()
 
 ## calculating effect size - accounting for log transformation
 exp(2.45884 + (0.18695)*0) # 11.69124 
@@ -890,8 +963,27 @@ mod_graminoid_k <- lmer(log(avg_growth_pc) ~ state * insecticide * as.factor(yea
 summary(mod_graminoid_k)
 anova(mod_graminoid_k)
 
-# making a table
-kable(anova(mod_graminoid_k), digits = 2) %>% kableExtra::kable_styling()
+# comparison 1
+contrast1 <- contrast(emmeans(mod_graminoid_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result1 = as.data.frame(contrast1)
+
+result1 <- result1 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result1) %>% kableExtra::kable_styling()
+
+# comparison 2
+contrast2 <- contrast(emmeans(mod_graminoid_k, ~state*insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result2 = as.data.frame(contrast2)
+
+result2 <- result2 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result2) %>% kableExtra::kable_styling()
 
 # species model for supp
 mod_spp_kg <- lmer(cover ~ state * insecticide * as.factor(year_factor) + species + (1|plot), comp_kbs_graminoid_spp, REML=FALSE)

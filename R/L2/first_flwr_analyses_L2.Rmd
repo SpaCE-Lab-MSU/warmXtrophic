@@ -188,9 +188,15 @@ exp((5.146226) +  (0.005052)*1) # 172.652
 172.652 - 171.782 # effect of warming - warmed plots increased the date of first flower by 0.87 days
 
 # comparisons
-contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
-# making a table
-kable(anova(mod_k_all), digits = 2) %>% kableExtra::kable_styling()
+contrast.k <- contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result = as.data.frame(contrast.k)
+
+result <- result %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency

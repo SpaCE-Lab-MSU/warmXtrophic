@@ -407,8 +407,27 @@ mod_k_sh.emm <- emmeans(mod_k_sh, ~ state*insecticide)
 contrast(mod_k_sh.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 emmip(mod_k_sh, insecticide~state)
 
-# making a table
-kable(anova(mod_k_sh), digits = 2) %>% kableExtra::kable_styling()
+# comparison 1
+contrast1 <- contrast(emmeans(mod_k_sh, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result1 = as.data.frame(contrast1)
+
+result1 <- result1 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result1) %>% kableExtra::kable_styling()
+
+# comparison 2
+contrast2 <- contrast(emmeans(mod_k_sh, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result2 = as.data.frame(contrast2)
+
+result2 <- result2 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result2) %>% kableExtra::kable_styling()
 ```
 
 UMBS
@@ -610,8 +629,16 @@ mod_kr <- lmer(log(richness) ~ state * insecticide * year_factor + (1|plot), kbs
 summary(mod_kr)
 anova(mod_kr)
 
-# making a table
-kable(anova(mod_kr), digits = 3) %>% kableExtra::kable_styling()
+# comparison 1
+contrast1 <- contrast(emmeans(mod_k_sh, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result1 = as.data.frame(contrast1)
+
+result1 <- result1 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result1) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
 # overall

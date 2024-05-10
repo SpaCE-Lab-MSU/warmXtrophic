@@ -165,9 +165,15 @@ exp((5.341e+00) +  (7.018e-02)*1) # 223.8956
 # warming plots delayed seed set by 15.2 days 
 
 # comparisons
-contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
-# making a table
-kable(anova(mod_k_all), digits = 2) %>% kableExtra::kable_styling()
+contrast.k <- contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result = as.data.frame(contrast.k)
+
+result <- result %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -259,9 +265,15 @@ summary(mod_u_all)
 anova(mod_u_all)
 
 # comparisons
-contrast(emmeans(mod_u_all, ~state*insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
-# making a table
-kable(anova(mod_u_all), digits = 3) %>% kableExtra::kable_styling()
+contrast.u <- contrast(emmeans(mod_u_all, ~state*insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result = as.data.frame(contrast.u)
+
+result <- result %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
