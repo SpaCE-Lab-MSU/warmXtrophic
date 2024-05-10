@@ -96,7 +96,6 @@ Calculating Shannon and Simpsons Diversity and Species Richness
 comp_kbs <- subset(comp, site == "kbs") %>% dplyr::select(plot, species, cover, year)
 comp_umbs <- subset(comp, site == "umbs") %>% dplyr::select(plot, species, cover, year)
 
-
 # convert the abundance (cover) data to wide format for each species in columns for the vegan package
 #kbs
 comp_kbs$cover <- as.numeric(comp_kbs$cover) # change cover data to numeric
@@ -134,11 +133,11 @@ richness_by_year_list_umbs <- lapply(comp_wide_by_year_umbs,vegan::specnumber) #
 
 # each item in the list is a year of diversity, so name those with the years we know we have
 names(shannon_by_year_list_kbs) <- as.character(2015:2021)
-names(shannon_by_year_list_umbs) <- as.character(2016:2021)
+names(shannon_by_year_list_umbs) <- as.character(2015:2020)
 names(simpson_by_year_list_kbs) <- as.character(2015:2021)
-names(simpson_by_year_list_umbs) <- as.character(2016:2021)
+names(simpson_by_year_list_umbs) <- as.character(2015:2020)
 names(richness_by_year_list_kbs) <- as.character(2015:2021)
-names(richness_by_year_list_umbs) <- as.character(2016:2021)
+names(richness_by_year_list_umbs) <- as.character(2015:2020)
 
 # "unlist" and create a new data frame, each year a column, each row a plot, and add a new row with the plot names
 shannon_kbs <- do.call(cbind,shannon_by_year_list_kbs) %>% cbind(Plot = plot_names ) %>% as.data.frame()
@@ -173,7 +172,8 @@ simpson_by_plot_year_umbs <- reshape2::melt(simpson_umbs, id =  "Plot", variable
 simpson_by_plot_year_umbs$site <- "umbs" # adding site column
 
 #calculate species richness
-richness_by_plot_year_kbs <- reshape2::melt(richness_kbs, id =  "Plot", variable.name = c("Year"), value.name = "richness") richness_by_plot_year_kbs$site <- "kbs" # adding site column
+richness_by_plot_year_kbs <- reshape2::melt(richness_kbs, id =  "Plot", variable.name = c("Year"), value.name = "richness")
+richness_by_plot_year_kbs$site <- "kbs" # adding site column
 richness_by_plot_year_umbs <- reshape2::melt(richness_umbs, id =  "Plot", variable.name = c("Year"), value.name = "richness")
 richness_by_plot_year_umbs$site <- "umbs" # adding site column
 
