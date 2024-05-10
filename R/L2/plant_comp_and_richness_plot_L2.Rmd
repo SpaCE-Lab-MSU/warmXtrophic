@@ -75,7 +75,7 @@ sum_richness_i <- diversity %>%
 sum_richness_i$year <- as.factor(sum_richness_i$year)
 sum_richness_i$full_treat <- paste(sum_richness_i$state, sum_richness_i$insecticide, sep="_")
 sum_richness_i2 <- sum_richness_i
-de<-data.frame("UMBS", NA, NA, "2015", NA, NA, NA)
+de<-data.frame("UMBS", NA, NA, "2021", NA, NA, NA)
 names(de)<-c("site","state", "insecticide", "year", "avg_richness", "se", "full_treat")
 de$year <- as.factor(de$year)
 sum_richness_i <- rbind(sum_richness_i2, de)
@@ -141,9 +141,7 @@ sum_richness_line_i_umbs <- sum_richness_line_i_umbs + labs(y=NULL, title=NULL) 
 
 pc_richness_line_i <- ggpubr::ggarrange(plot_line_kbs, plot_line_umbs,
                                      sum_richness_line_i_kbs, sum_richness_line_i_umbs,
-                                     nrow = 2, ncol = 2, common.legend = T, legend="right",
-                                     widths = c(1.0, 0.9),
-                                     heights = c(1.35, 1.2, 1.2, 1.3))
+                                     nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 pc_richness_line_i
 png("percent_cover_richness_plots_lineplot_by_year_L2.png", units="in", width=10, height=8, res=300)
 annotate_figure(pc_richness_line_i,
