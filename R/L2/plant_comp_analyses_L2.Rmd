@@ -237,7 +237,13 @@ mutate_if(is.numeric, round, digits=2)
 # table
 kable(result2) %>% kableExtra::kable_styling()
 
-# calculating effect size - accounting for log transformation
+# calculating effect size of reduced herbivory in 2021 - accounting for log transformation
+exp((2.763627) +  (-0.3286)*0) # 15.85725 
+exp((2.763627) +  (-0.3286)*1) # 11.41613
+# effect:
+16.07622 - 11.41613 # 4.66009
+
+# calculating effect size of warming - accounting for log transformation
 exp((2.763627) +  (0.013714)*0) # 15.85725 
 exp((2.763627) +  (0.013714)*1) # 16.07622
 # effect:
@@ -478,6 +484,12 @@ mutate_if(is.numeric, round, digits=2)
 # table
 kable(result) %>% kableExtra::kable_styling()
 
+# calculating effect size - accounting for log transformation
+exp((2.926657) +  (-0.66037)*0) # 18.66513 
+exp((2.926657) +  (-0.66037)*1) # 9.643528
+# effect:
+9.643528 - 18.66513 # effect of warming in 2021 - 9% more native species percent cover than ambient plots
+
 # species model for supp
 mod_spp_kn <- lmer(cover ~ state * insecticide * as.factor(year_factor) + species  + (1|plot), comp_kbs_native_spp, REML=FALSE)
 anova(mod_spp_kn)
@@ -565,7 +577,7 @@ anova(mod_exotic_k)
 exp((1.66121) +  (-0.07345)*0) # 5.265678 
 exp((1.66121) +  (-0.07345)*1) # 4.892777
 # effect:
-4.892777 - 5.265678 # effect of warming - warmed plots had -0.372901 or 0.37% less exotic species percent cover than ambient plots
+4.892777 - 5.265678 # effect of warming - warmed plots had -0.372901 or 37% less exotic species percent cover than ambient plots
 
 # comparison 1
 contrast1 <- contrast(emmeans(mod_exotic_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")

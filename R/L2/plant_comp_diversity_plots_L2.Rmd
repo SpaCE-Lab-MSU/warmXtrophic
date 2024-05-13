@@ -161,12 +161,56 @@ sum_richness_all <- diversity %>%
             se = std.error(richness, na.rm = TRUE))
 ```
 
+shannon only plot - all treatments, yearly
+```{r}
+sum_shannon_i$year <- as.factor(sum_shannon_i$year)
+sum_shannon_i$full_treat <- paste(sum_shannon_i$state, sum_shannon_i$insecticide, sep="_")
+sum_shannon_line_i <- function(loc) { 
+        shannon_plot <- subset(sum_shannon_i, site == loc)
+        return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group=full_treat, linetype=full_treat, color = full_treat)) +
+                       geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.15)) +
+                       geom_line(size = 1) +
+                       geom_point(size = 2) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dashed", "solid", "dashed"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Shannon Diveristy", title = loc) +
+                       #ylim(0.4, 2.0) +
+                       theme_bw(14))
+}
+sum_shannon_line_i_kbs <- sum_shannon_line_i("KBS")
+sum_shannon_line_i_kbs <- sum_shannon_line_i_kbs + labs(title="KBS")
+sum_shannon_line_i_umbs <- sum_shannon_line_i("UMBS")
+sum_shannon_line_i_umbs <- sum_shannon_line_i_umbs + labs(y=NULL, title="UMBS")
+
+shannon_line_i <- ggpubr::ggarrange(sum_shannon_line_i_kbs, sum_shannon_line_i_umbs,
+                          nrow = 1, ncol = 2, common.legend = T, legend="bottom")
+shannon_line_i
+png("shannon_plots_lineplot_by_year_L2.png", units="in", width=10, height=6, res=300)
+annotate_figure(shannon_line_i,
+                bottom = text_grob("Year", color = "black", size=15))
+dev.off()
+```
+
+
+
+
+
+
+
+
+
+
+
+Not used in manuscript or supp
+
 Combining diversity indices - all treatments
 Line plot with insecticide and all years
 ```{r}
 # Shannon
-sum_shannon_i$year <- as.factor(sum_shannon_i$year)
-sum_shannon_i$full_treat <- paste(sum_shannon_i$state, sum_shannon_i$insecticide, sep="_")
 sum_shannon_line_i <- function(loc) { 
         shannon_plot <- subset(sum_shannon_i, site == loc)
         return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group=full_treat, linetype=full_treat, color = full_treat)) +
@@ -245,40 +289,6 @@ annotate_figure(diversity_line_i,
 dev.off()
 ```
 
-shannon only plot - all treatments, yearly
-```{r}
-#Richness
-sum_shannon_line_i <- function(loc) { 
-        shannon_plot <- subset(sum_shannon_i, site == loc)
-        return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.15)) +
-                       geom_line(size = 1) +
-                       geom_point(size = 2) +
-                       scale_color_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
-                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dashed", "solid", "dashed"),
-                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       labs(x = NULL, y = "Shannon Diveristy", title = loc) +
-                       ylim(0.4, 2.0) +
-                       theme_bw(14))
-}
-sum_shannon_line_i_kbs <- sum_shannon_line_i("KBS")
-sum_shannon_line_i_kbs <- sum_shannon_line_i_kbs + labs(title="KBS")
-sum_shannon_line_i_umbs <- sum_shannon_line_i("UMBS")
-sum_shannon_line_i_umbs <- sum_shannon_line_i_umbs + labs(y=NULL, title="UMBS")
-
-shannon_line_i <- ggpubr::ggarrange(sum_shannon_line_i_kbs, sum_shannon_line_i_umbs,
-                          nrow = 1, ncol = 2, common.legend = T, legend="bottom")
-shannon_line_i
-png("shannon_plots_lineplot_by_year_L2.png", units="in", width=10, height=8, res=300)
-annotate_figure(shannon_line_i,
-                bottom = text_grob("Year", color = "black", size=15))
-dev.off()
-```
-
-
 richness only plot - all treatments, yearly
 ```{r}
 #Richness
@@ -312,16 +322,6 @@ annotate_figure(richness_line_i,
                 bottom = text_grob("Year", color = "black", size=15))
 dev.off()
 ```
-
-
-
-
-
-
-
-
-
-Not used in manuscript or supp
 
 Averaged across years plots
 Richness only dot plot

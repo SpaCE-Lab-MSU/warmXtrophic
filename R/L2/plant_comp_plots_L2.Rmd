@@ -216,10 +216,10 @@ plot_line_umbs_e <- plot_line_umbs_e + labs(title=NULL, y=NULL, subtitle = "Exot
 
 plot_line_origin <- ggpubr::ggarrange(plot_line_kbs_n, plot_line_umbs_n,
                                       plot_line_kbs_e, plot_line_umbs_e,
-                                      nrow = 2, ncol = 2, common.legend = T, legend="right")
+                                      nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 plot_line_origin
 
-png("origin_avg_percent_cover_plots_by_year_L2.png", units="in", width=9, height=8, res=300)
+png("origin_avg_percent_cover_plots_by_year_L2.png", units="in", width=10, height=8, res=300)
 annotate_figure(plot_line_origin,
                 left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
                 bottom = text_grob("Year", color = "black", size=15))
@@ -289,7 +289,7 @@ plot_line_gh <- ggpubr::ggarrange(plot_line_kbs_f, plot_line_umbs_f,
                           nrow = 2, ncol = 2, common.legend = T, legend="bottom")
 plot_line_gh
 
-png("growth_habit_avg_percent_cover_plots_by_year_L2.png", units="in", width=9, height=8, res=300)
+png("growth_habit_avg_percent_cover_plots_by_year_L2.png", units="in", width=10, height=8, res=300)
 annotate_figure(plot_line_gh,
                 left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
                 bottom = text_grob("Year", color = "black", size=15))

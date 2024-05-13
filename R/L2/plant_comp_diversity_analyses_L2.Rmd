@@ -630,7 +630,7 @@ summary(mod_kr)
 anova(mod_kr)
 
 # comparison 1
-contrast1 <- contrast(emmeans(mod_k_sh, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast1 <- contrast(emmeans(mod_kr, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
 
 result1 = as.data.frame(contrast1)
 
@@ -641,6 +641,13 @@ mutate_if(is.numeric, round, digits=2)
 kable(result1) %>% kableExtra::kable_styling()
 
 # calculating effect size - accounting for log transformation
+# overall
+exp((2.00924) +  (0.12440)*0) # 7.457647 
+exp((2.00924) +  (0.12440)*1) # 8.445553
+# effect:
+8.445553 - 7.457647 # effect of warming - warmed plots had 0.987906 less species than ambient plots
+
+# calculating effect size for herbivory and year - accounting for log transformation
 # overall
 exp((2.00924) +  (0.12440)*0) # 7.457647 
 exp((2.00924) +  (0.12440)*1) # 8.445553
