@@ -471,6 +471,206 @@ dev.off()
 
 
 
+##### amount eaten for native & non-native at each site #####
+sum_herb_spp2 <- herb[herb$p_eaten != 0, ]
+sum_herb_spp2 <- sum_herb_spp2 %>%
+        filter(!(origin == "" | origin == "Both"))
+sum_herb_spp2 <- sum_herb_spp2 %>%
+        group_by(site, year, origin) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>% 
+        group_by(site, origin) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_spp2 <- subset(sum_herb_spp2)
+herb_spp_overall <- function(loc) { 
+        herb_spp_subset <- subset(sum_herb_spp2, site == loc)
+        return(ggplot(herb_spp_subset, aes(x = origin, y = avg_eaten,)) +
+                       #facet_wrap(~origin, scales="free") +
+                       geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),pch=21,size=0.9,position=position_dodge(0.4)) +
+                       labs(x = NULL, y = NULL, title=loc) +
+                       #scale_fill_manual(name="Treatment",
+                       #                  values = c("#FFB451", "#0b0055"),
+                       #                  labels = c("Herbivory","Reduced Herbivory")) +
+                       ##coord_cartesian(ylim = c(100, 250)) +
+                       #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+                       theme_bw(14)) +
+                theme(legend.position = "none")
+}
+kbs_herb_spp <- herb_spp_overall("kbs")
+umbs_herb_spp <- herb_spp_overall("umbs")
+herb_overall_merge <- ggpubr::ggarrange(kbs_herb_spp, umbs_herb_spp,
+                                        ncol = 2, common.legend=T, legend="right")
+
+##### native probability eaten #####
+# selecting KBS & herbivory plots, making binary response for if eaten or not overall
+herb_binom_k <- herb %>%
+        filter(site == "kbs") %>%
+        filter(!(origin == "" | origin == "Both")) %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_k$p_eaten[herb_binom_k$p_eaten == 1] <- "Eaten"
+herb_binom_k$p_eaten[herb_binom_k$p_eaten == 0] <- "Not Eaten"
+herb_binom_sumk2 <- herb_binom_k %>%
+        group_by(site, year, origin) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>%
+        group_by(plot,origin, p_eaten) %>%
+        count(p_eaten) %>%
+        group_by(plot,origin) %>%
+        mutate(n = n/sum(n)) %>%
+        group_by(origin,p_eaten) %>%
+        summarize(mean_n = mean(n),
+                  se = std.error(n))
+herb_binom_sumk3 <- herb_binom_sumk2 %>%
+        filter(p_eaten == "Eaten")
+ggplot(herb_binom_sumk3, aes(x=origin, y=mean_n)) +
+        #facet_wrap(~species, ncol=4) +
+        geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se),pch=21,size=1,position=position_dodge(0.2)) +
+        labs(x = NULL, y = NULL, title="KBS") +
+        #scale_x_discrete(labels=c("ambient" = "Ambient ", "warmed" = " Warmed")) +
+        #scale_fill_manual(name="Treatment",
+        #                  values = c("#FFB451", "#0b0055"),
+        #                  labels=c("Herbivory","Reduced Herbivory")) +
+        #ylim(5,21) +
+        theme_bw() +
+        theme(legend.title=element_text(size=15), 
+              legend.text=element_text(size=15),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title=element_text(size=17),
+              strip.text=element_text(size=15)) +
+        guides(color = "none")
+
+
+
+##### amount eaten for growth form #####
+# kbs
+sum_herb_spp2 <- herb[herb$p_eaten != 0, ]
+sum_herb_spp2 <- sum_herb_spp2 %>%
+        group_by(site, year, growth_habit) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>% 
+        group_by(site, growth_habit) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_spp2 <- subset(sum_herb_spp2)
+herb_spp_overall <- function(loc) { 
+        herb_spp_subset <- subset(sum_herb_spp2, site == loc)
+        return(ggplot(herb_spp_subset, aes(x = growth_habit, y = avg_eaten,)) +
+                       #facet_wrap(~origin, scales="free") +
+                       geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),pch=21,size=0.9,position=position_dodge(0.4)) +
+                       labs(x = NULL, y = NULL, title=loc) +
+                       #scale_fill_manual(name="Treatment",
+                       #                  values = c("#FFB451", "#0b0055"),
+                       #                  labels = c("Herbivory","Reduced Herbivory")) +
+                       ##coord_cartesian(ylim = c(100, 250)) +
+                       #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+                       theme_bw(14)) +
+                theme(legend.position = "none")
+}
+kbs_herb_spp <- herb_spp_overall("kbs")
+
+# umbs
+sum_herb_spp2 <- herb[herb$p_eaten != 0, ]
+sum_herb_spp2 <- sum_herb_spp2 %>%
+        group_by(site, year, state,growth_habit) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        group_by(site, state, growth_habit) %>%
+        summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
+                  se = std.error(p_eaten, na.rm = TRUE))
+sum_herb_spp2 <- subset(sum_herb_spp2)
+herb_spp_overall <- function(loc) { 
+        herb_spp_subset <- subset(sum_herb_spp2, site == loc)
+        return(ggplot(herb_spp_subset, aes(x = growth_habit, y = avg_eaten, fill=state, color = state)) +
+                       #facet_wrap(~origin, scales="free") +
+                       geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se),pch=21,size=0.9,position=position_dodge(0.4)) +
+                       labs(x = NULL, y = NULL, title=loc) +
+                       #scale_fill_manual(name="Treatment",
+                       #                  values = c("#FFB451", "#0b0055"),
+                       #                  labels = c("Herbivory","Reduced Herbivory")) +
+                       ##coord_cartesian(ylim = c(100, 250)) +
+                       #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+                       theme_bw(14)) +
+                theme(legend.position = "none")
+}
+umbs_herb_spp <- herb_spp_overall("umbs")
+
+##### growth form probability eaten #####
+# selecting KBS & herbivory plots, making binary response for if eaten or not overall
+herb_binom_k <- herb %>%
+        filter(site == "kbs") %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_k$p_eaten[herb_binom_k$p_eaten == 1] <- "Eaten"
+herb_binom_k$p_eaten[herb_binom_k$p_eaten == 0] <- "Not Eaten"
+herb_binom_sumk2 <- herb_binom_k %>%
+        group_by(site, year, growth_habit) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        filter(all(c('warmed', 'ambient') %in% state)) %>%
+        group_by(plot,growth_habit, p_eaten) %>%
+        count(p_eaten) %>%
+        group_by(plot,growth_habit) %>%
+        mutate(n = n/sum(n)) %>%
+        group_by(growth_habit,p_eaten) %>%
+        summarize(mean_n = mean(n),
+                  se = std.error(n))
+herb_binom_sumk3 <- herb_binom_sumk2 %>%
+        filter(p_eaten == "Eaten")
+ggplot(herb_binom_sumk3, aes(x=growth_habit, y=mean_n)) +
+        #facet_wrap(~species, ncol=4) +
+        geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se),pch=21,size=1,position=position_dodge(0.2)) +
+        labs(x = NULL, y = NULL, title="KBS") +
+        #scale_x_discrete(labels=c("ambient" = "Ambient ", "warmed" = " Warmed")) +
+        #scale_fill_manual(name="Treatment",
+        #                  values = c("#FFB451", "#0b0055"),
+        #                  labels=c("Herbivory","Reduced Herbivory")) +
+        #ylim(5,21) +
+        theme_bw() +
+        theme(legend.title=element_text(size=15), 
+              legend.text=element_text(size=15),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title=element_text(size=17),
+              strip.text=element_text(size=15)) +
+        guides(color = "none")
+
+# umbs
+herb_binom_u <- herb %>%
+        filter(site == "umbs") %>%
+        mutate_at(vars(contains('p_eaten')), ~1 * (. != 0))
+herb_binom_u$p_eaten[herb_binom_u$p_eaten == 1] <- "Eaten"
+herb_binom_u$p_eaten[herb_binom_u$p_eaten == 0] <- "Not Eaten"
+herb_binom_sumu2 <- herb_binom_u %>%
+        group_by(site, year, state, growth_habit) %>%
+        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        group_by(plot,state, growth_habit, p_eaten) %>%
+        count(p_eaten) %>%
+        group_by(plot,state, growth_habit) %>%
+        mutate(n = n/sum(n)) %>%
+        group_by(state, growth_habit,p_eaten) %>%
+        summarize(mean_n = mean(n),
+                  se = std.error(n))
+herb_binom_sumu3 <- herb_binom_sumu2 %>%
+        filter(p_eaten == "Eaten")
+ggplot(herb_binom_sumu3, aes(x=growth_habit, y=mean_n, fill=state, color = state)) +
+        #facet_wrap(~species, ncol=4) +
+        geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se),pch=21,size=1,position=position_dodge(0.2)) +
+        labs(x = NULL, y = NULL, title="KBS") +
+        #scale_x_discrete(labels=c("ambient" = "Ambient ", "warmed" = " Warmed")) +
+        #scale_fill_manual(name="Treatment",
+        #                  values = c("#FFB451", "#0b0055"),
+        #                  labels=c("Herbivory","Reduced Herbivory")) +
+        #ylim(5,21) +
+        theme_bw() +
+        theme(legend.title=element_text(size=15), 
+              legend.text=element_text(size=15),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              title=element_text(size=17),
+              strip.text=element_text(size=15)) +
+        guides(color = "none")
+
+
+
 ### mean temp w/ percent eaten and amount eaten ###
 # selecting KBS, making binary response for if eaten or not overall
 herb_binom_k_i2 <- herb %>%
