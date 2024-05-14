@@ -25,6 +25,7 @@ library(lme4)
 library(fitdistrplus)
 library(pwr)
 library(kableExtra)
+library(MuMIn)
 
 # Set working directory
 L1_dir<-Sys.getenv("L1DIR")
@@ -268,6 +269,7 @@ c1_kbs_amb <- c1_kbs %>%
 temp.c.kbs <- lmer(carbon ~ mean_temp + (1|plot/species/plant_number), c1_kbs_amb, REML=FALSE)
 anova(temp.c.kbs)
 summary(temp.c.kbs)
+r.squaredGLMM(temp.c.kbs)
 
 
 #### carbon - UMBS ####
@@ -293,6 +295,7 @@ c1_umbs_amb <- c1_umbs %>%
         filter(treatment == "ambient")
 temp.c.umbs <- lmer(carbon ~ mean_temp + (1|plot/species/plant_number), c1_umbs_amb, REML=FALSE)
 anova(temp.c.umbs)
+r.squaredGLMM(temp.c.umbs)
 summary(temp.c.umbs)
 
 
@@ -325,6 +328,7 @@ n1_kbs_amb <- n1_kbs %>%
         filter(treatment == "ambient")
 temp.n.kbs <- lmer(nitrogen ~ mean_temp + (1|plot/species/plant_number), n1_kbs_amb, REML=FALSE)
 anova(temp.n.kbs)
+r.squaredGLMM(temp.n.kbs)
 summary(temp.n.kbs)
 
 
@@ -357,6 +361,7 @@ n1_umbs_amb <- n1_umbs %>%
         filter(treatment == "ambient")
 temp.n.umbs <- lmer(nitrogen ~ mean_temp + (1|plot/species/plant_number), n1_umbs_amb, REML=FALSE)
 anova(temp.n.umbs)
+r.squaredGLMM(temp.n.umbs)
 summary(temp.n.umbs)
 
 ```

@@ -32,6 +32,7 @@ library(bbmle)
 library(emmeans)
 library(gtsummary)
 library(knitr)
+library(MuMIn)
 #install.packages('TMB',type='source')
 
 # Get data
@@ -189,6 +190,7 @@ green_kbs_amb <- green_kbs %>%
         filter(state == "ambient")
 modtest1 <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_kbs_amb, REML=FALSE)
 anova(modtest1)
+r.squaredGLMM(modtest1)
 summary(modtest1)
 
 # species model for supp
@@ -225,6 +227,7 @@ green_umbs_amb <- green_umbs %>%
         filter(state == "ambient")
 modtest1u <- lmer(med_half_cover_date ~ mean_temp + (1|plot), green_umbs_amb, REML=FALSE)
 anova(modtest1u)
+r.squaredGLMM(modtest1u)
 summary(modtest1u)
 
 # species model for supp
