@@ -378,6 +378,8 @@ AICtab(modtest1u,modtest2u)
 anova(modtest1u)
 summary(modtest1u)
 
+r.squaredGLMM(modtest1u)
+
 # making a table
 kable(anova(modtest1u)) %>% kableExtra::kable_styling()
 
