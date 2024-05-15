@@ -215,9 +215,13 @@ Hypothesized model
 mod_k_full <- lmer(log(avg_pc) ~ state * insecticide * as.factor(year_factor) + (1|plot), kbs_comp_plot, REML=FALSE) #hypothesized model
 summary(mod_k_full)
 anova(mod_k_full)
+exp(2.763627)
+exp(2.763627+0.013714)
 
 # comparisons
 contrast.k1 <- contrast(emmeans(mod_k_full, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type = "response")
+# KD: back transforming ratio (https://www.reddit.com/r/statistics/comments/t6ph7o/comment/hzl704x/)
+# ambient plots had 0.61 times the cover of warmed in 2021
 
 result1 = as.data.frame(contrast.k1)
 
@@ -229,6 +233,12 @@ kable(result1) %>% kableExtra::kable_styling()
 
 # comparisons
 contrast.k2 <- contrast(emmeans(mod_k_full, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type = "response")
+(0.720 - 1) * 100 # 28% decrease in herbivory, or, 28% increase in reduced herbivory
+# but, saying % increase/decrease is confusing since our response variable is a percent
+# i.e., 20% --> 16% is a 20% decrease, but if we say there was a 20% decrease, it sounds like 20% --> 0%
+# so maybe it makes more sense to say herbivory plots had 0.72 times the amount of percent cover as reduced herbivory?
+35*0.72 # 25, % cover decreases by 10
+20*0.72 # 14, percent cover decreases by 6
 
 result2 = as.data.frame(contrast.k2)
 
@@ -576,10 +586,16 @@ anova(mod_exotic_k)
 exp((1.66121) +  (-0.07345)*0) # 5.265678 
 exp((1.66121) +  (-0.07345)*1) # 4.892777
 # effect:
-4.892777 - 5.265678 # effect of warming - warmed plots had -0.372901 or .37% more exotic species percent cover than ambient plots
+4.892777 - 5.265678 # effect of warming - warmed plots had -0.372901 or .37% less exotic species percent cover than ambient plots
 
 # comparison 1
-contrast1 <- contrast(emmeans(mod_exotic_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast1 <- contrast(emmeans(mod_exotic_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type="response")
+# 2018
+(0.364 - 1) *100 # 64% increase in warmed plots
+# 2019 
+(0.252 - 1) *100 # 75% increase in warmed plots
+# 2020
+(0.280 - 1) *100 # 72%
 
 result1 = as.data.frame(contrast1)
 

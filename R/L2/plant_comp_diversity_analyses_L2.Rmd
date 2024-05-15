@@ -630,7 +630,13 @@ summary(mod_kr)
 anova(mod_kr)
 
 # comparison 1
-contrast1 <- contrast(emmeans(mod_kr, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast1 <- contrast(emmeans(mod_kr, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type="response")
+(0.806 - 1) * 100 # 19% decrease in herbivory, or 0.81 times less percent cover in herbivory
+# if % cover was 20 and 35 in reduced herbivory:
+20*0.806
+20-16.12 #3.88 decrease
+35*0.806
+35-28.21 #6.79 decrease
 
 result1 = as.data.frame(contrast1)
 
