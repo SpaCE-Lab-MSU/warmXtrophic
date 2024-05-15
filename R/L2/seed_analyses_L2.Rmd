@@ -42,6 +42,7 @@ library(glmmTMB)
 library(GGally) # ggpairs() function
 library(bbmle) # AICtab() function
 library(knitr)
+library(MuMIn)
 
 # Set working directory
 Sys.getenv("L1DIR")
@@ -157,6 +158,8 @@ mod_k_all <- lmer(log(julian_min) ~ state * insecticide * year_factor + (1|plot)
 summary(mod_k_all)
 anova(mod_k_all)
 
+kable(anova(mod_k_all)) %>% kableExtra::kable_styling()
+
 # calculating effect size - accounting for log transformation
 exp((5.341e+00) +  (7.018e-02)*0) # 208.7213 
 exp((5.341e+00) +  (7.018e-02)*1) # 223.8956
@@ -193,6 +196,8 @@ exp((4.984e+00) + (2.009e-02)*1) # 149.0214
 # effect:
 149.0214 - 146.0574 # = 2.965  
 # warming plots delayed seed set by ~2.965 days
+
+r.squaredGLMM(modtest1)
 
 # making a table
 kable(anova(modtest1)) %>% kableExtra::kable_styling()
@@ -287,6 +292,8 @@ AICtab(modtest1, modtest2, weights=T)
 
 anova(modtest1)
 summary(modtest1)
+
+r.squaredGLMM(modtest1)
 
 # making a table
 kable(anova(modtest1), digits = 3) %>% kableExtra::kable_styling()

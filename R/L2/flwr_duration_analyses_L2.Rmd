@@ -152,17 +152,19 @@ kable(anova(mod_k_all), digits = 2) %>% kableExtra::kable_styling()
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
 kbs_flwr_plot_amb <- kbs_flwr_plot %>%
         filter(state == "ambient")
-modtest1u <- lmer(flwr_duration_scaled ~ mean_temp + (1|plot), kbs_flwr_plot, REML=FALSE)
-modtest2u <- lmer(flwr_duration_scaled ~ GDD_cumulative + (1|plot), kbs_flwr_plot, REML=FALSE)
+modtest1 <- lmer(flwr_duration_scaled ~ mean_temp + (1|plot), kbs_flwr_plot, REML=FALSE)
+modtest2 <- lmer(flwr_duration_scaled ~ GDD_cumulative + (1|plot), kbs_flwr_plot, REML=FALSE)
 
-AICtab(modtest1u, modtest2u, weights=T)
+AICtab(modtest1, modtest2, weights=T)
 # growing degree days model is better but we are going to use the mean temp for all models
 
-anova(modtest1u)
-summary(modtest1u)
+anova(modtest1)
+summary(modtest1)
+
+r.squaredGLMM(modtest1)
 
 # making a table
-kable(anova(modtest1u)) %>% kableExtra::kable_styling()
+kable(anova(modtest1)) %>% kableExtra::kable_styling()
 ```
 
 # UMBS PLOT LEVEL - Looking at DURATION of flowering
@@ -248,6 +250,8 @@ AICtab(modtest1u, modtest2u, weights=T)
 
 anova(modtest1u)
 summary(modtest1u)
+
+r.squaredGLMM(modtest1u)
 
 # making a table
 kable(anova(modtest1u)) %>% kableExtra::kable_styling()
