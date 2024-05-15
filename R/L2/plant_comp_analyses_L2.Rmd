@@ -44,6 +44,7 @@ library(GGally) # ggpairs() function
 library(bbmle) # AICtab() function
 library(knitr)
 library(GLMMadaptive)
+library(MuMIn)
 
 # Set working directory
 Sys.getenv("L1DIR")
@@ -216,7 +217,7 @@ summary(mod_k_full)
 anova(mod_k_full)
 
 # comparisons
-contrast.k1 <- contrast(emmeans(mod_k_full, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.k1 <- contrast(emmeans(mod_k_full, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type = "response")
 
 result1 = as.data.frame(contrast.k1)
 
@@ -227,7 +228,7 @@ mutate_if(is.numeric, round, digits=2)
 kable(result1) %>% kableExtra::kable_styling()
 
 # comparisons
-contrast.k2 <- contrast(emmeans(mod_k_full, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.k2 <- contrast(emmeans(mod_k_full, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type = "response")
 
 result2 = as.data.frame(contrast.k2)
 
@@ -236,12 +237,6 @@ mutate_if(is.numeric, round, digits=2)
 
 # table
 kable(result2) %>% kableExtra::kable_styling()
-
-# calculating effect size of reduced herbivory in 2021 - accounting for log transformation
-exp((2.763627) +  (-0.3286)*0) # 15.85725 
-exp((2.763627) +  (-0.3286)*1) # 11.41613
-# effect:
-16.07622 - 11.41613 # 4.66009
 
 # calculating effect size of warming - accounting for log transformation
 exp((2.763627) +  (0.013714)*0) # 15.85725 
@@ -260,6 +255,8 @@ modtest2k <- lmer(log(avg_pc) ~ GDD_cumulative + (1|plot), kbs_comp_plot_amb, RE
 AICtab(modtest1k,modtest2k)
 anova(modtest1k)
 summary(modtest1k)
+
+r.squaredGLMM(modtest1k)
 
 # making a table
 kable(anova(modtest1k)) %>% kableExtra::kable_styling()
@@ -474,7 +471,7 @@ summary(mod_native_k)
 anova(mod_native_k)
 
 # comparisons
-contrast.k <- contrast(emmeans(mod_native_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.k <- contrast(emmeans(mod_native_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type = "response")
 
 result = as.data.frame(contrast.k)
 
@@ -573,11 +570,11 @@ mod_exotic_k <- lmer(log(avg_origin_pc) ~ state * insecticide * as.factor(year_f
 summary(mod_exotic_k)
 anova(mod_exotic_k)
 
-# calculating effect size - accounting for log transformation
+# calculating effect size of warming - accounting for log transformation
 exp((1.66121) +  (-0.07345)*0) # 5.265678 
 exp((1.66121) +  (-0.07345)*1) # 4.892777
 # effect:
-4.892777 - 5.265678 # effect of warming - warmed plots had -0.372901 or 37% less exotic species percent cover than ambient plots
+4.892777 - 5.265678 # effect of warming - warmed plots had -0.372901 or .37% more exotic species percent cover than ambient plots
 
 # comparison 1
 contrast1 <- contrast(emmeans(mod_exotic_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
@@ -591,7 +588,7 @@ mutate_if(is.numeric, round, digits=2)
 kable(result1) %>% kableExtra::kable_styling()
 
 # comparison 2
-contrast2 <- contrast(emmeans(mod_exotic_k, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast2 <- contrast(emmeans(mod_exotic_k, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type = "response")
 
 result2 = as.data.frame(contrast2)
 
@@ -875,13 +872,15 @@ mod_forb_k <- lmer(log(avg_growth_pc) ~ state * insecticide * as.factor(year_fac
 summary(mod_forb_k)
 anova(mod_forb_k)
 
+kable(anova(mod_forb_k)) %>% kableExtra::kable_styling()
+
 # comparison
 contrast <- contrast(emmeans(mod_forb_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
 
 result = as.data.frame(contrast)
 
 result <- result %>%
-mutate_if(is.numeric, round, digits=2)
+mutate_if(is.numeric, round)
 
 # table
 kable(result) %>% kableExtra::kable_styling()
