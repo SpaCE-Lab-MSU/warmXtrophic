@@ -741,6 +741,9 @@ temp_prob_eaten_u <- ggplot(umbs_herb_binom_temp, aes(x = mean_temp, y = n, colo
               axis.text.y = element_blank(),
               axis.text.x=element_blank(),
               axis.title.y=element_blank())
+# R^2
+summary(lm(n~mean_temp, data=kbs_herb_binom_temp))
+summary(lm(n~mean_temp, data=umbs_herb_binom_temp))
 
 # amount eaten plot
 sum_herb_overall_k_i2 <- herb %>%
@@ -801,6 +804,9 @@ temp_amount_eaten_u <- ggplot(umbs_herb_am_temp, aes(x = mean_temp, y = avg_eate
               axis.text.x=element_text(size=13),
               axis.title.y=element_blank(),
               axis.title.x=element_blank())
+# R^2
+summary(lm(avg_eaten~mean_temp, data=kbs_herb_am_temp))
+summary(lm(avg_eaten~mean_temp, data=umbs_herb_am_temp))
 # merge fig
 gdd_mean_temp_merge <- ggpubr::ggarrange(temp_prob_eaten_k,temp_prob_eaten_u,
                                          temp_amount_eaten_k,temp_amount_eaten_u,

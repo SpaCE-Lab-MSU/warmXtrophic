@@ -27,6 +27,7 @@ library(AER)
 library(sjPlot)
 library(glmmTMB)
 library(glmmADMB)
+library(performance)
 
 # Get data
 Sys.getenv("L1DIR")
@@ -381,8 +382,8 @@ temp.model.u <- glmmTMB(p_eaten ~ mean_temp,
                         data=herb_umbs_amb,
                         zi=~.,
                         family=truncated_nbinom2)
-plot(ggpredict(temp.model.u, terms = "mean_temp"))
 summary(temp.model.u)
+plot(ggpredict(temp.model.u, terms = "mean_temp"))
 # back transforming #
 # want to find change from temp of 15 to temp of 16
 ( exp(20.7013 - 1.1594*16) - exp(20.7013 - 1.1594*15) /
