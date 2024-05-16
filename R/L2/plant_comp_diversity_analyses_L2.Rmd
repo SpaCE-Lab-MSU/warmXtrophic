@@ -64,251 +64,6 @@ kbs_diversity <- subset(diver, site == "kbs")
 umbs_diversity <- subset(diver, site == "umbs")
 ```
 
-#Simpson's Index
-KBS
-```{r, warning=F}
-### KBS ###
-hist(kbs_diversity$simpson) # skewed left
-qqnorm(kbs_diversity$simpson)
-shapiro.test(kbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
-
-# Exploring distributions for these data:
-descdist(kbs_diversity$simpson, discrete = FALSE)
-
-# Gamma distribution 
-fit.gamma <- fitdist(kbs_diversity$simpson, "gamma")
-plot(fit.gamma)
-
-# Weibull distribution
-fit.weibull  <- fitdist(kbs_diversity$simpson, "weibull")
-plot(fit.weibull)
-
-# Lognormal distribution 
-fit.ln <- fitdist(kbs_diversity$simpson, "lnorm")
-plot(fit.ln)
-
-# Exponential distribution is another option
-fit.exp <- fitdist(kbs_diversity$simpson, "exp")
-plot(fit.exp)
-
-par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
-denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-dev.off()
-
-# Goodness of fit comparisons across fits
-gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
-# log normal distribution looks to be the best based on AIC and BIC values or would it be gamma? (closest to zero?)
-```
-
-Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
-These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
-
-```{r}
-# KBS State-only model
-fit_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity)
-outlierTest(fit_state_kbs) # yes row 60 (2017), 145 (2021)
-qqPlot(fit_state_kbs, main="QQ Plot") 
-hist(fit_state_kbs$residuals)
-leveragePlots(fit_state_kbs)
-ols_test_normality(fit_state_kbs)
-
-# KBS State and year model
-fit_stateyear_kbs <- lm(log(simpson) ~ state + year_factor, data = kbs_diversity)
-outlierTest(fit_stateyear_kbs) # yes
-qqPlot(fit_stateyear_kbs, main="QQ Plot") 
-hist(fit_stateyear_kbs$residuals)
-leveragePlots(fit_stateyear_kbs)
-ols_test_normality(fit_stateyear_kbs)
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-fit3 <- lm(log(simpson) ~ state*year, data = kbs_diversity)
-interact_plot(fit3, pred = year, modx = state)
-
-# remove outliers, lines 60 and 145
-kbs_diversity_nooutlier <- kbs_diversity[!rownames(kbs_diversity) == '60', ]
-kbs_diversity_nooutlier <- kbs_diversity_nooutlier[!rownames(kbs_diversity_nooutlier) == '145', ]
-# KBS State-only model
-fit_plot_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity_nooutlier)
-outlierTest(fit_plot_state_kbs) # no outliers
-qqPlot(fit_plot_state_kbs, main="QQ Plot") 
-hist(fit_plot_state_kbs$residuals)
-leveragePlots(fit_plot_state_kbs)
-ols_test_normality(fit_plot_state_kbs)
-```
-
-MIXED EFFECT MODELS
-SIMPSON
-KBS 
-```{r}
-modfull <- lmer(log(simpson) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
-
-# Check Assumptions:
-# (1) Linearity: if covariates are not categorical (year isn't)
-# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-par(mfrow=c(1,2))
-plot(modfull)
-# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
-# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
-# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
-
-leveneTest(residuals(modfull) ~ kbs_diversity$state)
-# Assumption not met
-leveneTest(residuals(modfull) ~ kbs_diversity$insecticide) 
-# Assumption not met 
-leveneTest(residuals(modfull) ~ kbs_diversity$plot)
-# Assumption not met
-
-# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
-# Check for normal residuals
-qqPlot(resid(modfull))
-hist(residuals(modfull))
-shapiro.test(resid(modfull)) # not normally distributed resids bc p<0.05
-outlierTest(modfull) # row 60 and 152
-
-# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
-require(lme4)
-r_int<- ranef(modfull)$plot$`(Intercept)`
-qqnorm(r_int)
-qqline(r_int)
-shapiro.test(r_int) 
-# Normally distributed random effect pvalue > 0.05
-```
-
-```{r}
-# testing if year as continuous or year as a factor makes more sense (test models)
-year.mod.test1 <- lmer(log(simpson) ~ state + year + (1|plot), kbs_diversity, REML=FALSE)
-year.mod.test2 <- lmer(log(simpson) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
-anova(year.mod.test1, year.mod.test2) #year.mod.test2
-
-#Our hypothesized model is  mod9p
-mod9 <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
-summary(mod9)
-anova(mod9)
-
-# making a table
-kable(anova(mod9), digits = 2) %>% kableExtra::kable_styling()
-```
-
-UMBS
-```{r, warning=F}
-### UMBS ###
-hist(umbs_diversity$simpson) #skewed to the left
-qqnorm(umbs_diversity$simpson)
-shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
-
-# Exploring distributions for these data:
-descdist(umbs_diversity$simpson, discrete = FALSE)
-
-# Gamma distribution 
-fit.gamma <- fitdist(umbs_diversity$simpson, "gamma")
-plot(fit.gamma)
-
-# Weibull distribution
-fit.weibull  <- fitdist(umbs_diversity$simpson, "weibull")
-plot(fit.weibull)
-
-# Lognormal distribution 
-fit.ln <- fitdist(umbs_diversity$simpson, "lnorm")
-plot(fit.ln)
-
-# Exponential distribution is another option
-fit.exp <- fitdist(umbs_diversity$simpson, "exp")
-plot(fit.exp)
-
-par(mfrow=c(2,2))
-plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
-denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
-dev.off()
-
-# Goodness of fit comparisons across fits
-gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
-# log normal distribution looks to be the best based on AIC and BIC values
-```
-
-```{r}
-# UMBS State-only model
-fit_state_umbs <- lm(log(simpson) ~ state, data = umbs_diversity)
-outlierTest(fit_state_umbs) # yes, row 186 and 198
-qqPlot(fit_state_umbs, main="QQ Plot") 
-hist(fit_state_umbs$residuals)
-leveragePlots(fit_state_umbs)
-ols_test_normality(fit_state_umbs)
-
-# UMBS State and year model
-fit_stateyear_umbs <- lm(log(simpson) ~ state + year_factor, data = umbs_diversity)
-outlierTest(fit_stateyear_kbs) # rows 60, 145
-qqPlot(fit_stateyear_umbs, main="QQ Plot") 
-hist(fit_stateyear_umbs$residuals)
-leveragePlots(fit_stateyear_umbs)
-ols_test_normality(fit_stateyear_umbs)
-
-# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
-
-# I can't get these to work
-fit3 <- lm(log(simpson) ~ state*year, data = umbs_diversity)
-interact_plot(fit3, pred = year, modx = state)
-```
-
-```{r}
-modfull_u <- lmer(log(simpson) ~ state*insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
-
-# Check Assumptions:
-# (1) Linearity: if covariates are not categorical (year isn't)
-# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
-par(mfrow=c(1,2))
-plot(modfull_u )
-# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
-# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
-# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
-
-leveneTest(residuals(modfull_u) ~ umbs_diversity$state)
-# Assumption not met
-leveneTest(residuals(modfull_u) ~ umbs_diversity$insecticide) 
-# Assumption not met 
-leveneTest(residuals(modfull_u) ~ umbs_diversity$plot)
-# Assumption not met
-
-# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
-# Check for normal residuals
-qqPlot(resid(modfull_u))
-hist(residuals(modfull_u))
-shapiro.test(resid(modfull_u)) # not normally distributed resids bc p<0.05
-outlierTest(modfull_u) # yes outliers
-
-# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
-require(lme4)
-r_int_u <- ranef(modfull_u )$plot$`(Intercept)`
-qqnorm(r_int_u)
-qqline(r_int_u)
-shapiro.test(r_int_u) 
-# Normally distributed random effect pvalue > 0.05
-```
-
-```{r}
-# hypothesized model
-mod1u <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), umbs_diversity, REML=FALSE)
-
-summary(mod1u)
-anova(mod1u)
-
-# comparisons
-emmeans(mod1u, list(pairwise ~ state*insecticide), adjust = "tukey")
-mod1u.emm <- emmeans(mod1u, ~ state*insecticide)
-contrast(mod1u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
-emmip(mod1u, insecticide~state)
-
-# making a table
-kable(anova(mod1u)) %>% kableExtra::kable_styling()
-```
-
 #Shannon Index
 KBS
 ```{r, warning=F}
@@ -586,7 +341,7 @@ ols_test_normality(fit3)
 ```
 
 ```{r}
-modfull_kr <- lmer(log(richness) ~ state*insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
+modfull_kr <- lmer(richness ~ state*insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical (year isn't)
@@ -619,15 +374,18 @@ shapiro.test(r_int_kr)
 # Normally distributed random effect pvalue > 0.05
 
 # testing if year as continuous or year as a factor makes more sense (test models)
-year.mod.testkr1 <- lmer(log(richness) ~ state + year + (1|plot), kbs_diversity, REML=FALSE)
-year.mod.testkr2 <- lmer(log(richness) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+year.mod.testkr1 <- lmer(richness ~ state + year + (1|plot), kbs_diversity, REML=FALSE)
+year.mod.testkr2 <- lmer(richness ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
 anova(year.mod.testkr1, year.mod.testkr2) #year.mod.test2
 
 # hypothesized model
-mod_kr <- lmer(log(richness) ~ state * insecticide * year_factor + (1|plot), kbs_diversity, REML=FALSE)
+mod_kr <- lmer(richness ~ state * insecticide * year_factor + (1|plot), kbs_diversity, REML=FALSE)
 
 summary(mod_kr)
 anova(mod_kr)
+
+# table
+kable(anova(mod_kr), digits = 3) %>% kableExtra::kable_styling()
 
 # comparison 1
 contrast1 <- contrast(emmeans(mod_kr, ~insecticide*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type="response")
@@ -646,19 +404,6 @@ mutate_if(is.numeric, round, digits=2)
 # table
 kable(result1) %>% kableExtra::kable_styling()
 
-# calculating effect size - accounting for log transformation
-# overall
-exp((2.00924) +  (0.12440)*0) # 7.457647 
-exp((2.00924) +  (0.12440)*1) # 8.445553
-# effect:
-8.445553 - 7.457647 # effect of warming - warmed plots had 0.987906 less species than ambient plots
-
-# calculating effect size for herbivory and year - accounting for log transformation
-# overall
-exp((2.00924) +  (0.12440)*0) # 7.457647 
-exp((2.00924) +  (0.12440)*1) # 8.445553
-# effect:
-8.445553 - 7.457647 # effect of warming - warmed plots had 0.987906 less species than ambient plots
 ```
 
 UMBS
@@ -786,6 +531,251 @@ kable(anova(mod_ur), digits = 2) %>% kableExtra::kable_styling()
 
 
 #KBS and UMBS models not used in manuscript
+#Simpson's Index
+KBS
+```{r, warning=F}
+### KBS ###
+hist(kbs_diversity$simpson) # skewed left
+qqnorm(kbs_diversity$simpson)
+shapiro.test(kbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Exploring distributions for these data:
+descdist(kbs_diversity$simpson, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(kbs_diversity$simpson, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(kbs_diversity$simpson, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(kbs_diversity$simpson, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(kbs_diversity$simpson, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values or would it be gamma? (closest to zero?)
+```
+
+Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
+These illustrate whether certain data points have more leverage (more influence), and thus could be outliers. It's a way of detecting outliers. Leverage plots can help identify whether a point has high or low influence, based on its leverage and residual and determining model fit with and without the point in question. Ultimately you decide whether the points are outliers or not, based on the knowledge of the system and how much it changes the model when included vs. excluded from the data used to fit the model. Here is a good overview of the combination of leverage and residual: scroll down to sections beginning at "13.3 Unusual Observations": https://daviddalpiaz.github.io/appliedstats/model-diagnostics.html
+
+```{r}
+# KBS State-only model
+fit_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity)
+outlierTest(fit_state_kbs) # yes row 60 (2017), 145 (2021)
+qqPlot(fit_state_kbs, main="QQ Plot") 
+hist(fit_state_kbs$residuals)
+leveragePlots(fit_state_kbs)
+ols_test_normality(fit_state_kbs)
+
+# KBS State and year model
+fit_stateyear_kbs <- lm(log(simpson) ~ state + year_factor, data = kbs_diversity)
+outlierTest(fit_stateyear_kbs) # yes
+qqPlot(fit_stateyear_kbs, main="QQ Plot") 
+hist(fit_stateyear_kbs$residuals)
+leveragePlots(fit_stateyear_kbs)
+ols_test_normality(fit_stateyear_kbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+fit3 <- lm(log(simpson) ~ state*year, data = kbs_diversity)
+interact_plot(fit3, pred = year, modx = state)
+
+# remove outliers, lines 60 and 145
+kbs_diversity_nooutlier <- kbs_diversity[!rownames(kbs_diversity) == '60', ]
+kbs_diversity_nooutlier <- kbs_diversity_nooutlier[!rownames(kbs_diversity_nooutlier) == '145', ]
+# KBS State-only model
+fit_plot_state_kbs <- lm(log(simpson) ~ state, data = kbs_diversity_nooutlier)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs)
+```
+
+MIXED EFFECT MODELS
+SIMPSON
+KBS 
+```{r}
+modfull <- lmer(log(simpson) ~ state*year_factor + insecticide*year_factor + (1|plot), kbs_diversity, REML = FALSE)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(modfull)
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(modfull) ~ kbs_diversity$state)
+# Assumption not met
+leveneTest(residuals(modfull) ~ kbs_diversity$insecticide) 
+# Assumption not met 
+leveneTest(residuals(modfull) ~ kbs_diversity$plot)
+# Assumption not met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(modfull))
+hist(residuals(modfull))
+shapiro.test(resid(modfull)) # not normally distributed resids bc p<0.05
+outlierTest(modfull) # row 60 and 152
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int<- ranef(modfull)$plot$`(Intercept)`
+qqnorm(r_int)
+qqline(r_int)
+shapiro.test(r_int) 
+# Normally distributed random effect pvalue > 0.05
+```
+
+```{r}
+# testing if year as continuous or year as a factor makes more sense (test models)
+year.mod.test1 <- lmer(log(simpson) ~ state + year + (1|plot), kbs_diversity, REML=FALSE)
+year.mod.test2 <- lmer(log(simpson) ~ state + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+anova(year.mod.test1, year.mod.test2) #year.mod.test2
+
+#Our hypothesized model is  mod9p
+mod9 <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), kbs_diversity, REML=FALSE)
+summary(mod9)
+anova(mod9)
+
+# making a table
+kable(anova(mod9), digits = 2) %>% kableExtra::kable_styling()
+```
+
+UMBS
+```{r, warning=F}
+### UMBS ###
+hist(umbs_diversity$simpson) #skewed to the left
+qqnorm(umbs_diversity$simpson)
+shapiro.test(umbs_diversity$simpson) # pvalue is < 0.05 so we reject the null hypothesis that the data is normal (aka not normally distributed)
+
+# Exploring distributions for these data:
+descdist(umbs_diversity$simpson, discrete = FALSE)
+
+# Gamma distribution 
+fit.gamma <- fitdist(umbs_diversity$simpson, "gamma")
+plot(fit.gamma)
+
+# Weibull distribution
+fit.weibull  <- fitdist(umbs_diversity$simpson, "weibull")
+plot(fit.weibull)
+
+# Lognormal distribution 
+fit.ln <- fitdist(umbs_diversity$simpson, "lnorm")
+plot(fit.ln)
+
+# Exponential distribution is another option
+fit.exp <- fitdist(umbs_diversity$simpson, "exp")
+plot(fit.exp)
+
+par(mfrow=c(2,2))
+plot.legend <- c("Gamma", "Weibull", "Log Normal", "Exponential")
+denscomp(list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+cdfcomp (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+qqcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+ppcomp  (list(fit.gamma, fit.weibull, fit.ln, fit.exp), legendtext = plot.legend)
+dev.off()
+
+# Goodness of fit comparisons across fits
+gofstat(list(fit.gamma, fit.weibull, fit.ln, fit.exp), fitnames = c("Gamma", "Weibull", "Log Normal", "Exp"))
+# log normal distribution looks to be the best based on AIC and BIC values
+```
+
+```{r}
+# UMBS State-only model
+fit_state_umbs <- lm(log(simpson) ~ state, data = umbs_diversity)
+outlierTest(fit_state_umbs) # yes, row 186 and 198
+qqPlot(fit_state_umbs, main="QQ Plot") 
+hist(fit_state_umbs$residuals)
+leveragePlots(fit_state_umbs)
+ols_test_normality(fit_state_umbs)
+
+# UMBS State and year model
+fit_stateyear_umbs <- lm(log(simpson) ~ state + year_factor, data = umbs_diversity)
+outlierTest(fit_stateyear_kbs) # rows 60, 145
+qqPlot(fit_stateyear_umbs, main="QQ Plot") 
+hist(fit_stateyear_umbs$residuals)
+leveragePlots(fit_stateyear_umbs)
+ols_test_normality(fit_stateyear_umbs)
+
+# Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
+
+# I can't get these to work
+fit3 <- lm(log(simpson) ~ state*year, data = umbs_diversity)
+interact_plot(fit3, pred = year, modx = state)
+```
+
+```{r}
+modfull_u <- lmer(log(simpson) ~ state*insecticide*year_factor + (1|plot), umbs_diversity, REML = FALSE)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(modfull_u )
+# Homogeneity of variance is ok here (increasing variance in resids is not increasing with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(modfull_u) ~ umbs_diversity$state)
+# Assumption not met
+leveneTest(residuals(modfull_u) ~ umbs_diversity$insecticide) 
+# Assumption not met 
+leveneTest(residuals(modfull_u) ~ umbs_diversity$plot)
+# Assumption not met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(modfull_u))
+hist(residuals(modfull_u))
+shapiro.test(resid(modfull_u)) # not normally distributed resids bc p<0.05
+outlierTest(modfull_u) # yes outliers
+
+# (4) Normality of random effect: Get the estimate of random effect (e.g., random intercepts), and check them as you would check the residual. 
+require(lme4)
+r_int_u <- ranef(modfull_u )$plot$`(Intercept)`
+qqnorm(r_int_u)
+qqline(r_int_u)
+shapiro.test(r_int_u) 
+# Normally distributed random effect pvalue > 0.05
+```
+
+```{r}
+# hypothesized model
+mod1u <- lmer(log(simpson) ~ state * insecticide + year_factor + (1|plot), umbs_diversity, REML=FALSE)
+
+summary(mod1u)
+anova(mod1u)
+
+# comparisons
+emmeans(mod1u, list(pairwise ~ state*insecticide), adjust = "tukey")
+mod1u.emm <- emmeans(mod1u, ~ state*insecticide)
+contrast(mod1u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
+emmip(mod1u, insecticide~state)
+
+# making a table
+kable(anova(mod1u)) %>% kableExtra::kable_styling()
+```
+
 ```{r}
 # kBS Simpson
 mod1 <- lmer(log(simpson) ~ state + (1|plot), kbs_diversity, REML=FALSE)

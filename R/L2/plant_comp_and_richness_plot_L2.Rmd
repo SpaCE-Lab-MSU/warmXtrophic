@@ -57,6 +57,97 @@ pc_avg <- comp %>%
   summarize(avg_comp = mean(avg_pc, na.rm = TRUE),
             se = std.error(avg_pc, na.rm = TRUE))
 
+pc_avg$year <- as.factor(pc_avg$year)
+pc_avg$full_treat <- paste(pc_avg$state, pc_avg$insecticide, sep="_")
+
+sum_richness_i <- diversity %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_richness = mean(richness, na.rm = TRUE),
+            se = std.error(richness, na.rm = TRUE))
+
+sum_richness_i$year <- as.factor(sum_richness_i$year)
+sum_richness_i$full_treat <- paste(sum_richness_i$state, sum_richness_i$insecticide, sep="_")
+```
+
+plotting
+```{r}
+plot_line <- function(loc) { 
+  all_plot <- subset(pc_avg, site == loc)
+  return(ggplot(all_plot, aes(x = year, y = avg_comp, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat, shape=full_treat)) +
+                 geom_line(size = 1) +
+                 geom_pointrange(aes(ymin=avg_comp-se, ymax=avg_comp+se), linetype="solid",pch=21,size=0.6) +
+                 scale_color_manual(name="Treatment",
+                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
+                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                 scale_fill_manual(name="Treatment",
+                                   values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
+                                   labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                 scale_linetype_manual(name="Treatment",
+                                       values = c("solid", "dotted", "solid", "dotted"),
+                                       labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                 labs(x = "Year", y = "Cover (%)", title=loc, color="Treatment") +
+                 #ylim(0, 30) +
+                 theme_bw(14))
+}
+
+plot_line_kbs <- plot_line("KBS")
+plot_line_kbs <- plot_line_kbs + labs(title="KBS") + scale_y_continuous(breaks = c(10,20,30), 
+                                                                        labels = c("  10", "  20", "  30")) + 
+        annotate("text", x = 0.7, y=39, label = "A", size=5) +
+        theme(axis.text.x=element_blank())
+plot_line_umbs <- plot_line("UMBS")
+plot_line_umbs <- plot_line_umbs + labs(title="UMBS", y=NULL) + 
+        annotate("text", x = 0.7, y=30.5, label = "B", size=5) + 
+        theme(axis.text.x=element_blank())
+
+#Richness
+#sum_richness_i$year <- as.factor(sum_richness_i$year)
+#sum_richness_i$full_treat <- paste(sum_richness_i$state, sum_richness_i$insecticide, sep="_")
+sum_richness_line_i <- function(loc) { 
+        richness_plot <- subset(sum_richness_i, site == loc)
+        return(ggplot(richness_plot, aes(x = year, y = avg_richness, group=full_treat, linetype=full_treat, color = full_treat, fill=full_treat)) +
+                       geom_line(size = 1) +
+                       geom_pointrange(aes(ymin=avg_richness-se, ymax=avg_richness+se), linetype="solid",pch=21,size=0.6) +
+                       scale_color_manual(name="Treatment",
+                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
+                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_linetype_manual(name="Treatment",
+                                             values = c("solid", "dotted", "solid", "dotted"),
+                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
+                                         labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = "Year", y = "Species Richness", title = loc) +
+                       theme_bw(14))
+}
+sum_richness_line_i_kbs <- sum_richness_line_i("KBS")
+sum_richness_line_i_kbs <- sum_richness_line_i_kbs + labs(title=NULL) +
+        annotate("text", x = 0.7, y=11.7, label = "C", size=5)
+sum_richness_line_i_umbs <- sum_richness_line_i("UMBS")
+sum_richness_line_i_umbs <- sum_richness_line_i_umbs + labs(y=NULL, title=NULL) +
+        annotate("text", x = 0.7, y=8.5, label = "D", size=5) +
+        scale_y_continuous(breaks = c(3,4,5,6,7,8), 
+                           labels = c("  3", "  4", "  5", "  6", "  7", "  8"))
+
+pc_richness_line_i <- ggpubr::ggarrange(plot_line_kbs, plot_line_umbs,
+                                     sum_richness_line_i_kbs, sum_richness_line_i_umbs,
+                                     nrow = 2, ncol = 2, common.legend = T, legend="right",
+                                     widths=c(1.1,1))
+pc_richness_line_i
+png("percent_cover_richness_plots_lineplot_by_year_L2.png", units="in", width=10, height=8, res=300)
+pc_richness_line_i
+dev.off()
+```
+
+
+
+
+
+
+
+
+Not used in manuscript
+```{r}
 # adding empty values for 2021 to umbs so the x-axis matches the other plots
 pc_avg$year <- as.factor(pc_avg$year)
 pc_avg$full_treat <- paste(pc_avg$state, pc_avg$insecticide, sep="_")
@@ -81,84 +172,8 @@ de$year <- as.factor(de$year)
 sum_richness_i <- rbind(sum_richness_i2, de)
 ```
 
-plotting
-```{r}
-plot_line <- function(loc) { 
-  all_plot <- subset(pc_avg, site == loc)
-  return(ggplot(all_plot, aes(x = year, y = avg_comp, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat, shape=full_treat)) +
-                 geom_line(size = 1) +
-                 geom_pointrange(aes(ymin=avg_comp-se, ymax=avg_comp+se), linetype="solid",pch=21,size=0.6) +
-                 scale_color_manual(name="Treatment",
-                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
-                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                 scale_fill_manual(name="Treatment",
-                                   values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
-                                   labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                 scale_linetype_manual(name="Treatment",
-                                       values = c("solid", "dotted", "solid", "dotted"),
-                                       labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                 labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
-                 #ylim(0, 30) +
-                 theme_bw(14))
-}
 
-plot_line_kbs <- plot_line("KBS")
-plot_line_kbs <- plot_line_kbs + labs(title="KBS") + scale_y_continuous(breaks = c(10,20,30), 
-                                                                        labels = c("  10", "  20", "  30")) + 
-        annotate("text", x = 0.7, y=39, label = "A", size=5) +
-        theme(axis.text.x=element_blank())
-plot_line_umbs <- plot_line("UMBS")
-plot_line_umbs <- plot_line_umbs + labs(title="UMBS", y=NULL) + 
-        annotate("text", x = 0.7, y=30.5, label = "B", size=5) + 
-        theme(axis.text.x=element_blank())
-
-#Richness
-#sum_richness_i$year <- as.factor(sum_richness_i$year)
-#sum_richness_i$full_treat <- paste(sum_richness_i$state, sum_richness_i$insecticide, sep="_")
-sum_richness_line_i <- function(loc) { 
-        richness_plot <- subset(sum_richness_i, site == loc)
-        return(ggplot(richness_plot, aes(x = year, y = avg_richness, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_richness-se, ymax=avg_richness+se), width=.1, position=position_dodge(0.15)) +
-                       geom_line(size = 1) +
-                       geom_point(size = 2) +
-                       scale_color_manual(name="Treatment",
-                                          values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
-                                          labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dashed", "solid", "dashed"),
-                                             labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       labs(x = NULL, y = "Species Richness", title = loc) +
-                       theme_bw(14))
-}
-sum_richness_line_i_kbs <- sum_richness_line_i("KBS")
-sum_richness_line_i_kbs <- sum_richness_line_i_kbs + labs(title=NULL) +
-        annotate("text", x = 0.7, y=11.7, label = "C", size=5)
-sum_richness_line_i_umbs <- sum_richness_line_i("UMBS")
-sum_richness_line_i_umbs <- sum_richness_line_i_umbs + labs(y=NULL, title=NULL) +
-        annotate("text", x = 0.7, y=8.5, label = "D", size=5) +
-        scale_y_continuous(breaks = c(3,4,5,6,7,8), 
-                           labels = c("  3", "  4", "  5", "  6", "  7", "  8"))
-
-pc_richness_line_i <- ggpubr::ggarrange(plot_line_kbs, plot_line_umbs,
-                                     sum_richness_line_i_kbs, sum_richness_line_i_umbs,
-                                     nrow = 2, ncol = 2, common.legend = T, legend="bottom")
-pc_richness_line_i
-png("percent_cover_richness_plots_lineplot_by_year_L2.png", units="in", width=10, height=8, res=300)
-annotate_figure(pc_richness_line_i,
-                bottom = text_grob("Year", color = "black", size=15))
-dev.off()
-```
-
-
-
-
-
-
-
-
-Not used in manuscript
-
-Averages + std error for plot level data + insecticide treatment across all years (what is used in the paper)
+Averages + std error for plot level data + insecticide treatment across all years
 ```{r}
 sum_comp_plot_i <- comp %>%
         group_by(site, state, insecticide) %>%

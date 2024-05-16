@@ -218,6 +218,13 @@ anova(mod_k_full)
 exp(2.763627)
 exp(2.763627+0.013714)
 
+# calculating effect size of warming - accounting for log transformation
+exp((2.763627) +  (0.013714)*0) # 15.85725 
+exp((2.763627) +  (0.013714)*1) # 16.07622
+# effect:
+16.07622 - 15.85725 # effect of warming - warmed plots had 0.21897 or 0.22 times the percent cover than ambient plots
+
+
 # comparisons
 contrast.k1 <- contrast(emmeans(mod_k_full, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type = "response")
 # KD: back transforming ratio (https://www.reddit.com/r/statistics/comments/t6ph7o/comment/hzl704x/)
@@ -247,12 +254,6 @@ mutate_if(is.numeric, round, digits=2)
 
 # table
 kable(result2) %>% kableExtra::kable_styling()
-
-# calculating effect size of warming - accounting for log transformation
-exp((2.763627) +  (0.013714)*0) # 15.85725 
-exp((2.763627) +  (0.013714)*1) # 16.07622
-# effect:
-16.07622 - 15.85725 # effect of warming - warmed plots had 0.21897 or 0.22% more percent cover than ambient plots
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
@@ -492,12 +493,6 @@ mutate_if(is.numeric, round, digits=2)
 
 # table
 kable(result) %>% kableExtra::kable_styling()
-
-# calculating effect size - accounting for log transformation
-exp((2.926657) +  (-0.66037)*0) # 18.66513 
-exp((2.926657) +  (-0.66037)*1) # 9.643528
-# effect:
-9.643528 - 18.66513 # effect of warming in 2021 - 9% more native species percent cover than ambient plots
 
 # species model for supp
 mod_spp_kn <- lmer(cover ~ state * insecticide * as.factor(year_factor) + species  + (1|plot), comp_kbs_native_spp, REML=FALSE)
@@ -890,10 +885,16 @@ mod_forb_k <- lmer(log(avg_growth_pc) ~ state * insecticide * as.factor(year_fac
 summary(mod_forb_k)
 anova(mod_forb_k)
 
+## calculating effect size - accounting for log transformation
+exp(2.45884 + (0.18695)*0) # 11.69124 
+exp(2.45884 + (0.18695)*1) # 14.09458
+## effect:
+14.09458 - 11.69124 # effect of warming - forbs in warmed plots had 2.40334 more percent cover than ambient plots
+
 kable(anova(mod_forb_k)) %>% kableExtra::kable_styling()
 
 # comparison
-contrast <- contrast(emmeans(mod_forb_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast <- contrast(emmeans(mod_forb_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", response = "type")
 
 result = as.data.frame(contrast)
 
@@ -902,12 +903,6 @@ mutate_if(is.numeric, round)
 
 # table
 kable(result) %>% kableExtra::kable_styling()
-
-## calculating effect size - accounting for log transformation
-exp(2.45884 + (0.18695)*0) # 11.69124 
-exp(2.45884 + (0.18695)*1) # 14.09458
-## effect:
-14.09458 - 11.69124 # effect of warming - forbs in warmed plots had 2.40334 more percent cover than ambient plots
 
 # species model for supp
 mod_spp_kf <- lmer(cover ~ state * insecticide * as.factor(year_factor) + species + (1|plot), comp_kbs_forb_spp, REML=FALSE)
@@ -993,7 +988,7 @@ summary(mod_graminoid_k)
 anova(mod_graminoid_k)
 
 # comparison 1
-contrast1 <- contrast(emmeans(mod_graminoid_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast1 <- contrast(emmeans(mod_graminoid_k, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", response = "type")
 
 result1 = as.data.frame(contrast1)
 
