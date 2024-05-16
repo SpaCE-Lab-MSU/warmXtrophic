@@ -86,35 +86,35 @@ growth_pc_avg <- growth %>%
 # adding empty values for 2021 to umbs so the x-axis matches the other plots
 pc_avg$year <- as.factor(pc_avg$year)
 pc_avg$full_treat <- paste(pc_avg$state, pc_avg$insecticide, sep="_")
-pc_avg2 <- pc_avg
-de<-data.frame("UMBS", NA, NA, "2021", NA, NA, NA)
-names(de)<-c("site","state", "insecticide", "year", "avg_comp", "se", "full_treat")
-de$year <- as.factor(de$year)
-pc_avg <- rbind(pc_avg2, de)
+#pc_avg2 <- pc_avg
+#de<-data.frame("UMBS", NA, NA, "2021", NA, NA, NA)
+#names(de)<-c("site","state", "insecticide", "year", "avg_comp", "se", "full_treat")
+#de$year <- as.factor(de$year)
+#pc_avg <- rbind(pc_avg2, de)
 
 # origin
 origin_pc_avg$year <- as.factor(origin_pc_avg$year)
 origin_pc_avg$full_treat <- paste(origin_pc_avg$state, origin_pc_avg$insecticide, sep="_")
-origin_pc_avg2 <- origin_pc_avg
-de<-data.frame("UMBS", NA, NA, "Native", "2021", NA, NA, NA)
-de2<-data.frame("UMBS", NA, NA, "Exotic", "2021", NA, NA, NA)
-names(de)<-c("site","state", "insecticide", "origin", "year", "avg_pc", "se", "full_treat")
-names(de2)<-c("site","state", "insecticide", "origin", "year", "avg_pc", "se", "full_treat")
-de$year <- as.factor(de$year)
-de2$year <- as.factor(de2$year)
-origin_pc_avg <- rbind(origin_pc_avg2, de, de2)
+#origin_pc_avg2 <- origin_pc_avg
+#de<-data.frame("UMBS", NA, NA, "Native", "2021", NA, NA, NA)
+#de2<-data.frame("UMBS", NA, NA, "Exotic", "2021", NA, NA, NA)
+#names(de)<-c("site","state", "insecticide", "origin", "year", "avg_pc", "se", "full_treat")
+#names(de2)<-c("site","state", "insecticide", "origin", "year", "avg_pc", "se", "full_treat")
+#de$year <- as.factor(de$year)
+#de2$year <- as.factor(de2$year)
+#origin_pc_avg <- rbind(origin_pc_avg2, de, de2)
 
 # growth habit
 growth_pc_avg$year <- as.factor(growth_pc_avg$year)
 growth_pc_avg$full_treat <- paste(growth_pc_avg$state, growth_pc_avg$insecticide, sep="_")
-growth_pc_avg2 <- growth_pc_avg
-de<-data.frame("UMBS", NA, NA, "Graminoid", "2021", NA, NA, NA)
-de2<-data.frame("UMBS", NA, NA, "Forb", "2021", NA, NA, NA)
-names(de)<-c("site","state", "insecticide", "growth_habit", "year", "avg_pc", "se", "full_treat")
-names(de2)<-c("site","state", "insecticide", "growth_habit", "year", "avg_pc", "se", "full_treat")
-de$year <- as.factor(de$year)
-de2$year <- as.factor(de2$year)
-growth_pc_avg <- rbind(growth_pc_avg2, de, de2)
+#growth_pc_avg2 <- growth_pc_avg
+#de<-data.frame("UMBS", NA, NA, "Graminoid", "2021", NA, NA, NA)
+#de2<-data.frame("UMBS", NA, NA, "Forb", "2021", NA, NA, NA)
+#names(de)<-c("site","state", "insecticide", "growth_habit", "year", "avg_pc", "se", "full_treat")
+#names(de2)<-c("site","state", "insecticide", "growth_habit", "year", "avg_pc", "se", "full_treat")
+#de$year <- as.factor(de$year)
+#de2$year <- as.factor(de2$year)
+#growth_pc_avg <- rbind(growth_pc_avg2, de, de2)
 ```
 
 General Plot Level - all years
@@ -172,9 +172,9 @@ plot_line_n <- function(loc) {
                  scale_linetype_manual(name="Treatment",
                                        values = c("solid", "dotted", "solid", "dotted"),
                                        labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                 labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 labs(x = "Year", y = "Cover (%)", title=loc, color="Treatment") +
                  #ylim(0, 30) +
-                 theme_bw())
+                 theme_bw(14))
 }
 
 plot_line_kbs_n <- plot_line_n("KBS")
@@ -202,9 +202,9 @@ plot_line_e <- function(loc) {
                  scale_linetype_manual(name="Treatment",
                                        values = c("solid", "dotted", "solid", "dotted"),
                                        labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                 labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 labs(x = "Year", y = "Cover (%)", title=loc, color="Treatment") +
                  #ylim(0, 30) +
-                 theme_bw())
+                 theme_bw(14))
 }
 
 plot_line_kbs_e <- plot_line_e("KBS")
@@ -216,13 +216,12 @@ plot_line_umbs_e <- plot_line_umbs_e + labs(title=NULL, y=NULL, subtitle = "Exot
 
 plot_line_origin <- ggpubr::ggarrange(plot_line_kbs_n, plot_line_umbs_n,
                                       plot_line_kbs_e, plot_line_umbs_e,
-                                      nrow = 2, ncol = 2, common.legend = T, legend="bottom")
+                                      nrow = 2, ncol = 2, common.legend = T, legend="right")
 plot_line_origin
 
 png("origin_avg_percent_cover_plots_by_year_L2.png", units="in", width=10, height=8, res=300)
 annotate_figure(plot_line_origin,
-                left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=15))
 dev.off()
 ```
 
@@ -244,9 +243,9 @@ plot_line_f <- function(loc) {
                  scale_linetype_manual(name="Treatment",
                                        values = c("solid", "dotted", "solid", "dotted"),
                                        labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                 labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 labs(x = "Year", y = "Cover (%)", title=loc, color="Treatment") +
                  #ylim(0, 30) +
-                 theme_bw())
+                 theme_bw(14))
 }
 
 plot_line_kbs_f <- plot_line_f("KBS")
@@ -272,9 +271,9 @@ plot_line_g <- function(loc) {
                  scale_linetype_manual(name="Treatment",
                                        values = c("solid", "dotted", "solid", "dotted"),
                                        labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                 labs(x = NULL, y = "Cover (%)", title=loc, color="Treatment") +
+                 labs(x = "Year", y = "Cover (%)", title=loc, color="Treatment") +
                  #ylim(0, 30) +
-                 theme_bw())
+                 theme_bw(14))
 }
 
 plot_line_kbs_g <- plot_line_g("KBS")
@@ -286,21 +285,16 @@ plot_line_umbs_g <- plot_line_umbs_g + labs(title=NULL, y=NULL, subtitle = "Gram
 
 plot_line_gh <- ggpubr::ggarrange(plot_line_kbs_f, plot_line_umbs_f,
                                       plot_line_kbs_g, plot_line_umbs_g,
-                          nrow = 2, ncol = 2, common.legend = T, legend="bottom")
+                          nrow = 2, ncol = 2, common.legend = T, legend="right")
 plot_line_gh
 
 png("growth_habit_avg_percent_cover_plots_by_year_L2.png", units="in", width=10, height=8, res=300)
 annotate_figure(plot_line_gh,
-                left = text_grob("Cover (%)", color = "black", rot = 90, size=15),
-                bottom = text_grob("Year", color = "black", size=15))
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=15))
 dev.off()
 ```
 
-
-
-Not used in manuscript or supp
-
-Averages + std error for species level data + insecticide treatment across all years
+Averages + std error for species level data + insecticide treatment across all years - supplement
 ```{r}
 # filter data to contain the averages and std error for each site & species
 sum_comp_spp <- comp_spp %>%
@@ -326,7 +320,101 @@ sum_comp_spp_i <- comp_spp %>%
                   count=n()) # sample size
 ```
 
-Averages + std error for plot level data + insecticide treatment across all years
+Species level plots for supplemental doc
+```{r}
+####### percent cover species level ########
+# only keep species that were recorded in both warmed and ambient plots
+#sum_comp_spp_i2 <- sum_comp_spp_i %>%
+#        group_by(site, species) %>% 
+#        filter(all(c('warmed', 'ambient') %in% state))
+comp_plot_overall <- function(loc) { 
+        comp_spp <- subset(sum_comp_spp_i, site == loc)
+        return(ggplot(comp_spp, aes(x = state, y = avg_pc, fill = insecticide)) +
+                       facet_wrap(~species, ncol=4,scales="free") +
+                       geom_pointrange(aes(ymin=avg_pc-se, ymax=avg_pc+se), pch=21,size=0.6,position=position_dodge(0.3)) +
+                       scale_fill_manual(name="Treatment",
+                                         values = c("#FFB451", "#0b0055"),
+                                         labels=c("Herbivory","Reduced Herbivory")) +
+                       #geom_bar(position = "identity", stat = "identity", color = "black") +
+                       #geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
+                       #              position = "identity") +
+                       labs(x = NULL, y = NULL, title=loc) +
+                       scale_x_discrete(labels=c("ambient" = "Ambient  ", "warmed" = "  Warmed")) +
+                       #scale_fill_manual(name="Treatment",
+                       #                  labels=c("Ambient, herbivory","Ambient, reduced herbivory",
+                       #                           "Warmed, herbivory","Warmed, reduced herbivory"),
+                       #                  values = c("#a6bddb", "#687689", "#fb6a4a", "#9D422E")) +
+                       theme_bw() +
+                       theme(axis.text.x = element_text(size=14),
+                             axis.text.y = element_text(size=14),
+                             legend.text = element_text(size=15),
+                             legend.title = element_text(size=15),
+                             title = element_text(size=17),
+                             strip.text = element_text(size=15)))
+}
+kbs_comp_spp <- comp_plot_overall("KBS")
+umbs_comp_spp <- comp_plot_overall("UMBS")
+comp_overall_merge <- ggpubr::ggarrange(kbs_comp_spp, umbs_comp_spp,
+                                         ncol = 2, common.legend = T,legend="right")
+png("comp_species.png", units="in", width=21, height=10, res=300)
+annotate_figure(comp_overall_merge,
+                left = text_grob("Cover (%)", color = "black", rot = 90, size=17))
+dev.off()
+```
+
+mean temp plots
+```{r}
+comp_kbsp <- comp %>%
+        filter(site == "KBS" & state == "ambient")
+comp_umbsp <- comp %>%
+        filter(site == "UMBS" & state == "ambient")
+
+kbs_comp_mean <- ggplot(comp_kbsp, aes(x = mean_temp, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+umbs_comp_mean <- ggplot(comp_umbsp, aes(x = mean_temp, y = avg_pc, color = state))+
+        geom_point() +
+        geom_smooth(method = 'lm', aes(fill = state)) + 
+        labs(x = "Mean temperature (°C)",y=NULL) +
+        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
+                           labels = c("Ambient","Warmed"),
+                           name="Treatment") +
+        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
+                          labels = c("Ambient","Warmed"),
+                          name = "Treatment") +
+        theme_classic() +
+        theme(legend.title=element_text(size=12), 
+              legend.text=element_text(size=12))
+
+gdd_comp_merge <- ggpubr::ggarrange(kbs_comp_mean,umbs_comp_mean,
+                                    ncol = 2, common.legend=T,legend="none")
+png("comp_gdd_temp.png", units="in", width=7, height=5, res=300)
+annotate_figure(gdd_comp_merge,
+                left = text_grob("Average percent cover (%)", color = "black", rot = 90, size=15),
+                top = text_grob("KBS                                                      UMBS", color = "black", size=15))
+dev.off()
+```
+
+
+
+
+
+
+
+
+Not used in manuscript or supp
+
+Averages + std error for plot level data + insecticide treatment averaged across all years
 ```{r}
 sum_comp_plot_i <- comp %>%
         group_by(site, state, insecticide) %>%
@@ -482,48 +570,6 @@ annotate_figure(origin_growth_dot_i,
 dev.off()
 ```
 
-Species level plots for supplemental doc
-```{r}
-####### percent cover species level ########
-# only keep species that were recorded in both warmed and ambient plots
-#sum_comp_spp_i2 <- sum_comp_spp_i %>%
-#        group_by(site, species) %>% 
-#        filter(all(c('warmed', 'ambient') %in% state))
-comp_plot_overall <- function(loc) { 
-        comp_spp <- subset(sum_comp_spp_i, site == loc)
-        return(ggplot(comp_spp, aes(x = state, y = avg_pc, fill = insecticide)) +
-                       facet_wrap(~species, ncol=4,scales="free") +
-                       geom_pointrange(aes(ymin=avg_pc-se, ymax=avg_pc+se), pch=21,size=0.6,position=position_dodge(0.3)) +
-                       scale_fill_manual(name="Treatment",
-                                         values = c("#FFB451", "#0b0055"),
-                                         labels=c("Herbivory","Reduced Herbivory")) +
-                       #geom_bar(position = "identity", stat = "identity", color = "black") +
-                       #geom_errorbar(aes(ymin = avg_julian - se, ymax = avg_julian + se), width = 0.2,
-                       #              position = "identity") +
-                       labs(x = NULL, y = NULL, title=loc) +
-                       scale_x_discrete(labels=c("ambient" = "Ambient  ", "warmed" = "  Warmed")) +
-                       #scale_fill_manual(name="Treatment",
-                       #                  labels=c("Ambient, herbivory","Ambient, reduced herbivory",
-                       #                           "Warmed, herbivory","Warmed, reduced herbivory"),
-                       #                  values = c("#a6bddb", "#687689", "#fb6a4a", "#9D422E")) +
-                       theme_bw() +
-                       theme(axis.text.x = element_text(size=14),
-                             axis.text.y = element_text(size=14),
-                             legend.text = element_text(size=15),
-                             legend.title = element_text(size=15),
-                             title = element_text(size=17),
-                             strip.text = element_text(size=15)))
-}
-kbs_comp_spp <- comp_plot_overall("KBS")
-umbs_comp_spp <- comp_plot_overall("UMBS")
-comp_overall_merge <- ggpubr::ggarrange(kbs_comp_spp, umbs_comp_spp,
-                                         ncol = 2, common.legend = T,legend="right")
-png("comp_species.png", units="in", width=21, height=10, res=300)
-annotate_figure(comp_overall_merge,
-                left = text_grob("Cover (%)", color = "black", rot = 90, size=17))
-dev.off()
-```
-
 #GDD and temp comparisons
 ```{r}
 
@@ -559,32 +605,7 @@ umbs_comp_gdd <- ggplot(comp_umbsp, aes(x = GDD_cumulative, y = avg_pc, color = 
         theme_classic() +
         theme(legend.title=element_text(size=12), 
               legend.text=element_text(size=12))
-kbs_comp_mean <- ggplot(comp_kbsp, aes(x = mean_temp, y = avg_pc, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
-umbs_comp_mean <- ggplot(comp_umbsp, aes(x = mean_temp, y = avg_pc, color = state))+
-        geom_point() +
-        geom_smooth(method = 'lm', aes(fill = state)) + 
-        labs(x = "Mean temperature (°C)",y=NULL) +
-        scale_color_manual(values = c("#0b0055", "#fb6a4a"),
-                           labels = c("Ambient","Warmed"),
-                           name="Treatment") +
-        scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
-                          labels = c("Ambient","Warmed"),
-                          name = "Treatment") +
-        theme_classic() +
-        theme(legend.title=element_text(size=12), 
-              legend.text=element_text(size=12))
+
 kbs_comp_med <- ggplot(comp_kbsp, aes(x = median_temp, y = avg_pc, color = state))+
         geom_point() +
         geom_smooth(method = 'lm', aes(fill = state)) + 
@@ -638,13 +659,6 @@ umbs_comp_max <- ggplot(comp_umbsp, aes(x = max_temp, y = avg_pc, color = state)
         theme(legend.title=element_text(size=12), 
               legend.text=element_text(size=12))
 
-gdd_comp_merge <- ggpubr::ggarrange(kbs_comp_mean,umbs_comp_mean,
-                                    ncol = 2, common.legend=T,legend="none")
-png("comp_gdd_temp.png", units="in", width=7, height=5, res=300)
-annotate_figure(gdd_comp_merge,
-                left = text_grob("Average percent cover (%)", color = "black", rot = 90, size=15),
-                top = text_grob("KBS                                                      UMBS", color = "black", size=15))
-dev.off()
 ```
 
 Origin - Native vs. Exotic

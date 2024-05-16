@@ -53,11 +53,6 @@ sum_shannon <- diversity %>%
   summarize(avg_shannon = mean(shannon, na.rm = TRUE),
             se = std.error(shannon, na.rm = TRUE))
 
-sum_simpson <- diversity %>%
-  group_by(site, state, year) %>%
-  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
-            se = std.error(simpson, na.rm = TRUE))
-
 sum_richness <- diversity %>%
   group_by(site, state, year) %>%
   summarize(avg_richness = mean(richness, na.rm = TRUE),
@@ -69,13 +64,6 @@ levels(sum_shannon$state)
 # [1] "ambient" "warmed" 
 sum_shannon$state <- factor(sum_shannon$state, levels(sum_shannon$state)[c(2,1)])
 levels(sum_shannon$state)
-# [1] "warmed"  "ambient"
-
-sum_simpson$state <- as.factor(sum_simpson$state)
-levels(sum_simpson$state)
-# [1] "ambient" "warmed" 
-sum_simpson$state <- factor(sum_simpson$state, levels(sum_simpson$state)[c(2,1)])
-levels(sum_simpson$state)
 # [1] "warmed"  "ambient"
 
 sum_richness$state <- as.factor(sum_richness$state)
@@ -92,11 +80,6 @@ sum_shannon_i <- diversity %>%
   summarize(avg_shannon = mean(shannon, na.rm = TRUE),
             se = std.error(shannon, na.rm = TRUE))
 
-sum_simpson_i <- diversity %>%
-  group_by(site, state, insecticide, year) %>%
-  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
-            se = std.error(simpson, na.rm = TRUE))
-
 sum_richness_i <- diversity %>%
   group_by(site, state, insecticide, year) %>%
   summarize(avg_richness = mean(richness, na.rm = TRUE),
@@ -110,13 +93,6 @@ sum_shannon_i$state <- factor(sum_shannon_i$state, levels(sum_shannon_i$state)[c
 levels(sum_shannon_i$state)
 # [1] "warmed"  "ambient"
 
-sum_simpson_i$state <- as.factor(sum_simpson_i$state)
-levels(sum_simpson_i$state)
-# [1] "ambient" "warmed" 
-sum_simpson_i$state <- factor(sum_simpson_i$state, levels(sum_simpson_i$state)[c(2,1)])
-levels(sum_simpson_i$state)
-# [1] "warmed"  "ambient"
-
 sum_richness_i$state <- as.factor(sum_richness_i$state)
 levels(sum_richness_i$state)
 # [1] "ambient" "warmed" 
@@ -127,10 +103,8 @@ levels(sum_richness_i$state)
 # using function from above to change site names to uppercase
 diversity <- change_site(diversity) 
 sum_shannon <- change_site(sum_shannon)
-sum_simpson <- change_site(sum_simpson)
 sum_richness <- change_site(sum_richness)
 sum_shannon_i <- change_site(sum_shannon_i)
-sum_simpson_i <- change_site(sum_simpson_i)
 sum_richness_i <- change_site(sum_richness_i)
 
 # Set ggplot2 plotting
@@ -142,7 +116,7 @@ sum_richness_i <- change_site(sum_richness_i)
 #             axis.title = element_text(size=16,face="bold"))
 ```
 
-Averages + std error for plot level data + insecticide treatment across all years (not used in paper)
+Averages + std error for plot level data + insecticide treatment across all years
 ```{r}
 # averages + std error for plot level data - state only
 sum_shannon_all <- diversity %>%
@@ -150,34 +124,31 @@ sum_shannon_all <- diversity %>%
   summarize(avg_shannon = mean(shannon, na.rm = TRUE),
             se = std.error(shannon, na.rm = TRUE))
 
-sum_simpson_all <- diversity %>%
-  group_by(site, state, insecticide) %>%
-  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
-            se = std.error(simpson, na.rm = TRUE))
-
 sum_richness_all <- diversity %>%
   group_by(site, state, insecticide) %>%
   summarize(avg_richness = mean(richness, na.rm = TRUE),
             se = std.error(richness, na.rm = TRUE))
 ```
 
-shannon only plot - all treatments, yearly
+Shannon only plot - all treatments, yearly
 ```{r}
 sum_shannon_i$year <- as.factor(sum_shannon_i$year)
 sum_shannon_i$full_treat <- paste(sum_shannon_i$state, sum_shannon_i$insecticide, sep="_")
 sum_shannon_line_i <- function(loc) { 
         shannon_plot <- subset(sum_shannon_i, site == loc)
-        return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group=full_treat, linetype=full_treat, color = full_treat)) +
-                       geom_errorbar(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), width=.1, position=position_dodge(0.15)) +
+        return(ggplot(shannon_plot, aes(x = year, y = avg_shannon, group=full_treat, linetype=full_treat, color = full_treat, fill = full_treat)) +
                        geom_line(size = 1) +
-                       geom_point(size = 2) +
+                 geom_pointrange(aes(ymin=avg_shannon-se, ymax=avg_shannon+se), linetype="solid",pch=21,size=0.6) +
                        scale_color_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
                                           labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        scale_linetype_manual(name="Treatment",
-                                             values = c("solid", "dashed", "solid", "dashed"),
+                                             values = c("solid", "dotted", "solid", "dotted"),
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
-                       labs(x = NULL, y = "Shannon Diveristy", title = loc) +
+                        scale_fill_manual(name="Treatment",
+                                   values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
+                                   labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
+                       labs(x = NULL, y = "Shannon Diversity", title = loc) +
                        #ylim(0.4, 2.0) +
                        theme_bw(14))
 }
@@ -187,7 +158,8 @@ sum_shannon_line_i_umbs <- sum_shannon_line_i("UMBS")
 sum_shannon_line_i_umbs <- sum_shannon_line_i_umbs + labs(y=NULL, title="UMBS")
 
 shannon_line_i <- ggpubr::ggarrange(sum_shannon_line_i_kbs, sum_shannon_line_i_umbs,
-                          nrow = 1, ncol = 2, common.legend = T, legend="bottom")
+                          nrow = 1, ncol = 2, common.legend = T, legend="right",
+                          widths=c(1.1,1))
 shannon_line_i
 png("shannon_plots_lineplot_by_year_L2.png", units="in", width=10, height=6, res=300)
 annotate_figure(shannon_line_i,
@@ -206,6 +178,48 @@ dev.off()
 
 
 Not used in manuscript or supp
+
+simpson diversity
+```{r}
+sum_simpson <- diversity %>%
+  group_by(site, state, year) %>%
+  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
+            se = std.error(simpson, na.rm = TRUE))
+
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+sum_simpson$state <- as.factor(sum_simpson$state)
+levels(sum_simpson$state)
+# [1] "ambient" "warmed" 
+sum_simpson$state <- factor(sum_simpson$state, levels(sum_simpson$state)[c(2,1)])
+levels(sum_simpson$state)
+# [1] "warmed"  "ambient"
+
+# Including insecticide treatment
+# averages + std error for plot level data + insecticide treatment
+sum_simpson_i <- diversity %>%
+  group_by(site, state, insecticide, year) %>%
+  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
+            se = std.error(simpson, na.rm = TRUE))
+
+# Order warmed and ambient so that warmed shows up first in plotting (and is default is red = warmed; blue = ambient). First make it a factor
+sum_simpson_i$state <- as.factor(sum_simpson_i$state)
+levels(sum_simpson_i$state)
+# [1] "ambient" "warmed" 
+sum_simpson_i$state <- factor(sum_simpson_i$state, levels(sum_simpson_i$state)[c(2,1)])
+levels(sum_simpson_i$state)
+# [1] "warmed"  "ambient"
+
+# using function from above to change site names to uppercase
+diversity <- change_site(diversity) 
+sum_simpson <- change_site(sum_simpson)
+sum_simpson_i <- change_site(sum_simpson_i)
+
+# Averages + std error for plot level data + insecticide treatment across all years (not used in paper)
+sum_simpson_all <- diversity %>%
+  group_by(site, state, insecticide) %>%
+  summarize(avg_simpson = mean(simpson, na.rm = TRUE),
+            se = std.error(simpson, na.rm = TRUE))
+```
 
 Combining diversity indices - all treatments
 Line plot with insecticide and all years
