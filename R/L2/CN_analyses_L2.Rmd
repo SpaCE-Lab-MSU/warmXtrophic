@@ -313,7 +313,7 @@ kable(anova(n.hyp.k), digits=2) %>% kableExtra::kable_styling()
 n.hyp.k2 <- lmer(nitrogen ~ treatment * insecticide * as.factor(year) + (1|plot/species/plant_number), data = n1_kbs)
 anova(n.hyp.k2) ### used in manuscript ###
 summary(n.hyp.k2)
-contrast.k <- contrast(emmeans(n.hyp.k2, ~treatment**year), "pairwise", simple = "each", combine = F, adjust = "mvt")
+contrast.k <- contrast(emmeans(n.hyp.k2, ~treatment*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
 # table
 kable(anova(n.hyp.k2), digits=2) %>% kableExtra::kable_styling()
 result.k = as.data.frame(contrast.k)

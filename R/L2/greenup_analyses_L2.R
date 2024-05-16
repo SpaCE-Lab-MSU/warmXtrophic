@@ -161,15 +161,10 @@ shapiro.test(resid(fitpu2_y))
 ###### green-up models #####
 ## KBS ##
 
-# plot level - final year model
-mod_final_year <- lm(med_half_cover_date ~ state * insecticide, green_kbs_2020)
-summary(mod_final_year)
-anova(mod_final_year)
-
-# plot-level model - all years
+# plot-level model
 mod9p <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year) + (1|plot), green_kbs, REML=FALSE)
 summary(mod9p)
-anova(mod9p)
+anova(mod9p) ## used in manuscript ##
 # comparisons
 contrast.k <- contrast(emmeans(mod9p, ~state*year), "pairwise", simple = "each", combine = F, adjust = "mvt")
 contrast.k2 <- contrast(emmeans(mod9p, ~state*insecticide), "pairwise", simple = "each", combine = F, adjust = "mvt")
@@ -203,12 +198,7 @@ kable(anova(mod_spp_k)) %>% kableExtra::kable_styling()
 
 ## UMBS ##
 
-# plot level - final year model
-modu_final_year <- lm(med_half_cover_date ~ state * insecticide, green_umbs_2020)
-summary(modu_final_year)
-anova(modu_final_year)
-
-# plot-level - all years model
+# plot-level
 mod9p_u <- lmer(med_half_cover_date ~ state * insecticide * as.factor(year) + (1|plot), green_umbs, REML=FALSE)
 summary(mod9p_u)
 anova(mod9p_u) ### used in manuscript ###
