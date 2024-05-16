@@ -269,9 +269,9 @@ c_umbs_year <- ggplot(cn_treat_umbs_year, aes(x = as.factor(year), y = carbon_me
               legend.title = element_text(size=17))
 
 # Carbon year + species + warming
-png("carbon_species_L2.png", units="in", width=6, height=4, res=300)
+png("carbon_species_L2.png", units="in", width=7, height=4, res=300)
 ggplot(cn_spp, aes(x = year, y = carbon_mean, fill = treatment)) +
-        facet_wrap(.~species) +
+        facet_wrap(.~species, scales ="free_y") +
         geom_pointrange(aes(ymin=carbon_mean-c_se, ymax=carbon_mean+c_se), pch=21,size=0.5,position=position_dodge(0.4)) +
         #geom_bar(position = "dodge", stat = "identity", color = 'black') +
         #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
@@ -280,7 +280,7 @@ ggplot(cn_spp, aes(x = year, y = carbon_mean, fill = treatment)) +
         scale_fill_manual(values = c("#a6bddb", "#fb6a4a"),
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
-        coord_cartesian(ylim=c(40,50)) +
+        #coord_cartesian(ylim=c(40,50)) +
         theme_bw(14) +
         theme(legend.position = "right")
 dev.off()
@@ -396,9 +396,9 @@ n_umbs_year <- ggplot(cn_treat_umbs_year, aes(x = as.factor(year), y = nitrogen_
 
 
 # Nitrogen species + year + warming
-png("nitrogen_species_L2.png", units="in", width=6, height=4, res=300)
+png("nitrogen_species_L2.png", units="in", width=7, height=4, res=300)
 ggplot(cn_spp, aes(x = year, y = nitrogen_mean, fill = treatment)) +
-        facet_wrap(.~species) +
+        facet_wrap(.~species, scales="free_y") +
         geom_pointrange(aes(ymin=nitrogen_mean-n_se, ymax=nitrogen_mean+n_se), pch=21,size=0.5,position=position_dodge(0.4)) +
         #geom_bar(position = "dodge", stat = "identity", color = 'black') +
         #geom_errorbar(aes(ymin = carbon_mean - c_se, ymax = carbon_mean + c_se), width = 0.2,
@@ -569,12 +569,12 @@ dev.off()
 
 
 # Species and warming
-png("sla_spp_L2.png", units="in", width=8, height=4, res=300)
-ggplot(sla_treatment3, aes(x = species, y = sla_mean, fill = state)) +
-        facet_wrap(.~site, labeller = as_labeller(site_label)) +
+png("sla_spp_L2.png", units="in", width=6, height=5, res=300)
+ggplot(sla_treatment3, aes(x = site, y = sla_mean, fill = state)) +
+        facet_wrap(.~species, scales="free_y") +
         #geom_point(aes(fill=state),pch=21, size=3) +
         geom_pointrange(aes(ymin=sla_mean-se, ymax=sla_mean+se),
-                        pch=21,size=0.6,position=position_dodge(0.8)) +
+                        pch=21,size=0.4,position=position_dodge(0.8)) +
         #geom_bar(position = "dodge", stat = "identity", color = 'black') +
         #geom_errorbar(aes(ymin = sla_mean - se, ymax = sla_mean + se), width = 0.2) +
         labs(x = "Species", y = bquote("Specific leaf area " (cm^2/g)), fill = "Treatment") +
@@ -582,11 +582,12 @@ ggplot(sla_treatment3, aes(x = species, y = sla_mean, fill = state)) +
                           labels = c("ambient" = "Ambient", "warmed" = "Warmed")) +
         #scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#fb6a4a")) +
+        scale_x_discrete(labels=c("kbs" = "KBS", "umbs" = "UMBS")) +
         theme_bw(14) +
         theme(panel.background = element_rect(fill = NA, color = "black")) +
         theme(axis.text=element_text(size=10),
               axis.title=element_text(size=14),
-              strip.text = element_text(size = 14),
+              strip.text = element_text(size = 12),
               legend.title = element_text(size=14),
               legend.text = element_text(size=12),
               axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
