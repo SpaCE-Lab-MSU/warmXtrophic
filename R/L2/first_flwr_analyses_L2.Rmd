@@ -107,14 +107,14 @@ dev.off()
 
 # Goodness of fit comparisons across fits (can't include the log normal bc it becomes diff response values)
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# log normal best fit but data looks pretty normal so sticking with that
+
 ```
 
 Leverage plots and detecting Outliers
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(log(julian_min) ~ state, data = kbs_plot)
+fit_plot_state_kbs <- lm(julian_min ~ state, data = kbs_plot)
 outlierTest(fit_plot_state_kbs) # line 168 outlier
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
@@ -122,7 +122,7 @@ leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(log(julian_min) ~ state + year_factor, data = kbs_plot)
+fit_plot_stateyear_kbs <- lm(julian_min ~ state + year_factor, data = kbs_plot)
 outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
@@ -181,11 +181,8 @@ mod_k_all <- lmer(julian_min ~ state * insecticide * year_factor + (1|plot), kbs
 summary(mod_k_all)
 anova(mod_k_all)
 
-## calculating effect size - accounting for log transformation
-#exp((5.146226) +  (0.005052)*0) # 171.782 
-#exp((5.146226) +  (0.005052)*1) # 172.652
-## effect:
-#172.652 - 171.782 # effect of warming - warmed plots increased the date of first flower by 0.87 days
+# making a table
+kable(anova(mod_k_all), digits = 3) %>% kableExtra::kable_styling()
 
 # comparisons
 contrast.k <- contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
@@ -203,8 +200,8 @@ kable(result) %>% kableExtra::kable_styling()
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
 kbs_plot_amb <- kbs_plot %>%
         filter(state == "ambient")
-modtest1 <- lmer(log(julian_min) ~ mean_temp + (1|plot), kbs_plot, REML=FALSE)
-modtest2 <- lmer(log(julian_min) ~ GDD_cumulative + (1|plot), kbs_plot, REML=FALSE)
+modtest1 <- lmer(julian_min ~ mean_temp + (1|plot), kbs_plot_nooutlier, REML=FALSE)
+modtest2 <- lmer(julian_min ~ GDD_cumulative + (1|plot), kbs_plot_nooutlier, REML=FALSE)
 
 AICtab(modtest1, modtest2, weights=T)
 # growing degree days model is better but we are going to use the mean temp for all models
