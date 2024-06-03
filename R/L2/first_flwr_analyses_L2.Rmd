@@ -177,15 +177,15 @@ outlierTest(mod1) # no outliers
 # KBS Plot-level model - ALL YEARS
 ```{r}
 #Our hypothesized model is  mod9p
-mod_k_all <- lmer(log(julian_min) ~ state * insecticide * year_factor + (1|plot), kbs_plot_nooutlier, REML=FALSE)
+mod_k_all <- lmer(julian_min ~ state * insecticide * year_factor + (1|plot), kbs_plot_nooutlier, REML=FALSE)
 summary(mod_k_all)
 anova(mod_k_all)
 
-# calculating effect size - accounting for log transformation
-exp((5.146226) +  (0.005052)*0) # 171.782 
-exp((5.146226) +  (0.005052)*1) # 172.652
-# effect:
-172.652 - 171.782 # effect of warming - warmed plots increased the date of first flower by 0.87 days
+## calculating effect size - accounting for log transformation
+#exp((5.146226) +  (0.005052)*0) # 171.782 
+#exp((5.146226) +  (0.005052)*1) # 172.652
+## effect:
+#172.652 - 171.782 # effect of warming - warmed plots increased the date of first flower by 0.87 days
 
 # comparisons
 contrast.k <- contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
