@@ -116,7 +116,7 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 ```{r}
 # Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(log(flwr_duration_scaled) ~ state, data = kbs_flwr_plot)
+fit_plot_state_kbs <- lm(flwr_duration_scaled ~ state, data = kbs_flwr_plot)
 outlierTest(fit_plot_state_kbs) # line 52 is an outlier
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
@@ -124,8 +124,8 @@ leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs) # looks ok besides Kolmogorov-Smirnov test
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(log(flwr_duration_scaled) ~ state + year_factor, data = kbs_flwr_plot)
-outlierTest(fit_plot_stateyear_kbs) # outliers - 142, 155, 220, 116, 207, 272
+fit_plot_stateyear_kbs <- lm(flwr_duration_scaled ~ state + year_factor, data = kbs_flwr_plot)
+outlierTest(fit_plot_stateyear_kbs) # outliers - 52
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
 leveragePlots(fit_plot_stateyear_kbs)
@@ -133,27 +133,67 @@ ols_test_normality(fit_plot_stateyear_kbs) # a couple tests say not normal
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(log(flwr_duration_scaled) ~ state * year, data = kbs_flwr_plot)
-interact_plot(fit3, pred = year, modx = state) # this looks very strange to me
+fit3 <- lm(flwr_duration_scaled ~ state * year, data = kbs_flwr_plot)
+interact_plot(fit3, pred = year, modx = state)
+
+# remove outlier, line 52
+kbs_plot_nooutlier <- kbs_flwr_plot[!rownames(kbs_flwr_plot) == '52', ]
+kbs_plot_nooutlier <- kbs_plot_nooutlier[!rownames(kbs_plot_nooutlier) == '88', ]
+descdist(kbs_plot_nooutlier$flwr_duration_scaled, discrete = FALSE)
+# KBS State-only model
+fit_plot_state_kbs <- lm(flwr_duration_scaled ~ state, data = kbs_plot_nooutlier)
+outlierTest(fit_plot_state_kbs) # no outliers
+qqPlot(fit_plot_state_kbs, main="QQ Plot") 
+hist(fit_plot_state_kbs$residuals)
+leveragePlots(fit_plot_state_kbs)
+ols_test_normality(fit_plot_state_kbs)
 ```
+
+```{r}
+# KBS PLOT LEVEL - Looking at FIRST date of flowering
+mod1 <- lmer(flwr_duration_scaled ~ state * insecticide * year_factor + (1|plot), kbs_plot_nooutlier, REML=FALSE)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(mod1) # the ones in the data are making this look weird - idk this doesn't look great
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(mod1) ~ kbs_plot_nooutlier$state)
+# Assumption met
+leveneTest(residuals(mod1) ~ kbs_plot_nooutlier$insecticide) 
+# Assumption met
+leveneTest(residuals(mod1) ~ kbs_plot_nooutlier$plot)
+# Assumption met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # normally distributed resids bc p>0.05
+outlierTest(mod1) # no outliers
+```
+
 
 # KBS Plot-level model - ALL YEARS
 ```{r}
 # Our hypothesized model is:
-mod_k_all <- lmer(flwr_duration_scaled ~ state * insecticide * year_factor + (1|plot), kbs_flwr_plot, REML=FALSE)
+mod_k_all <- lmer(flwr_duration_scaled ~ state * insecticide * year_factor + (1|plot), kbs_plot_nooutlier, REML=FALSE)
 summary(mod_k_all)
 anova(mod_k_all)
 
 # making a table
-kable(anova(mod_k_all), digits = 2) %>% kableExtra::kable_styling()
+kable(anova(mod_k_all)) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
 kbs_flwr_plot_amb <- kbs_flwr_plot %>%
         filter(state == "ambient")
-modtest1 <- lmer(flwr_duration_scaled ~ mean_temp + (1|plot), kbs_flwr_plot, REML=FALSE)
-modtest2 <- lmer(flwr_duration_scaled ~ GDD_cumulative + (1|plot), kbs_flwr_plot, REML=FALSE)
+modtest1 <- lmer(flwr_duration_scaled ~ mean_temp + (1|plot), kbs_plot_nooutlier, REML=FALSE)
+modtest2 <- lmer(flwr_duration_scaled ~ GDD_cumulative + (1|plot), kbs_plot_nooutlier, REML=FALSE)
 
 AICtab(modtest1, modtest2, weights=T)
 # growing degree days model is better but we are going to use the mean temp for all models
