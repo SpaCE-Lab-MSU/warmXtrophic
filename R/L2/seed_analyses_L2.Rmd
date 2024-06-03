@@ -111,7 +111,6 @@ qqcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 ppcomp  (list(fit.gamma, fit.weibull, fit.ln), legendtext = plot.legend)
 
 gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "Log Normal"))
-# Lognormal is better - going with a lognormal transformation for kbs seed set at the plot level
 ```
 
 # Leverage plots and detecting Outliers. https://www.statmethods.net/stats/rdiagnostics.html
@@ -119,16 +118,16 @@ gofstat(list(fit.gamma, fit.weibull, fit.ln), fitnames = c("Gamma", "Weibull", "
 ```{r}
 # KBS Plot level data
 # KBS State-only model
-fit_plot_state_kbs <- lm(log(julian_min) ~ state, data = kbs_sd_plot)
-outlierTest(fit_plot_state_kbs) # outliers - 144, 217
+fit_plot_state_kbs <- lm(julian_min ~ state, data = kbs_sd_plot)
+outlierTest(fit_plot_state_kbs) # outliers - 144, 204
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
 leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs)
 
 # KBS State and year model
-fit_plot_stateyear_kbs <- lm(log(julian_min) ~ state + year_factor, data = kbs_sd_plot)
-outlierTest(fit_plot_stateyear_kbs) # no outliers
+fit_plot_stateyear_kbs <- lm(julian_min ~ state + year_factor, data = kbs_sd_plot)
+outlierTest(fit_plot_stateyear_kbs) # outliers - 144, 204
 qqPlot(fit_plot_stateyear_kbs, main="QQ Plot") 
 hist(fit_plot_stateyear_kbs$residuals)
 leveragePlots(fit_plot_stateyear_kbs)
@@ -136,14 +135,14 @@ ols_test_normality(fit_plot_stateyear_kbs)
 
 # Interaction plot (ignore for now the repeated measures with species); see: https://cran.r-project.org/web/packages/interactions/vignettes/interactions.html and: https://interactions.jacob-long.com/
 
-fit3 <- lm(log(julian_min) ~ state * year, data = kbs_sd_plot)
+fit3 <- lm(julian_min ~ state * year, data = kbs_sd_plot)
 interact_plot(fit3, pred = year, modx = state) # this doesn't work
 
 # remove outliers, lines 144 and 204
 kbs_sd_plot_nooutlier <- kbs_sd_plot[!rownames(kbs_sd_plot) == '144', ]
 kbs_sd_plot_nooutlier <- kbs_sd_plot_nooutlier[!rownames(kbs_sd_plot_nooutlier) == '204', ]
 # KBS State-only model
-fit_plot_state_kbs <- lm(log(julian_min) ~ state, data = kbs_sd_plot_nooutlier)
+fit_plot_state_kbs <- lm(julian_min ~ state, data = kbs_sd_plot_nooutlier)
 outlierTest(fit_plot_state_kbs) # no outliers
 qqPlot(fit_plot_state_kbs, main="QQ Plot") 
 hist(fit_plot_state_kbs$residuals)
@@ -151,21 +150,49 @@ leveragePlots(fit_plot_state_kbs)
 ols_test_normality(fit_plot_state_kbs)
 ```
 
+Mixed Effects Model
+```{r}
+# KBS PLOT LEVEL - Looking at FIRST date of flowering
+mod1 <- lmer(julian_min ~ state * insecticide * year_factor + (1|plot), kbs_sd_plot_nooutlier, REML=FALSE)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical (year isn't)
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+par(mfrow=c(1,2))
+plot(mod1) # the ones in the data are making this look weird - idk this doesn't look great
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+# *****Levene’s Test - tests whether or not the variance among two or more groups is equal - If the p-value is less than our chosen significance level, we can reject the null hypothesis and conclude that we have enough evidence to state that the variance among the groups is not equal (which we want).
+
+leveneTest(residuals(mod1) ~ kbs_sd_plot_nooutlier$state)
+# Assumption met
+leveneTest(residuals(mod1) ~ kbs_sd_plot_nooutlier$insecticide) 
+# Assumption not met
+leveneTest(residuals(mod1) ~ kbs_sd_plot_nooutlier$plot)
+# Assumption met
+
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # normally distributed resids bc p>0.05
+outlierTest(mod1) # 192
+
+kbs_sd_plot_nooutlier <- kbs_sd_plot_nooutlier[!rownames(kbs_sd_plot_nooutlier) == '192', ]
+mod1 <- lmer(julian_min ~ state * insecticide * year_factor + (1|plot), kbs_sd_plot_nooutlier, REML=FALSE)
+qqPlot(resid(mod1))
+hist(residuals(mod1))
+shapiro.test(resid(mod1)) # normally distributed resids bc p>0.05
+outlierTest(mod1)
+```
+
 # KBS Plot-level model - ALL YEARS
 ```{r}
 #Our hypothesized model is:
-mod_k_all <- lmer(log(julian_min) ~ state * insecticide * year_factor + (1|plot), kbs_sd_plot_nooutlier, REML=FALSE)
+mod_k_all <- lmer(julian_min ~ state * insecticide * year_factor + (1|plot), kbs_sd_plot_nooutlier, REML=FALSE)
 summary(mod_k_all)
 anova(mod_k_all)
 
 kable(anova(mod_k_all)) %>% kableExtra::kable_styling()
-
-# calculating effect size - accounting for log transformation
-exp((5.341e+00) +  (7.018e-02)*0) # 208.7213 
-exp((5.341e+00) +  (7.018e-02)*1) # 223.8956
-# effect:
-223.8956 - 208.7213 # = 15.1743  
-# warming plots delayed seed set by 15.2 days 
 
 # comparisons
 contrast.k <- contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
@@ -183,19 +210,13 @@ kable(result) %>% kableExtra::kable_styling()
 # so below, we test for date of first seed set as a function of just temp to see how real temp data affects date of first seed set
 kbs_sd_plot_amb <- kbs_sd_plot %>%
         filter(state == "ambient")
-modtest1 <- lmer(log(julian_min) ~ mean_temp + (1|plot), kbs_sd_plot, REML=FALSE)
-modtest2 <- lmer(log(julian_min) ~ GDD_cumulative + (1|plot), kbs_sd_plot, REML=FALSE)
+modtest1 <- lmer(julian_min ~ mean_temp + (1|plot), kbs_sd_plot_nooutlier, REML=FALSE)
+modtest2 <- lmer(julian_min ~ GDD_cumulative + (1|plot), kbs_sd_plot_nooutlier, REML=FALSE)
 
 AICtab(modtest1, modtest2, weights=T)
 
 anova(modtest1)
 summary(modtest1)
-# calculating effect size - accounting for log transformation
-exp((4.984e+00) + (2.009e-02)*0) # 146.0574 
-exp((4.984e+00) + (2.009e-02)*1) # 149.0214
-# effect:
-149.0214 - 146.0574 # = 2.965  
-# warming plots delayed seed set by ~2.965 days
 
 r.squaredGLMM(modtest1)
 
