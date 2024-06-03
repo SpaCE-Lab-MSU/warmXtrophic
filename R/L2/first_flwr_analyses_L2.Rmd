@@ -200,7 +200,7 @@ kable(result) %>% kableExtra::kable_styling()
 # so below, we test for date of first flower as a function of just temp to see how real temp data affects date of first flower
 kbs_plot_amb <- kbs_plot %>%
         filter(state == "ambient")
-modtest1 <- lmer(julian_min ~ mean_temp + (1|plot), kbs_plot_nooutlier, REML=FALSE)
+modtest1 <- lmer(log(julian_min) ~ mean_temp + (1|plot), kbs_plot_nooutlier, REML=FALSE)
 modtest2 <- lmer(julian_min ~ GDD_cumulative + (1|plot), kbs_plot_nooutlier, REML=FALSE)
 
 AICtab(modtest1, modtest2, weights=T)

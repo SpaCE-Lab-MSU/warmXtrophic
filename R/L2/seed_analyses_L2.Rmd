@@ -195,6 +195,7 @@ anova(mod_k_all)
 kable(anova(mod_k_all)) %>% kableExtra::kable_styling()
 
 # comparisons
+# warming * year
 contrast.k <- contrast(emmeans(mod_k_all, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt")
 
 result = as.data.frame(contrast.k)
@@ -204,6 +205,17 @@ mutate_if(is.numeric, round, digits=2)
 
 # table
 kable(result) %>% kableExtra::kable_styling()
+
+# herbivory * state
+contrast.k1 <- contrast(emmeans(mod_k_all, ~insecticide*state), "pairwise", simple = "each", combine = F, adjust = "mvt")
+
+result1 = as.data.frame(contrast.k1)
+
+result1 <- result1 %>%
+mutate_if(is.numeric, round, digits=2)
+
+# table
+kable(result1) %>% kableExtra::kable_styling()
 
 # adding in our temp data into some models
 # note: including state, year, and temp data into a model leads to rank deficiency
