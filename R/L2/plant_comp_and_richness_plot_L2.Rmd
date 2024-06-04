@@ -134,7 +134,7 @@ pc_richness_line_i <- ggpubr::ggarrange(plot_line_kbs, plot_line_umbs,
                                      nrow = 2, ncol = 2, common.legend = T, legend="right",
                                      widths=c(1.1,1))
 pc_richness_line_i
-png("percent_cover_richness_plots_lineplot_by_year_L2.png", units="in", width=10, height=8, res=300)
+tiff("percent_cover_richness_plots_lineplot_by_year_L2.tiff", units="in", width=10, height=8, res=600)
 pc_richness_line_i
 dev.off()
 ```
