@@ -427,7 +427,7 @@ phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                                  sd_line_i_kbs, sd_line_i_umbs,
                                  nrow = 4, ncol = 2, common.legend = T, legend="right",
                                  heights=c(1.1,1,1,1.2))
-png("phenology_plots_L2_all_phenology_line_insect.png", units="in", width=11, height=10, res=300)
+tiff("phenology_plots_L2_all_phenology_line_insect.tiff", units="in", width=11, height=10, res=600)
 annotate_figure(phen_line_i,
                 left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15))
 dev.off()

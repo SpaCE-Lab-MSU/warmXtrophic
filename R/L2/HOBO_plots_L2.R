@@ -446,7 +446,7 @@ dev.off()
 
 Fig1.8 <- ggarrange(Fig1.5,Fig1.6,
                     nrow = 2, common.legend = F)
-png("HOBO_plots_L2_air_soil_line.png", units="in", width=10, height=8, res=300)
+tiff("HOBO_plots_L2_air_soil_line.tiff", units="in", width=10, height=8, res=600)
 annotate_figure(Fig1.8,
                 left = text_grob("Soil temperature (°C)             Air temperature (°C)", color = "black", rot = 90,size=18),
                 bottom = text_grob("Year", color = "black", size=18))
