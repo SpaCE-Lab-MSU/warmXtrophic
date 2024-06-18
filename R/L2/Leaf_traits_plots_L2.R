@@ -633,7 +633,7 @@ umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = insecticide, y = average_weight, 
 
 
 ### biomass fig ###
-tiff("biomass_L2.tiff", units="in", width=11, height=6, res=600)      
+tiff("biomass_L2.tiff", units="in", width=11, height=6, res=400)      
 ggpubr::ggarrange(kbs_bio_dot, umbs_bio_dot,
                   ncol = 2, common.legend = T, legend="right",
                   widths = c(1.1,1))
