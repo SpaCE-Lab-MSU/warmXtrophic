@@ -1,5 +1,11 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.12100590.svg)](https://doi.org/10.5281/zenodo.12100590)
 
+License web page for linking in readme: https://creativecommons.org/licenses/by/4.0/legalcode and license text for creating a LICENSE file in the repository https://creativecommons.org/licenses/by/4.0/legalcode
+
+Open research: The data from this study are openly available in the Environmental Data Initiative data repository at https://doi.org/10.6073/pasta/a09100ccd11abc0fb43c3bdb27db93b6. 
+
+Zarnetske, P., K.C. Dobson, M. Hammond, and M.L. Young. 2023. warmXtrophic: plant community responses to direct and herbivore-mediated indirect effects of climate warming across multiple years at Kellogg Biological Station Long-Term Ecological Research Sites (KBS LTER), Michigan, USA, and University of Michigan Biological Station (UMBS), Michigan, USA. ver 1. Environmental Data Initiative. https://doi.org/10.6073/pasta/a09100ccd11abc0fb43c3bdb27db93b6.
+
 # warmXtrophic
 
 ## Introduction
@@ -26,7 +32,8 @@ Leaf traits: Specific leaf area (SLA), N content, C content
 
 L1 data must be downloaded prior to running the R script associated with that response variable. Each response variable (e.g., biomass, green-up, etc.) typically has its own R script for cleaning and analysis. Some traits are grouped for L2 figure making scripts (e.g., leaf traits are SLA, C, and N). For some L2 scripts, the L1 data must first be ran through its associated L1 script to create the data necessary for L2.
 
-![EDI Workflow Image](docs/EDI_harmonization_procedure_general.png)
+![EDI Workflow Image](docs/EDI_harmonization_procedure_general_updated.png)
+Workflow image credit: https://edirepository.org/resources/designing-a-data-package
 
 ## Location of data
 
@@ -46,8 +53,8 @@ All analyses were conducted using R (R Core Team 2020)
 
 ### File Naming Conventions
 
-- Data Files: File names typically contain the response variable, site, and data stage designation. For example, "UMBS_pairedsensors_L1.csv" would represent data from UMBS for the air temperature paired sensors as a clean, L1 version. Some data files may not have a site name (e.g., "final_flwr_sd_L1.csv"), meaning both KBS and UMBS are contained within that file. More meta-data file information is avaiable in our EDI data repository.
-- Scripts: Scripts are separated into two folders: L1 and L2. L1 files take raw data and clean it, thus resulting in our clean L1 data files available in EDI. The L2 files take the cleaned data and analyse/plot it. Scripts are named with their respecitive response variable and if the data is being analyzed or plotted (e.g., "herbivory_analyses_L2.R and herbivory_plots_L2.R").
+- Data Files: File names typically contain the response variable, site, and data stage designation. For example, "UMBS_pairedsensors_L1.csv" would represent data from UMBS for the air temperature paired sensors as a clean, L1 version. Some data files may not have a site name (e.g., "final_flwr_sd_L1.csv"), meaning both KBS and UMBS are contained within that file. More meta-data file information is available in our EDI data repository.
+- Scripts: Scripts are separated into two folders: L1 and L2. L1 files take raw data and clean it, thus resulting in our clean L1 data files available in EDI. The L2 files take the cleaned data and analyze/plot it. Scripts are named with their respective response variable and if the data is being analyzed or plotted (e.g., "herbivory_analyses_L2.R and herbivory_plots_L2.R").
 
 ## Scripts
 
@@ -73,7 +80,7 @@ plant_comp_data_wrangling_L2.R: This script takes the cleaned plant composition 
 
 plant_comp_diversity_calculations_L2.R: This script takes the cleaned plant composition data and calculates species diversity metrics, including Shannon index, Simpson index, and species richness. It outputs a separate csv containing these calculated variables, which are needed for further scripts on analyses and plotting.
 
-All other L2 files are labelled with either "analyses" or "plots" in the file name (e.g., "herbivory_analyses_L2.R and herbivory_plots_L2.R"). Also included in the file name is the response variable that is being analyzed or plotted.
+All other L2 files are labeled with either "analyses" or "plots" in the file name (e.g., "herbivory_analyses_L2.R and herbivory_plots_L2.R"). Also included in the file name is the response variable that is being analyzed or plotted.
 
 ## Contributors
 
