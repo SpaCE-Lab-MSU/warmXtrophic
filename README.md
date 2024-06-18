@@ -1,6 +1,6 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.12100590.svg)](https://doi.org/10.5281/zenodo.12100590)
 
-License web page for linking in readme: https://creativecommons.org/licenses/by/4.0/legalcode and license text for creating a LICENSE file in the repository https://creativecommons.org/licenses/by/4.0/legalcode
+This project is licensed under the terms of the Creative Commons Attribution 4.0 license, CC-BY-4.0.
 
 Open research: The data from this study are openly available in the Environmental Data Initiative data repository at https://doi.org/10.6073/pasta/a09100ccd11abc0fb43c3bdb27db93b6. 
 
