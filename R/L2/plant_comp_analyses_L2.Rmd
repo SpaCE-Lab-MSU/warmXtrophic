@@ -226,9 +226,9 @@ exp((2.763627) +  (0.013714)*1) # 16.07622
 
 
 # comparisons
-contrast.k1 <- contrast(emmeans(mod_k_full, ~state*year_factor), "pairwise", simple = "each", combine = F, adjust = "mvt", type = "response")
+contrast.k1 <- contrast(emmeans(mod_k_full, ~state*year_factor), "revpairwise", simple = "each", combine = F, adjust = "mvt", type = "response") # revpairwise reverses the comparisons from ambient/warmed to warmed/ambient
 # KD: back transforming ratio (https://www.reddit.com/r/statistics/comments/t6ph7o/comment/hzl704x/)
-# ambient plots had 0.61 times the cover of warmed in 2021
+# warmed plots had 1.6 times the cover of ambient in 2021
 
 result1 = as.data.frame(contrast.k1)
 
