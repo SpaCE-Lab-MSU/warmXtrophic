@@ -12,9 +12,7 @@ Zarnetske, P., K.C. Dobson, M. Hammond, and M.L. Young. 2023. warmXtrophic: plan
 
 This repository contains R scripts that organize, clean, analyze, and plot data from the long-term Warming X Trophic Interactions experiment at Kellogg Biological Station (KBS) and University of Michigan Biological Station (UMBS). A manuscript is currently in review summarizing the data from 2015-2021, co-led by Kara Dobson and Moriah Young, coauthors: Phoebe Zarnetske, Mark Hammond.
 
-Young, M. L., Dobson, K. D., Hammond, M. D., Zarnetske, P. L. In review. Plant
-community responses to direct and herbivore-mediated indirect effects of climate warming
-across multiple years. Ecology. *Moriah and Kara are joint first authors
+Young, M. L., Dobson, K. D., Hammond, M. D., Zarnetske, P. L. In review. Plant community responses to the individual and interactive effects of warming and herbivory across multiple years. Ecology. *Moriah and Kara are joint first authors
 
 ### Response variables include:
 
