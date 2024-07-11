@@ -77,9 +77,9 @@ insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 #        group_by(site, species) %>% 
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_green_spp_i <- gr_species %>%
-        group_by(site, year, species) %>%
-        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
-        filter(all(c('warmed', 'ambient') %in% state)) %>% 
+        #group_by(site, year, species) %>%
+        #filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        #filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(spp_half_cover_date, na.rm = TRUE),
                   se = std.error(spp_half_cover_date, na.rm = TRUE),
@@ -94,9 +94,9 @@ sum_flwr_spp_i <- flwr_spp %>%
 #        group_by(site, species) %>% 
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_flwr_spp_i <- flwr_spp %>%
-        group_by(site, year, species) %>%
-        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
-        filter(all(c('warmed', 'ambient') %in% state)) %>% 
+        #group_by(site, year, species) %>%
+        #filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        #filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
                   se = std.error(julian_min, na.rm = TRUE),
@@ -112,9 +112,9 @@ sum_flwr_spp_i <- flwr_spp %>%
 #        group_by(site, species) %>% 
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_flwr_dur_spp_i <- flwr_spp %>%
-        group_by(site, year, species) %>%
-        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
-        filter(all(c('warmed', 'ambient') %in% state)) %>% 
+        #group_by(site, year, species) %>%
+        #filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        #filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(flwr_duration, na.rm = TRUE),
                   se = std.error(flwr_duration, na.rm = TRUE),
@@ -130,9 +130,9 @@ sum_flwr_dur_spp_i <- flwr_spp %>%
 #        group_by(site, species) %>% 
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_sd_spp_i <- sd_spp %>%
-        group_by(site, year, species) %>%
-        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
-        filter(all(c('warmed', 'ambient') %in% state)) %>% 
+        #group_by(site, year, species) %>%
+        #filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        #filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide,species) %>%
         summarize(avg_julian = mean(julian_min, na.rm = TRUE),
                   se = std.error(julian_min, na.rm = TRUE),
@@ -1151,7 +1151,7 @@ dev.off()
 greenup_plot_overall <- function(loc) { 
         greenup_spp <- subset(sum_green_spp_i, site == loc)
         return(ggplot(greenup_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
-                       facet_wrap(~species, ncol=4, scales="free") +
+                       facet_wrap(~species, ncol=3, scales="free") +
                        geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
@@ -1177,7 +1177,7 @@ kbs_green_spp <- greenup_plot_overall("KBS")
 umbs_green_spp <- greenup_plot_overall("UMBS")
 green_overall_merge <- ggpubr::ggarrange(kbs_green_spp, umbs_green_spp,
                                          ncol = 2, common.legend = T,legend="right")
-png("greenup_species.png", units="in", width=18.5, height=8, res=300)
+png("greenup_species.png", units="in", width=16, height=13, res=300)
 annotate_figure(green_overall_merge,
                 left = text_grob("Julian date of green-up", color = "black", rot = 90, size=17))
 dev.off()
@@ -1187,7 +1187,7 @@ dev.off()
 flwr_plot_overall <- function(loc) { 
         flwr_spp <- subset(sum_flwr_spp_i, site == loc)
         return(ggplot(flwr_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
-                       facet_wrap(~species, ncol=4,scales="free") +
+                       facet_wrap(~species, ncol=3,scales="free") +
                        geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
@@ -1213,7 +1213,7 @@ kbs_flwr_spp <- flwr_plot_overall("KBS")
 umbs_flwr_spp <- flwr_plot_overall("UMBS")
 flwr_overall_merge <- ggpubr::ggarrange(kbs_flwr_spp, umbs_flwr_spp,
                                          ncol = 2, common.legend = T,legend="right")
-png("flwr_species.png", units="in", width=18.5, height=8, res=300)
+png("flwr_species.png", units="in", width=16, height=16, res=300)
 annotate_figure(flwr_overall_merge,
                 left = text_grob("Julian date of first flower", color = "black", rot = 90, size=17))
 dev.off()
@@ -1223,7 +1223,7 @@ dev.off()
 flwr_dur_plot_overall <- function(loc) { 
         flwr_spp <- subset(sum_flwr_dur_spp_i, site == loc)
         return(ggplot(flwr_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
-                       facet_wrap(~species, ncol=4,scales="free") +
+                       facet_wrap(~species, ncol=3,scales="free") +
                        geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
@@ -1249,7 +1249,7 @@ kbs_flwr_dur_spp <- flwr_dur_plot_overall("KBS")
 umbs_flwr_dur_spp <- flwr_dur_plot_overall("UMBS")
 flwr_dur_overall_merge <- ggpubr::ggarrange(kbs_flwr_dur_spp, umbs_flwr_dur_spp,
                                         ncol = 2, common.legend = T,legend="right")
-png("flwr_dur_species.png", units="in", width=18.5, height=8, res=300)
+png("flwr_dur_species.png", units="in", width=16, height=16, res=300)
 annotate_figure(flwr_dur_overall_merge,
                 left = text_grob("Duration of flowering (# of days)", color = "black", rot = 90, size=17))
 dev.off()
@@ -1259,7 +1259,7 @@ dev.off()
 sd_plot_overall <- function(loc) { 
         sd_spp <- subset(sum_sd_spp_i, site == loc)
         return(ggplot(sd_spp, aes(x = state, y = avg_julian, fill = insecticide)) +
-                       facet_wrap(~species, ncol=4,scales="free") +
+                       facet_wrap(~species, ncol=3,scales="free") +
                        geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), pch=21,size=0.6,position=position_dodge(0.3)) +
                        scale_fill_manual(name="Treatment",
                                          values = c("#FFB451", "#0b0055"),
@@ -1285,7 +1285,7 @@ kbs_sd_spp <- sd_plot_overall("KBS")
 umbs_sd_spp <- sd_plot_overall("UMBS")
 sd_overall_merge <- ggpubr::ggarrange(kbs_sd_spp, umbs_sd_spp,
                                             ncol = 2, common.legend = T,legend="right")
-png("sd_species.png", units="in", width=18.5, height=8, res=300)
+png("sd_species.png", units="in", width=16, height=13, res=300)
 annotate_figure(sd_overall_merge,
                 left = text_grob("Julian date of first seed set", color = "black", rot = 90, size=17))
 dev.off()
