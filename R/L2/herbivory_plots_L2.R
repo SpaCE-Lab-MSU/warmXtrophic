@@ -350,9 +350,9 @@ dev.off()
 ##### amount eaten for all species at each site #####
 sum_herb_spp2 <- herb[herb$p_eaten != 0, ]
 sum_herb_spp2 <- sum_herb_spp2 %>%
-        group_by(site, year, species) %>%
-        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
-        filter(all(c('warmed', 'ambient') %in% state)) %>% 
+        #group_by(site, year, species) %>%
+        #filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        #filter(all(c('warmed', 'ambient') %in% state)) %>% 
         group_by(site, state, insecticide, species) %>%
         summarize(avg_eaten = mean(p_eaten, na.rm = TRUE),
                   se = std.error(p_eaten, na.rm = TRUE))
@@ -369,13 +369,14 @@ herb_spp_overall <- function(loc) {
                        #coord_cartesian(ylim = c(100, 250)) +
                        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
                        theme_bw(14)) +
-                theme(legend.position = "none")
+                theme(legend.position = "none",
+                      strip.text = element_text(size=17))
 }
 kbs_herb_spp <- herb_spp_overall("KBS")
 umbs_herb_spp <- herb_spp_overall("UMBS")
 herb_overall_merge <- ggpubr::ggarrange(kbs_herb_spp, umbs_herb_spp,
                                         ncol = 2, common.legend=T, legend="right")
-png("herb_species.png", units="in", width=18, height=8, res=300)
+png("herb_species.png", units="in", width=16, height=10, res=300)
 annotate_figure(herb_overall_merge,
                 left = text_grob("Amount eaten (%)", color = "black", rot = 90, size=15),
                 bottom = text_grob("Treatment", color = "black", size=15))
@@ -391,9 +392,9 @@ herb_binom_k <- herb %>%
 herb_binom_k$p_eaten[herb_binom_k$p_eaten == 1] <- "Eaten"
 herb_binom_k$p_eaten[herb_binom_k$p_eaten == 0] <- "Not Eaten"
 herb_binom_sumk2 <- herb_binom_k %>%
-        group_by(site, year, species) %>%
-        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
-        filter(all(c('warmed', 'ambient') %in% state)) %>%
+        #group_by(site, year, species) %>%
+        #filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        #filter(all(c('warmed', 'ambient') %in% state)) %>%
         group_by(plot,state, insecticide, species, p_eaten) %>%
         count(p_eaten) %>%
         group_by(plot,species, state, insecticide) %>%
@@ -402,9 +403,9 @@ herb_binom_sumk2 <- herb_binom_k %>%
         summarize(mean_n = mean(n),
                   se = std.error(n))
 herb_binom_sumk3 <- herb_binom_sumk2 %>%
-        filter(p_eaten == "Eaten") %>%
-        group_by(species) %>%
-        filter(all(c('warmed', 'ambient') %in% state))
+        filter(p_eaten == "Eaten")# %>%
+        #group_by(species) %>%
+        #filter(all(c('warmed', 'ambient') %in% state))
 # selecting UMBS & herbivory plots =, making binary response for if eaten or not overall
 herb_binom_u <- herb %>%
         filter(site == "UMBS") %>%
@@ -412,9 +413,9 @@ herb_binom_u <- herb %>%
 herb_binom_u$p_eaten[herb_binom_u$p_eaten == 1] <- "Eaten"
 herb_binom_u$p_eaten[herb_binom_u$p_eaten == 0] <- "Not Eaten"
 herb_binom_sumu2 <- herb_binom_u %>%
-        group_by(site, year, species) %>%
-        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
-        filter(all(c('warmed', 'ambient') %in% state)) %>%
+        #group_by(site, year, species) %>%
+        #filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        #filter(all(c('warmed', 'ambient') %in% state)) %>%
         group_by(plot,state, insecticide, species, p_eaten) %>%
         count(p_eaten) %>%
         group_by(plot,species, state, insecticide) %>%
@@ -423,12 +424,12 @@ herb_binom_sumu2 <- herb_binom_u %>%
         summarize(mean_n = mean(n),
                   se = std.error(n))
 herb_binom_sumu3 <- herb_binom_sumu2 %>%
-        filter(p_eaten == "Eaten") %>%
-        group_by(species) %>%
-        filter(all(c('warmed', 'ambient') %in% state))
+        filter(p_eaten == "Eaten")# %>%
+       # group_by(species) %>%
+        #filter(all(c('warmed', 'ambient') %in% state))
 # plotting binary response
 binom_plot_k2 <- ggplot(herb_binom_sumk3, aes(x=state, y=mean_n, fill=insecticide)) +
-        facet_wrap(~species, ncol=4) +
+        facet_wrap(~species, ncol=3, scales="free_y") +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se),pch=21,size=1,position=position_dodge(0.2)) +
         labs(x = NULL, y = NULL, title="KBS") +
         scale_x_discrete(labels=c("ambient" = "Ambient ", "warmed" = " Warmed")) +
@@ -445,7 +446,7 @@ binom_plot_k2 <- ggplot(herb_binom_sumk3, aes(x=state, y=mean_n, fill=insecticid
               strip.text=element_text(size=15)) +
         guides(color = "none")
 binom_plot_u2 <- ggplot(herb_binom_sumu3, aes(x=state, y=mean_n, fill = insecticide)) +
-        facet_wrap(~species, ncol=4) +
+        facet_wrap(~species, ncol=3,scales="free_y") +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se),pch=21,size=1,position=position_dodge(0.2)) +
         labs(x = NULL, y = NULL, title="UMBS") +
         scale_x_discrete(labels=c("ambient" = "Ambient ", "warmed" = " Warmed")) +
@@ -463,7 +464,7 @@ binom_plot_u2 <- ggplot(herb_binom_sumu3, aes(x=state, y=mean_n, fill = insectic
         guides(color = "none")
 herb_spp_binom_merge <- ggpubr::ggarrange(binom_plot_k2, binom_plot_u2,
                                           ncol = 2, common.legend=T, legend="right")
-png("herb_species_binom.png", units="in", width=18, height=8, res=300)
+png("herb_species_binom.png", units="in", width=16, height=10, res=300)
 annotate_figure(herb_spp_binom_merge,
                 left = text_grob("Probability of being eaten", color = "black", rot = 90, size=17),
                 bottom = text_grob("Treatment                           ", color = "black", size=17))
