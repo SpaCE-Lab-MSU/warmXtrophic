@@ -312,8 +312,8 @@ sum_comp_spp <- comp_spp %>%
 #        filter(all(c('warmed', 'ambient') %in% state))
 sum_comp_spp_i <- comp_spp %>%
         group_by(site, year, species) %>%
-        filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
-        filter(all(c('warmed', 'ambient') %in% state)) %>% # only keep species that were recorded in both warmed and ambient plots
+        #filter(length(plot) >= 12) %>% # only keeping species present in at least 12 plots each year
+        #filter(all(c('warmed', 'ambient') %in% state)) %>% # only keep species that were recorded in both warmed and ambient plots
         group_by(site, state, insecticide, species) %>%
         summarize(avg_pc = mean(cover, na.rm = TRUE),
                   se = std.error(cover, na.rm = TRUE),
