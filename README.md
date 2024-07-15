@@ -4,7 +4,7 @@ This project is licensed under the terms of the Creative Commons Attribution 4.0
 
 Open research: The data from this study are openly available in the Environmental Data Initiative data repository at https://doi.org/10.6073/pasta/a09100ccd11abc0fb43c3bdb27db93b6. 
 
-Zarnetske, P., K.C. Dobson, M. Hammond, and M.L. Young. 2023. warmXtrophic: plant community responses to direct and herbivore-mediated indirect effects of climate warming across multiple years at Kellogg Biological Station Long-Term Ecological Research Sites (KBS LTER), Michigan, USA, and University of Michigan Biological Station (UMBS), Michigan, USA. ver 1. Environmental Data Initiative. https://doi.org/10.6073/pasta/a09100ccd11abc0fb43c3bdb27db93b6.
+Zarnetske, P., K.C. Dobson, M. Hammond, and M.L. Young. 2024. warmXtrophic: plant community responses to the individual and interactive effects of climate warming and herbivory across multiple years at Kellogg Biological Station Long-Term Ecological Research Sites (KBS LTER), Michigan, USA, and University of Michigan Biological Station (UMBS), Michigan, USA. ver 2. Environmental Data Initiative. https://doi.org/10.6073/pasta/ec1c1534994883f44e529610e9638305.
 
 # warmXtrophic
 
