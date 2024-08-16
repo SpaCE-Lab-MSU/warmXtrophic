@@ -35,7 +35,7 @@ Workflow image credit: https://edirepository.org/resources/designing-a-data-pack
 
 ## Location of data
 
-The L1 data that are processed in the scripts in this repository will be published as an EDI package (DOI here). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps.
+The L1 data that are processed in the scripts in this repository are published as an EDI package (https://doi.org/10.6073/pasta/ec1c1534994883f44e529610e9638305). In some scripts, the header may state that the data was input from Google Drive, which is an artifact of our data processing steps.
 
 ## Spatiotemporal extent
 
