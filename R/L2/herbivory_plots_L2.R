@@ -91,7 +91,7 @@ binom_dot_k_year <- ggplot(herb_binom_eaten_k_year, aes(x = year, y = mean_n, gr
         geom_line(size = 1) +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), linetype="solid",pch=21,size=0.5) +
         labs(x = NULL, y = "Probability of being eaten", title="KBS") +
-        annotate("text", x = 0.6, y=0.78, label = "A", size=4) +
+        annotate("text", x = 0.65, y=0.78, label = "(a)", size=4) +
         #ylim(0.15,0.70) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -118,7 +118,7 @@ binom_dot_u_year <- ggplot(herb_binom_eaten_u_year, aes(x = year, y = mean_n, gr
         geom_line(size = 1) +
         geom_pointrange(aes(ymin = mean_n - se, ymax = mean_n + se), linetype="solid",pch=21,size=0.5) +
         labs(x = NULL, y = "Probability of being eaten", title="UMBS") +
-        annotate("text", x = 0.6, y=0.90, label = "B", size=4) +
+        annotate("text", x = 0.65, y=0.90, label = "(b)", size=4) +
         #ylim(0.15,0.70) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -161,7 +161,7 @@ eaten_k_year <- ggplot(sum_herb_overall_k_year, aes(x = year, y = avg_eaten, gro
         geom_line(size = 1) +
         geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), linetype="solid",pch=21,size=0.5) +
         labs(x = "Year", y = "Amount eaten (%)", title=NULL) +
-        annotate("text", x = 0.6, y=9, label = "C", size=4) +
+        annotate("text", x = 0.65, y=9, label = "(c)", size=4) +
         #ylim(0.15,0.70) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -187,7 +187,7 @@ eaten_u_year <- ggplot(sum_herb_overall_u_year, aes(x = year, y = avg_eaten, gro
         geom_line(size = 1) +
         geom_pointrange(aes(ymin = avg_eaten - se, ymax = avg_eaten + se), linetype="solid",pch=21,size=0.5) +
         labs(x = "Year", y = NULL, title=NULL) +
-        annotate("text", x = 0.6, y=15.8, label = "D", size=4) +
+        annotate("text", x = 0.65, y=15.8, label = "(d)", size=4) +
         #ylim(0.15,0.70) +
         scale_color_manual(name="Treatment",
                            values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
