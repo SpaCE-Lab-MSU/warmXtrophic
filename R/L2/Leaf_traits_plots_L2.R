@@ -598,7 +598,7 @@ dev.off()
 ### Overall averages btwn treatments biomass - dot plot
 # plot level KBS
 kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = insecticide, y = average_weight, fill = state)) +
-        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), pch=21,size=1,position=position_dodge(0.2)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), pch=21,size=0.8,position=position_dodge(0.2)) +
         scale_fill_manual(name="Treatment",
                           values = c("#a6bddb", "#AE1F00"),
                           labels=c("Ambient","Warmed")) +
@@ -607,11 +607,12 @@ kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = insecticide, y = average_weight, f
         scale_y_continuous(breaks = c(90,120,150,180), 
                            labels = c("90", "120", "150", "180")) +
         theme_bw(14) +
-        theme(axis.text.x = element_text(size=17),
-              axis.text.y = element_text(size=17),
-              title = element_text(size=20),
-              legend.text = element_text(size=17),
-              legend.title = element_text(size=17))
+        theme(axis.text.x = element_text(size=10),
+              axis.text.y = element_text(size=10),
+              axis.title = element_text(size=10),
+              plot.title = element_text(size=10),
+              legend.text = element_text(size=10),
+              legend.title = element_text(size=10))
 # plot level UMBS
 umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = insecticide, y = average_weight, fill = state)) +
         geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), pch=21,size=1,position=position_dodge(0.2)) +
@@ -623,19 +624,20 @@ umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = insecticide, y = average_weight, 
         scale_y_continuous(breaks = c(30,40,50,60), 
                            labels = c("30", "40", "50", "60")) +
         theme_bw(14) +
-        theme(axis.text.x = element_text(size=17),
-              axis.text.y = element_text(size=17),
+        theme(axis.text.x = element_text(size=10),
+              axis.text.y = element_text(size=10),
+              axis.title = element_text(size=10),
               axis.title.y = element_blank(),
-              title = element_text(size=20),
-              legend.text = element_text(size=17),
-              legend.title = element_text(size=17))
+              plot.title = element_text(size=10),
+              legend.text = element_text(size=10),
+              legend.title = element_text(size=10))
 
 
 
 ### biomass fig ###
-tiff("biomass_L2.tiff", units="in", width=11, height=6, res=400)      
+tiff("biomass_L2.tiff", units="cm", width=18, height=10, res=400)      
 ggpubr::ggarrange(kbs_bio_dot, umbs_bio_dot,
-                  ncol = 2, common.legend = T, legend="right",
+                  ncol = 2, common.legend = T, legend="bottom",
                   widths = c(1.1,1))
 dev.off()
 

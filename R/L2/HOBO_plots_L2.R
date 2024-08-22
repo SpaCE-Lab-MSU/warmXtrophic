@@ -144,7 +144,7 @@ Fig1_soil_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, fill=tre
 
 Fig1_soil_line_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, color=treatment,group=treatment, fill=treatment)) +
         geom_line(size = 0.75) +
-        geom_pointrange(aes(ymin=average_temp-se, ymax=average_temp+se),pch=21,size=0.75) +
+        geom_pointrange(aes(ymin=average_temp-se, ymax=average_temp+se),pch=21,size=0.4) +
         #geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se),
         #              width=.2,color="black",linetype="solid") +
         scale_fill_manual(name="Treatment",
@@ -156,10 +156,10 @@ Fig1_soil_line_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, col
         labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5,18.5) +
         theme_bw(14) +
-        theme(legend.title=element_text(size=17), 
-              legend.text=element_text(size=15),
-              axis.text.x = element_text(size=15),
-              axis.text.y = element_text(size=15))
+        theme(legend.title=element_text(size=10), 
+              legend.text=element_text(size=10),
+              axis.text.x = element_text(size=10),
+              axis.text.y = element_text(size=10))
         
 Fig1_soil_moist_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
@@ -190,8 +190,8 @@ Fig1_soil_moist_line_kbs <- ggplot(KBS_avg_year_soilmo2, aes(x=year, y=average_m
 Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=treatment, color=treatment, fill = treatment, linetype=treatment)) +
         #geom_errorbar(aes(ymin=avg-se, ymax=avg+se), position=position_dodge(0.15),
         #              width=.3,color="black",linetype="solid") +
-        geom_line(size = 1) +
-        geom_pointrange(aes(ymin=avg-se, ymax=avg+se),pch=21,size=0.75,linetype="solid") +
+        geom_line(size = 0.75) +
+        geom_pointrange(aes(ymin=avg-se, ymax=avg+se),pch=21,size=0.4,linetype="solid") +
         scale_fill_manual(name="Treatment",
                            values = c("#a6bddb", "#AE1F00", "#a6bddb", "#AE1F00"),
                            labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
@@ -206,10 +206,10 @@ Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=tre
         theme_bw(14) +
         theme(axis.title.x=element_blank(),
               axis.text.x=element_blank(),
-              plot.title = element_text(size = 20),
-              legend.title=element_text(size=17), 
-              legend.text=element_text(size=15),
-              axis.text.y = element_text(size=15))
+              plot.title = element_text(size = 10),
+              legend.title=element_text(size=10), 
+              legend.text=element_text(size=10),
+              axis.text.y = element_text(size=10))
 
 
 
@@ -331,7 +331,7 @@ Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, c
         #geom_errorbar(aes(ymin=average_temp-se, ymax=average_temp+se), position=position_dodge(0.15),
         #              width=.3,color="black",linetype="solid") +
         geom_line(size = 0.75) +
-        geom_pointrange(aes(ymin=average_temp-se, ymax=average_temp+se),pch=21,size=0.75) +
+        geom_pointrange(aes(ymin=average_temp-se, ymax=average_temp+se),pch=21,size=0.4) +
         scale_fill_manual(name="Treatment",
                            values = c("#a6bddb", "#AE1F00"),
                            labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
@@ -343,9 +343,9 @@ Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, c
         theme_bw(14) +
         theme(axis.title.y=element_blank(),
               axis.text.y=element_blank()) +
-        theme(legend.title=element_text(size=17), 
-              legend.text=element_text(size=15),
-              axis.text.x = element_text(size=15))
+        theme(legend.title=element_text(size=10), 
+              legend.text=element_text(size=10),
+              axis.text.x = element_text(size=10))
 
 Fig1_soil_moist_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average_moist, fill=treatment, shape=treatment)) +
         geom_pointrange(aes(ymin = average_moist - se, ymax = average_moist + se), size=1, color="black") +
@@ -376,8 +376,8 @@ Fig1_soil_moist_line_umbs <- ggplot(UMBS_avg_year_soilmo2, aes(x=year, y=average
 Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=treatment, color=treatment,fill = treatment, linetype=treatment)) +
         #geom_errorbar(aes(ymin=avg-se, ymax=avg+se), position=position_dodge(0.15),
         #              width=.3,color="black",linetype="solid") +
-        geom_line(size = 1) +
-        geom_pointrange(aes(ymin=avg-se, ymax=avg+se), pch=21,size=0.75,linetype="solid") +
+        geom_line(size = 0.75) +
+        geom_pointrange(aes(ymin=avg-se, ymax=avg+se), pch=21,size=0.4,linetype="solid") +
         scale_fill_manual(name="Treatment",
                            values = c("#a6bddb", "#AE1F00", "#a6bddb", "#AE1F00"),
                            labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
@@ -394,9 +394,9 @@ Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=t
               axis.text.x=element_blank(),
               axis.title.y=element_blank(),
               axis.text.y=element_blank(),
-              plot.title = element_text(size = 20),
-              legend.title=element_text(size=17), 
-              legend.text=element_text(size=15))
+              plot.title = element_text(size = 10),
+              legend.title=element_text(size=10), 
+              legend.text=element_text(size=10))
 
 
 
@@ -424,14 +424,14 @@ annotate_figure(Fig1.2,
 dev.off()
 
 Fig1.5 <- ggarrange(Fig1_temp_line_kbs, Fig1_temp_line_umbs, ncol = 2, common.legend = T, legend = "right")
-png("HOBO_plots_L2_air_temps_line.png", units="in", width=10, height=5, res=300)
+png("HOBO_plots_L2_air_temps_line.png", units="cm", width=18, height=12, res=400)
 annotate_figure(Fig1.5,
                 left = text_grob("Average Air Temperature (°C)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
 dev.off()
 
 Fig1.6 <- ggarrange(Fig1_soil_line_kbs, Fig1_soil_line_umbs, ncol = 2, common.legend = T, legend = "right")
-png("HOBO_plots_L2_soil_temps_line.png", units="in", width=10, height=5, res=300)
+png("HOBO_plots_L2_soil_temps_line.png", units="cm", width=18, height=12, res=400)
 annotate_figure(Fig1.6,
                 left = text_grob("Average Soil Temperature (°C)", color = "black", rot = 90),
                 bottom = text_grob("Year", color = "black"))
@@ -446,10 +446,10 @@ dev.off()
 
 Fig1.8 <- ggarrange(Fig1.5,Fig1.6,
                     nrow = 2, common.legend = F)
-tiff("HOBO_plots_L2_air_soil_line.tiff", units="in", width=10, height=8, res=400)
+tiff("HOBO_plots_L2_air_soil_line.tiff", units="cm", width=16, height=12, res=400)
 annotate_figure(Fig1.8,
-                left = text_grob("Soil temperature (°C)             Air temperature (°C)", color = "black", rot = 90,size=18),
-                bottom = text_grob("Year", color = "black", size=18))
+                left = text_grob("Soil temperature (°C)                    Air temperature (°C)", color = "black", rot = 90,size=10),
+                bottom = text_grob("Year", color = "black", size=10))
 dev.off()
 
 

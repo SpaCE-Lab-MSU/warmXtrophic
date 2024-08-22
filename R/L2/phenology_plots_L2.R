@@ -303,7 +303,7 @@ gr_line_i <- function(loc) {
         return(ggplot(gr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat, shape=full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",shape=21,size=0.6) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",shape=21,size=0.5) +
                        #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),# "#0b0055", "#0b0055", "#FFB451", "#FFB451"
@@ -319,12 +319,18 @@ gr_line_i <- function(loc) {
                        #                      labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Green-up", title = loc) +
                        #ylim(100,165) +
-                       theme_bw(14))
+                       theme_bw(14) +
+                       theme(legend.text=element_text(size=10),
+                             legend.title=element_text(size=10),
+                             axis.text=element_text(size=10),
+                             axis.title=element_text(size=10),
+                             plot.title=element_text(size=12))+
+                       guides(color=guide_legend(nrow=2)))
 }
 gr_line_i_kbs <- gr_line_i("KBS")
-gr_line_i_kbs <- gr_line_i_kbs + annotate("text", x = 0.7, y=137, label = "A", size=5) + theme(axis.text.x=element_blank())
+gr_line_i_kbs <- gr_line_i_kbs + annotate("text", x = 0.7, y=137, label = "A", size=4) + theme(axis.text.x=element_blank())
 gr_line_i_umbs <- gr_line_i("UMBS")
-gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + annotate("text", x = 0.6, y=154, label = "B", size=5) + theme(axis.text.x=element_blank(),
+gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + annotate("text", x = 0.6, y=154, label = "B", size=4) + theme(axis.text.x=element_blank(),
                                                         axis.title.y=element_blank())
 
 #flower
@@ -335,7 +341,7 @@ flwr_line_i <- function(loc) {
         return(ggplot(flwr_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.6) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.5) +
                        #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
@@ -348,12 +354,17 @@ flwr_line_i <- function(loc) {
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Flowering", title = loc) +
                        #ylim(160,215) +
-                       theme_bw(14))
+                       theme_bw(14) +
+                       theme(legend.text=element_text(size=10),
+                             legend.title=element_text(size=10),
+                             axis.text=element_text(size=10),
+                             axis.title=element_text(size=10))+
+                       guides(color=guide_legend(nrow=2)))
 }
 flwr_line_i_kbs <- flwr_line_i("KBS")
-flwr_line_i_kbs <- flwr_line_i_kbs + annotate("text", x = 0.7, y=204, label = "C", size=5) + theme(axis.text.x=element_blank()) + labs(title=NULL)
+flwr_line_i_kbs <- flwr_line_i_kbs + annotate("text", x = 0.7, y=204, label = "C", size=4) + theme(axis.text.x=element_blank()) + labs(title=NULL)
 flwr_line_i_umbs <- flwr_line_i("UMBS")
-flwr_line_i_umbs <- flwr_line_i_umbs + annotate("text", x = 0.6, y=176, label = "D", size=5) + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
+flwr_line_i_umbs <- flwr_line_i_umbs + annotate("text", x = 0.6, y=176, label = "D", size=4) + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
                                                                         axis.title.y=element_blank())
 
 # flower duration
@@ -364,7 +375,7 @@ flwr_dur_line_i <- function(loc) {
         return(ggplot(flwr_dur_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, fill=full_treat,color = full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.6) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.5) +
                        #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
@@ -377,16 +388,21 @@ flwr_dur_line_i <- function(loc) {
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = NULL, y = "Flowering duration", title = loc) +
                        #ylim(160,215) +
-                       theme_bw(14))
+                       theme_bw(14) +
+                       theme(legend.text=element_text(size=10),
+                             legend.title=element_text(size=10),
+                             axis.text=element_text(size=10),
+                             axis.title=element_text(size=10))+
+                       guides(color=guide_legend(nrow=2)))
 }
 flwr_dur_line_i_kbs <- flwr_dur_line_i("KBS")
-flwr_dur_line_i_kbs <- flwr_dur_line_i_kbs + annotate("text", x = 0.7, y=35, label = "E", size=5) +
+flwr_dur_line_i_kbs <- flwr_dur_line_i_kbs + annotate("text", x = 0.7, y=35, label = "E", size=4) +
         scale_y_continuous(breaks = c(10,20,30), 
                            labels = c("  10", "  20", "  30")) +
         theme(axis.text.x=element_blank()) +
         labs(title=NULL)
 flwr_dur_line_i_umbs <- flwr_dur_line_i("UMBS")
-flwr_dur_line_i_umbs <- flwr_dur_line_i_umbs +annotate("text", x = 0.6, y=36, label = "F", size=5) +
+flwr_dur_line_i_umbs <- flwr_dur_line_i_umbs +annotate("text", x = 0.6, y=36, label = "F", size=4) +
         scale_y_continuous(breaks = c(20,25,30,35), 
                            labels = c("  20", "  25", "  30", "  35")) +
         labs(y=NULL, title=NULL) +
@@ -401,7 +417,7 @@ sd_line_i <- function(loc) {
         return(ggplot(sd_plot, aes(x = year, y = avg_julian, group=full_treat, linetype=full_treat, color = full_treat, fill=full_treat)) +
                        #geom_errorbar(aes(ymin=avg_julian-se, ymax=avg_julian+se), color="black",linetype="solid", position=position_dodge(0.1), width=.3) +
                        geom_line(size = 1) +
-                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.6) +
+                       geom_pointrange(aes(ymin=avg_julian-se, ymax=avg_julian+se), linetype="solid",pch=21,size=0.5) +
                        #geom_point(size = 2) +
                        scale_color_manual(name="Treatment",
                                           values = c("#a6bddb", "#a6bddb", "#AE1F00", "#AE1F00"),
@@ -414,22 +430,27 @@ sd_line_i <- function(loc) {
                                              labels=c("Ambient + Herbivory","Ambient + Reduced Herbivory","Warmed + Herbivory", "Warmed + Reduced Herbivory")) +
                        labs(x = "Year", y = "Seed set", title = loc) +
                        #ylim(175,255) +
-                       theme_bw(14))
+                       theme_bw(14) +
+                       theme(legend.text=element_text(size=10),
+                             legend.title=element_text(size=10),
+                             axis.text=element_text(size=10),
+                             axis.title=element_text(size=10))+
+                       guides(color=guide_legend(nrow=2)))
 }
 sd_line_i_kbs <- sd_line_i("KBS")
-sd_line_i_kbs <- sd_line_i_kbs + annotate("text", x = 0.7, y=250, label = "G", size=5) + labs(title=NULL)
+sd_line_i_kbs <- sd_line_i_kbs + annotate("text", x = 0.7, y=250, label = "G", size=4) + labs(title=NULL)
 sd_line_i_umbs <- sd_line_i("UMBS")
-sd_line_i_umbs <- sd_line_i_umbs + annotate("text", x = 0.6, y=196, label = "H", size=5) + labs(y=NULL, title=NULL)+ theme(axis.title.y=element_blank())
+sd_line_i_umbs <- sd_line_i_umbs + annotate("text", x = 0.6, y=196, label = "H", size=4) + labs(y=NULL, title=NULL)+ theme(axis.title.y=element_blank())
 
 phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                                  flwr_line_i_kbs, flwr_line_i_umbs,
                                  flwr_dur_line_i_kbs, flwr_dur_line_i_umbs,
                                  sd_line_i_kbs, sd_line_i_umbs,
-                                 nrow = 4, ncol = 2, common.legend = T, legend="right",
+                                 nrow = 4, ncol = 2, common.legend = T, legend="bottom",
                                  heights=c(1.1,1,1,1.2))
-tiff("phenology_plots_L2_all_phenology_line_insect.tiff", units="in", width=11, height=10, res=400)
+tiff("phenology_plots_L2_all_phenology_line_insect.tiff", units="cm", width=18, height=22, res=400)
 annotate_figure(phen_line_i,
-                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=15))
+                left = text_grob("Phenological event julian date", color = "black", rot = 90, size=10))
 dev.off()
 
 
