@@ -606,6 +606,7 @@ kbs_bio_dot <- ggplot(biomass_sum_k3, aes(x = insecticide, y = average_weight, f
         scale_x_discrete(labels=c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")) +
         scale_y_continuous(breaks = c(90,120,150,180), 
                            labels = c("90", "120", "150", "180")) +
+        annotate("text", x = 0.48, y=196, label = "(a)", size=4) +
         theme_bw(14) +
         theme(axis.text.x = element_text(size=10),
               axis.text.y = element_text(size=10),
@@ -623,6 +624,7 @@ umbs_bio_dot <- ggplot(biomass_sum_u3, aes(x = insecticide, y = average_weight, 
         scale_x_discrete(labels=c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")) +
         scale_y_continuous(breaks = c(30,40,50,60), 
                            labels = c("30", "40", "50", "60")) +
+        annotate("text", x = 0.48, y=58, label = "(b)", size=4) +
         theme_bw(14) +
         theme(axis.text.x = element_text(size=10),
               axis.text.y = element_text(size=10),

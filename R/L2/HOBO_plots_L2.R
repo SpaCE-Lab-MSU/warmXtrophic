@@ -154,6 +154,7 @@ Fig1_soil_line_kbs <- ggplot(KBS_avg_year_soil2, aes(x=year, y=average_temp, col
                           values = c("#a6bddb", "#AE1F00"),
                           labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
         labs(title=NULL,y=NULL, x=NULL) +
+        annotate("text", x = 0.78, y=18.5, label = "(c)", size=4) +
         ylim(14.5,18.5) +
         theme_bw(14) +
         theme(legend.title=element_text(size=10), 
@@ -203,6 +204,7 @@ Fig1_temp_line_kbs <- ggplot(KBS_avg_year_air2, aes(x = year, y = avg, group=tre
                               labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         ylim(16,26) +
         labs(title="KBS",y=NULL, x=NULL) +
+        annotate("text", x = 0.78, y=26, label = "(a)", size=4) +
         theme_bw(14) +
         theme(axis.title.x=element_blank(),
               axis.text.x=element_blank(),
@@ -340,6 +342,7 @@ Fig1_soil_line_umbs <- ggplot(UMBS_avg_year_soil2, aes(x=year, y=average_temp, c
                           labels=c("Ambient \n 5cm","Warmed \n 5cm")) +
         labs(title=NULL,y=NULL, x=NULL) +
         ylim(14.5, 18.5) +
+        annotate("text", x = 0.78, y=18.5, label = "(d)", size=4) +
         theme_bw(14) +
         theme(axis.title.y=element_blank(),
               axis.text.y=element_blank()) +
@@ -389,6 +392,7 @@ Fig1_temp_line_umbs <- ggplot(UMBS_avg_year_air2, aes(x = year, y = avg, group=t
                               labels=c("Ambient \n 1m","Warmed \n 1m","Ambient \n 10cm", "Warmed \n 10cm")) +
         ylim(16,26) +
         labs(title="UMBS",y=NULL, x=NULL) +
+        annotate("text", x = 0.78, y=26, label = "(b)", size=4) +
         theme_bw(14) +
         theme(axis.title.x=element_blank(),
               axis.text.x=element_blank(),
