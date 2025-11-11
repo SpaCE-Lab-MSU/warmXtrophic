@@ -12,6 +12,7 @@ rm(list=ls())
 
 #Load packages
 library(tidyverse)
+library(stringr)
 
 # Set working directory 
 Sys.getenv("L0DIR")
@@ -34,12 +35,17 @@ kbs_plantcomp_20 <- read.csv(file.path(L0_dir, "KBS/2020/kbs_ancillary_plantcomp
 kbs_biomass_21 <- read.csv(file.path(L0_dir, "KBS/2021/kbs_biomass_2021.csv"))
 kbs_plantcomp_21 <- read.csv(file.path(L0_dir, "KBS/2021/kbs_anpp_plant_comp_2021.csv"))
 
+# anpp taken at 0.20 m2
+kbs_biomass_25 <- read.csv(file.path(L0_dir, "KBS/2025/WarmX_2025_KBS_ANPP_data.csv"))
+
 # UMBS
 umbs_biomass_20 <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_ANPP_2020.csv"))
 umbs_plantcomp_20 <- read.csv(file.path(L0_dir, "UMBS/2020/umbs_ancillary_plantcomp_2020.csv"))
 
 umbs_biomass_21 <- read.csv(file.path(L0_dir, "UMBS/2021/umbs_ANPP_biomass_2021.csv"))
 umbs_plantcomp_21 <- read.csv(file.path(L0_dir, "UMBS/2021/umbs_ANPP_plantcomp_2021.csv"))
+
+umbs_biomass_25 <- read.csv(file.path(L0_dir, "UMBS/2025/WarmX_2025_UMBS_ANPP_data.csv"))
 
 ################################################################################
 # Making separate datasets for 2020 and 2021 biomass data
@@ -88,6 +94,30 @@ spp_name(umbs_biomass_21) # looks good
 umbs_biomass_21 <- change_site(umbs_biomass_21)
 site_name(umbs_biomass_21) # looks good
 
+# 2025
+# Change column names to lowercase so that we can merge with the biomass file
+names(umbs_biomass_25) <- tolower(names(umbs_biomass_25))
+# change column names to match other data frames
+names(umbs_biomass_25)[names(umbs_biomass_25)=="plot_id"] <- "plot"
+names(umbs_biomass_25)[names(umbs_biomass_25)=="species_code"] <- "species"
+names(umbs_biomass_25)[names(umbs_biomass_25)=="dried_biomass_gram_per_0.20_meter_square"] <- "weight_g"
+
+# Change species codes from all caps to first character capatilized and the rest lower case to match other years data
+umbs_biomass_25$species <- str_to_lower(umbs_biomass_25$species) # make all lowercase
+umbs_biomass_25$species <- str_replace(umbs_biomass_25$species, "^.", toupper(str_sub(umbs_biomass_25$species, 1, 1)))
+
+# delete empty rows at the end
+umbs_biomass_25 <- umbs_biomass_25[-c(184:207),]
+umbs_biomass_25 <- umbs_biomass_25[,-c(6,7,8)]
+
+# fixing plant comp species names
+spp_name(umbs_biomass_25) # need to fix a few species names
+site_name(umbs_biomass_25) # need to change one site name
+umbs_biomass_25 <- change_spp(umbs_biomass_25)
+spp_name(umbs_biomass_25) # looks good
+umbs_biomass_25 <- change_site(umbs_biomass_25)
+site_name(umbs_biomass_25) # looks good
+
 # fixing plant comp species names
 spp_name(umbs_plantcomp_21) # need to fix a few species names
 site_name(umbs_plantcomp_21) # need to change one site name
@@ -101,9 +131,13 @@ umbs_ANPP_21 <- full_join(umbs_biomass_21, umbs_plantcomp_21, by = c("plot", "sp
 View(umbs_ANPP_21)
 
 umbs_ANPP_21$year <- "2021" # add year to data frame
+umbs_biomass_25$year <- "2025" # add year to data frame
 
-umbs_ANPP_21 <- umbs_ANPP_21[, c("site", "year", "plot", "species", "quadrat_number", "cover", "weight_g")] # reorganize column order
-View(umbs_ANPP_21)
+umbs_ANPP <- full_join(umbs_ANPP_21, umbs_biomass_25, by = c("plot", "species", "site", "year", "weight_g"))
+View(umbs_ANPP)
+
+umbs_ANPP <- umbs_ANPP[, c("site", "year", "plot", "species", "quadrat_number", "cover", "weight_g", "date_of_harvest")] # reorganize column order
+View(umbs_ANPP)
 
 # merging taxon info with dataframe
 colnames(taxon)[which(names(taxon) == "code")] <- "species" # changing column name for merging
@@ -113,20 +147,20 @@ taxon <- remove_col(taxon, name=c("X", "USDA_code", "LTER_code", "site", "old_na
 
 # merging with taxon information
 # left join with final_ANPP as left dataframe to keep all biomass data, but only keep taxon info for given species in biomass dataframe
-final_umbs_anpp_21 <- left_join(umbs_ANPP_21, taxon, by = "species")
+final_umbs_anpp <- left_join(umbs_ANPP, taxon, by = "species")
 
 # setting NA's to 0 for plant comp - doing this because the species wasn't seen when % cover was taken, so its effectively 0
 #final_ANPP_20_join$cover[is.na(final_ANPP_20_join$cover)] <- 0
 
 # merging with plot info
-final2_umbs_anpp_21 <- left_join(final_umbs_anpp_21, meta, by = "plot")
+final2_umbs_anpp <- left_join(final_umbs_anpp, meta, by = "plot")
 
 # removing columns
-final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("quadrat_number"))
+final2_umbs_anpp <- remove_col(final2_umbs_anpp, name=c("quadrat_number", "date_of_harvest"))
 #final2_umbs_anpp_21 <- remove_col(final2_umbs_anpp_21, name=c("X.2"))
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
-write.csv(final2_umbs_anpp_21, file.path(L1_dir,"ANPP/umbs_biomass_2021_L1.csv"), row.names=F)
+write.csv(final2_umbs_anpp, file.path(L1_dir,"ANPP/umbs_biomass_L1.csv"), row.names=F)
 
 
 ### KBS
@@ -176,14 +210,42 @@ site_name(kbs_plantcomp_21) # good
 kbs_plantcomp_21 <- change_spp(kbs_plantcomp_21)
 spp_name(kbs_plantcomp_21) # looks good
 
+# 2025
+# Change column names to lowercase so that we can merge with the biomass file
+names(kbs_biomass_25) <- tolower(names(kbs_biomass_25))
+# change column names to match other data frames
+names(kbs_biomass_25)[names(kbs_biomass_25)=="plot_id"] <- "plot"
+names(kbs_biomass_25)[names(kbs_biomass_25)=="species_code"] <- "species"
+names(kbs_biomass_25)[names(kbs_biomass_25)=="dried_biomass_gram_per_0.20_meter_square"] <- "weight_g"
+
+# Change species codes from all caps to first character capatilized and the rest lower case to match other years data
+kbs_biomass_25$species <- str_to_lower(kbs_biomass_25$species) # make all lowercase
+kbs_biomass_25$species <- str_replace(kbs_biomass_25$species, "^.", toupper(str_sub(kbs_biomass_25$species, 1, 1)))
+
+# delete empty rows at the end
+kbs_biomass_25 <- kbs_biomass_25[-306,]
+kbs_biomass_25 <- kbs_biomass_25[,-c(6:10)]
+
+# fixing plant comp species names
+spp_name(kbs_biomass_25) # need to fix a few species names
+site_name(kbs_biomass_25) # need to change one site name
+kbs_biomass_25 <- change_spp(kbs_biomass_25)
+spp_name(kbs_biomass_25) # looks good
+kbs_biomass_25 <- change_site(kbs_biomass_25)
+site_name(kbs_biomass_25) # looks good
+
 #kbs_ANPP <- merge(kbs_biomass, kbs_plant_comp, by = c("plot", "species"))
 kbs_ANPP_21 <- full_join(kbs_biomass_21, kbs_plantcomp_21, by = c("plot", "species", "site", "quadrat"))
 View(kbs_ANPP_21)
 
 kbs_ANPP_21$year <- "2021" # add year to data frame
+kbs_biomass_25$year <- "2025" # add year to data frame
 
-kbs_ANPP_21 <- kbs_ANPP_21[, c("site", "year", "plot", "species", "quadrat", "cover", "weight_g")] # reorganize column order
-View(kbs_ANPP_21)
+kbs_ANPP <- full_join(kbs_ANPP_21, kbs_biomass_25, by = c("plot", "species", "site", "year", "weight_g"))
+View(kbs_ANPP)
+
+kbs_ANPP <- kbs_ANPP[, c("site", "year", "plot", "species", "quadrat", "cover", "weight_g", "date_of_harvest")] # reorganize column order
+View(kbs_ANPP)
 
 # merging taxon info with dataframe
 colnames(taxon)[which(names(taxon) == "code")] <- "species" # changing column name for merging
@@ -193,19 +255,19 @@ colnames(taxon)[which(names(taxon) == "code")] <- "species" # changing column na
 
 # merging with taxon information
 # left join with final_ANPP as left dataframe to keep all biomass data, but only keep taxon info for given species in biomass dataframe
-final_kbs_anpp_21 <- left_join(kbs_ANPP_21, taxon, by = "species")
+final_kbs_anpp <- left_join(kbs_ANPP, taxon, by = "species")
 
 # setting NA's to 0 for plant comp - doing this because the species wasn't seen when % cover was taken, so its effectively 0
 #final_ANPP_20_join$cover[is.na(final_ANPP_20_join$cover)] <- 0
 
 # merging with plot info
-final2_kbs_anpp_21 <- left_join(final_kbs_anpp_21, meta, by = "plot")
+final2_kbs_anpp <- left_join(final_kbs_anpp, meta, by = "plot")
 
 # removing columns I don't want
-final2_kbs_anpp_21 <- remove_col(final2_kbs_anpp_21, name=c("quadrat"))
+final2_kbs_anpp <- remove_col(final2_kbs_anpp, name=c("quadrat", "date_of_harvest"))
 
 # write a new cvs with the cleaned and merge data and upload to the shared google drive in L1
-write.csv(final2_kbs_anpp_21, file.path(L1_dir,"ANPP/kbs_biomass_2021_L1.csv"), , row.names=F)
+write.csv(final2_kbs_anpp, file.path(L1_dir,"ANPP/kbs_biomass_L1.csv"), , row.names=F)
 
 
 
