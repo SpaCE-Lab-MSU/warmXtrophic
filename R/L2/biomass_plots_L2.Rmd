@@ -33,27 +33,32 @@ library(emmeans)
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
 list.files(L1_dir)
-kbs_biomass_21 <- read.csv(file.path(L1_dir, "ANPP/kbs_biomass_2021_L1.csv"))
-umbs_biomass_21 <- read.csv(file.path(L1_dir, "ANPP/umbs_biomass_2021_L1.csv"))
-kbs_biomass_21 <- kbs_biomass_21 %>% dplyr::select(-X) # get rid of "X" column that shows up (could fix this in cleaning script)
-umbs_biomass_21 <- umbs_biomass_21 %>% dplyr::select(-X)
+kbs_biomass <- read.csv(file.path(L1_dir, "ANPP/kbs_biomass_L1.csv"))
+umbs_biomass <- read.csv(file.path(L1_dir, "ANPP/umbs_biomass_L1.csv"))
 
 # making separate dataframe for biomass - easier in plots
-kbs_biomass_only <- kbs_biomass_21 %>%
+kbs_biomass_only <- kbs_biomass %>%
         dplyr::select(-cover) %>%
         drop_na(weight_g)
-umbs_biomass_only <- umbs_biomass_21 %>%
+umbs_biomass_only <- umbs_biomass %>%
         dplyr::select(-cover) %>%
         drop_na(weight_g)
 
 # remove uninformative species
+# kbs
 kbs_biomass_live <- kbs_biomass_only[!grepl("Litter", kbs_biomass_only$species),]
 kbs_biomass_live <- kbs_biomass_live[!grepl("Umsp", kbs_biomass_live$species),]
+kbs_biomass_live <- kbs_biomass_live[!grepl("Surfl", kbs_biomass_live$species),]
+kbs_biomass_live <- kbs_biomass_live[!grepl("Vert_litter", kbs_biomass_live$species),]
+# umbs
 umbs_biomass_live <- umbs_biomass_only[!grepl("Litter", umbs_biomass_only$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Standing_Dead", umbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Surface_Litter", umbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Lisp", umbs_biomass_live$species),]
 umbs_biomass_live <- umbs_biomass_live[!grepl("Umsp", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Vert_litter", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Surfl", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Moss_lichen", umbs_biomass_live$species),]
 
 # keeping species found only in w and a
 kbs_biomass_live2 <- kbs_biomass_live %>%
@@ -325,3 +330,122 @@ plot(cover ~ weight_g, data = umbs_biomass_reg)
 abline(lm1_u)
 
 ```
+
+# 2025 biomass
+```{r}
+# only 2025 data
+kbs_biomass_live_25 <- kbs_biomass_live %>% dplyr::filter(year == "2025")
+umbs_biomass_live_25 <- umbs_biomass_live %>% dplyr::filter(year == "2025")
+
+# summarizing data
+biomass_sum_k_25 <- kbs_biomass_live_25 %>%
+        group_by(plot, state) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+biomass_sum_k1_25 <- biomass_sum_k_25 %>%
+        group_by(state) %>%
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+
+biomass_sum_u_25 <- umbs_biomass_live_25 %>%
+        group_by(plot, state) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+biomass_sum_u1_25 <- biomass_sum_u_25 %>%
+        group_by(state) %>%
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+
+# plot level KBS
+kbs_bio_dot_25 <- ggplot(biomass_sum_k1_25, aes(x = state, y = average_weight, fill = state)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), 
+                        pch=21, size=1, position=position_dodge(0.2)) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#fb6a4a")) +
+        labs(title="KBS", y=NULL, x=NULL) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        theme_bw(14) +
+        theme(plot.title = element_text(size=17),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=17))
+kbs_bio_dot_25
+
+# plot level KBS
+umbs_bio_dot_25 <- ggplot(biomass_sum_u1_25, aes(x = state, y = average_weight, fill = state)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), 
+                        pch=21, size=1, position=position_dodge(0.2)) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#fb6a4a")) +
+        labs(title="UMBS", y=NULL, x=NULL) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        theme_bw(14) +
+        theme(plot.title = element_text(size=17),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=17))
+umbs_bio_dot_25
+```
+
+Litter
+```{r}
+# only 2025 data
+kbs_biomass_25 <- kbs_biomass %>% dplyr::filter(year == "2025")
+umbs_biomass_25 <- umbs_biomass %>% dplyr::filter(year == "2025")
+
+kbs_litter <- kbs_biomass_25 %>%
+        filter(species %in% c("Vert_litter", "Surfl"))
+umbs_litter <- umbs_biomass_25 %>%
+        filter(species %in% c("Vert_litter", "Surfl"))
+
+# summarizing data
+litter_sum_k <- kbs_litter %>%
+        group_by(plot, state) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+litter_sum_k1 <- litter_sum_k %>%
+        group_by(state) %>%
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+
+litter_sum_u <- umbs_litter %>%
+        group_by(plot, state) %>%
+        summarize(avg_weight = sum(weight_g, na.rm = TRUE))
+litter_sum_u1 <- litter_sum_u %>%
+        group_by(state) %>%
+        summarize(average_weight = mean(avg_weight, na.rm = TRUE),
+                  se = std.error(avg_weight, na.rm = TRUE))
+
+# plot level KBS
+kbs_litter_dot <- ggplot(litter_sum_k1, aes(x = state, y = average_weight, fill = state)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), 
+                        pch=21, size=1, position=position_dodge(0.2)) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#fb6a4a")) +
+        labs(title="KBS", y=NULL, x=NULL) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        theme_bw(14) +
+        theme(plot.title = element_text(size=17),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=17))
+kbs_litter_dot
+
+# plot level UMBS
+umbs_litter_dot <- ggplot(litter_sum_u1, aes(x = state, y = average_weight, fill = state)) +
+        geom_pointrange(aes(ymin=average_weight-se, ymax=average_weight+se), 
+                        pch=21, size=1, position=position_dodge(0.2)) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#fb6a4a")) +
+        labs(title="UMBS", y=NULL, x=NULL) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        theme_bw(14) +
+        theme(plot.title = element_text(size=17),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=17))
+umbs_litter_dot
+```
+
+
