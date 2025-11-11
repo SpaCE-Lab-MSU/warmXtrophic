@@ -328,9 +328,9 @@ gr_line_i <- function(loc) {
                        guides(color=guide_legend(nrow=2)))
 }
 gr_line_i_kbs <- gr_line_i("KBS")
-gr_line_i_kbs <- gr_line_i_kbs + annotate("text", x = 0.7, y=137, label = "A", size=4) + theme(axis.text.x=element_blank())
+gr_line_i_kbs <- gr_line_i_kbs + annotate("text", x = 0.7, y=137, label = "(a)", size=4) + theme(axis.text.x=element_blank())
 gr_line_i_umbs <- gr_line_i("UMBS")
-gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + annotate("text", x = 0.6, y=154, label = "B", size=4) + theme(axis.text.x=element_blank(),
+gr_line_i_umbs <- gr_line_i_umbs + labs(y=NULL) + annotate("text", x = 0.6, y=154, label = "(b)", size=4) + theme(axis.text.x=element_blank(),
                                                         axis.title.y=element_blank())
 
 #flower
@@ -362,9 +362,9 @@ flwr_line_i <- function(loc) {
                        guides(color=guide_legend(nrow=2)))
 }
 flwr_line_i_kbs <- flwr_line_i("KBS")
-flwr_line_i_kbs <- flwr_line_i_kbs + annotate("text", x = 0.7, y=204, label = "C", size=4) + theme(axis.text.x=element_blank()) + labs(title=NULL)
+flwr_line_i_kbs <- flwr_line_i_kbs + annotate("text", x = 0.7, y=204, label = "(c)", size=4) + theme(axis.text.x=element_blank()) + labs(title=NULL)
 flwr_line_i_umbs <- flwr_line_i("UMBS")
-flwr_line_i_umbs <- flwr_line_i_umbs + annotate("text", x = 0.6, y=176, label = "D", size=4) + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
+flwr_line_i_umbs <- flwr_line_i_umbs + annotate("text", x = 0.6, y=176, label = "(d)", size=4) + labs(y=NULL, title=NULL) + theme(axis.text.x=element_blank(),
                                                                         axis.title.y=element_blank())
 
 # flower duration
@@ -396,13 +396,13 @@ flwr_dur_line_i <- function(loc) {
                        guides(color=guide_legend(nrow=2)))
 }
 flwr_dur_line_i_kbs <- flwr_dur_line_i("KBS")
-flwr_dur_line_i_kbs <- flwr_dur_line_i_kbs + annotate("text", x = 0.7, y=35, label = "E", size=4) +
+flwr_dur_line_i_kbs <- flwr_dur_line_i_kbs + annotate("text", x = 0.7, y=35, label = "(e)", size=4) +
         scale_y_continuous(breaks = c(10,20,30), 
                            labels = c("  10", "  20", "  30")) +
         theme(axis.text.x=element_blank()) +
         labs(title=NULL)
 flwr_dur_line_i_umbs <- flwr_dur_line_i("UMBS")
-flwr_dur_line_i_umbs <- flwr_dur_line_i_umbs +annotate("text", x = 0.6, y=36, label = "F", size=4) +
+flwr_dur_line_i_umbs <- flwr_dur_line_i_umbs +annotate("text", x = 0.6, y=36, label = "(f)", size=4) +
         scale_y_continuous(breaks = c(20,25,30,35), 
                            labels = c("  20", "  25", "  30", "  35")) +
         labs(y=NULL, title=NULL) +
@@ -438,9 +438,9 @@ sd_line_i <- function(loc) {
                        guides(color=guide_legend(nrow=2)))
 }
 sd_line_i_kbs <- sd_line_i("KBS")
-sd_line_i_kbs <- sd_line_i_kbs + annotate("text", x = 0.7, y=250, label = "G", size=4) + labs(title=NULL)
+sd_line_i_kbs <- sd_line_i_kbs + annotate("text", x = 0.7, y=250, label = "(g)", size=4) + labs(title=NULL)
 sd_line_i_umbs <- sd_line_i("UMBS")
-sd_line_i_umbs <- sd_line_i_umbs + annotate("text", x = 0.6, y=196, label = "H", size=4) + labs(y=NULL, title=NULL)+ theme(axis.title.y=element_blank())
+sd_line_i_umbs <- sd_line_i_umbs + annotate("text", x = 0.6, y=196, label = "(h)", size=4) + labs(y=NULL, title=NULL)+ theme(axis.title.y=element_blank())
 
 phen_line_i <- ggpubr::ggarrange(gr_line_i_kbs, gr_line_i_umbs,
                                  flwr_line_i_kbs, flwr_line_i_umbs,
