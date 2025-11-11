@@ -64,6 +64,7 @@ change_spp <- function(df){
 # change site names
 change_site <- function(df){
         df$site[df$site == "kba"] <- "kbs"
+        df$site[df$site == "KBS"] <- "kbs"
         df$site[df$site == "UMBS"] <- "umbs"
         return(df)
 }
