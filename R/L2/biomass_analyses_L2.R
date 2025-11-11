@@ -28,8 +28,6 @@ list.files(L1_dir)
 # note: we also have 2020 ancillary biomass (no warming treatment), so only analyzing warming effect with 2021 harvested biomass
 kbs_biomass_21 <- read.csv(file.path(L1_dir, "ANPP/kbs_biomass_2021_L1.csv"))
 umbs_biomass_21 <- read.csv(file.path(L1_dir, "ANPP/umbs_biomass_2021_L1.csv"))
-kbs_biomass_21 <- kbs_biomass_21 %>% dplyr::select(-X) # get rid of "X" column that shows up (could fix this in cleaning script)
-umbs_biomass_21 <- umbs_biomass_21 %>% dplyr::select(-X)
 
 # making separate dataframe for biomass - easier in analyses
 kbs_biomass_only <- kbs_biomass_21 %>%
@@ -406,5 +404,230 @@ emmip(mod4_u, state ~ species) +
 mod4u.emm <- emmeans(mod4_u, ~ state * species)
 contrast(mod4u.emm, "consec", simple = "each", combine = F, adjust = "mvt")
 
+################################################################################
 
+# 2025 data analysis
+kbs_biomass <- read.csv(file.path(L1_dir, "ANPP/kbs_biomass_L1.csv"))
+umbs_biomass <- read.csv(file.path(L1_dir, "ANPP/umbs_biomass_L1.csv"))
 
+# making separate dataframe for biomass - easier in analyses
+kbs_biomass <- kbs_biomass %>%
+        dplyr::select(-cover) %>%
+        drop_na(weight_g)
+umbs_biomass <- umbs_biomass %>%
+        dplyr::select(-cover) %>%
+        drop_na(weight_g)
+
+kbs_biomass_25 <- kbs_biomass %>% dplyr::filter(year == "2025")
+umbs_biomass_25 <- umbs_biomass %>% dplyr::filter(year == "2025")
+
+# remove uninformative species
+# kbs
+kbs_biomass_live <- kbs_biomass[!grepl("Litter", kbs_biomass$species),]
+kbs_biomass_live <- kbs_biomass_live[!grepl("Umsp", kbs_biomass_live$species),]
+kbs_biomass_live <- kbs_biomass_live[!grepl("Surfl", kbs_biomass_live$species),]
+kbs_biomass_live <- kbs_biomass_live[!grepl("Vert_litter", kbs_biomass_live$species),]
+# umbs
+umbs_biomass_live <- umbs_biomass[!grepl("Litter", umbs_biomass$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Standing_Dead", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Surface_Litter", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Lisp", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Umsp", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Vert_litter", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Surfl", umbs_biomass_live$species),]
+umbs_biomass_live <- umbs_biomass_live[!grepl("Moss_lichen", umbs_biomass_live$species),]
+
+# kbs
+
+descdist(kbs_biomass_live$weight_g, discrete = FALSE)
+# Shapiro-Wilk test for normality
+shapiro.test(kbs_biomass_live$weight_g) # not normal
+# Visualization
+hist(kbs_biomass_live$weight_g, main = "Histogram of Biomass")
+qqnorm(kbs_biomass_live$weight_g)
+qqline(kbs_biomass_live$weight_g, col = "blue")
+
+# Log transform
+kbs_biomass_live$weight_g_log <- log(kbs_biomass_live$weight_g)
+hist(kbs_biomass_live$weight_g_log, main = "Histogram of Biomass")
+qqnorm(kbs_biomass_live$weight_g_log)
+qqline(kbs_biomass_live$weight_g_log, col = "blue")
+shapiro.test(kbs_biomass_live$weight_g_log)
+# log looks better
+
+# sqrt transform
+kbs_biomass_live$weight_g_sqrt <- sqrt(kbs_biomass_live$weight_g)
+hist(kbs_biomass_live$weight_g_sqrt, main = "Histogram of Biomass")
+qqnorm(kbs_biomass_live$weight_g_sqrt)
+qqline(kbs_biomass_live$weight_g_sqrt, col = "blue")
+shapiro.test(kbs_biomass_live$weight_g_sqrt)
+# log looks the best
+
+m1_kb <- lmer(log(weight_g) ~ state + (1|plot), data = kbs_biomass_live)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+plot(m1_kb, main = "Biomass")
+# Homogeneity of variance looks a bit off (increasing variance in resids does increase with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m1_kb) ~ kbs_biomass_live$state) # met
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(m1_kb), main = "Biomass")
+hist(residuals(m1_kb), main = "Biomass")
+shapiro.test(resid(m1_kb))
+outlierTest(m1_kb) # checking for outliers - none
+
+anova(m1_kb)
+#Type III Analysis of Variance Table with Satterthwaite's method
+#        Sum Sq  Mean Sq NumDF  DenDF F value Pr(>F)
+#state 0.021314 0.021314     1 18.779  0.0041 0.9498
+
+# umbs
+
+descdist(umbs_biomass_live$weight_g, discrete = FALSE)
+# Shapiro-Wilk test for normality
+shapiro.test(umbs_biomass_live$weight_g) # not normal
+# Visualization
+hist(umbs_biomass_live$weight_g, main = "Histogram of Biomass")
+qqnorm(umbs_biomass_live$weight_g)
+qqline(umbs_biomass_live$weight_g, col = "blue")
+
+# Log transform
+umbs_biomass_live$weight_g_log <- log(umbs_biomass_live$weight_g)
+hist(umbs_biomass_live$weight_g_log, main = "Histogram of Biomass")
+qqnorm(umbs_biomass_live$weight_g_log)
+qqline(umbs_biomass_live$weight_g_log, col = "blue")
+shapiro.test(umbs_biomass_live$weight_g_log)
+# log looks better
+
+# sqrt transform
+umbs_biomass_live$weight_g_sqrt <- sqrt(umbs_biomass_live$weight_g)
+hist(umbs_biomass_live$weight_g_sqrt, main = "Histogram of Biomass")
+qqnorm(umbs_biomass_live$weight_g_sqrt)
+qqline(umbs_biomass_live$weight_g_sqrt, col = "blue")
+shapiro.test(umbs_biomass_live$weight_g_sqrt)
+# log looks the best
+
+m1_ub <- lmer(log(weight_g) ~ state + (1|plot), data = umbs_biomass_live)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+plot(m1_ub, main = "Biomass")
+# Homogeneity of variance looks a bit off (increasing variance in resids does increase with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m1_ub) ~ umbs_biomass_live$state) # met
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(m1_ub), main = "Biomass")
+hist(residuals(m1_ub), main = "Biomass")
+shapiro.test(resid(m1_ub))
+outlierTest(m1_ub) # checking for outliers - none
+
+anova(m1_ub)
+#Type III Analysis of Variance Table with Satterthwaite's method
+#      Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+#state 5.5556  5.5556     1   293  1.4109 0.2359
+
+# litter
+kbs_litter <- kbs_biomass_25 %>%
+        filter(species %in% c("Vert_litter", "Surfl"))
+umbs_litter <- umbs_biomass_25 %>%
+        filter(species %in% c("Vert_litter", "Surfl"))
+
+# kbs
+
+descdist(kbs_litter$weight_g, discrete = FALSE)
+# Shapiro-Wilk test for normality
+shapiro.test(kbs_litter$weight_g) # not normal
+# Visualization
+hist(kbs_litter$weight_g, main = "Histogram of Biomass")
+qqnorm(kbs_litter$weight_g)
+qqline(kbs_litter$weight_g, col = "blue")
+shapiro.test(kbs_litter$weight_g) # not normal
+
+# Log transform
+kbs_litter$weight_g_log <- log(kbs_litter$weight_g)
+hist(kbs_litter$weight_g_log, main = "Histogram of Biomass")
+qqnorm(kbs_litter$weight_g_log)
+qqline(kbs_litter$weight_g_log, col = "blue")
+shapiro.test(kbs_litter$weight_g_log) # not normal
+# not transformation looks better
+
+# sqrt transform
+kbs_litter$weight_g_sqrt <- sqrt(kbs_litter$weight_g)
+hist(kbs_litter$weight_g_sqrt, main = "Histogram of Biomass")
+qqnorm(kbs_litter$weight_g_sqrt)
+qqline(kbs_litter$weight_g_sqrt, col = "blue")
+shapiro.test(kbs_litter$weight_g_sqrt)
+# sqrt looks the best
+
+m1_kl <- lmer(sqrt(weight_g) ~ state + (1|plot), data = kbs_litter)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+plot(m1_kl, main = "Biomass")
+# Homogeneity of variance looks a bit off (increasing variance in resids does increase with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m1_kl) ~ kbs_litter$state) # met
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(m1_kl), main = "Biomass")
+hist(residuals(m1_kl), main = "Biomass")
+shapiro.test(resid(m1_kl))
+outlierTest(m1_kl) # checking for outliers - none
+
+anova(m1_kl)
+#Type III Analysis of Variance Table with Satterthwaite's method
+#      Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+#state 23.027  23.027     1    37  1.9599 0.1698
+
+# umbs
+
+descdist(umbs_litter$weight_g, discrete = FALSE)
+# Shapiro-Wilk test for normality
+shapiro.test(umbs_litter$weight_g) # not normal
+# Visualization
+hist(umbs_litter$weight_g, main = "Histogram of Biomass")
+qqnorm(umbs_litter$weight_g)
+qqline(umbs_litter$weight_g, col = "blue")
+
+# Log transform
+umbs_litter$weight_g_log <- log(umbs_litter$weight_g)
+hist(umbs_litter$weight_g_log, main = "Histogram of Biomass")
+qqnorm(umbs_litter$weight_g_log)
+qqline(umbs_litter$weight_g_log, col = "blue")
+shapiro.test(umbs_litter$weight_g_log) # not normal
+# not transformation looks better
+
+# sqrt transform
+umbs_litter$weight_g_sqrt <- sqrt(umbs_litter$weight_g)
+hist(umbs_litter$weight_g_sqrt, main = "Histogram of Biomass")
+qqnorm(umbs_litter$weight_g_sqrt)
+qqline(umbs_litter$weight_g_sqrt, col = "blue")
+shapiro.test(umbs_litter$weight_g_sqrt)
+# sqrt looks the best
+
+m1_ul <- lmer(sqrt(weight_g) ~ state + (1|plot), data = umbs_litter)
+
+# Check Assumptions:
+# (1) Linearity: if covariates are not categorical
+# (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
+plot(m1_ul, main = "Biomass")
+# Homogeneity of variance looks a bit off (increasing variance in resids does increase with fitted values)
+# Check for homogeneity of variances (true if p>0.05). If the result is not significant, the assumption of equal variances (homoscedasticity) is met (no significant difference between the group variances).
+leveneTest(residuals(m1_ul) ~ umbs_litter$state) # met
+# (3) Normality of error term: need to check by histogram, QQplot of residuals, could do Kolmogorov-Smirnov test.
+# Check for normal residuals
+qqPlot(resid(m1_ul), main = "Biomass")
+hist(residuals(m1_ul), main = "Biomass")
+shapiro.test(resid(m1_ul))
+outlierTest(m1_ul) # checking for outliers - none
+
+anova(m1_ul)
+#Type III Analysis of Variance Table with Satterthwaite's method
+#      Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+#state  3.896   3.896     1    31  0.5287 0.4726
