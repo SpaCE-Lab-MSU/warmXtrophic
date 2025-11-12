@@ -1,0 +1,101 @@
+---
+title: "Height Plots"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(plotrix)
+library(ggpubr)
+library(emmeans)
+
+# Get data
+Sys.getenv("L1DIR")
+L1_dir<-Sys.getenv("L1DIR")
+list.files(L1_dir)
+kbs_height <- read.csv(file.path(L1_dir, "height/kbs_height_L1.csv"))
+umbs_height <- read.csv(file.path(L1_dir, "height/umbs_height_L1.csv"))
+
+# remove NAs in the height_cm column
+kbs_height <- kbs_height %>%  filter(!is.na(height_cm))
+umbs_height <- umbs_height %>%  filter(!is.na(height_cm))
+```
+
+# summarizing data
+```{r}
+height_sum_k2 <- kbs_height %>%
+        group_by(plot, state) %>%
+        summarize(avg_height = sum(height_cm, na.rm = TRUE))
+height_sum_k3 <- height_sum_k2 %>%
+        group_by(state) %>%
+        summarize(average_height = mean(avg_height, na.rm = TRUE),
+                  se = std.error(avg_height, na.rm = TRUE))
+height_sum_u2 <- umbs_height %>%
+        group_by(plot, state) %>%
+        summarize(avg_height = sum(height_cm, na.rm = TRUE))
+height_sum_u3 <- height_sum_u2 %>%
+        group_by(state) %>%
+        summarize(average_height = mean(avg_height, na.rm = TRUE),
+                  se = std.error(avg_height, na.rm = TRUE))
+```
+
+```{r}
+# clean insecticide labels for plotting
+insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
+```
+
+### Overall averages btwn treatments - dot plot
+```{r}
+# plot level KBS
+kbs_height_dot <- ggplot(height_sum_k3, aes(x = state, y = average_height, fill = state)) +
+        geom_pointrange(aes(ymin=average_height-se, ymax=average_height+se), pch=21,size=1,position=position_dodge(0.2)) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#fb6a4a")) +
+        labs(title="KBS", y="S. Altissama", x=NULL) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        theme_bw(14) +
+        theme(plot.title = element_text(size=17),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=17))
+
+kbs_height_dot
+
+# plot level UMBS
+umbs_height_dot <- ggplot(height_sum_u3, aes(x = state, y = average_height, fill = state)) +
+        geom_pointrange(aes(ymin=average_height-se, ymax=average_height+se), pch=21,size=1,position=position_dodge(0.2)) +
+        scale_fill_manual(name="Treatment",
+                          values = c("#a6bddb", "#fb6a4a")) +
+        labs(title="UMBS", y="T. aquilinum", x=NULL) +
+        scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        theme_bw(14) +
+        theme(plot.title = element_text(size=17),
+              axis.text.x = element_text(size=15),
+              axis.text.y = element_text(size=15),
+              legend.text = element_text(size=15),
+              legend.title = element_text(size=17))
+
+umbs_height_dot
+
+height_comb_dot <- ggpubr::ggarrange(kbs_height_dot, umbs_height_dot,
+                                     ncol = 2, legend="none")
+png("height_plots_dots_L2.png", units="in", width=8, height=4.5, res=300)
+annotate_figure(height_comb_dot,
+                left = text_grob("Plant Height (cm)" , color = "black", rot = 90, size=18),
+                bottom = text_grob("Treatment" , color = "black", size=18))
+dev.off()
+```
+
