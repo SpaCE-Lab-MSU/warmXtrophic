@@ -1,0 +1,40 @@
+---
+title: "Height Analysis"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(plotrix)
+library(ggpubr)
+library(emmeans)
+
+# Get data
+Sys.getenv("L1DIR")
+L1_dir<-Sys.getenv("L1DIR")
+list.files(L1_dir)
+kbs_height <- read.csv(file.path(L1_dir, "height/kbs_height_L1.csv"))
+umbs_height <- read.csv(file.path(L1_dir, "height/umbs_height_L1.csv"))
+
+# remove NAs in the height_cm column
+kbs_height <- kbs_height %>%  filter(!is.na(height_cm))
+umbs_height <- umbs_height %>%  filter(!is.na(height_cm))
+```
+
+# KBS
+```{r}
+
+```
+
