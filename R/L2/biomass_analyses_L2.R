@@ -19,6 +19,7 @@ library(sjPlot)
 library(emmeans)
 library(stats)
 library(knitr)
+library(fitdistrplus)
 
 # Set working directory 
 L1_dir <- Sys.getenv("L1DIR")
