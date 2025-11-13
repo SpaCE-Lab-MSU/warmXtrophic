@@ -78,6 +78,15 @@ em1 <- contrast(emmeans(m1, ~state), "pairwise", simple = "each", combine = F, a
 em1
 #contrast         estimate  SE df t.ratio p.value
 #ambient - warmed    -37.2 6.9 21  -5.389  <.0001
+
+# Extract estimates
+ambient <- fixef(m1)[["(Intercept)"]] # Ambient treatment mean
+warmed_effect <- fixef(m1)[["statewarmed"]] # Effect of warmed treatment
+# Calculate warmed mean
+warmed <- ambient + warmed_effect
+# Percentage increase
+percent_increase <- (warmed_effect / ambient) * 100
+percent_increase
 ```
 
 # UMBS
@@ -120,5 +129,14 @@ em2 <- contrast(emmeans(m2, ~state), "pairwise", simple = "each", combine = F, a
 em2
 #contrast         estimate   SE   df t.ratio p.value
 #ambient - warmed    -21.4 4.61 19.9  -4.635  0.0002
+
+# Extract estimates
+ambient <- fixef(m2)[["(Intercept)"]] # Ambient treatment mean
+warmed_effect <- fixef(m2)[["statewarmed"]] # Effect of warmed treatment
+# Calculate warmed mean
+warmed <- ambient + warmed_effect
+# Percentage increase
+percent_increase <- (warmed_effect / ambient) * 100
+percent_increase
 ```
 
