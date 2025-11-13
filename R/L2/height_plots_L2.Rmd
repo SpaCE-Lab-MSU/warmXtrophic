@@ -35,20 +35,16 @@ umbs_height <- umbs_height %>%  filter(!is.na(height_cm))
 
 # summarizing data
 ```{r}
-height_sum_k2 <- kbs_height %>%
-        group_by(plot, state) %>%
-        summarize(avg_height = sum(height_cm, na.rm = TRUE))
-height_sum_k3 <- height_sum_k2 %>%
+kbs_height_sum <- kbs_height %>%
         group_by(state) %>%
-        summarize(average_height = mean(avg_height, na.rm = TRUE),
-                  se = std.error(avg_height, na.rm = TRUE))
-height_sum_u2 <- umbs_height %>%
-        group_by(plot, state) %>%
-        summarize(avg_height = sum(height_cm, na.rm = TRUE))
-height_sum_u3 <- height_sum_u2 %>%
+        summarize(avg_height = mean(height_cm, na.rm = TRUE),
+                 se = std.error(height_cm, na.rm = TRUE))
+
+umbs_height_sum <- umbs_height %>%
         group_by(state) %>%
-        summarize(average_height = mean(avg_height, na.rm = TRUE),
-                  se = std.error(avg_height, na.rm = TRUE))
+        summarize(avg_height = mean(height_cm, na.rm = TRUE),
+                 se = std.error(height_cm, na.rm = TRUE))
+
 ```
 
 ```{r}
@@ -59,12 +55,13 @@ insect_labels <- c("insects" = "Herbivory", "no_insects" = "Reduced Herbivory")
 ### Overall averages btwn treatments - dot plot
 ```{r}
 # plot level KBS
-kbs_height_dot <- ggplot(height_sum_k3, aes(x = state, y = average_height, fill = state)) +
-        geom_pointrange(aes(ymin=average_height-se, ymax=average_height+se), pch=21,size=1,position=position_dodge(0.2)) +
+kbs_height_dot <- ggplot(kbs_height_sum, aes(x = state, y = avg_height, fill = state)) +
+        geom_pointrange(aes(ymin=avg_height-se, ymax=avg_height+se), pch=21,size=1,position=position_dodge(0.2)) +
         scale_fill_manual(name="Treatment",
                           values = c("#a6bddb", "#fb6a4a")) +
         labs(title="KBS", y="S. Altissama", x=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(55,110) +
         theme_bw(14) +
         theme(plot.title = element_text(size=17),
               axis.text.x = element_text(size=15),
@@ -75,12 +72,13 @@ kbs_height_dot <- ggplot(height_sum_k3, aes(x = state, y = average_height, fill 
 kbs_height_dot
 
 # plot level UMBS
-umbs_height_dot <- ggplot(height_sum_u3, aes(x = state, y = average_height, fill = state)) +
-        geom_pointrange(aes(ymin=average_height-se, ymax=average_height+se), pch=21,size=1,position=position_dodge(0.2)) +
+umbs_height_dot <- ggplot(umbs_height_sum, aes(x = state, y = avg_height, fill = state)) +
+        geom_pointrange(aes(ymin=avg_height-se, ymax=avg_height+se), pch=21,size=1,position=position_dodge(0.2)) +
         scale_fill_manual(name="Treatment",
                           values = c("#a6bddb", "#fb6a4a")) +
         labs(title="UMBS", y="T. aquilinum", x=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(55,110) +
         theme_bw(14) +
         theme(plot.title = element_text(size=17),
               axis.text.x = element_text(size=15),
