@@ -20,6 +20,8 @@ library(emmeans)
 library(stats)
 library(knitr)
 library(fitdistrplus)
+library(glmmTMB)
+library(DHARMa)
 
 # Set working directory 
 L1_dir <- Sys.getenv("L1DIR")
@@ -513,6 +515,24 @@ shapiro.test(umbs_biomass_live$weight_g_sqrt)
 
 m1_ub <- lmer(log(weight_g) ~ state + (1|plot), data = umbs_biomass_live)
 
+model <- glmmTMB(
+        weight_g ~ state + (1 | plot),
+        family = Gamma(link = "log"),
+        data = umbs_biomass_live
+)
+summary(model)
+Anova(model, type = "III")
+
+# check model
+# Simulate residuals
+sim_res <- simulateResiduals(fittedModel = model)
+# Plot residual diagnostics
+plot(sim_res)
+plotResiduals(sim_res, form = umbs_biomass_live$plot)
+testDispersion(model)
+testDispersion(sim_res)
+plotResiduals(sim_res, umbs_biomass_live$weight_g)
+
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical
 # (2) Homogeneity: Need to Check by plotting residuals vs predicted values.
@@ -534,27 +554,25 @@ anova(m1_ub)
 
 # litter
 kbs_litter <- kbs_biomass_25 %>%
-        filter(species %in% c("Vert_litter", "Surfl"))
+        filter(species %in% c("Surfl"))
 umbs_litter <- umbs_biomass_25 %>%
-        filter(species %in% c("Vert_litter", "Surfl"))
+        filter(species %in% c("Surfl"))
 
 # kbs
 
 descdist(kbs_litter$weight_g, discrete = FALSE)
-# Shapiro-Wilk test for normality
-shapiro.test(kbs_litter$weight_g) # not normal
 # Visualization
 hist(kbs_litter$weight_g, main = "Histogram of Biomass")
 qqnorm(kbs_litter$weight_g)
 qqline(kbs_litter$weight_g, col = "blue")
-shapiro.test(kbs_litter$weight_g) # not normal
+shapiro.test(kbs_litter$weight_g) # normal
 
 # Log transform
 kbs_litter$weight_g_log <- log(kbs_litter$weight_g)
 hist(kbs_litter$weight_g_log, main = "Histogram of Biomass")
 qqnorm(kbs_litter$weight_g_log)
 qqline(kbs_litter$weight_g_log, col = "blue")
-shapiro.test(kbs_litter$weight_g_log) # not normal
+shapiro.test(kbs_litter$weight_g_log) # normal
 # not transformation looks better
 
 # sqrt transform
@@ -565,6 +583,7 @@ qqline(kbs_litter$weight_g_sqrt, col = "blue")
 shapiro.test(kbs_litter$weight_g_sqrt)
 # sqrt looks the best
 
+m1_kl <- lm(weight_g ~ state, data = kbs_litter)
 m1_kl <- lmer(sqrt(weight_g) ~ state + (1|plot), data = kbs_litter)
 
 # Check Assumptions:
@@ -582,9 +601,20 @@ shapiro.test(resid(m1_kl))
 outlierTest(m1_kl) # checking for outliers - none
 
 anova(m1_kl)
-#Type III Analysis of Variance Table with Satterthwaite's method
-#      Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
-#state 23.027  23.027     1    37  1.9599 0.1698
+summary(m1_kl)
+
+# Percentage increase
+percent_increase <- (53.32 / 58.85) * 100
+percent_increase
+
+# Extract estimates
+ambient <- 58.85 # Ambient treatment mean
+warmed_effect <- 53.32 # Effect of warmed treatment
+# Calculate warmed mean
+warmed <- ambient + warmed_effect
+# Percentage increase
+percent_increase <- (warmed_effect / ambient) * 100
+percent_increase
 
 # umbs
 
@@ -612,7 +642,7 @@ qqline(umbs_litter$weight_g_sqrt, col = "blue")
 shapiro.test(umbs_litter$weight_g_sqrt)
 # sqrt looks the best
 
-m1_ul <- lmer(sqrt(weight_g) ~ state + (1|plot), data = umbs_litter)
+m1_ul <- lm(sqrt(weight_g) ~ state, data = umbs_litter)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical
@@ -629,6 +659,4 @@ shapiro.test(resid(m1_ul))
 outlierTest(m1_ul) # checking for outliers - none
 
 anova(m1_ul)
-#Type III Analysis of Variance Table with Satterthwaite's method
-#      Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
-#state  3.896   3.896     1    31  0.5287 0.4726
+
