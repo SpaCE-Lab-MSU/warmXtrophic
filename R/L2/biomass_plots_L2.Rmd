@@ -345,7 +345,6 @@ biomass_sum_k1_25 <- biomass_sum_k_25 %>%
         group_by(state) %>%
         summarize(average_weight = mean(avg_weight, na.rm = TRUE),
                   se = std.error(avg_weight, na.rm = TRUE))
-
 biomass_sum_u_25 <- umbs_biomass_live_25 %>%
         group_by(plot, state) %>%
         summarize(avg_weight = sum(weight_g, na.rm = TRUE))
@@ -362,6 +361,7 @@ kbs_bio_dot_25 <- ggplot(biomass_sum_k1_25, aes(x = state, y = average_weight, f
                           values = c("#a6bddb", "#fb6a4a")) +
         labs(title="KBS", y=NULL, x=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(40,142) +
         theme_bw(14) +
         theme(plot.title = element_text(size=17),
               axis.text.x = element_text(size=15),
@@ -378,6 +378,7 @@ umbs_bio_dot_25 <- ggplot(biomass_sum_u1_25, aes(x = state, y = average_weight, 
                           values = c("#a6bddb", "#fb6a4a")) +
         labs(title="UMBS", y=NULL, x=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(40,140) +
         theme_bw(14) +
         theme(plot.title = element_text(size=17),
               axis.text.x = element_text(size=15),
@@ -385,6 +386,14 @@ umbs_bio_dot_25 <- ggplot(biomass_sum_u1_25, aes(x = state, y = average_weight, 
               legend.text = element_text(size=15),
               legend.title = element_text(size=17))
 umbs_bio_dot_25
+
+biomass_comb_dot <- ggpubr::ggarrange(kbs_bio_dot_25, umbs_bio_dot_25,
+                                     ncol = 2, legend="none")
+png("biomass_plots_dots_L2.png", units="in", width=8, height=4.5, res=300)
+annotate_figure(biomass_comb_dot,
+                left = text_grob(bquote("Biomass " ('g/0.20m'^2)), color = "black", rot = 90, size=18),
+                bottom = text_grob("Treatment" , color = "black", size=18))
+dev.off()
 ```
 
 Litter
@@ -394,9 +403,9 @@ kbs_biomass_25 <- kbs_biomass %>% dplyr::filter(year == "2025")
 umbs_biomass_25 <- umbs_biomass %>% dplyr::filter(year == "2025")
 
 kbs_litter <- kbs_biomass_25 %>%
-        filter(species %in% c("Vert_litter", "Surfl"))
+        filter(species %in% c("Surfl"))
 umbs_litter <- umbs_biomass_25 %>%
-        filter(species %in% c("Vert_litter", "Surfl"))
+        filter(species %in% c("Surfl"))
 
 # summarizing data
 litter_sum_k <- kbs_litter %>%
@@ -423,6 +432,7 @@ kbs_litter_dot <- ggplot(litter_sum_k1, aes(x = state, y = average_weight, fill 
                           values = c("#a6bddb", "#fb6a4a")) +
         labs(title="KBS", y=NULL, x=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(32,130) +
         theme_bw(14) +
         theme(plot.title = element_text(size=17),
               axis.text.x = element_text(size=15),
@@ -439,6 +449,7 @@ umbs_litter_dot <- ggplot(litter_sum_u1, aes(x = state, y = average_weight, fill
                           values = c("#a6bddb", "#fb6a4a")) +
         labs(title="UMBS", y=NULL, x=NULL) +
         scale_x_discrete(labels=c("ambient" = "Ambient", "warmed" = "Warmed")) +
+        ylim(32,130) +
         theme_bw(14) +
         theme(plot.title = element_text(size=17),
               axis.text.x = element_text(size=15),
@@ -446,6 +457,14 @@ umbs_litter_dot <- ggplot(litter_sum_u1, aes(x = state, y = average_weight, fill
               legend.text = element_text(size=15),
               legend.title = element_text(size=17))
 umbs_litter_dot
+
+litter_comb_dot <- ggpubr::ggarrange(kbs_litter_dot, umbs_litter_dot,
+                                     ncol = 2, legend="none")
+png("litter_plots_dots_L2.png", units="in", width=8, height=4.5, res=300)
+annotate_figure(litter_comb_dot,
+                left = text_grob(bquote("Surface Litter Biomass " ('g/0.20m'^2)), color = "black", rot = 90, size=18),
+                bottom = text_grob("Treatment" , color = "black", size=18))
+dev.off()
 ```
 
 
