@@ -552,6 +552,7 @@ anova(m1_ub)
 #      Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
 #state 5.5556  5.5556     1   293  1.4109 0.2359
 
+################################################################################
 # litter
 kbs_litter <- kbs_biomass_25 %>%
         filter(species %in% c("Surfl"))
@@ -584,7 +585,7 @@ shapiro.test(kbs_litter$weight_g_sqrt)
 # sqrt looks the best
 
 m1_kl <- lm(weight_g ~ state, data = kbs_litter)
-m1_kl <- lmer(sqrt(weight_g) ~ state + (1|plot), data = kbs_litter)
+#m1_kl <- lmer(sqrt(weight_g) ~ state + (1|plot), data = kbs_litter)
 
 # Check Assumptions:
 # (1) Linearity: if covariates are not categorical
