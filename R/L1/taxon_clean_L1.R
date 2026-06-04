@@ -27,6 +27,7 @@ taxa <- read.csv(file.path(L0_dir, "taxon_list.csv"))
 taxa1 <- taxa[-(1:20),] #get rid of the first 20 rows
 names(taxa1) <- taxa1[1,] #make the first row the column names
 taxon_uptodate <- taxa1[-1,] #get rid of the first row because it's now the column names
+taxon_uptodate <- taxa1[-c(16,18)]
 
 # Save a .csv file with the cleaned taxon list
 write.csv(taxon_uptodate, file.path(L0_dir,"taxon.csv"))
