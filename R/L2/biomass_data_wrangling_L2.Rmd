@@ -1,0 +1,157 @@
+---
+title: "Biomass Data Wrangling"
+author: "Moriah Young"
+date: "2026-06-04"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(ggplot2)
+library(plotrix)
+
+# Set working directory
+Sys.getenv("L1DIR")
+L0_dir <- Sys.getenv("L0DIR")
+L1_dir <- Sys.getenv("L1DIR")
+L2_dir <- Sys.getenv("L2DIR")
+list.files(L1_dir)
+
+# read in biomass data
+kbs_anpp <- read.csv(file.path(L1_dir, "ANPP/kbs_biomass_L1.csv"))
+kbs_anpp$year_factor <- as.factor(kbs_anpp$year)
+
+umbs_anpp <- read.csv(file.path(L1_dir, "ANPP/umbs_biomass_L1.csv"))
+umbs_anpp$year_factor <- as.factor(umbs_anpp$year)
+
+# remove uninformative species
+# kbs
+kbs_anpp_live <- kbs_anpp[!grepl("Litter", kbs_anpp$species),]
+kbs_anpp_live <- kbs_anpp_live[!grepl("Umsp", kbs_anpp_live$species),]
+kbs_anpp_live <- kbs_anpp_live[!grepl("Surfl", kbs_anpp_live$species),]
+kbs_anpp_live <- kbs_anpp_live[!grepl("Vert_litter", kbs_anpp_live$species),]
+
+# umbs
+umbs_anpp_live <- umbs_anpp[!grepl("Litter", umbs_anpp$species),]
+umbs_anpp_live <- umbs_anpp_live[!grepl("Standing_Dead", umbs_anpp_live$species),]
+umbs_anpp_live <- umbs_anpp_live[!grepl("Surface_Litter", umbs_anpp_live$species),]
+umbs_anpp_live <- umbs_anpp_live[!grepl("Lisp", umbs_anpp_live$species),]
+umbs_anpp_live <- umbs_anpp_live[!grepl("Umsp", umbs_anpp_live$species),]
+umbs_anpp_live <- umbs_anpp_live[!grepl("Vert_litter", umbs_anpp_live$species),]
+umbs_anpp_live <- umbs_anpp_live[!grepl("Surfl", umbs_anpp_live$species),]
+umbs_anpp_live <- umbs_anpp_live[!grepl("Moss_lichen", umbs_anpp_live$species),]
+
+```
+
+Calculate relative abundance of functional groups
+```{r}
+# replace empty cells in growht habit column with NAs
+kbs_anpp_live$growth_habit <- as.character(kbs_anpp_live$growth_habit)
+kbs_anpp_live$growth_habit[kbs_anpp_live$growth_habit==""] <- NA
+kbs_anpp_live$growth_habit <- as.factor(kbs_anpp_live$growth_habit)
+
+kbs_anpp1 <- kbs_anpp_live %>%  
+        select(c("species", "site", "year_factor", "year", "plot", "weight_g", "state", "insecticide", "treatment_key", "growth_habit"))
+
+# first get summed cover for all plants per plot
+kbs_anpp_total = aggregate(weight_g ~ plot*year_factor*year*site*state*insecticide*treatment_key, data = kbs_anpp1, FUN = sum, na.rm = T)
+names(kbs_anpp_total)[names(kbs_anpp_total) == "weight_g"] <- "kbs_anpp_total"
+kbs_anpp2 <- merge(kbs_anpp1, kbs_anpp_total, by = c("plot","year_factor", "year","site", "state", "treatment_key", "insecticide", "growth_habit"))
+
+#calculate absolute percent cover per species in each plot
+kbs_anpp2$absolute <- kbs_anpp2$weight_g/100
+
+#calculate relative percent cover per species in each plot
+kbs_anpp2$relative <- kbs_anpp2$weight_g/kbs_anpp2$kbs_anpp_total
+
+
+library(dplyr)
+
+kbs_rel <- kbs_anpp1 %>%
+  
+  # Step 1: total biomass per plot
+  group_by(plot, year, year_factor, site, state, insecticide, treatment_key) %>%
+  mutate(total_biomass = sum(weight_g, na.rm = TRUE)) %>%
+  
+  # Step 2: biomass per functional group
+  group_by(plot, year, year_factor, site, state, insecticide, treatment_key, growth_habit) %>%
+  summarise(
+    growth_habit_biomass = sum(weight_g, na.rm = TRUE),
+    total_biomass = first(total_biomass),
+    .groups = "drop"
+  ) %>%
+  
+  # Step 3: relative abundance
+  mutate(relative_abundance_func = growth_habit_biomass / total_biomass)
+
+kbs_rel %>%
+  group_by(plot, year) %>%
+  summarise(sum_rel = sum(relative_abundance_func))
+
+```
+
+# plotting
+```{r}
+# select only forb and graminoids
+kbs_rel_forb_gram <- kbs_rel %>%
+        filter(growth_habit %in% c("Graminoid", "Forb"))
+
+kbs_avg <- kbs_rel_forb_gram %>%
+  group_by(state, year_factor, growth_habit) %>%
+  summarise(
+    mean_rel_abundance = mean(relative_abundance_func, na.rm = TRUE),
+    sd_rel_abundance = sd(relative_abundance_func, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# stacked bar graph
+ggplot(kbs_avg, aes(x = state,
+                    y = mean_rel_abundance,
+                    fill = growth_habit)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~year_factor) +
+  labs(
+    x = "Treatment",
+    y = "Mean Relative Abundance",
+    fill = "Functional Group"
+  ) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c(
+    "Forb" = "#E69F00",
+    "Graminoid" = "#009E73"
+  )) +
+  theme_minimal(base_size = 14)
+
+# bar graph
+ggplot(kbs_avg, aes(x = state,
+                    y = mean_rel_abundance,
+                    fill = growth_habit)) +
+  geom_bar(stat = "identity",
+           position = position_dodge(width = 0.9)) +
+  geom_errorbar(aes(
+    ymin = mean_rel_abundance - sd_rel_abundance,
+    ymax = mean_rel_abundance + sd_rel_abundance
+  ),
+  position = position_dodge(width = 0.7),
+  width = 0.2) +
+  facet_wrap(~year_factor) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_manual(values = c(
+    "Forb" = "#E69F00",
+    "Graminoid" = "#009E73"
+  )) +
+  theme_minimal(base_size = 14)
+
+```
+
+
