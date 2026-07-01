@@ -26,6 +26,10 @@ change_pend_names_umbs <- function(df){
         colnames(df) <- sub("^Intensity.*warmed_light_1..", "Intensity_lum_ft_XP_light_1m", colnames(df))
         colnames(df) <- sub("^Intensity....lux.", "Intensity_lum_ft_XP_light_1m", colnames(df))
         colnames(df) <- sub("^X\\d\\d\\d\\d\\d.\\d\\d", "Intensity_lum_ft_XP_light_1m", colnames(df))
+        colnames(df) <- sub("^Temperature_C", "Temp_F_XP_air_1m", colnames(df))
+        colnames(df) <- sub("^Temperature._C", "Temp_F_XP_air_1m", colnames(df))
+        colnames(df) <- sub("^Light_.lux", "Intensity_lum_ft_XP_light_1m", colnames(df))
+        colnames(df) <- sub("^Light_lux", "Intensity_lum_ft_XP_light_1m", colnames(df))
         return(df)
 }
 

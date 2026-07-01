@@ -186,6 +186,23 @@ pend10P_21ub<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_B
 pend11P_21ub<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_C6_20211115.csv"), skip=1, header =T)[ ,2:4]
 pend12P_21ub<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_D6_20211115.csv"), skip=1, header =T)[ ,2:4]
 
+pend4P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_C1_2025_11_23.csv"), header =T)[ ,2:4]
+pend5P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_A2_2025_11_22.csv"), header =T)[ ,2:4]
+pend6P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_B2_2025_11_22.csv"), header =T)[ ,2:4]
+pend7P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_B3_2025_11_22.csv"), header =T)[ ,2:4]
+pend8P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_D3_2025_11_22.csv"), header =T)[ ,2:4]
+pend9P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_A4_v2_2025_11_22.csv"), header =T)[ ,2:4]
+pend10P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_B6_2025_11_22.csv"), header =T)[ ,2:4]
+pend11P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_C6_2025_11_23.csv"), header =T)[ ,2:4]
+pend12P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_D6_1_2025_11_22.csv"), header =T)[ ,2:4]
+
+pend4P_26u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/UMBS WarmX June 2026 csv files/UMBS_C1_2026_06_14.csv"), header =T)[ ,2:4]
+pend5P_26u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/UMBS WarmX June 2026 csv files/UMBS_A2_2026_06_14.csv"), header =T)[ ,2:4]
+pend6P_26u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/UMBS WarmX June 2026 csv files/UMBS_B2_2026_06_14.csv"), header =T)[ ,2:4]
+pend8P_26u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/UMBS WarmX June 2026 csv files/UMBS_D3_2026_06_14.csv"), header =T)[ ,2:4]
+pend9P_26u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/UMBS WarmX June 2026 csv files/UMBS_A4_v2_2026_06_14.csv"), header =T)[ ,2:4]
+pend12P_26u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/UMBS WarmX June 2026 csv files/UMBS_D6_1_2026_06_14.csv"), header =T)[ ,2:4]
+
 #Manually change 10p column names (they don't match the names of the others)
 names(pend10P_17u)[names(pend10P_17u)=="Temp...F..LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_air_warmed_1m."] <- "Temp_F_XP_air_1m"
 names(pend10P_17u)[names(pend10P_17u)=="Intensity..lum.ft...LGR.S.N..10747441..SEN.S.N..10747441..LBL..B6_light_warmed_1m."] <- "Intensity_lum_ft_XP_light_1m"
@@ -208,7 +225,9 @@ list_u <- list(pend4P_17u=pend4P_17u,pend5P_17u=pend5P_17u,pend6P_17u=pend6P_17u
                   pend4P_19u=pend4P_19u,pend5P_19u=pend5P_19u,pend6P_19u=pend6P_19u,pend7P_19u=pend7P_19u,pend8P_19u=pend8P_19u,pend9P_19u=pend9P_19u,pend10P_19u=pend10P_19u,pend11P_19u=pend11P_19u,pend12P_19u=pend12P_19u,
                   pend4P_20u=pend4P_20u,pend5P_20u=pend5P_20u,pend6P_20u=pend6P_20u,pend7P_20u=pend7P_20u,pend8P_20u=pend8P_20u,pend9P_20u=pend9P_20u,pend10P_20u=pend10P_20u,pend11P_20u=pend11P_20u,pend12P_20u=pend12P_20u,
                pend4P_21ua=pend4P_21ua,pend5P_21ua=pend5P_21ua,pend6P_21ua=pend6P_21ua,pend7P_21ua=pend7P_21ua,pend8P_21ua=pend8P_21ua,pend9P_21ua=pend9P_21ua,pend10P_21ua=pend10P_21ua,pend11P_21ua=pend11P_21ua,
-               pend4P_21ub=pend4P_21ub,pend5P_21ub=pend5P_21ub,pend6P_21ub=pend6P_21ub,pend7P_21ub=pend7P_21ub,pend8P_21ub=pend8P_21ub,pend9P_21ub=pend9P_21ub,pend10P_21ub=pend10P_21ub,pend11P_21ub=pend11P_21ub,pend12P_21ub=pend12P_21ub)
+               pend4P_21ub=pend4P_21ub,pend5P_21ub=pend5P_21ub,pend6P_21ub=pend6P_21ub,pend7P_21ub=pend7P_21ub,pend8P_21ub=pend8P_21ub,pend9P_21ub=pend9P_21ub,pend10P_21ub=pend10P_21ub,pend11P_21ub=pend11P_21ub,pend12P_21ub=pend12P_21ub,
+               pend4P_25u=pend4P_25u,pend5P_25u=pend5P_25u,pend6P_25u=pend6P_25u,pend7P_25u=pend7P_25u,pend8P_25u=pend8P_25u,pend9P_25u=pend9P_25u,pend10P_25u=pend10P_25u,pend11P_25u=pend11P_25u,pend12P_25u=pend12P_25u,
+               pend4P_26u=pend4P_26u,pend5P_26u=pend5P_26u,pend6P_26u=pend6P_26u,pend8P_26u=pend8P_26u,pend9P_26u=pend9P_26u,pend12P_26u=pend12P_26u)
 list_u <- lapply(list_u, change_pend_names_umbs)
 list_u <- lapply(list_u, change_pend_names2)
 list_u <- lapply(list_u, change_POSIX)
@@ -216,20 +235,24 @@ list_u[1:25] <- lapply(list_u[1:25], f_to_c2)
 list_u <- add_name_cols(list_u)
 list_u <- lapply(list_u, plot_ID_umbs)
 
-# Combine UMBS pendant files for 2017 and 2018
+# Combine UMBS pendant files
 pend17u<-rbind(list_u$pend4P_17u,list_u$pend5P_17u,list_u$pend6P_17u,list_u$pend7P_17u,list_u$pend8P_17u,list_u$pend9P_17u,list_u$pend10P_17u,list_u$pend11P_17u,list_u$pend12P_17u) 
 pend18u<-rbind(list_u$pend4P_18u,list_u$pend5P_18u,list_u$pend6P_18u,list_u$pend7P_18u,list_u$pend8P_18u,list_u$pend9P_18u,list_u$pend10P_18u,list_u$pend11P_18u,list_u$pend12P_18u)
 pend19u<-rbind(list_u$pend4P_19u,list_u$pend5P_19u,list_u$pend6P_19u,list_u$pend7P_19u,list_u$pend8P_19u,list_u$pend9P_19u,list_u$pend10P_19u,list_u$pend11P_19u,list_u$pend12P_19u)
 pend20u<-rbind(list_u$pend4P_20u,list_u$pend5P_20u,list_u$pend6P_20u,list_u$pend7P_20u,list_u$pend8P_20u,list_u$pend9P_20u,list_u$pend10P_20u,list_u$pend11P_20u,list_u$pend12P_20u)
 pend21u<-rbind(list_u$pend4P_21ua,list_u$pend5P_21ua,list_u$pend6P_21ua,list_u$pend7P_21ua,list_u$pend8P_21ua,list_u$pend9P_21ua,list_u$pend10P_21ua,list_u$pend11P_21ua,list_u$pend4P_21ub,list_u$pend5P_21ub,list_u$pend6P_21ub,list_u$pend7P_21ub,list_u$pend8P_21ub,list_u$pend9P_21ub,list_u$pend10P_21ub,list_u$pend11P_21ub,list_u$pend12P_21ub)
+pend25u<-rbind(list_u$pend4P_25u,list_u$pend5P_25u,list_u$pend6P_25u,list_u$pend7P_25u,list_u$pend8P_25u,list_u$pend9P_25u,list_u$pend10P_25u,list_u$pend11P_25u,list_u$pend12P_25u)
+pend26u<-rbind(list_u$pend4P_26u,list_u$pend5P_26u,list_u$pend6P_26u,list_u$pend8P_26u,list_u$pend9P_26u,list_u$pend12P_26u)
 pend17u$Site<-"UMBS"
 pend18u$Site<-"UMBS"
 pend19u$Site<-"UMBS"
 pend20u$Site<-"UMBS"
 pend21u$Site<-"UMBS"
+pend25u$Site<-"UMBS"
+pend26u$Site<-"UMBS"
  
 #Create RData save file:
 # Get data
 Sys.getenv("L1DIR")
 L1_dir<-Sys.getenv("L1DIR")
-save(pend17u, pend18u, pend19u, pend20u, pend21u, file=file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.RData"))
+save(pend17u, pend18u, pend19u, pend20u, pend21u, pend25u, file=file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.RData"))
