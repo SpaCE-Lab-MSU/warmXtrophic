@@ -3,12 +3,21 @@ change_pend_names <- function(df){
   colnames(df) <- sub("^Date.Time..GMT.0\\d.00", "Date_Time", colnames(df))
   colnames(df) <- sub("^Date.Time..GMT..0\\d00", "Date_Time", colnames(df))
   colnames(df) <- sub("^X04.*\\d\\d", "Date_Time", colnames(df))
-  colnames(df) <- sub("^Temp.*warmed_air_1m.", "Temp_F_XP_air_1m", colnames(df))
-  colnames(df) <- sub("^Temp....C.", "Temp_F_XP_air_1m", colnames(df))
-  colnames(df) <- sub("^X\\d\\d.\\d\\d", "Temp_F_XP_air_1m", colnames(df))
+  colnames(df) <- sub("^Date_Time_", "Date_Time", colnames(df))
+  colnames(df) <- sub("^Date.Time..EDT.EST.", "Date_Time", colnames(df))
+  colnames(df) <- sub("^Temp.*warmed_air_1m.", "Temp_C_XP_air_1m", colnames(df))
+  colnames(df) <- sub("^Temp....C.", "Temp_C_XP_air_1m", colnames(df))
+  colnames(df) <- sub("^X\\d\\d.\\d\\d", "Temp_C_XP_air_1m", colnames(df))
   colnames(df) <- sub("^Intensity.*warmed_light_1..", "Intensity_lum_ft_XP_light_1m", colnames(df))
   colnames(df) <- sub("^Intensity....lux.", "Intensity_lum_ft_XP_light_1m", colnames(df))
   colnames(df) <- sub("^X\\d\\d\\d\\d\\d.\\d\\d", "Intensity_lum_ft_XP_light_1m", colnames(df))
+  colnames(df) <- sub("^Light_.lux", "Intensity_lum_ft_XP_light_1m", colnames(df))
+  colnames(df) <- sub("^Light...lux", "Intensity_lum_ft_XP_light_1m", colnames(df))
+  colnames(df) <- sub("^Light_lux", "Intensity_lum_ft_XP_light_1m", colnames(df))
+  colnames(df) <- sub("^Temperature_C.", "Temp_C_XP_air_1m", colnames(df))
+  colnames(df) <- sub("^Temperature_C", "Temp_C_XP_air_1m", colnames(df))
+  colnames(df) <- sub("^Temp_F_XP_air_1m", "Temp_C_XP_air_1m", colnames(df))
+  colnames(df) <- sub("^Date.Time..GMT.04.00", "Date_Time", colnames(df))
   return(df)
 }
 
@@ -34,8 +43,13 @@ change_pend_names_umbs <- function(df){
 }
 
 # change column names for pendant cleanup again - just fixing the mistakes made from the random characters above
+#change_pend_names2 <-  function(df){
+#        colnames(df) <- sub("^Temp_F_XP_air_1m.*\\d", "Intensity_lum_ft_XP_light_1m", colnames(df))
+#        return(df)
+#}
+
 change_pend_names2 <-  function(df){
-        colnames(df) <- sub("^Temp_F_XP_air_1m.*\\d", "Intensity_lum_ft_XP_light_1m", colnames(df))
+        colnames(df) <- sub("^Temp_F_XP_air_1m.*\\d", "Temp_C_XP_air_1m", colnames(df))
         return(df)
 }
 
@@ -62,6 +76,7 @@ change_pair_names <- function(df){
   colnames(df) <- sub("^Temp.*warmed_soil_5cm.", "XU_warmed_soil_temp_5cm", colnames(df))
   colnames(df) <- sub("^Temp.*ambient_soil_5cm.", "XU_ambient_soil_temp_5cm", colnames(df))
   colnames(df) <- sub("^Temp.*ambient_air_10cm.", "XU_ambient_air_10cm", colnames(df))
+  colnames(df) <- sub("Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm.", "XU_warmed_soil_temp_5cm", colnames(df))
   return(df)
 }
 
@@ -78,7 +93,7 @@ f_to_c <- function(df){
 
 # Change 2020 dataframe to celsius for pendant sensors
 f_to_c2 <- function(df){
-  df[["Temp_F_XP_air_1m"]] <- fahrenheit.to.celsius(df[["Temp_F_XP_air_1m"]])
+  df[["Temp_C_XP_air_1m"]] <- fahrenheit.to.celsius(df[["Temp_C_XP_air_1m"]])
   return(df)
 }
 
@@ -89,6 +104,7 @@ change_POSIX <- function(df){
                                                                    "%m/%d/%y %H:%M",
                                                                    "%m/%d/%Y %I:%M:%S",
                                                                    "%m/%d/%Y %H:%M:%S",
+                                                                   "%m/%d/%y %H:%M:%S",
                                                                    "%F %H:%M:%S"), tz="UTC")
   return(df)
 }

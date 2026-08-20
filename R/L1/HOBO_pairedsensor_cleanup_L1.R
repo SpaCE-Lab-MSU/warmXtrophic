@@ -175,6 +175,7 @@ UMBS_1H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS
 UMBS_1H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_1H_09102019.csv"), skip=1)
 UMBS_1H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_1H_20200901.csv"), skip=1)
 UMBS_1H_2021 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_1H_20211115.csv"), skip=1)
+UMBS_1H_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_1H.csv"), skip=1)
 
 #Read in U - two separate files for 2018, 2020 and 2021 because of the sensor reset
 UMBS_1U_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_1U_08152017.csv"))
@@ -187,6 +188,7 @@ UMBS_1U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMB
 UMBS_1U_2021a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/06_16_2021/UMBS_1U_20210617.csv"), skip=1)[ ,1:6]
 UMBS_1U_2021b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_1U_20211115.csv"), skip=1)[ ,1:6]
 UMBS_1U_2021 <- rbind(UMBS_1U_2021a, UMBS_1U_2021b)
+UMBS_1U_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_1U.csv"), skip=1)[ ,1:6]
 
 # Need to change column names in order to merge both 2020 files
 names(UMBS_1U_2020a)[names(UMBS_1U_2020a)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
@@ -197,6 +199,7 @@ names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N
 names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
 names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
+
 # 2020a is in F 
 UMBS_1U_2020a$XU_warmed_air_10cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_warmed_air_10cm)
 UMBS_1U_2020a$XU_warmed_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_warmed_soil_temp_5cm)
@@ -204,17 +207,19 @@ UMBS_1U_2020a$XU_ambient_air_10cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_ambi
 UMBS_1U_2020a$XU_ambient_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_ambient_soil_temp_5cm)
 UMBS_1U_2020 <- rbind(UMBS_1U_2020a, UMBS_1U_2020b)
 
-
 #Merge data for each year
 UMBS_1_2017 <- merge(UMBS_1H_2017, UMBS_1U_2017, by="Date_Time", all.x=T, all.y=T)
 UMBS_1_2018 <- merge(UMBS_1H_2018, UMBS_1U_2018, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_1_2019 <- merge(UMBS_1H_2019, UMBS_1U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_1_2020 <- merge(UMBS_1H_2020, UMBS_1U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_1_2021 <- merge(UMBS_1H_2021, UMBS_1U_2021, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+UMBS_1_2022 <- merge(UMBS_1H_2022, UMBS_1U_2022, by="Date.Time..GMT.05.00", all.x=T, all.y=T)
 # sensor 1 for 2021 UMBS had a wasp nest from July-Nov, these data are removed in analyses & plotting scripts
 
 #Apply functions
-list_pairu1 <- list(UMBS_1_1516=UMBS_1_1516, UMBS_1_2017=UMBS_1_2017, UMBS_1_2018=UMBS_1_2018, UMBS_1_2019=UMBS_1_2019, UMBS_1_2020=UMBS_1_2020, UMBS_1_2021=UMBS_1_2021)
+list_pairu1 <- list(UMBS_1_1516=UMBS_1_1516, UMBS_1_2017=UMBS_1_2017, UMBS_1_2018=UMBS_1_2018, 
+                    UMBS_1_2019=UMBS_1_2019, UMBS_1_2020=UMBS_1_2020, UMBS_1_2021=UMBS_1_2021, 
+                    UMBS_1_2022=UMBS_1_2022)
 list_pairu1 <- lapply(list_pairu1, change_pair_names)
 list_pairu1 <- lapply(list_pairu1, change_POSIX)
 list_pairu1 <- lapply(list_pairu1, remove_col, name=c('X', 'X..x', 'X..y'))
@@ -230,6 +235,7 @@ names(list_pairu1$UMBS_1_2019)[names(list_pairu1$UMBS_1_2019)=="Temp...F..LGR.S.
 names(list_pairu1$UMBS_1_2019)[names(list_pairu1$UMBS_1_2019)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(list_pairu1$UMBS_1_2021)[names(list_pairu1$UMBS_1_2021)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(list_pairu1$UMBS_1_2021)[names(list_pairu1$UMBS_1_2021)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
+names(list_pairu1$UMBS_1_2022)[names(list_pairu1$UMBS_1_2022)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 
 list_pairu1[2:4] <- lapply(list_pairu1[2:4], f_to_c)
 list_pairu1 <- lapply(list_pairu1, remove_outliers)

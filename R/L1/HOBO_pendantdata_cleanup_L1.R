@@ -18,14 +18,15 @@
 # Clear all existing data
 rm(list=ls())
 
-# Source functions
-source("~/warmXtrophic/R/L1/HOBO_functions_L1.R")
-
 # Set working directory
 Sys.getenv("L0DIR")
 L0_dir<-Sys.getenv("L0DIR")
 L1_dir<-Sys.getenv("L1DIR")
 list.files(L0_dir)
+
+# Source functions
+#source("~/warmXtrophic/R/L1/HOBO_functions_L1.R")
+source("/Users/moriahyoung/Documents/GitHub/warmXtrophic/R/L1/HOBO_functions_L1.R")
 
 # Load packages
 library(tidyverse)
@@ -95,19 +96,39 @@ pend10P_21kb<-read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/PZ_A5 2
 pend11P_21kb<-read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/PZ_C6 2021-11-11_KBS_pendant.csv"), skip=1, header =T)[ ,2:4]
 pend12P_21kb<-read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/PZ_D6 2021-11-09.csv"), skip=1, header =T)[ ,2:4]
 
+# 2025 and 2026 data
+pend5P_26k<-read.csv(file.path(L0_dir,"KBS/sensor_data/2025 and 2026/KBS 2025 WarmX/csv file/PZ_A2_2026_06_28_KBS_WarmX.csv"), header =T)[ ,2:4]
+pend7P_26k<-read.csv(file.path(L0_dir,"KBS/sensor_data/2025 and 2026/KBS 2025 WarmX/csv file/PZ_A4_2026_06_28_KBS_WarmX.csv"), header =T)[ ,2:4]
+pend9P_26k<-read.csv(file.path(L0_dir,"KBS/sensor_data/2025 and 2026/KBS 2025 WarmX/csv file/PZ_a5_kbs2_2026_06_28_KBS_WarmX.csv"), header =T)[ ,2:4]
+pend10P_26k<-read.csv(file.path(L0_dir,"KBS/sensor_data/2025 and 2026/KBS 2025 WarmX/csv file/PZ_C4 2026_06_28_KBS_WarmX.csv"), header =T)[ ,2:4]
+pend12P_26k<-read.csv(file.path(L0_dir,"KBS/sensor_data/2025 and 2026/KBS 2025 WarmX/csv file/PZ_D6_2026_06_28_KBS_WarmX.csv"), header =T)[ ,2:4]
+
 # Apply functions
 list_k <- list(pend4P_17k=pend4P_17k,pend5P_17k=pend5P_17k,pend6P_17k=pend6P_17k,pend7P_17k=pend7P_17k,pend8P_17k=pend8P_17k,pend9P_17k=pend9P_17k,pend10P_17k=pend10P_17k,pend11P_17k=pend11P_17k,pend12P_17k=pend12P_17k,
                pend4P_18k=pend4P_18k,pend5P_18k=pend5P_18k,pend6P_18k=pend6P_18k,pend7P_18k=pend7P_18k,pend8P_18k=pend8P_18k,pend10P_18k=pend10P_18k,pend11P_18k=pend11P_18k,pend12P_18k=pend12P_18k,
                pend4P_19k=pend4P_19k,pend5P_19k=pend5P_19k,pend6P_19k=pend6P_19k,pend7P_19k=pend7P_19k,pend8P_19k=pend8P_19k,pend10P_19k=pend10P_19k,pend11P_19k=pend11P_19k,pend12P_19k=pend12P_19k,
                pend4P_20k=pend4P_20k,pend5P_20k=pend5P_20k,pend6P_20k=pend6P_20k,pend7P_20k=pend7P_20k,pend8P_20k=pend8P_20k,pend10P_20k=pend10P_20k,pend11P_20k=pend11P_20k,pend12P_20k=pend12P_20k,
                pend4P_21ka=pend4P_21ka,pend5P_21ka=pend5P_21ka,pend6P_21ka=pend6P_21ka,pend7P_21ka=pend7P_21ka,pend8P_21ka=pend8P_21ka,pend9P_21ka=pend9P_21ka,pend10P_21ka=pend10P_21ka,pend11P_21ka=pend11P_21ka,pend12P_21ka=pend12P_21ka,
-               pend4P_21kb=pend4P_21kb,pend5P_21kb=pend5P_21kb,pend6P_21kb=pend6P_21kb,pend7P_21kb=pend7P_21kb,pend8P_21kb=pend8P_21kb,pend9P_21kb=pend9P_21kb,pend10P_21kb=pend10P_21kb,pend11P_21kb=pend11P_21kb,pend12P_21kb=pend12P_21kb)
+               pend4P_21kb=pend4P_21kb,pend5P_21kb=pend5P_21kb,pend6P_21kb=pend6P_21kb,pend7P_21kb=pend7P_21kb,pend8P_21kb=pend8P_21kb,pend9P_21kb=pend9P_21kb,pend10P_21kb=pend10P_21kb,pend11P_21kb=pend11P_21kb,pend12P_21kb=pend12P_21kb,
+               pend5P_26k=pend5P_26k,pend7P_26k=pend7P_26k,pend9P_26k=pend9P_26k,pend10P_26k=pend10P_26k,pend12P_26k=pend12P_26k)
 list_k <- lapply(list_k, change_pend_names)
 list_k <- lapply(list_k, change_pend_names2)
 list_k <- lapply(list_k, change_POSIX)
+# 2017, 2018, and 2019 pendant temp data were all downloaded in F
 list_k[1:25] <- lapply(list_k[1:25], f_to_c2)
 list_k <- add_name_cols(list_k)
 list_k <- lapply(list_k, plot_ID_kbs)
+
+nms <- c("pend4P_21kb","pend5P_21kb","pend6P_21kb","pend7P_21kb","pend8P_21kb","pend9P_21kb","pend10P_21kb",
+         "pend11P_21kb","pend12P_21kb")
+
+list_k[nms] <- lapply(list_k[nms], function(df) {
+        names(df)[1:3] <- c("Date_Time", "Temp_C_XP_air_1m", "Intensity_lum_ft_XP_light_1m")
+        df
+})
+
+# check names in the list - are they all the same?
+data.frame(object = names(list_k), columns = sapply(list_k, function(x) paste(names(x), collapse = ", ")))
 
 # Combine KBS pendant files
 pend17k<-rbind(list_k$pend4P_17k,list_k$pend5P_17k,list_k$pend6P_17k,list_k$pend7P_17k,list_k$pend8P_17k,list_k$pend9P_17k,list_k$pend10P_17k,list_k$pend11P_17k,list_k$pend12P_17k)
@@ -115,14 +136,23 @@ pend18k<-rbind(list_k$pend4P_18k,list_k$pend5P_18k,list_k$pend6P_18k,list_k$pend
 pend19k<-rbind(list_k$pend4P_19k,list_k$pend5P_19k,list_k$pend6P_19k,list_k$pend7P_19k,list_k$pend8P_19k,list_k$pend10P_19k,list_k$pend11P_19k,list_k$pend12P_19k)
 pend20k<-rbind(list_k$pend4P_20k,list_k$pend5P_20k,list_k$pend6P_20k,list_k$pend7P_20k,list_k$pend8P_20k,list_k$pend10P_20k,list_k$pend11P_20k,list_k$pend12P_20k)
 pend21k<-rbind(list_k$pend4P_21ka,list_k$pend5P_21ka,list_k$pend6P_21ka,list_k$pend7P_21ka,list_k$pend8P_21ka,list_k$pend9P_21ka,list_k$pend10P_21ka,list_k$pend11P_21ka,list_k$pend12P_21ka,list_k$pend4P_21kb,list_k$pend5P_21kb,list_k$pend6P_21kb,list_k$pend7P_21kb,list_k$pend8P_21kb,list_k$pend9P_21kb,list_k$pend10P_21kb,list_k$pend11P_21kb,list_k$pend12P_21kb)
+pend26k<-rbind(list_k$pend5P_26k,list_k$pend7P_26k,list_k$pend9P_26k,list_k$pend10P_26k,list_k$pend12P_26k)
 pend17k$Site<-"KBS"
 pend18k$Site<-"KBS"
 pend19k$Site<-"KBS"
 pend20k$Site<-"KBS"
 pend21k$Site<-"KBS"
+pend26k$Site<-"KBS"
 
 #Create RData save file - this is used in the script that merges all of the clean data together
-save(pend17k, pend18k, pend19k, pend20k, pend21k, file=file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.RData"))
+save(pend17k, pend18k, pend19k, pend20k, pend21k, pend26k, file=file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.RData"))
+
+# create csv file
+pend_all <- rbind(pend17k, pend18k, pend19k, pend20k, pend21k, pend26k)
+
+# still needs some fixing - for 2020 data, dates are currently 0019 and 0020
+
+write.csv(pend_all, file.path(L1_dir, "HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv"), row.names = FALSE)
 
 
 ### ***UMBS*** ###
