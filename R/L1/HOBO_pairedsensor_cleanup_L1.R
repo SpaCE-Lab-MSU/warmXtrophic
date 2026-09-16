@@ -17,14 +17,33 @@ rm(list=ls())
 #Load packages
 library(tidyverse)
 library(weathermetrics)
-
-# Source functions
-source("~/warmXtrophic/R/L1/HOBO_functions_L1.R")
+library(lubridate)
 
 # Set working directory
 Sys.getenv("L0DIR")
 L0_dir<-Sys.getenv("L0DIR")
 list.files(L0_dir)
+
+# Source functions
+source("~/warmXtrophic/R/L1/HOBO_functions_L1.R")
+
+convert_to_utc <- function(df, tz_offset) {
+        
+        # Find datetime column
+        datetime_col <- grep("Date.Time", names(df), value = TRUE)
+        
+        # Convert to UTC
+        df$date_time_utc <- with_tz(
+                mdy_hms(df[[datetime_col]], tz = tz_offset),
+                "UTC"
+        )
+        
+        # Remove old datetime column
+        df <- df %>%
+                select(-all_of(datetime_col))
+        
+        return(df)
+}
 
 #######################################################################
 #    KBS
@@ -41,6 +60,9 @@ KBS_1H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_1H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1H_10072019.csv"), skip=1)
 KBS_1H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1H_10142020.csv"), skip=1)
 KBS_1H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/1H_kbs_11202021.csv"), skip=1)
+KBS_1H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_1H.csv"), skip=1)
+KBS_1H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/1H_03212023.csv"), skip=1)
+
 
 #Read in data from U pendants
 KBS_1U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_1U_09012017.csv"))
@@ -48,6 +70,10 @@ KBS_1U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/09_29_2018 (stati
 KBS_1U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1U_10072019.csv"), skip=1)[ ,1:6]
 KBS_1U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1U_10142020.csv"), skip=1)[ ,1:6]
 KBS_1U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/1U_kbs_11202021.csv"), skip=1)[ ,1:6]
+KBS_1U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_1U.csv"), skip=1)
+KBS_1U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/1U_03212023.csv"), skip=1)
+
+# need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
 
 # Merge H and U data - 2015/2016 did not have separate U and H files
 KBS_1_2017 <- merge(KBS_1H_2017, KBS_1U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -55,10 +81,13 @@ KBS_1_2018 <- merge(KBS_1H_2018, KBS_1U_2018, by="Date.Time..GMT.04.00", all.x=T
 KBS_1_2019 <- merge(KBS_1H_2019, KBS_1U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_1_2020 <- merge(KBS_1H_2020, KBS_1U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_1_2021 <- merge(KBS_1H_2021, KBS_1U_2021, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+KBS_1_2022 <- merge(KBS_1H_2022, KBS_1U_2022, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+KBS_1_2023 <- merge(KBS_1H_2023, KBS_1U_2023, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 # note: sensor 1 for KBS failed for 2021 - it is removed in the data removal script
 
 # Apply functions
-list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS_1_2018, KBS_1_2019=KBS_1_2019, KBS_1_2020=KBS_1_2020, KBS_1_2021=KBS_1_2021)
+list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS_1_2018, KBS_1_2019=KBS_1_2019, 
+                    KBS_1_2020=KBS_1_2020, KBS_1_2021=KBS_1_2021, KBS_1_2022=KBS_1_2022, KBS_1_2023=KBS_1_2023)
 list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
 list_pairk1 <- lapply(list_pairk1, remove_col, name=c('X', 'X..x', 'X..y'))
@@ -74,6 +103,8 @@ KBS_2H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_2H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_2H_10072019.csv"), skip=1)
 KBS_2H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_2H_10142020.csv"), skip=1)
 KBS_2H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/2H_kbs_11202021.csv"), skip=1)
+KBS_2H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_2H.csv"), skip=1)
+KBS_2H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2H_03212023.csv"), skip=1)
 
 #Read in U
 KBS_2U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_2U_09012017.csv"))
@@ -81,6 +112,10 @@ KBS_2U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_2U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_2U_10072019.csv"), skip=1)[ ,1:6]
 KBS_2U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_2U_10142020.csv"), skip=1)[ ,1:6]
 KBS_2U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/2U_kbs_11202021.csv"), skip=1)[ ,1:6]
+KBS_2U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_2U.csv"), skip=1)
+KBS_2U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2U_03212023.csv"), skip=1)
+
+# need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
 
 #Merge H and U
 KBS_2_2017 <- merge(KBS_2H_2017, KBS_2U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -88,9 +123,12 @@ KBS_2_2018 <- merge(KBS_2H_2018, KBS_2U_2018, by="Date.Time..GMT.04.00", all.x=T
 KBS_2_2019 <- merge(KBS_2H_2019, KBS_2U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_2_2020 <- merge(KBS_2H_2020, KBS_2U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_2_2021 <- merge(KBS_2H_2021, KBS_2U_2021, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+KBS_2_2022 <- merge(KBS_2H_2022, KBS_2U_2022, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+KBS_2_2023 <- merge(KBS_2H_2023, KBS_2U_2023, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
 #Apply functions
-list_pairk2 <- list(KBS_2_1516=KBS_2_1516, KBS_2_2017=KBS_2_2017, KBS_2_2018=KBS_2_2018, KBS_2_2019=KBS_2_2019, KBS_2_2020=KBS_2_2020, KBS_2_2021=KBS_2_2021)
+list_pairk2 <- list(KBS_2_1516=KBS_2_1516, KBS_2_2017=KBS_2_2017, KBS_2_2018=KBS_2_2018, KBS_2_2019=KBS_2_2019, 
+                    KBS_2_2020=KBS_2_2020, KBS_2_2021=KBS_2_2021, KBS_2_2022=KBS_2_2022, KBS_2_2023=KBS_2_2023)
 list_pairk2 <- lapply(list_pairk2, change_pair_names)
 list_pairk2 <- lapply(list_pairk2, change_POSIX)
 list_pairk2 <- lapply(list_pairk2, remove_col, name=c('X', 'X..x', 'X..y'))
@@ -113,6 +151,8 @@ KBS_3H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_3H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_3H_10072019.csv"), skip=1)
 KBS_3H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_3H_10142020.csv"), skip=1)
 KBS_3H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/3H_kbs_11202021.csv"), skip=1)
+KBS_3H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_3H.csv"), skip=1)
+KBS_3H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3H_03212023.csv"), skip=1)
 
 #Read in U
 KBS_3U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_3U_09012017.csv"))
@@ -120,6 +160,10 @@ KBS_3U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_3U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_3U_10072019.csv"), skip=1)[ ,1:6]
 KBS_3U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_3U_10142020.csv"), skip=1)[ ,1:6]
 KBS_3U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/3U_kbs_11202021.csv"), skip=1)[ ,1:6]
+KBS_3U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_3U.csv"), skip=1)
+KBS_3U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3U_03212023.csv"), skip=1)
+
+# need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
 
 #Merge H and U
 KBS_3_2017 <- merge(KBS_3H_2017, KBS_3U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -127,9 +171,12 @@ KBS_3_2018 <- merge(KBS_3H_2018, KBS_3U_2018, by="Date.Time..GMT.04.00", all.x=T
 KBS_3_2019 <- merge(KBS_3H_2019, KBS_3U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_3_2020 <- merge(KBS_3H_2020, KBS_3U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 KBS_3_2021 <- merge(KBS_3H_2021, KBS_3U_2021, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+KBS_3_2022 <- merge(KBS_3H_2022, KBS_3U_2022, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+KBS_3_2023 <- merge(KBS_3H_2023, KBS_3U_2023, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 
 #Apply functions
-list_pairk3 <- list(KBS_3_1516=KBS_3_1516, KBS_3_2017=KBS_3_2017, KBS_3_2018=KBS_3_2018, KBS_3_2019=KBS_3_2019, KBS_3_2020=KBS_3_2020, KBS_3_2021=KBS_3_2021)
+list_pairk3 <- list(KBS_3_1516=KBS_3_1516, KBS_3_2017=KBS_3_2017, KBS_3_2018=KBS_3_2018, KBS_3_2019=KBS_3_2019, 
+                    KBS_3_2020=KBS_3_2020, KBS_3_2021=KBS_3_2021, KBS_3_2022=KBS_3_2022, KBS_3_2023=KBS_3_2023)
 list_pairk3 <- lapply(list_pairk3, change_pair_names)
 list_pairk3 <- lapply(list_pairk3, change_POSIX)
 list_pairk3 <- lapply(list_pairk3, remove_col, name=c('X', 'X..x', 'X..y'))
@@ -176,6 +223,7 @@ UMBS_1H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS
 UMBS_1H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_1H_20200901.csv"), skip=1)
 UMBS_1H_2021 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_1H_20211115.csv"), skip=1)
 UMBS_1H_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_1H.csv"), skip=1)
+UMBS_1H_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_1H_06022023.csv"), skip=1)
 
 #Read in U - two separate files for 2018, 2020 and 2021 because of the sensor reset
 UMBS_1U_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_1U_08152017.csv"))
@@ -189,6 +237,10 @@ UMBS_1U_2021a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/06_16_2021/UMB
 UMBS_1U_2021b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_1U_20211115.csv"), skip=1)[ ,1:6]
 UMBS_1U_2021 <- rbind(UMBS_1U_2021a, UMBS_1U_2021b)
 UMBS_1U_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_1U.csv"), skip=1)[ ,1:6]
+UMBS_1U_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_1U_06022023.csv"), skip=1)
+UMBS_1U_2024 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2024//UMBS_1U_08012024.csv"), skip=1)
+UMBS_1U_2025 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_1U.csv"), skip=1)
+UMBS_1U_2026 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/WarmX June 2026/UMBS WarmX June 2026 csv files/UMBS_1U_0_June_2026.csv"), skip=1)
 
 # Need to change column names in order to merge both 2020 files
 names(UMBS_1U_2020a)[names(UMBS_1U_2020a)=="Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
@@ -200,12 +252,39 @@ names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N
 names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
 names(UMBS_1U_2020b)[names(UMBS_1U_2020b)=="Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 
+# Need to change column names in order to merge both 2023 files
+
+
+UMBS_1H_2022$Date.Time..GMT.05.00 <-
+        format(floor_date(parse_date_time(
+                UMBS_1H_2022$Date.Time..GMT.05.00,
+                orders = "mdy IMS p"),
+                unit = "hour"),
+               "%m/%d/%y %I:%M:%S %p")
+
+UMBS_1H_2023$Date.Time..GMT.05.00 <-
+        format(floor_date(parse_date_time(
+                UMBS_1H_2023$Date.Time..GMT.05.00,
+                orders = "mdy IMS p"),
+                unit = "hour"),
+               "%m/%d/%y %I:%M:%S %p")
+
+UMBS_1U_2023$Date.Time..GMT.05.00 <-
+        format(floor_date(parse_date_time(
+                UMBS_1U_2023$Date.Time..GMT.05.00,
+                orders = "mdy IMS p"),
+                unit = "hour"),
+               "%m/%d/%y %I:%M:%S %p")
+
 # 2020a is in F 
 UMBS_1U_2020a$XU_warmed_air_10cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_warmed_air_10cm)
 UMBS_1U_2020a$XU_warmed_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_warmed_soil_temp_5cm)
 UMBS_1U_2020a$XU_ambient_air_10cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_ambient_air_10cm)
 UMBS_1U_2020a$XU_ambient_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_1U_2020a$XU_ambient_soil_temp_5cm)
 UMBS_1U_2020 <- rbind(UMBS_1U_2020a, UMBS_1U_2020b)
+
+# 2022 is in F
+
 
 #Merge data for each year
 UMBS_1_2017 <- merge(UMBS_1H_2017, UMBS_1U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -214,7 +293,10 @@ UMBS_1_2019 <- merge(UMBS_1H_2019, UMBS_1U_2019, by="Date.Time..GMT.04.00", all.
 UMBS_1_2020 <- merge(UMBS_1H_2020, UMBS_1U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_1_2021 <- merge(UMBS_1H_2021, UMBS_1U_2021, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_1_2022 <- merge(UMBS_1H_2022, UMBS_1U_2022, by="Date.Time..GMT.05.00", all.x=T, all.y=T)
+UMBS_1_2023 <- merge(UMBS_1H_2023, UMBS_1U_2023, by="Date.Time..GMT.05.00", all.x=T, all.y=T)
 # sensor 1 for 2021 UMBS had a wasp nest from July-Nov, these data are removed in analyses & plotting scripts
+
+# after 2023, we lost some paired sensors so some only have U or H dataframes
 
 #Apply functions
 list_pairu1 <- list(UMBS_1_1516=UMBS_1_1516, UMBS_1_2017=UMBS_1_2017, UMBS_1_2018=UMBS_1_2018, 
@@ -249,6 +331,9 @@ UMBS_2H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS
 UMBS_2H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_2H_09102019.csv"), skip=1)
 UMBS_2H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_2H_20200901.csv"), skip=1)
 UMBS_2H_2021 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_2H_20211115.csv"), skip=1)
+UMBS_2H_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_2H_06022023.csv"), skip=1)
+UMBS_2H_2025 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_2H.csv"), skip=1)
+UMBS_2H_2026 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/WarmX June 2026/UMBS WarmX June 2026 csv files/UMBS_2H_0_June_2026.csv"), skip=1)
 
 #Read in U
 UMBS_2U_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_2U_08152017.csv"))
@@ -258,6 +343,11 @@ UMBS_2U_2018 <- rbind(UMBS_2U_2018a, UMBS_2U_2018b)
 UMBS_2U_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_2U_09102019.csv"), skip=1)[ ,1:6]
 UMBS_2U_2020a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/05_13_2020/UMBS_2U_05132020.csv"), skip=1)[ ,1:6]
 UMBS_2U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_2U_20200901.csv"), skip=1)[ ,1:6]
+UMBS_2U_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_2U_06022023.csv"), skip=1)
+UMBS_2U_2024 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2024//UMBS_2U_08012024.csv"), skip=1)
+UMBS_2U_2025 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_2U.csv"), skip=1)
+UMBS_2U_2026 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/WarmX June 2026/UMBS WarmX June 2026 csv files/UMBS_2U_0_June_2026.csv"), skip=1)
+
 names(UMBS_2U_2020a)[names(UMBS_2U_2020a)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(UMBS_2U_2020a)[names(UMBS_2U_2020a)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_2U_2020a)[names(UMBS_2U_2020a)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
@@ -266,6 +356,7 @@ names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N
 names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
 names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
+
 # 2020a is in F
 UMBS_2U_2020a$XU_warmed_air_10cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_warmed_air_10cm)
 UMBS_2U_2020a$XU_warmed_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_warmed_soil_temp_5cm)
@@ -282,6 +373,8 @@ UMBS_2_2018 <- merge(UMBS_2H_2018, UMBS_2U_2018, by="Date.Time..GMT.04.00", all.
 UMBS_2_2019 <- merge(UMBS_2H_2019, UMBS_2U_2019, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_2_2020 <- merge(UMBS_2H_2020, UMBS_2U_2020, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
 UMBS_2_2021 <- merge(UMBS_2H_2021, UMBS_2U_2021, by="Date.Time..GMT.04.00", all.x=T, all.y=T)
+UMBS_2_2025 <- merge(UMBS_2H_2025, UMBS_2U_2025, by="Date.Time..GMT.05.00", all.x=T, all.y=T)
+
 
 #Apply functions
 list_pairu2 <- list(UMBS_2_1516=UMBS_2_1516, UMBS_2_2017=UMBS_2_2017, UMBS_2_2018=UMBS_2_2018, UMBS_2_2019=UMBS_2_2019, UMBS_2_2020=UMBS_2_2020, UMBS_2_2021=UMBS_2_2021)
@@ -317,6 +410,7 @@ UMBS_3H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS
 UMBS_3H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_3H_09102019.csv"), skip=1)
 UMBS_3H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_3H_20200901.csv"), skip=1)
 UMBS_3H_2021 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_3H_20211115.csv"), skip=1)
+UMBS_3H_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_3H_06022023.csv"), skip=1)
 
 #Read in U
 UMBS_3U_2017 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2017/08_15_2017/UMBS_3U_08152017.csv"))
@@ -326,6 +420,10 @@ UMBS_3U_2018 <- rbind(UMBS_3U_2018a, UMBS_3U_2018b)
 UMBS_3U_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_3U_09102019.csv"), skip=1)[ ,1:6]
 UMBS_3U_2020a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/05_13_2020/UMBS_3U_05132020.csv"), skip=1)[ ,1:6]
 UMBS_3U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_3U_20200901.csv"), skip=1)[ ,1:6]
+UMBS_3U_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_3U_06022023.csv"), skip=1)
+UMBS_3U_2024 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2024//UMBS_3U_08012024.csv"), skip=1)
+
+
 names(UMBS_3U_2020a)[names(UMBS_3U_2020a)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_ambient_soil_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(UMBS_3U_2020a)[names(UMBS_3U_2020a)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
 names(UMBS_3U_2020a)[names(UMBS_3U_2020a)=="Temp...F..LGR.S.N..10737619..SEN.S.N..10737619..LBL..3U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
