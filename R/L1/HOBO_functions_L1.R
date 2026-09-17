@@ -76,7 +76,12 @@ change_pair_names <- function(df){
   colnames(df) <- sub("^Temp.*warmed_soil_5cm.", "XU_warmed_soil_temp_5cm", colnames(df))
   colnames(df) <- sub("^Temp.*ambient_soil_5cm.", "XU_ambient_soil_temp_5cm", colnames(df))
   colnames(df) <- sub("^Temp.*ambient_air_10cm.", "XU_ambient_air_10cm", colnames(df))
-  colnames(df) <- sub("Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm.", "XU_warmed_soil_temp_5cm", colnames(df))
+  colnames(df) <- sub("^Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm.", "XU_warmed_soil_temp_5cm", colnames(df))
+  colnames(df) <- sub("^Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm.", "XU_ambient_soil_temp_5cm", colnames(df))
+  colnames(df) <- sub("^Temp...F..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_warmed_soil_temp_5cm.", "XU_warmed_soil_temp_5cm", colnames(df))
+  colnames(df) <- sub("^X1U_ambient_soil_temp_5cm", "XU_ambient_soil_temp_5cm", colnames(df))
+  colnames(df) <- sub("^X1U_warmed_soil_temp_5cm", "XU_warmed_soil_temp_5cm", colnames(df))
+  colnames(df) <- sub("^Temp...C..LGR.S.N..10737620..SEN.S.N..10737620..LBL..1U_ambient_soil_temp_5cm.", "XU_ambient_soil_temp_5cm", colnames(df))
   return(df)
 }
 
@@ -89,6 +94,28 @@ f_to_c <- function(df){
   df[["XU_ambient_air_10cm"]] <- fahrenheit.to.celsius(df[["XU_ambient_air_10cm"]])
   df[["XU_ambient_soil_temp_5cm"]] <- fahrenheit.to.celsius(df[["XU_ambient_soil_temp_5cm"]])
   return(df)
+}
+
+# updated function from above:
+f_to_c <- function(df) {
+        
+        cols <- c(
+                "XH_warmed_air_1m",
+                "XH_ambient_air_1m",
+                "XU_warmed_air_10cm",
+                "XU_warmed_soil_temp_5cm",
+                "XU_ambient_air_10cm",
+                "XU_ambient_soil_temp_5cm"
+        )
+        
+        cols_present <- intersect(cols, names(df))
+        
+        df[cols_present] <- lapply(
+                df[cols_present],
+                fahrenheit.to.celsius
+        )
+        
+        df
 }
 
 # Change 2020 dataframe to celsius for pendant sensors
@@ -171,6 +198,68 @@ remove_outliers = function(df){
   is.na(df[["XU_warmed_air_10cm"]]) <- df[["XU_warmed_air_10cm"]] <= -30
   is.na(df[["XU_ambient_air_10cm"]]) <- df[["XU_ambient_air_10cm"]] <= -30
   return(df)
+}
+
+# updated function from above
+remove_outliers <- function(df){
+        
+        if("XU_warmed_soil_temp_5cm" %in% names(df)){
+                df$XU_warmed_soil_temp_5cm[
+                        df$XU_warmed_soil_temp_5cm >= 40 |
+                                df$XU_warmed_soil_temp_5cm <= -40
+                ] <- NA
+        }
+        
+        if("XU_ambient_soil_temp_5cm" %in% names(df)){
+                df$XU_ambient_soil_temp_5cm[
+                        df$XU_ambient_soil_temp_5cm >= 40 |
+                                df$XU_ambient_soil_temp_5cm <= -40
+                ] <- NA
+        }
+        
+        if("XH_warmed_soil_moisture_5cm" %in% names(df)){
+                df$XH_warmed_soil_moisture_5cm[
+                        df$XH_warmed_soil_moisture_5cm <= 0
+                ] <- NA
+        }
+        
+        if("XH_ambient_soil_moisture_5cm" %in% names(df)){
+                df$XH_ambient_soil_moisture_5cm[
+                        df$XH_ambient_soil_moisture_5cm <= 0
+                ] <- NA
+        }
+        
+        if("XH_ambient_air_1m" %in% names(df)){
+                df$XH_ambient_air_1m[df$XH_ambient_air_1m <= -30] <- NA
+        }
+        
+        if("XH_warmed_air_1m" %in% names(df)){
+                df$XH_warmed_air_1m[df$XH_warmed_air_1m <= -30] <- NA
+        }
+        
+        if("XH_warmed_RH_1m" %in% names(df)){
+                df$XH_warmed_RH_1m[df$XH_warmed_RH_1m <= -30] <- NA
+        }
+        
+        if("XH_ambient_RH_1m" %in% names(df)){
+                df$XH_ambient_RH_1m[df$XH_ambient_RH_1m <= -30] <- NA
+        }
+        
+        if("XU_warmed_air_10cm" %in% names(df)){
+                df$XU_warmed_air_10cm[
+                        df$XU_warmed_air_10cm >= 49 |
+                                df$XU_warmed_air_10cm <= -30
+                ] <- NA
+        }
+        
+        if("XU_ambient_air_10cm" %in% names(df)){
+                df$XU_ambient_air_10cm[
+                        df$XU_ambient_air_10cm >= 49 |
+                                df$XU_ambient_air_10cm <= -30
+                ] <- NA
+        }
+        
+        df
 }
 
 # other remove outliers function that uses > 2SD as outlier determination
