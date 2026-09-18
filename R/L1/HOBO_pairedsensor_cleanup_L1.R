@@ -10,6 +10,7 @@
     ## KS edit May 23, 2018: created merged files for UMBS; August 1, 2018: remove manual preparation step and add 2018 data from KBS and UMBS
     ## KD edit June 2020 & May 2021: Updated script to insert 2019 and 2020 data & functions
     ## KD edit Nov 2021 to add 2021 data
+    ## MLY edit in 2026 to add 2022-2026 data
 
 # Clear all existing data
 rm(list=ls())
@@ -62,7 +63,9 @@ KBS_1H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1H
 KBS_1H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/1H_kbs_11202021.csv"), skip=1)
 KBS_1H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_1H.csv"), skip=1)
 KBS_1H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/1H_03212023.csv"), skip=1)
-
+# no 2024 file
+# no 2025 file
+# no 2026 file
 
 #Read in data from U pendants
 KBS_1U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_1U_09012017.csv"))
@@ -72,6 +75,9 @@ KBS_1U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1U
 KBS_1U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/1U_kbs_11202021.csv"), skip=1)[ ,1:6]
 KBS_1U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_1U.csv"), skip=1)
 KBS_1U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/1U_03212023.csv"), skip=1)
+# no 2024 file
+# no 2025 file
+# no 2026 file
 
 # need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
 
@@ -107,6 +113,9 @@ KBS_2H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_2H
 KBS_2H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/2H_kbs_11202021.csv"), skip=1)
 KBS_2H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_2H.csv"), skip=1)
 KBS_2H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2H_03212023.csv"), skip=1)
+# no 2024 file
+# no 2025 file
+# no 2026 file
 
 #Read in U
 KBS_2U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_2U_09012017.csv"))
@@ -116,6 +125,9 @@ KBS_2U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_2U
 KBS_2U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/2U_kbs_11202021.csv"), skip=1)[ ,1:6]
 KBS_2U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_2U.csv"), skip=1)
 KBS_2U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2U_03212023.csv"), skip=1)
+# no 2024 file
+# no 2025 file
+# no 2026 file
 
 # need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
 
@@ -155,6 +167,9 @@ KBS_3H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_3H
 KBS_3H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/3H_kbs_11202021.csv"), skip=1)
 KBS_3H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_3H.csv"), skip=1)
 KBS_3H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3H_03212023.csv"), skip=1)
+# no 2024 file
+# no 2025 file
+# no 2026 file
 
 #Read in U
 KBS_3U_2017 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2017/09_01_2017/KBS_3U_09012017.csv"))
@@ -164,6 +179,9 @@ KBS_3U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_3U
 KBS_3U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/3U_kbs_11202021.csv"), skip=1)[ ,1:6]
 KBS_3U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_3U.csv"), skip=1)
 KBS_3U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3U_03212023.csv"), skip=1)
+# no 2024 file
+# no 2025 file
+# no 2026 file
 
 # need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
 
