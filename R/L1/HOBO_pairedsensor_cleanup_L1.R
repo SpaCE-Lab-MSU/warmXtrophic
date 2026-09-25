@@ -26,7 +26,7 @@ L0_dir<-Sys.getenv("L0DIR")
 list.files(L0_dir)
 
 # Source functions
-source("~/warmXtrophic/R/L1/HOBO_functions_L1.R")
+#source("~/warmXtrophic/R/L1/HOBO_functions_L1.R")
 
 #convert_to_utc <- function(df, tz_offset) {
 #        
@@ -61,8 +61,8 @@ KBS_1H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_1H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1H_10072019.csv"), skip=1)
 KBS_1H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1H_10142020.csv"), skip=1)
 KBS_1H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/1H_kbs_11202021.csv"), skip=1)
-KBS_1H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_1H.csv"), skip=1)
-KBS_1H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/1H_03212023.csv"), skip=1)
+KBS_1H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_1H.csv"), skip=1) # GMT 4 + Celsius + not at top of hour
+KBS_1H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/1H_03212023.csv"), skip=1) # GMT 5 + not at top of hour + looks like bad data
 # no 2024 file
 # no 2025 file
 # no 2026 file
@@ -73,14 +73,24 @@ KBS_1U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/09_29_2018 (stati
 KBS_1U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_1U_10072019.csv"), skip=1)[ ,1:6]
 KBS_1U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_1U_10142020.csv"), skip=1)[ ,1:6]
 KBS_1U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/1U_kbs_11202021.csv"), skip=1)[ ,1:6]
-KBS_1U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_1U.csv"), skip=1)
-KBS_1U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/1U_03212023.csv"), skip=1)
+KBS_1U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_1U.csv"), skip=1) # GMT 5 + Fahrenheit + not at top of hour
+KBS_1U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/1U_03212023.csv"), skip=1) # GMT 4 + Fahrenheit + not at top of hour
 # no 2024 file
 # no 2025 file
 # no 2026 file
 
-# need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
+# need to convert 2022 and 2023 U and H times to be the same in order to merge. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
+KBS_1H_2023 <- convert_gmt5_to_gmt4(KBS_1H_2023)
+KBS_1U_2022 <- convert_gmt5_to_gmt4(KBS_1U_2022)
+KBS_1H_2022 <- round_to_hour(KBS_1H_2022)
+KBS_1U_2023 <- round_to_hour(KBS_1U_2023)
 
+# 2022 data - H is in C and U is in F - convert F to C
+# note this will not change the column name so it will still look like it's in F
+KBS_1U_2022$Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_warmed_air_10cm. <- fahrenheit.to.celsius(KBS_1U_2022$Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_warmed_air_10cm.)
+KBS_1U_2022$Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_warmed_soil_5cm. <- fahrenheit.to.celsius(KBS_1U_2022$Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_warmed_soil_5cm.)
+KBS_1U_2022$Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_ambient_soil_5cm. <- fahrenheit.to.celsius(KBS_1U_2022$Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_ambient_soil_5cm.)
+KBS_1U_2022$Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_ambient_air_10cm. <- fahrenheit.to.celsius(KBS_1U_2022$Temp...F..LGR.S.N..10737622..SEN.S.N..10737622..LBL..1U_ambient_air_10cm.)
 
 
 # Merge H and U data - 2015/2016 did not have separate U and H files
@@ -99,7 +109,17 @@ list_pairk1 <- list(KBS_1_1516=KBS_1_1516, KBS_1_2017=KBS_1_2017, KBS_1_2018=KBS
 list_pairk1 <- lapply(list_pairk1, change_pair_names)
 list_pairk1 <- lapply(list_pairk1, change_POSIX)
 list_pairk1 <- lapply(list_pairk1, remove_col, name=c('X', 'X..x', 'X..y'))
-list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
+
+# check how the change_pair_names function did
+unique(unlist(lapply(list_pairk1, names)))
+
+names(list_pairk1)
+# [1] "KBS_1_1516" "KBS_1_2017" "KBS_1_2018" "KBS_1_2019" "KBS_1_2020" 
+# "KBS_1_2021" "KBS_1_2022" "KBS_1_2023"
+
+# convert data that was in F to C
+list_pairk1[c(2,3,4,8)] <- lapply(list_pairk1[c(2,3,4,8)], f_to_c)
+#list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
 list_pairk1 <- lapply(list_pairk1, remove_outliers)
 
 
@@ -111,8 +131,8 @@ KBS_2H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_2H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_2H_10072019.csv"), skip=1)
 KBS_2H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_2H_10142020.csv"), skip=1)
 KBS_2H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/2H_kbs_11202021.csv"), skip=1)
-KBS_2H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_2H.csv"), skip=1)
-KBS_2H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2H_03212023.csv"), skip=1)
+KBS_2H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_2H.csv"), skip=1) # GMT 4 + Celsius + need to be top of the hour
+KBS_2H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2H_03212023.csv"), skip=1) # GMT 4 + Fahrenheit + need to be top of the hour
 # no 2024 file
 # no 2025 file
 # no 2026 file
@@ -123,8 +143,8 @@ KBS_2U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_2U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_2U_10072019.csv"), skip=1)[ ,1:6]
 KBS_2U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_2U_10142020.csv"), skip=1)[ ,1:6]
 KBS_2U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/2U_kbs_11202021.csv"), skip=1)[ ,1:6]
-KBS_2U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_2U.csv"), skip=1)
-KBS_2U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2U_03212023.csv"), skip=1)
+KBS_2U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_2U.csv"), skip=1) # GMT 5 + Fahrenheit + need to be top of the hour
+KBS_2U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2U_03212023.csv"), skip=1) # GMT 5 + Fahrenheit + need to be top of the hour
 # no 2024 file
 # no 2025 file
 # no 2026 file
@@ -165,8 +185,8 @@ KBS_3H_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_3H_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_3H_10072019.csv"), skip=1)
 KBS_3H_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_3H_10142020.csv"), skip=1)
 KBS_3H_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/3H_kbs_11202021.csv"), skip=1)
-KBS_3H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_3H.csv"), skip=1)
-KBS_3H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3H_03212023.csv"), skip=1)
+KBS_3H_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_3H.csv"), skip=1) # GMT 5 + C + needs to be top of the hour
+KBS_3H_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3H_03212023.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
 # no 2024 file
 # no 2025 file
 # no 2026 file
@@ -177,8 +197,8 @@ KBS_3U_2018 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2018/07_12_2018 (stati
 KBS_3U_2019 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2019/10_07_2019/KBS_3U_10072019.csv"), skip=1)[ ,1:6]
 KBS_3U_2020 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2020/10_14_2020/KBS_3U_10142020.csv"), skip=1)[ ,1:6]
 KBS_3U_2021 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2021/11_10_2021/3U_kbs_11202021.csv"), skip=1)[ ,1:6]
-KBS_3U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_3U.csv"), skip=1)
-KBS_3U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3U_03212023.csv"), skip=1)
+KBS_3U_2022 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2022/csv_files/KBS_3U.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
+KBS_3U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3U_03212023.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
 # no 2024 file
 # no 2025 file
 # no 2026 file
@@ -359,11 +379,11 @@ UMBS_2H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS
 UMBS_2H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_2H_09102019.csv"), skip=1)
 UMBS_2H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_2H_20200901.csv"), skip=1)
 UMBS_2H_2021 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_2H_20211115.csv"), skip=1)
-UMBS_2H_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_2H.csv"), skip=1)
-UMBS_2H_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_2H_06022023.csv"), skip=1)
+UMBS_2H_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_2H.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
+UMBS_2H_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_2H_06022023.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
 # no 2024 2H file
-UMBS_2H_2025 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_2H.csv"), skip=1)
-UMBS_2H_2026 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/WarmX June 2026/UMBS WarmX June 2026 csv files/UMBS_2H_0_June_2026.csv"), skip=1)
+UMBS_2H_2025 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_2H.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
+UMBS_2H_2026 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/WarmX June 2026/UMBS WarmX June 2026 csv files/UMBS_2H_0_June_2026.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
 
 #Read in U
 # 2015/16 is in one file and read above
@@ -375,11 +395,11 @@ UMBS_2U_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS
 UMBS_2U_2020a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/05_13_2020/UMBS_2U_05132020.csv"), skip=1)[ ,1:6]
 UMBS_2U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_2U_20200901.csv"), skip=1)[ ,1:6]
 # 2021 files are read in below
-UMBS_2U_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_2U.csv"), skip=1)[ ,1:6]
-UMBS_2U_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_2U_06022023.csv"), skip=1)
-UMBS_2U_2024 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2024//UMBS_2U_08012024.csv"), skip=1)
-UMBS_2U_2025 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_2U.csv"), skip=1)
-UMBS_2U_2026 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/WarmX June 2026/UMBS WarmX June 2026 csv files/UMBS_2U_0_June_2026.csv"), skip=1)
+UMBS_2U_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_2U.csv"), skip=1)[ ,1:6] # GMT 5 + F 
+UMBS_2U_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_2U_06022023.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
+UMBS_2U_2024 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2024//UMBS_2U_08012024.csv"), skip=1) # GMT 5 + C + needs to be top of the hour
+UMBS_2U_2025 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_2U.csv"), skip=1) # GMT 5 + F
+UMBS_2U_2026 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/WarmX UMBS weather data June 2026/WarmX June 2026/UMBS WarmX June 2026 csv files/UMBS_2U_0_June_2026.csv"), skip=1) # GMT 5 + F
 
 names(UMBS_2U_2020a)[names(UMBS_2U_2020a)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 names(UMBS_2U_2020a)[names(UMBS_2U_2020a)=="Temp...F..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_ambient_air_10cm."] <- "XU_ambient_air_10cm"
@@ -452,8 +472,8 @@ UMBS_3H_2018 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2018/09_19_2018/UMBS
 UMBS_3H_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS_3H_09102019.csv"), skip=1)
 UMBS_3H_2020 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_3H_20200901.csv"), skip=1)
 UMBS_3H_2021 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_3H_20211115.csv"), skip=1)
-UMBS_3H_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_3H.csv"), skip=1)[ ,1:6]
-UMBS_3H_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_3H_06022023.csv"), skip=1)
+UMBS_3H_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_3H.csv"), skip=1)[ ,1:6] # GMT 5 + F + needs to be top of the hour
+UMBS_3H_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_3H_06022023.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
 # no 2024 3H file
 # no 2025 3H file
 # no 2026 3H file
@@ -467,9 +487,9 @@ UMBS_3U_2019 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2019/09_10_2019/UMBS
 UMBS_3U_2020a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/05_13_2020/UMBS_3U_05132020.csv"), skip=1)[ ,1:6]
 UMBS_3U_2020b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2020/08_31_2020/UMBS_3U_20200901.csv"), skip=1)[ ,1:6]
 # 2021 is read in below
-UMBS_3U_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_3U.csv"), skip=1)[ ,1:6]
-UMBS_3U_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_3U_06022023.csv"), skip=1)
-UMBS_3U_2024 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2024//UMBS_3U_08012024.csv"), skip=1)
+UMBS_3U_2022 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2022/11_11_2022/csv_files/NonPendants/UMBS_3U.csv"), skip=1)[ ,1:6] # GMT 5 + F
+UMBS_3U_2023 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2023/06_02_2023/csv files from non pendants/UMBS_3U_06022023.csv"), skip=1) # GMT 5 + F + needs to be top of the hour
+UMBS_3U_2024 <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2024//UMBS_3U_08012024.csv"), skip=1) # GMT 5 + C + needs to be top of the hour
 # no 2025 3H file
 # no 2026 3H file
 
