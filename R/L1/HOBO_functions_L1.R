@@ -262,6 +262,42 @@ remove_outliers <- function(df){
         df
 }
 
+
+convert_gmt5_to_gmt4 <- function(df,
+                                 old_col = "Date.Time..GMT.05.00",
+                                 new_col = "Date.Time..GMT.04.00",
+                                 round_hour = TRUE) {
+        
+        dt <- parse_date_time(df[[old_col]], orders = "mdy IMS p")
+        
+        if (round_hour) {
+                dt <- floor_date(dt, unit = "hour")
+        }
+        
+        dt <- with_tz(dt, tzone = "Etc/GMT+4")
+        
+        df[[new_col]] <- format(dt, "%m/%d/%y %I:%M:%S %p")
+        
+        df[[old_col]] <- NULL
+        
+        df
+}
+
+round_to_hour <- function(df,
+                          col = "Date.Time..GMT.04.00") {
+        
+        df[[col]] <- format(
+                floor_date(
+                        parse_date_time(df[[col]], orders = "mdy IMS p"),
+                        unit = "hour"
+                ),
+                "%m/%d/%y %I:%M:%S %p"
+        )
+        
+        df
+}
+
+
 # other remove outliers function that uses > 2SD as outlier determination
 # not using this one because it doesn't work as well as the function above
 #remove_outliers = function(df){
