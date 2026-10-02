@@ -262,7 +262,7 @@ remove_outliers <- function(df){
         df
 }
 
-
+# converts GMT5 to GMT4 and rounds
 convert_gmt5_to_gmt4 <- function(df,
                                  old_col = "Date.Time..GMT.05.00",
                                  new_col = "Date.Time..GMT.04.00",
@@ -285,6 +285,34 @@ convert_gmt5_to_gmt4 <- function(df,
 
 round_to_hour <- function(df,
                           col = "Date.Time..GMT.04.00") {
+        
+        df[[col]] <- format(
+                floor_date(
+                        parse_date_time(df[[col]], orders = "mdy IMS p"),
+                        unit = "hour"
+                ),
+                "%m/%d/%y %I:%M:%S %p"
+        )
+        
+        df
+}
+
+round_to_hour2 <- function(df,
+                          col = "Date_Time") {
+        
+        df[[col]] <- format(
+                floor_date(
+                        parse_date_time(df[[col]], orders = "mdy IMS p"),
+                        unit = "hour"
+                ),
+                "%m/%d/%y %I:%M:%S %p"
+        )
+        
+        df
+}
+
+round_to_hour3 <- function(df,
+                          col = "Date.Time..GMT.05.00") {
         
         df[[col]] <- format(
                 floor_date(
