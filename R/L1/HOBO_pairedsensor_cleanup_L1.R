@@ -122,6 +122,8 @@ list_pairk1[c(2,3,4,8)] <- lapply(list_pairk1[c(2,3,4,8)], f_to_c)
 #list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
 list_pairk1 <- lapply(list_pairk1, remove_outliers)
 
+# create a dataframe and inspect
+pairk1_df <- dplyr::bind_rows(list_pairk1)
 
 ############ KBS Pair 2
 #Read in H
@@ -150,6 +152,24 @@ KBS_2U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/2U_03212023.csv")
 # no 2026 file
 
 # need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
+KBS_2U_2022 <- convert_gmt5_to_gmt4(KBS_2U_2022)
+KBS_2U_2023 <- convert_gmt5_to_gmt4(KBS_2U_2023)
+
+# need to round to hour for merging purposes
+KBS_2H_2017 <- round_to_hour2(KBS_2H_2017)
+KBS_2H_2018 <- round_to_hour(KBS_2H_2018)
+KBS_2H_2019 <- round_to_hour(KBS_2H_2019)
+KBS_2H_2020 <- round_to_hour(KBS_2H_2020)
+KBS_2H_2021 <- round_to_hour(KBS_2H_2021)
+KBS_2U_2021 <- round_to_hour(KBS_2U_2021)
+KBS_2H_2022 <- round_to_hour(KBS_2H_2022)
+KBS_2H_2023 <- round_to_hour(KBS_2H_2023)
+
+# KBS_2U_2022 change to Celsius
+KBS_2U_2022$Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_ambient_soil_5cm. <- fahrenheit.to.celsius(KBS_2U_2022$Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_ambient_soil_5cm.)
+KBS_2U_2022$Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_ambient_air_10cm. <- fahrenheit.to.celsius(KBS_2U_2022$Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_ambient_air_10cm.)
+KBS_2U_2022$Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_warmed_air_10cm. <- fahrenheit.to.celsius(KBS_2U_2022$Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_warmed_air_10cm.)
+KBS_2U_2022$Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_warmed_soil_5cm. <- fahrenheit.to.celsius(KBS_2U_2022$Temp...F..LGR.S.N..10737623..SEN.S.N..10737623..LBL..2U_warmed_soil_5cm.)
 
 #Merge H and U
 KBS_2_2017 <- merge(KBS_2H_2017, KBS_2U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -166,7 +186,20 @@ list_pairk2 <- list(KBS_2_1516=KBS_2_1516, KBS_2_2017=KBS_2_2017, KBS_2_2018=KBS
 list_pairk2 <- lapply(list_pairk2, change_pair_names)
 list_pairk2 <- lapply(list_pairk2, change_POSIX)
 list_pairk2 <- lapply(list_pairk2, remove_col, name=c('X', 'X..x', 'X..y'))
-list_pairk2[2:4] <- lapply(list_pairk2[2:4], f_to_c)
+
+# check how the change_pair_names function did
+unique(unlist(lapply(list_pairk2, names)))
+
+names(list_pairk2)
+#"KBS_2_1516" "KBS_2_2017" "KBS_2_2018" "KBS_2_2019" "KBS_2_2020" "KBS_2_2021" "KBS_2_2022" "KBS_2_2023"
+
+# in F
+# "KBS_2_2017" "KBS_2_2018" "KBS_2_2019" "KBS_2_2023"
+
+# convert data that was in F to C
+list_pairk2[c(2,3,4,8)] <- lapply(list_pairk2[c(2,3,4,8)], f_to_c)
+#list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
+list_pairk2 <- lapply(list_pairk2, remove_outliers)
 
 #Manually rename columns with different names
 names(list_pairk2$KBS_2_2017)[names(list_pairk2$KBS_2_2017)=="X2H_ambient_soil_moist_5cm"] <- "XH_ambient_soil_moisture_5cm"
@@ -174,8 +207,13 @@ names(list_pairk2$KBS_2_2018)[names(list_pairk2$KBS_2_2018)=="Water.Content..m..
 names(list_pairk2$KBS_2_2019)[names(list_pairk2$KBS_2_2019)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2020)[names(list_pairk2$KBS_2_2020)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk2$KBS_2_2021)[names(list_pairk2$KBS_2_2021)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
+names(list_pairk2$KBS_2_2022)[names(list_pairk2$KBS_2_2022)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
+names(list_pairk2$KBS_2_2023)[names(list_pairk2$KBS_2_2023)=="Water.Content..m..m...LGR.S.N..10736967..SEN.S.N..10736061..LBL..2H_ambient_soil_moist_5cm."] <- "XH_ambient_soil_moisture_5cm"
 
 list_pairk2 <- lapply(list_pairk2, remove_outliers)
+
+# create a dataframe and inspect
+pairk2_df <- dplyr::bind_rows(list_pairk2)
 
 ############ KBS Pair 3
 #Read in H
@@ -204,6 +242,26 @@ KBS_3U_2023 <- read.csv(file.path(L0_dir,"KBS/sensor_data/2023/3U_03212023.csv")
 # no 2026 file
 
 # need to convert 2022 and 2023 U and H times to be the same. One is in "Date.Time..GMT.05.00" and the other is in "Date.Time..GMT.04.00"
+KBS_3H_2022 <- convert_gmt5_to_gmt4(KBS_3H_2022)
+KBS_3H_2023 <- convert_gmt5_to_gmt4(KBS_3H_2023)
+KBS_3U_2022 <- convert_gmt5_to_gmt4(KBS_3U_2022)
+KBS_3U_2023 <- convert_gmt5_to_gmt4(KBS_3U_2023)
+
+# round to the hour
+KBS_3H_2017 <- round_to_hour2(KBS_3H_2017)
+KBS_3H_2018 <- round_to_hour(KBS_3H_2018)
+KBS_3H_2019 <- round_to_hour(KBS_3H_2019)
+KBS_3H_2020 <- round_to_hour(KBS_3H_2020)
+KBS_3H_2021 <- round_to_hour(KBS_3H_2021)
+KBS_3U_2021 <- round_to_hour(KBS_3U_2021)
+
+# KBS_3U_2022 change to Celsius
+KBS_3U_2022$Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm. <- fahrenheit.to.celsius(KBS_3U_2022$Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm.)
+KBS_3U_2022$Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_air_10cm. <- fahrenheit.to.celsius(KBS_3U_2022$Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_air_10cm.)
+KBS_3U_2022$Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_air_10cm. <- fahrenheit.to.celsius(KBS_3U_2022$Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_air_10cm.)
+KBS_3U_2022$Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm. <- fahrenheit.to.celsius(KBS_3U_2022$Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm.)
+
+# KBS_3U_2022 change to Celsius
 
 #Merge H and U
 KBS_3_2017 <- merge(KBS_3H_2017, KBS_3U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -221,6 +279,9 @@ list_pairk3 <- lapply(list_pairk3, change_pair_names)
 list_pairk3 <- lapply(list_pairk3, change_POSIX)
 list_pairk3 <- lapply(list_pairk3, remove_col, name=c('X', 'X..x', 'X..y'))
 
+# check how the change_pair_names function did
+unique(unlist(lapply(list_pairk3, names)))
+
 #Manually rename columns with different names - functions won't work on these
 names(list_pairk3$KBS_3_2017)[names(list_pairk3$KBS_3_2017)=="X3U_warmed_soil_temp_5cm"] <- "XU_warmed_soil_temp_5cm"
 names(list_pairk3$KBS_3_2017)[names(list_pairk3$KBS_3_2017)=="X3U_ambient_soil_temp_5cm"] <- "XU_ambient_soil_temp_5cm"
@@ -237,9 +298,29 @@ names(list_pairk3$KBS_3_2020)[names(list_pairk3$KBS_3_2020)=="Temp...C..LGR.S.N.
 names(list_pairk3$KBS_3_2021)[names(list_pairk3$KBS_3_2021)=="Water.Content..m..m...LGR.S.N..10736968..SEN.S.N..10736054..LBL..3H_ambient_soil_moistire_5cm."] <- "XH_ambient_soil_moisture_5cm"
 names(list_pairk3$KBS_3_2021)[names(list_pairk3$KBS_3_2021)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(list_pairk3$KBS_3_2021)[names(list_pairk3$KBS_3_2021)=="Temp...C..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
+names(list_pairk3$KBS_3_2022)[names(list_pairk3$KBS_3_2022)=="Water.Content..m..m...LGR.S.N..10736968..SEN.S.N..10736054..LBL..3H_ambient_soil_moistire_5cm."] <- "XH_ambient_soil_moisture_5cm"
+names(list_pairk3$KBS_3_2022)[names(list_pairk3$KBS_3_2022)=="Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
+names(list_pairk3$KBS_3_2022)[names(list_pairk3$KBS_3_2022)=="Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
+names(list_pairk3$KBS_3_2023)[names(list_pairk3$KBS_3_2023)=="Water.Content..m..m...LGR.S.N..10736968..SEN.S.N..10736054..LBL..3H_ambient_soil_moistire_5cm."] <- "XH_ambient_soil_moisture_5cm"
+names(list_pairk3$KBS_3_2023)[names(list_pairk3$KBS_3_2023)=="Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
+names(list_pairk3$KBS_3_2023)[names(list_pairk3$KBS_3_2023)=="Temp...F..LGR.S.N..10737624..SEN.S.N..10737624..LBL..3U_ambient_soil_temp_5cm."] <- "XU_ambient_soil_temp_5cm"
 
-list_pairk3[2:4] <- lapply(list_pairk3[2:4], f_to_c)
+# check how the change_pair_names function did
+unique(unlist(lapply(list_pairk3, names)))
+
+names(list_pairk3)
+#"KBS_2_1516" "KBS_2_2017" "KBS_2_2018" "KBS_2_2019" "KBS_2_2020" "KBS_2_2021" "KBS_2_2022" "KBS_2_2023"
+
+# in F
+# "KBS_3_2017" "KBS_3_2018" "KBS_3_2019" "KBS_3_2023"
+
+# convert data that was in F to C
+list_pairk3[c(2,3,4,8)] <- lapply(list_pairk3[c(2,3,4,8)], f_to_c)
+#list_pairk1[2:4] <- lapply(list_pairk1[2:4], f_to_c)
 list_pairk3 <- lapply(list_pairk3, remove_outliers)
+
+# create a dataframe and inspect
+pairk3_df <- dplyr::bind_rows(list_pairk3)
 
 #Create .RData file - this is used in the script that merges all of the clean data
 Sys.getenv("L1DIR")
@@ -370,6 +451,10 @@ list_pairu1[c(2,3,4,7,8,10,11)] <- lapply(list_pairu1[c(2,3,4,7,8,10,11)], f_to_
 
 list_pairu1 <- lapply(list_pairu1, remove_outliers)
 
+# create a dataframe and inspect
+pairu1_df <- dplyr::bind_rows(list_pairu1)
+# there's a bunch of NAs and doesn't look like the later years 2024-2026 are here - check before removing outliers?
+
 ############ UMBS Pair 2
 #2U was not logging from 7/28/2015 through 11/24/2015, when it was launched again
 #Read in H
@@ -410,7 +495,7 @@ names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N
 names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_air_10cm."] <- "XU_warmed_air_10cm"
 names(UMBS_2U_2020b)[names(UMBS_2U_2020b)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 
-# 2020a is in F ##### UPDATE FROM MLY 9/17/26 #### fahrenheit.to.celsius() does not work
+# 2020a is in F 
 UMBS_2U_2020a$XU_warmed_air_10cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_warmed_air_10cm)
 UMBS_2U_2020a$XU_warmed_soil_temp_5cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_warmed_soil_temp_5cm)
 UMBS_2U_2020a$XU_ambient_air_10cm <- fahrenheit.to.celsius(UMBS_2U_2020a$XU_ambient_air_10cm)
@@ -419,6 +504,14 @@ UMBS_2U_2020 <- rbind(UMBS_2U_2020a, UMBS_2U_2020b)
 UMBS_2U_2021a <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/06_16_2021/UMBS_2U_20210617.csv"), skip=1)[ ,1:6]
 UMBS_2U_2021b <- read.csv(file.path(L0_dir,"UMBS/sensor_data/2021/11_15_2021/UMBS_2U_20211115.csv"), skip=1)[ ,1:6]
 UMBS_2U_2021 <- rbind(UMBS_2U_2021a, UMBS_2U_2021b)
+
+# round to top of the hour
+UMBS_2H_2022 <- round_to_hour3(UMBS_2H_2022)
+UMBS_2H_2023 <- round_to_hour3(UMBS_2H_2022)
+UMBS_2H_2025 <- round_to_hour3(UMBS_2H_2022)
+UMBS_2H_2026 <- round_to_hour3(UMBS_2H_2022)
+UMBS_2U_2023 <- round_to_hour3(UMBS_2U_2023)
+UMBS_2U_2024 <- round_to_hour3(UMBS_2U_2024)
 
 #Merge the data
 UMBS_2_2017 <- merge(UMBS_2H_2017, UMBS_2U_2017, by="Date_Time", all.x=T, all.y=T)
@@ -440,6 +533,9 @@ list_pairu2 <- lapply(list_pairu2, change_pair_names)
 list_pairu2 <- lapply(list_pairu2, change_POSIX)
 list_pairu2 <- lapply(list_pairu2, remove_col, name=c('X', 'X..x', 'X..y'))
 
+# check how the change_pair_names function did
+unique(unlist(lapply(list_pairu2, names)))
+
 #Manually rename columns with different names
 names(list_pairu2$UMBS_2_1516)[names(list_pairu2$UMBS_2_1516)=="X2U_warmed_soil_temp_5cm"] <- "XU_warmed_soil_temp_5cm"
 names(list_pairu2$UMBS_2_1516)[names(list_pairu2$UMBS_2_1516)=="X2U_ambient_soil_temp_5cm"] <- "XU_ambient_soil_temp_5cm"
@@ -457,11 +553,19 @@ names(list_pairu2$UMBS_2_2021)[names(list_pairu2$UMBS_2_2021)=="Temp...C..LGR.S.
 names(list_pairu2$UMBS_2_2021)[names(list_pairu2$UMBS_2_2021)=="Temp...C..LGR.S.N..10737621..SEN.S.N..10737621..LBL..2U_warmed_soil_temp_5cm."] <- "XU_warmed_soil_temp_5cm"
 names(list_pairu2$UMBS_2_2021)[names(list_pairu2$UMBS_2_2021)=="Temp...C..LGR.S.N..10910775..SEN.S.N..10737461..LBL..2H_ambient_aim_1m."] <- "XH_ambient_air_1m"
 
-names(list_pairu2)
+# check how the change_pair_names function did
+unique(unlist(lapply(list_pairu2, names)))
 
+names(list_pairu2)
+#[1] "UMBS_2_1516" "UMBS_2_2017" "UMBS_2_2018" "UMBS_2_2019" "UMBS_2_2020" "UMBS_2_2021" "UMBS_2_2022" "UMBS_2_2023"
+#[9] "UMBS_2_2024" "UMBS_2_2025" "UMBS_2_2026"
+
+# years in F to be converted to C
+# "UMBS_2_2017" "UMBS_2_2018" "UMBS_2_2019" "UMBS_2_2022" "UMBS_2_2023" "UMBS_2_2025" "UMBS_2_2026"
 
 # convert data that was in F to C
-list_pairu2[2:4] <- lapply(list_pairu2[2:4], f_to_c)
+list_pairu1[c(2,3,4,7,8,10,11)] <- lapply(list_pairu1[c(2,3,4,7,8,10,11)], f_to_c)
+#list_pairu2[2:4] <- lapply(list_pairu2[2:4], f_to_c)
 list_pairu2 <- lapply(list_pairu2, remove_outliers)
 
 ############ UMBS Pair 3
