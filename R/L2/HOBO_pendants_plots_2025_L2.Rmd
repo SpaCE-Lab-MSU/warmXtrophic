@@ -1,0 +1,112 @@
+---
+title: "HOBO Pendant 2025 Plots"
+author: "Moriah Young"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Clear all existing data
+rm(list=ls())
+
+#Load packages
+library(tidyverse)
+library(plotrix)
+library(ggpubr)
+library(emmeans)
+
+# Get data
+Sys.getenv("L1DIR")
+L1_dir<-Sys.getenv("L1DIR")
+list.files(L1_dir)
+
+# load in data
+KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv"))[ ,2:7]
+UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv"))[ ,2:7]
+
+# date is a character column - convert to date format
+KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d %H:%M")
+UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
+
+```
+
+KBS
+```{r}
+# create new dataframe with only data from april - august from 7 AM - 7 PM (growing season during the day)
+# this is mainly what we'll work with for figures (could always adjust the parameters as needed)
+KBS_season <- KBS
+KBS_season$month <- format(KBS_season$Date_Time,format="%m")
+KBS_season$year <- format(KBS_season$Date_Time,format="%Y")
+KBS_season$hour <- format(KBS_season$Date_Time, format="%H")
+
+KBS_season_air <- KBS_season %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  dplyr::select(Date_Time, year, month, hour, Temp_C_XP_air_1m)
+```
+
+```{r}
+KBS_avg_month <- KBS_season_air %>%  # by month and year, 1m temp only
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(month, year) %>%
+  summarize(average_temp = mean(temp, na.rm = TRUE),
+            se = std.error(temp, na.rm = TRUE))
+
+KBS_avg_year <- KBS_season_air %>%  # by year, 1m temp only
+  gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(year) %>%
+  summarize(count = n(),
+            average_temp = mean(temp, na.rm = TRUE),
+            se = std.error(temp, na.rm = TRUE))
+```
+
+UMBS
+```{r}
+# create new dataframe with only data from april - august from 7 AM - 7 PM (growing season during the day)
+# this is mainly what we'll work with for figures (could always adjust the parameters as needed)
+UMBS_season <- UMBS
+UMBS_season$month <- format(UMBS_season$Date_Time,format="%m")
+UMBS_season$year <- format(UMBS_season$Date_Time,format="%Y")
+UMBS_season$hour <- format(UMBS_season$Date_Time, format="%H")
+
+UMBS_season <- UMBS_season %>%
+  mutate(treatment = case_when(Plot %in% c("C1", "A2", "B2", "B3", "D3", "A4", "B6", "C6", "D6") ~ "warmed",
+      TRUE ~ "ambient"))
+
+UMBS_season_air <- UMBS_season %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  filter(hour > "06") %>%
+  filter(hour < "20") %>%
+  dplyr::select(Date_Time, year, month, hour, Temp_C_XP_air_1m, treatment)
+```
+
+```{r}
+UMBS_avg_month <- UMBS_season_air %>%  # by month and year, 1m temp only
+  #gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(month, year) %>%
+  summarize(average_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
+            se = std.error(Temp_C_XP_air_1m, na.rm = TRUE))
+
+UMBS_monthly_air <- UMBS_season_air %>%
+  group_by(year, month, treatment) %>%
+  summarise(
+    avg_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+UMBS_avg_year <- UMBS_season_air %>%  # by year, 1m temp only
+  #gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
+  group_by(year, ) %>%
+  summarize(count = n(),
+            average_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
+            se = std.error(Temp_C_XP_air_1m, na.rm = TRUE))
+```
