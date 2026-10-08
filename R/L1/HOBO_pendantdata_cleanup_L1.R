@@ -260,7 +260,7 @@ pend9P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather d
 pend10P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_B6_2025_11_22.csv"), header =T)[ ,2:4]
 pend11P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_C6_2025_11_23.csv"), header =T)[ ,2:4]
 pend12P_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_D6_1_2025_11_22.csv"), header =T)[ ,2:4]
-#pendAMB_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_ambient_1m_1_2025_11_22.csv"), header =T)[ ,2:4]
+pendAMB_25u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2025/UMBS 2025 weather data/UMBS November 2025 csv files/UMBS_ambient_1m_1_2025_11_22.csv"), header =T)[ ,2:4]
 
 pend4P_26u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/UMBS WarmX June 2026 csv files/UMBS_C1_2026_06_14.csv"), header =T)[ ,2:4]
 pend5P_26u<-read.csv(file.path(L0_dir,"UMBS/sensor_data/2026/UMBS WarmX June 2026 csv files/UMBS_A2_2026_06_14.csv"), header =T)[ ,2:4]
@@ -299,6 +299,7 @@ list_u <- list(pend4P_17u=pend4P_17u,pend5P_17u=pend5P_17u,pend6P_17u=pend6P_17u
                pend4P_21ua=pend4P_21ua,pend5P_21ua=pend5P_21ua,pend6P_21ua=pend6P_21ua,pend7P_21ua=pend7P_21ua,pend8P_21ua=pend8P_21ua,pend9P_21ua=pend9P_21ua,pend10P_21ua=pend10P_21ua,pend11P_21ua=pend11P_21ua,
                pend4P_21ub=pend4P_21ub,pend5P_21ub=pend5P_21ub,pend6P_21ub=pend6P_21ub,pend7P_21ub=pend7P_21ub,pend8P_21ub=pend8P_21ub,pend9P_21ub=pend9P_21ub,pend10P_21ub=pend10P_21ub,pend11P_21ub=pend11P_21ub,pend12P_21ub=pend12P_21ub,
                pend4P_25u=pend4P_25u,pend5P_25u=pend5P_25u,pend6P_25u=pend6P_25u,pend7P_25u=pend7P_25u,pend8P_25u=pend8P_25u,pend9P_25u=pend9P_25u,pend10P_25u=pend10P_25u,pend11P_25u=pend11P_25u,pend12P_25u=pend12P_25u,
+               pendAMB_25u=pendAMB_25u,
                pend4P_26u=pend4P_26u,pend5P_26u=pend5P_26u,pend6P_26u=pend6P_26u, pend8P_26u=pend8P_26u,pend9P_26u=pend9P_26u,pend11P_26u=pend11P_26u, pend12P_26u=pend12P_26u, 
                pendAMB_26u=pendAMB_26u)
 list_u <- lapply(list_u, change_pend_names_umbs)
