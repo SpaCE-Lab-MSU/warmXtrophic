@@ -30,9 +30,14 @@ list.files(L1_dir)
 KBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/KBS/KBS_HOBOpendant_L1.csv"))[ ,2:7]
 UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpendant_L1.csv"))[ ,2:7]
 
+kbs_paired <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensor_2025_L1.csv"))
+umbs_paired <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensor_2025_L1.csv"))
+
 # date is a character column - convert to date format
 KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d %H:%M")
 UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
+kbs_paired$Date_Time <- as.POSIXct(kbs_paired$Date_Time, format = "%Y-%m-%d %H:%M")
+umbs_paired$Date_Time <- as.POSIXct(umbs_paired$Date_Time, format = "%Y-%m-%d %H:%M")
 
 ```
 
@@ -51,6 +56,8 @@ KBS_season_air <- KBS_season %>%
   filter(hour > "06") %>%
   filter(hour < "20") %>%
   dplyr::select(Date_Time, year, month, hour, Temp_C_XP_air_1m)
+
+KBS_season_air$treatment <- "warmed"
 ```
 
 ```{r}
@@ -66,6 +73,36 @@ KBS_avg_year <- KBS_season_air %>%  # by year, 1m temp only
   summarize(count = n(),
             average_temp = mean(temp, na.rm = TRUE),
             se = std.error(temp, na.rm = TRUE))
+
+# select only 2025 data
+KBS_2025_air <- KBS_season_air %>%
+        filter(year == 2025)
+
+KBS_monthly_2025 <- KBS_2025_air %>%
+  group_by(month, year, treatment) %>%
+  summarise(
+    avg_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
+    se = std.error(Temp_C_XP_air_1m, na.rm = TRUE),
+    .groups = "drop")
+
+# plotting
+ggplot(UMBS_monthly_2025, aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
+        geom_line(size = 0.7) + 
+        geom_point(size = 2.5) +
+        geom_errorbar(aes(ymin = avg_temp - se, ymax = avg_temp + se), width = 0.2) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00")) +
+        labs(x = "Month", y = "Mean Air Temperature (°C)", color = "Treatment") +
+        theme_bw()
+
+# calculate average growing season temperature by treatment
+UMBS_2025_treatment_avg <- UMBS_2025_air %>%
+  filter(year == 2025) %>%
+  group_by(treatment) %>%
+  summarise(
+    n = n(),
+    avg_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
+    se = sd(Temp_C_XP_air_1m, na.rm = TRUE) / sqrt(n),
+    .groups = "drop")
 ```
 
 UMBS
@@ -89,20 +126,42 @@ UMBS_season_air <- UMBS_season %>%
   dplyr::select(Date_Time, year, month, hour, Temp_C_XP_air_1m, treatment)
 ```
 
+# 2025 only
 ```{r}
-UMBS_avg_month <- UMBS_season_air %>%  # by month and year, 1m temp only
-  #gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
-  group_by(month, year) %>%
-  summarize(average_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
-            se = std.error(Temp_C_XP_air_1m, na.rm = TRUE))
+# select only 2025 data
+UMBS_2025_air <- UMBS_season_air %>%
+        filter(year == 2025)
 
-UMBS_monthly_air <- UMBS_season_air %>%
-  group_by(year, month, treatment) %>%
+UMBS_monthly_2025 <- UMBS_2025_air %>%
+  group_by(month, treatment) %>%
   summarise(
     avg_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
-    .groups = "drop"
-  )
+    se = std.error(Temp_C_XP_air_1m, na.rm = TRUE),
+    .groups = "drop")
 
+# plotting
+ggplot(UMBS_monthly_2025, aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
+        geom_line(size = 0.7) + 
+        geom_point(size = 2.5) +
+        geom_errorbar(aes(ymin = avg_temp - se, ymax = avg_temp + se), width = 0.2) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00")) +
+        labs(x = "Month", y = "Mean Air Temperature (°C)", color = "Treatment") +
+        theme_bw()
+
+# calculate average growing season temperature by treatment
+UMBS_2025_treatment_avg <- UMBS_2025_air %>%
+  filter(year == 2025) %>%
+  group_by(treatment) %>%
+  summarise(
+    n = n(),
+    avg_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
+    se = sd(Temp_C_XP_air_1m, na.rm = TRUE) / sqrt(n),
+    .groups = "drop")
+
+```
+
+# all years
+```{r}
 UMBS_avg_year <- UMBS_season_air %>%  # by year, 1m temp only
   #gather(key = "treatment", value = "temp", -year, -month, -hour, -Date_Time) %>%
   group_by(year, ) %>%
@@ -110,3 +169,110 @@ UMBS_avg_year <- UMBS_season_air %>%  # by year, 1m temp only
             average_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
             se = std.error(Temp_C_XP_air_1m, na.rm = TRUE))
 ```
+
+# paired sensors
+```{r}
+# kbs 
+# just select for ambient air 1m sensor
+kbs_air <- kbs_paired %>% 
+        select(c("Date_Time", "XH_ambient_air_1m"))
+kbs_air <- na.omit(kbs_air)
+
+kbs_air$month <- format(kbs_air$Date_Time,format="%m")
+kbs_air$year <- format(kbs_air$Date_Time,format="%Y")
+kbs_air$hour <- format(kbs_air$Date_Time, format="%H")
+
+kbs_season_air <- kbs_air %>%
+        filter(month > "03") %>%
+        filter(month < "09") %>%
+        filter(hour > "06") %>%
+        filter(hour < "20") %>%
+        dplyr::select(Date_Time, year, month, hour, XH_ambient_air_1m)
+
+# select only 2025 data
+kbs_air_2025 <- kbs_season_air %>%
+        filter(year == 2025)
+
+kbs_avg_month <- kbs_air_2025 %>%  # by month and year, 1m temp only
+        group_by(month, year) %>%
+        summarize(avg_temp = mean(XH_ambient_air_1m, na.rm = TRUE),
+                  se = std.error(XH_ambient_air_1m, na.rm = TRUE))
+
+kbs_avg_month$treatment <- "ambient"
+
+# umbs
+umbs_air <- umbs_paired %>% 
+        select(c("Date_Time", "XH_ambient_air_1m"))
+umbs_air <- na.omit(umbs_air)
+
+umbs_air$treatment <- "ambient"
+
+umbs_air$month <- format(umbs_air$Date_Time,format="%m")
+umbs_air$year <- format(umbs_air$Date_Time,format="%Y")
+umbs_air$hour <- format(umbs_air$Date_Time, format="%H")
+
+umbs_season_air <- umbs_air %>%
+        filter(month > "03") %>%
+        filter(month < "09") %>%
+        filter(hour > "06") %>%
+        filter(hour < "20") %>%
+        dplyr::select(Date_Time, year, month, hour, XH_ambient_air_1m, treatment)
+
+# select only 2025 data
+umbs_season_air_2025 <- umbs_season_air %>%
+        filter(year == 2025)
+
+umbs_avg_month <- umbs_season_air_2025 %>%  # by month and year, 1m temp only
+        group_by(month, year, treatment) %>%
+        summarize(avg_temp = mean(XH_ambient_air_1m, na.rm = TRUE),
+                  se = std.error(XH_ambient_air_1m, na.rm = TRUE))
+```
+
+# merge 
+```{r}
+kbs_air_merge_25 <- full_join(KBS_monthly_2025, kbs_avg_month)
+
+# plotting
+ggplot(kbs_air_merge_25 , aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
+        geom_line(size = 0.7) + 
+        geom_point(size = 2.5) +
+        geom_errorbar(aes(ymin = avg_temp - se, ymax = avg_temp + se), width = 0.2) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00")) +
+        scale_y_continuous(limits = c(10, 35)) +
+        labs(x = "Month", y = "Mean Air Temperature (°C)", color = "Treatment") +
+        theme_bw()
+```
+
+# 
+```{r}
+UMBS_season_air2 <- UMBS_season_air
+names(UMBS_season_air2)[names(UMBS_season_air2) == "Temp_C_XP_air_1m"] <- "temp_C"
+
+umbs_air2 <- umbs_season_air
+names(umbs_air2)[names(umbs_air2) == "XH_ambient_air_1m"] <- "temp_C"
+
+umbs_merge <- full_join(UMBS_season_air2, umbs_air2)
+
+# select only 2025 data
+umbs_merge_25 <- umbs_merge %>%
+        filter(year == 2025)
+
+umbs_merge_25_avg <- umbs_merge_25 %>%
+  group_by(month, treatment) %>%
+  summarise(
+    avg_temp = mean(temp_C, na.rm = TRUE),
+    se = std.error(temp_C, na.rm = TRUE),
+    .groups = "drop")
+
+# plotting
+ggplot(umbs_merge_25_avg, aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
+        geom_line(size = 0.7) + 
+        geom_point(size = 2.5) +
+        geom_errorbar(aes(ymin = avg_temp - se, ymax = avg_temp + se), width = 0.2) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00")) +
+        scale_y_continuous(limits = c(10, 35)) +
+        labs(x = "Month", y = "Mean Air Temperature (°C)", color = "Treatment") +
+        theme_bw()
+
+```
+
