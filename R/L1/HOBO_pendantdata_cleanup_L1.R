@@ -325,7 +325,7 @@ pend18u<-rbind(list_u$pend4P_18u,list_u$pend5P_18u,list_u$pend6P_18u,list_u$pend
 pend19u<-rbind(list_u$pend4P_19u,list_u$pend5P_19u,list_u$pend6P_19u,list_u$pend7P_19u,list_u$pend8P_19u,list_u$pend9P_19u,list_u$pend10P_19u,list_u$pend11P_19u,list_u$pend12P_19u)
 pend20u<-rbind(list_u$pend4P_20u,list_u$pend5P_20u,list_u$pend6P_20u,list_u$pend7P_20u,list_u$pend8P_20u,list_u$pend9P_20u,list_u$pend10P_20u,list_u$pend11P_20u,list_u$pend12P_20u)
 pend21u<-rbind(list_u$pend4P_21ua,list_u$pend5P_21ua,list_u$pend6P_21ua,list_u$pend7P_21ua,list_u$pend8P_21ua,list_u$pend9P_21ua,list_u$pend10P_21ua,list_u$pend11P_21ua,list_u$pend4P_21ub,list_u$pend5P_21ub,list_u$pend6P_21ub,list_u$pend7P_21ub,list_u$pend8P_21ub,list_u$pend9P_21ub,list_u$pend10P_21ub,list_u$pend11P_21ub,list_u$pend12P_21ub)
-pend25u<-rbind(list_u$pend4P_25u,list_u$pend5P_25u,list_u$pend6P_25u,list_u$pend7P_25u,list_u$pend8P_25u,list_u$pend9P_25u,list_u$pend10P_25u,list_u$pend11P_25u,list_u$pend12P_25u)
+pend25u<-rbind(list_u$pend4P_25u,list_u$pend5P_25u,list_u$pend6P_25u,list_u$pend7P_25u,list_u$pend8P_25u,list_u$pend9P_25u,list_u$pend10P_25u,list_u$pend11P_25u,list_u$pend12P_25u, list_u$pendAMB_25u)
 pend26u<-rbind(list_u$pend4P_26u,list_u$pend5P_26u,list_u$pend6P_26u,list_u$pend8P_26u,list_u$pend9P_26u,list_u$pend11P_26u, list_u$pend12P_26u, list_u$pendAMB_26u)
 
 pend17u$Site<-"UMBS"
