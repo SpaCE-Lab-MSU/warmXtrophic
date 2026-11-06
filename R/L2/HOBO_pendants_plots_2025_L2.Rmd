@@ -20,6 +20,8 @@ library(tidyverse)
 library(plotrix)
 library(ggpubr)
 library(emmeans)
+library(readr)
+library(weathermetrics)
 
 # Get data
 Sys.getenv("L1DIR")
@@ -33,13 +35,72 @@ UMBS <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_pendant_data/UMBS/UMBS_HOBOpen
 kbs_paired <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/KBS/KBS_pairedsensor_2025_L1.csv"))
 umbs_paired <- read.csv(file.path(L1_dir,"HOBO_data/HOBO_paired_sensor_data/UMBS/UMBS_pairedsensor_2025_L1.csv"))
 
+# station data
+kbs_station <- read_csv("/Users/moriahyoung/Desktop/knb-lter-kbs/LTER+Weather+Station+-+Daily+Precip+and+Air+Temp.csv", comment = "#")
+umbs_station <- read.csv("/Users/moriahyoung/Desktop/umbs_temps_max_min_2025.csv")
+
 # date is a character column - convert to date format
 KBS$Date_Time <- as.POSIXct(KBS$Date_Time, format = "%Y-%m-%d %H:%M")
 UMBS$Date_Time <- as.POSIXct(UMBS$Date_Time, format = "%Y-%m-%d %H:%M")
 kbs_paired$Date_Time <- as.POSIXct(kbs_paired$Date_Time, format = "%Y-%m-%d %H:%M")
 umbs_paired$Date_Time <- as.POSIXct(umbs_paired$Date_Time, format = "%Y-%m-%d %H:%M")
-
+umbs_station$Date <- as.Date(umbs_station$Date, format = "%m/%d/%Y")
 ```
+
+# clean up and wrangle station data
+```{r}
+# kbs
+# select only 2025 data
+kbs_station_25 <- kbs_station %>% filter(year == 2025)
+
+kbs_station_25 <- kbs_station_25 %>% select(date, air_temp_max)
+kbs_station_25 <- na.omit(kbs_station_25)
+
+kbs_station_25$month <- format(kbs_station_25$date,format="%m")
+kbs_station_25$year <- format(kbs_station_25$date,format="%Y")
+kbs_station_25_season <- kbs_station_25 %>%
+  filter(month > "03") %>%
+  filter(month < "09")
+
+kbs_station_25_season$treatment <- "station"
+
+#umbs
+umbs_station$treatment <- "station"
+
+umbs_station <- umbs_station %>% select(Date, X24.Hr.Temp.Max, treatment)
+umbs_station <- na.omit(umbs_station)
+
+# convert F to C
+umbs_station$X24.Hr.Temp.Max <- fahrenheit.to.celsius(umbs_station$X24.Hr.Temp.Max)
+
+umbs_station$month <- format(umbs_station$Date,format="%m")
+umbs_station$year <- format(umbs_station$Date,format="%Y")
+umbs_station_season <- umbs_station %>%
+  filter(month > "03") %>%
+  filter(month < "09")
+
+# averages
+umbs_station_monthly_2025 <- umbs_station_season %>%
+  group_by(month, treatment) %>%
+  summarise(
+    avg_max_temp = mean(X24.Hr.Temp.Max, na.rm = TRUE),
+    se = std.error(X24.Hr.Temp.Max, na.rm = TRUE),
+    .groups = "drop")
+
+umbs_daily_max_paired$treatment <- "station"
+umbs_daily_max_paired$Site <- "UMBS"
+
+kbs_station_monthly_2025 <- kbs_station_25_season %>%
+  group_by(month, treatment) %>%
+  summarise(
+    avg_max_temp = mean(air_temp_max, na.rm = TRUE),
+    se = std.error(air_temp_max, na.rm = TRUE),
+    .groups = "drop")
+
+kbs_daily_max_paired$treatment <- "station"
+kbs_daily_max_paired$Site <- "KBS"
+```
+
 
 KBS
 ```{r}
@@ -86,7 +147,7 @@ KBS_monthly_2025 <- KBS_2025_air %>%
     .groups = "drop")
 
 # plotting
-ggplot(UMBS_monthly_2025, aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
+ggplot(KBS_monthly_2025, aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
         geom_line(size = 0.7) + 
         geom_point(size = 2.5) +
         geom_errorbar(aes(ymin = avg_temp - se, ymax = avg_temp + se), width = 0.2) +
@@ -232,12 +293,14 @@ umbs_avg_month <- umbs_season_air_2025 %>%  # by month and year, 1m temp only
 ```{r}
 kbs_air_merge_25 <- full_join(KBS_monthly_2025, kbs_avg_month)
 
+kbs_air_merge_25_1 <- full_join(kbs_air_merge_25, kbs_station_monthly_2025)
+
 # plotting
-ggplot(kbs_air_merge_25 , aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
+ggplot(kbs_air_merge_25_1 , aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
         geom_line(size = 0.7) + 
         geom_point(size = 2.5) +
         geom_errorbar(aes(ymin = avg_temp - se, ymax = avg_temp + se), width = 0.2) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00", "station" = "goldenrod")) +
         scale_y_continuous(limits = c(10, 35)) +
         labs(x = "Month", y = "Mean Air Temperature (°C)", color = "Treatment") +
         theme_bw()
@@ -264,14 +327,147 @@ umbs_merge_25_avg <- umbs_merge_25 %>%
     se = std.error(temp_C, na.rm = TRUE),
     .groups = "drop")
 
+umbs_merge_25_1 <- full_join(umbs_merge_25_avg, umbs_station_monthly_2025)
+
 # plotting
-ggplot(umbs_merge_25_avg, aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
+ggplot(umbs_merge_25_1, aes(x = month, y = avg_temp, color = treatment, group = treatment)) +
         geom_line(size = 0.7) + 
         geom_point(size = 2.5) +
         geom_errorbar(aes(ymin = avg_temp - se, ymax = avg_temp + se), width = 0.2) +
-        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00")) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00", "station" = "goldenrod")) +
         scale_y_continuous(limits = c(10, 35)) +
         labs(x = "Month", y = "Mean Air Temperature (°C)", color = "Treatment") +
+        theme_bw()
+
+```
+
+
+MAX TEMP
+
+calculating daily max temp for hobo sensors
+```{r}
+# kbs
+# max temp
+kbs_daily_max <- KBS_season %>%
+  mutate(Date = as.Date(Date_Time)) %>%
+  group_by(Site, Date, month, year) %>%
+  summarise(Max_Temp = max(Temp_C_XP_air_1m, na.rm = TRUE)) %>%
+  ungroup()
+
+# select only 2025 data
+kbs_daily_max_25 <- kbs_daily_max %>%
+        filter(year == 2025)
+
+kbs_daily_max_25 <- kbs_daily_max_25 %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  dplyr::select(Date, Max_Temp, month, year, Site)
+
+kbs_daily_max_25$treatment <- "warmed"
+
+# umbs
+# max temp
+umbs_daily_max <- UMBS_season %>%
+  mutate(Date = as.Date(Date_Time)) %>%
+  group_by(Site, Date, month, year) %>%
+  summarise(Max_Temp = max(Temp_C_XP_air_1m, na.rm = TRUE)) %>%
+  ungroup()
+
+# select only 2025 data
+umbs_daily_max_25 <- umbs_daily_max %>%
+        filter(year == 2025)
+
+umbs_daily_max_25 <- umbs_daily_max_25 %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  dplyr::select(Date, Max_Temp, month, year, Site)
+
+umbs_daily_max_25$treatment <- "warmed"
+```
+
+calculating daily max temp for paired sensors
+```{r}
+# kbs 
+# max temp
+kbs_daily_max_paired <- kbs_air %>%
+  mutate(Date = as.Date(Date_Time)) %>%
+  group_by(Date, month, year) %>%
+  summarise(Max_Temp = max(XH_ambient_air_1m, na.rm = TRUE)) %>%
+  ungroup()
+
+# select only 2025 data
+kbs_daily_max_paired <- kbs_daily_max_paired %>%
+        filter(year == 2025)
+
+kbs_daily_max_paired <- kbs_daily_max_paired %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  dplyr::select(Date, Max_Temp, month, year)
+
+kbs_daily_max_paired$treatment <- "ambient"
+kbs_daily_max_paired$Site <- "KBS"
+
+# umbs
+# max temp
+umbs_daily_max_paired <- umbs_air %>%
+  mutate(Date = as.Date(Date_Time)) %>%
+  group_by(Date, month, year) %>%
+  summarise(Max_Temp = max(XH_ambient_air_1m, na.rm = TRUE)) %>%
+  ungroup()
+
+# select only 2025 data
+umbs_daily_max_paired <- umbs_daily_max_paired %>%
+        filter(year == 2025)
+
+umbs_daily_max_paired <- umbs_daily_max_paired %>%
+  filter(month > "03") %>%
+  filter(month < "09") %>%
+  dplyr::select(Date, Max_Temp, month, year)
+
+umbs_daily_max_paired$treatment <- "ambient"
+umbs_daily_max_paired$Site <- "UMBS"
+
+umbs_daily_max_paired_avg_month <- umbs_daily_max_paired %>%  # by month and year, 1m temp only
+        group_by(month, year) %>%
+        summarize(avg_temp = mean(Max_Temp, na.rm = TRUE),
+                  se = std.error(Max_Temp, na.rm = TRUE))
+
+# merge
+kbs_max <- full_join(kbs_daily_max_25, kbs_daily_max_paired)
+kbs_max_avg <- kbs_max %>%  # by month and year, 1m temp only
+        group_by(month, year, treatment) %>%
+        summarize(avg_max_temp = mean(Max_Temp, na.rm = TRUE),
+                  se = std.error(Max_Temp, na.rm = TRUE))
+
+kbs_max_all <- full_join(kbs_station_monthly_2025, kbs_max_avg)
+
+umbs_max <- full_join(umbs_daily_max_25, umbs_daily_max_paired)
+umbs_max_avg <- umbs_max %>%  # by month and year, 1m temp only
+        group_by(month, year, treatment) %>%
+        summarize(avg_max_temp = mean(Max_Temp, na.rm = TRUE),
+                  se = std.error(Max_Temp, na.rm = TRUE))
+
+umbs_max_all <- full_join(umbs_station_monthly_2025, umbs_max_avg)
+
+# plotting
+#kbs
+ggplot(kbs_max_all, aes(x = month, y = avg_max_temp, color = treatment, group = treatment)) +
+        geom_line(size = 0.7) + 
+        geom_point(size = 2.5) +
+        geom_errorbar(aes(ymin = avg_max_temp - se, ymax = avg_max_temp + se), width = 0.2) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00", "station" = "goldenrod")) +
+        #scale_y_continuous(limits = c(10, 35)) +
+        labs(x = "Month", y = "Mean Max Air Temperature (°C)", color = "Treatment") +
+        theme_bw()
+
+#umbs
+ggplot(umbs_max_all, aes(x = month, y = avg_max_temp, color = treatment, group = treatment)) +
+        geom_line(size = 0.7) + 
+        geom_point(size = 2.5) +
+        geom_errorbar(aes(ymin = avg_max_temp - se, ymax = avg_max_temp + se), width = 0.2) +
+        scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00", "station" = "goldenrod")) +
+        #scale_y_continuous(limits = c(10, 35)) +
+        labs(x = "Month", y = "Mean Max Air Temperature (°C)", color = "Treatment") +
         theme_bw()
 
 ```
