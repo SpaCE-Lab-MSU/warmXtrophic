@@ -87,18 +87,12 @@ umbs_station_monthly_2025 <- umbs_station_season %>%
     se = std.error(X24.Hr.Temp.Max, na.rm = TRUE),
     .groups = "drop")
 
-umbs_daily_max_paired$treatment <- "station"
-umbs_daily_max_paired$Site <- "UMBS"
-
 kbs_station_monthly_2025 <- kbs_station_25_season %>%
   group_by(month, treatment) %>%
   summarise(
     avg_max_temp = mean(air_temp_max, na.rm = TRUE),
     se = std.error(air_temp_max, na.rm = TRUE),
     .groups = "drop")
-
-kbs_daily_max_paired$treatment <- "station"
-kbs_daily_max_paired$Site <- "KBS"
 ```
 
 
@@ -154,16 +148,6 @@ ggplot(KBS_monthly_2025, aes(x = month, y = avg_temp, color = treatment, group =
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00")) +
         labs(x = "Month", y = "Mean Air Temperature (°C)", color = "Treatment") +
         theme_bw()
-
-# calculate average growing season temperature by treatment
-UMBS_2025_treatment_avg <- UMBS_2025_air %>%
-  filter(year == 2025) %>%
-  group_by(treatment) %>%
-  summarise(
-    n = n(),
-    avg_temp = mean(Temp_C_XP_air_1m, na.rm = TRUE),
-    se = sd(Temp_C_XP_air_1m, na.rm = TRUE) / sqrt(n),
-    .groups = "drop")
 ```
 
 UMBS
@@ -451,24 +435,60 @@ umbs_max_all <- full_join(umbs_station_monthly_2025, umbs_max_avg)
 
 # plotting
 #kbs
-ggplot(kbs_max_all, aes(x = month, y = avg_max_temp, color = treatment, group = treatment)) +
+kbs_max_plot <- ggplot(kbs_max_all, aes(x = month, y = avg_max_temp, color = treatment, group = treatment)) +
         geom_line(size = 0.7) + 
         geom_point(size = 2.5) +
         geom_errorbar(aes(ymin = avg_max_temp - se, ymax = avg_max_temp + se), width = 0.2) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00", "station" = "goldenrod")) +
-        #scale_y_continuous(limits = c(10, 35)) +
-        labs(x = "Month", y = "Mean Max Air Temperature (°C)", color = "Treatment") +
-        theme_bw()
+        scale_y_continuous(limits = c(8, 50)) +
+        labs(x = "Month", y = "Mean Max Air Temperature (°C)", color = "Treatment", title = "KBS") +
+        theme_bw() +
+        theme(legend.text=element_text(size=17),
+              legend.title=element_text(size=17),
+              axis.text=element_text(size=17),
+              axis.title=element_text(size=17),
+              title=element_text(size=17))
+
+kbs_max_plot
 
 #umbs
-ggplot(umbs_max_all, aes(x = month, y = avg_max_temp, color = treatment, group = treatment)) +
+umbs_max_plot <- ggplot(umbs_max_all, aes(x = month, y = avg_max_temp, color = treatment, group = treatment)) +
         geom_line(size = 0.7) + 
         geom_point(size = 2.5) +
         geom_errorbar(aes(ymin = avg_max_temp - se, ymax = avg_max_temp + se), width = 0.2) +
         scale_color_manual(values = c("ambient" = "#a6bddb", "warmed" = "#AE1F00", "station" = "goldenrod")) +
-        #scale_y_continuous(limits = c(10, 35)) +
-        labs(x = "Month", y = "Mean Max Air Temperature (°C)", color = "Treatment") +
-        theme_bw()
+        scale_y_continuous(limits = c(8, 50)) +
+        labs(x = "Month", y = NULL, color = "Treatment", title = "UMBS") +
+        theme_bw() +
+        theme(legend.text=element_text(size=17),
+              legend.title=element_text(size=17),
+              axis.text=element_text(size=17),
+              axis.title=element_text(size=17),
+              title=element_text(size=17))
+
+umbs_max_plot
+
+# combine graphs
+kbs_umbs_max_plots <- ggpubr::ggarrange(kbs_max_plot, umbs_max_plot,
+                                 nrow = 1, ncol = 2, common.legend = T, legend="bottom")
+
+png("kbs_umbs_max_plots.png", units="in", width=14, height=8, res=300)
+kbs_umbs_max_plots
+dev.off()
+```
+
+stats
+```{r}
+#kbs
+kbs_max_all_anova <- aov(avg_max_temp~treatment, data = kbs_max_all)
+summary(kbs_max_all_anova)
+TukeyHSD(kbs_max_all_anova)
+
+#umbs
+umbs_max_all_anova <- aov(avg_max_temp~treatment, data = umbs_max_all)
+summary(umbs_max_all_anova)
+TukeyHSD(umbs_max_all_anova)
+
 
 ```
 
